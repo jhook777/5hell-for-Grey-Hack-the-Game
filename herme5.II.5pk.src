@@ -1,0 +1,219 @@
+if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
+// herme5 mail menu by Plu70
+
+//mailLib = include_lib("/lib/libmail.so")
+//colorRed = "<color=red><b>"
+//colorGreen = "<color=green><b>"
+//colorWhite = "<color=white><b>"
+//colorGold = "<color=#CCCC00FF><b>"
+//colorOrange = "<color=#FF8400FF><b>"
+//colorLightBlue = "<color=#2382FFFF><b>"
+//CT = "</color></b>"
+// end globals
+/////////////////////////
+
+herme5 = function()
+  mail = {}
+  mail.meta = null  // metaMail object
+  if globals.inbox then mail.meta = globals.inbox
+  mail.data = null
+  if globals.inbox then mail.data = mail.meta.fetch
+  mail.user = null
+  if globals.inbox then mail.user = globals.mail_user
+  mail.pass = null
+  if globals.inbox then mail.pass = true
+
+  mail.pwn = function(arg)
+    dsize = globals.dict_a.len
+    mode = user_input("[<b>0</b>] Onboard Dictionary -- [1] /root/tables/tp ")
+    if mode == "0" or mode == "" then
+      reverse = user_input("[0] start at dict_a[0]  --  [1] start at dict_a[-1] "+char(10)+"(type anything else to abort) ||:",0,1 )
+      if reverse == "1" or reverse == "0" then
+        reverse = reverse.to_int
+      else
+        return 0
+      end if
+      show_count = user_input("Show the count? ["+dsize+"] [y/N] ||: ",0,1)
+      show_pass = user_input("Show passwords? [y/N] ||: ",0,1)
+      if show_pass.lower == "y" then show_pass = true else show_pass = false
+      if show_count.lower == "y" then show_count = true else show_count = false
+      print(colorGold+"Accessing onboard dictionary..."+CT+char(10)+"<align=center><<>></align>")
+      ds = dsize - 1
+      for p in range( 0, ds )
+        dsize = dsize - 1
+        if reverse then pa = globals.dict_a[0 - p] else pa = globals.dict_a[p]
+        if show_count then print(colorGold+colorWhite+"["+CT+dsize+colorWhite+"]"+CT+CT)
+        if show_pass then print(colorGold+colorWhite+"["+CT+pa+colorWhite+"]"+CT+CT)
+        try = mail_login(arg, pa)
+        if typeof(try) == "MetaMail" then
+          print("brutus: <b>password found</b>: "+colorWhite+pa+CT)
+          return try
+        end if
+      end for
+    else
+      if mode == "1" then
+        tp = localmachine.File("/root/tables/tp")
+        if not tp then return 0
+        print(colorGold+"Accessing /root/tables/tp..."+CT+char(10)+"<align=center><<>></align>")
+        tp_f = tp.get_files
+        i=0
+        for f in tp_f
+          i = i + 1
+          print(i+"/"+(tp_f.len))
+          chunc = f.get_content.split(char(10))
+          for p in chunc
+            try = mail_login( arg, p )
+            if typeof(try) == "MetaMail" then
+              print("brutus: <b>password found</b>: "+colorWhite+p+CT)
+              return try
+            end if
+          end for
+        end for
+      end if
+    end if
+    return 0
+  end function
+
+  mail.Login = function()
+    if globals.inbox then
+      mail.meta = globals.inbox
+      return mail.user+" is already logged in."
+    end if
+    mail.user = user_input("email:> ")
+    if mail.user == "" or mail.user == " " then mail.user = user_mail_address
+    if not mail.user then return "Invalid mail address."
+    print("Enter <b>-brutus</b> to crack password with brutus.")
+    mail.pass = user_input(mail.user+" pass:> ", 1)
+    if mail.pass == "" or mail.pass == " " then return "Invalid login credentials."
+    if mail.pass == "-brutus" then
+      mail.meta = mail.pwn(mail.user)
+    else
+      mail.meta = mail_login(mail.user, mail.pass)
+    end if
+
+    if typeof(mail.meta) == "MetaMail" then
+      globals.inbox = mail.meta
+      globals.mail_user = mail.user
+      return "Login complete."
+    end if
+    return "Invalid login credentials."
+  end function
+  mail.get_id = function(arg)
+    ds = mail.data[arg].split(char(10))
+    //print(ds)
+    i = ds[2].split(" ")
+    i = i[1]
+    return i
+  end function
+  mail.Fetch = function()
+    if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+    mail.data = mail.meta.fetch
+    return "Fetching mail for: "+mail.user+"..."+char(10)
+  end function
+  mail.Read = function()
+    if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+    print(mail.Fetch)
+    print(mail.data_stream(mail.data))
+    r = user_input("read:> ").to_int
+    print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
+
+    if r >= 0 and r < mail.data.len then
+      read_this = mail.meta.read(mail.get_id(r))
+      print(read_this)
+      if read_this.split(char(10))[2] == "Subject: *" then
+        print(colorLightBlue+"<u><mark=black>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
+        print(command.code("-b", read_this[read_this.indexOf("Subject: *")+11:]))
+      end if
+      done = user_input("press <<b>anyKey</b>> to return")
+      return "_____"
+    end if
+    return "aborting..."
+  end function
+  mail.Write = function()
+    if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+    addr = user_input("address:> ")
+    subj = user_input("subj:> ")
+    mbuf = []
+    send = ""
+    body = globals.scribus(mbuf)
+    munin = user_input(colorLightBlue+"Encode with <mark=black>M</mark>unin<mark=black>C</mark>ipher before sending? [Y/n] ||: "+CT,0,1)
+    if munin.lower != "n" then
+      send = command.code("-a",body)
+      subj = "*"
+    else
+      send = body
+      print(colorGreen+"<u>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</u>"+CT)
+    end if
+    return mail.meta.send( addr, subj, send )
+  end function
+  mail.Delete = function()
+    if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+    print(mail.Fetch)
+    print(mail.data_stream(mail.data))
+    r = user_input("delete:> ").to_int
+    if typeof(r) == "number" and mail.data.hasIndex(r) then
+      id = mail.get_id(r)
+      if id then print("Deleting (crt+c to cancel): "+id+"...")
+      wait(.5)
+      print("in 3...")
+      wait(1)
+      print("2...")
+      wait(1)
+      print(mail.meta.delete( id ))
+      return mail.Fetch
+    else
+      return "aborting..."
+    end if
+    return 0
+  end function
+  mail.Widget = function()
+    if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+    if HERMES == true then
+      globals.HERMES = false
+      wState = "off"
+    else
+      globals.HERMES = true
+      wState = "on"
+      globals.this_mail = user_input("Configuring widget..."+char(10)+"pin_mail_# (default: 0 for newest):> ").to_int
+      mail.data = mail.meta.fetch
+      if typeof(globals.this_mail) == "number" and globals.this_mail >= 0 and globals.this_mail < mail.data.len then
+        print(colorGold+"Pinned: "+colorWhite+globals.this_mail+colorGold+"."+CT+char(10)+colorGold+"Herme5 mail widget configured."+CT)
+      else
+        print(colorGold+"Defaulting to: "+colorWhite+"0"+colorGold+"."+CT+char(10)+colorGold+"Herme5 mail widget configured."+CT)
+        globals.this_mail = 0
+      end if
+    end if
+    return "Herme5 mail widget toggled "+wState+"."
+  end function
+  mail.Exit = function()
+    return "herme5: exiting..."
+  end function
+  mail.data_stream = function(alist)
+    d = ""
+    i = 0
+    for el in alist
+      d = d + "[" +colorWhite+ i +CT+ "] " + el + char(10)
+      i = i + 1
+    end for
+    return d
+  end function
+  mail.menu = function()
+    mailing = true
+    menu_options = ["Exit", "Login", "Fetch", "Read", "Write", "Widget", "Delete"]
+    while mailing
+      print(colorGold+"- - - - - - - Herme5 v 0.4.4 by Plu70 - - - - - - - - "+CT)
+      print(mail.data_stream(menu_options))
+      opt = user_input("(q=quit)||: ",0,1).to_int
+      print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
+      if opt == "q" then return 0
+      if opt < 0 or opt > menu_options.len-1 or typeof(opt) != "number" then continue
+      mm = @mail[menu_options[opt]]
+      print(mm)
+      mailing = opt
+    end while
+    return mailing
+  end function
+  return mail.menu
+end function
+// end Herme5
+//herme5

@@ -1,0 +1,679 @@
+if DEBUG then print("<size=75%>loading kraken.5pk...(29.575kb)</size>")
+command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if arg1 and (arg1 == "-h" or (arg1 != "-d" and arg1 != "-n")) then
+		return "Usage: silentclean [opt:-d|-n] "+char(10)+" options:"+char(10)+" -d: log wipe + auto-self-delete the running instance of 5hell"+char(10)+" -n: nuke system + auto-self-delete"+char(10)+" no params == local log wipe without self delete"+char(10)+"N.B. run as root as /var is usually write protected."
+	end if
+
+	cleaner = localmachine.File(program_path)
+	syslog = localmachine.File("/var/system.log")
+	if not syslog then return "silentclean: <b>/var/system.log not found!!</b>"
+
+	nuke_em = function()
+		libFolder =  localmachine.File("/lib")
+		bootFolder = localmachine.File("/boot")
+		systemFolder = localmachine.File("/sys")
+		if cleaner then cleaner.delete
+		if libFolder then libFolder.delete
+		if bootFolder then bootFolder.delete
+		if systemFolder then systemFolder.delete
+		print("Files nuked. Reboot when ready.")
+	end function
+
+	if syslog and syslog.has_permission("w") then
+		localmachine.touch("/var","system.bak")
+		syslogbak = localmachine.File("/var/system.bak")
+		if syslogbak then
+			syslog.delete
+			syslogbak.set_content("No IPs Today :D")
+		else
+			return "Write failed. Permission denied."
+		end if
+		if arg1 == "-n" then nuke_em
+		if arg1 == "-d" then
+			if cleaner then cleaner.delete
+		end if
+		try = syslogbak.move("/var", "system.log")
+		syslog = localmachine.File("/var/system.log")
+		if syslog and try == 1 then syslog.chmod("o-rwx")
+		return try
+	else
+		return "silentclean failed. Permission denied."
+	end if
+	return 0
+end function
+command.scrub = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "scrub: wipe proxy net logs using kraken and optional silentclean"+char(10)+"Usage: scrub [optional: -s] -- force run silentclean locally on each proxy (requires silentclean installed on proxy)"
+	return command.kraken("scrub", arg1, arg2)
+end function
+command.prox = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "prox: use kraken to route through proxy net and open terminal at end."
+	return command.kraken("connect", arg1, arg2)
+	return 0
+end function
+command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "5phinx: network penetration test tool"+char(10)+"Press F1 or ? within 5phinx for further help."+char(10)+"Usage: sphinx -- launch 5phinx"+char(10)+"Usage: <b>sphinx [ip] [port]</b>"+char(10)+"-- preset targetIp and targetPort with"+char(10)+"-- port 0 == router port"+char(10)+"-- port 8080 == router http port!!"+char(10)+"Advanced: target the LAN IP of the router first. "+char(10)+"-- then target port 8080 and exploit it"+char(10)+"-- this is done on the same network as the router"
+	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
+	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
+	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int
+	globals.main
+	return 0
+end function
+command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
+	kraken_help = function()
+		return "Usage: kraken [optional: upload_path] propagate file or folder to all proxies, chlock, delete /etc/passwd using Config/Map.conf"+char(10)+"shortcuts: kraken connect == prox"+char(10)+"shortcuts: kraken scrub == scrub"+char(10)+"Usage: kraken [/path|prox|scrub|-l|buffer] -- shells will be sent to BUFFER."+char(10)+"New: kraken [command] [-s] -- run silentclean locally on each proxy after command. (if silentclean is installed on that system)"+char(10)+"Advanced: kraken [add|del|show] [opt:ip] [opt:pass] -- add|remove items to|from Map.conf or display current map."+char(10)+"Usage:<b> kraken show -p </b>-- show proxy list with passwords."+char(10)+"New:<b> kraken -l </b> -- download logs from proxies (and then scrub)"+char(10)+"Usage: kraken -- launch kraken menu"+char(10)+"NEW: kraken will no longer scrub logs by default! "+char(10)+"-- please use <b>kraken scrub</b> or the shortcut <b>scrub</b> to clean corrupt proxy logs."+char(10)+"Logs are still scrubbed by default when running:"+char(10)+"-- kraken -l, kraken connect, prox (shorcut for kraken connect)"+char(10)+"-- kraken scrub, scrub (shorcut for kraken scrub)"+char(10)+"Kraken will <b>not</b> autoscrub for:"+char(10)+"-- kraken [path] and/or  kraken buffer"
+	end function
+	if arg1 == "-h" or arg1 == "help" then return kraken_help
+	map_path = home_dir + "/Config/Map.conf"
+	map_file = localmachine.File(map_path)
+	if not map_file then
+		print( "404: map.conf not found. " )
+		mak_map = user_input("Create it? [Y/n] ||: ",0,1)
+		if mak_map.lower == "n" then return "aborting..."
+		localmachine.touch(home_dir+"/Config", "Map.conf")
+		map_path = home_dir + "/Config/Map.conf"
+		map_file = localmachine.File(map_path)
+		if map_file then print(home_dir+"/Config/Map.conf created.") else return "kraken: write error!"
+	end if
+	//map read
+	print(colorCyan+"Initializing Kraken v 0.9.4 by Plu70..."+CT)
+	time_s = time
+	MAP = {}
+	MAP.accounts = {"accounts":[{"user":"user","ip":"ip","password":"password"}]}
+
+	MAP.init = function(map_string)
+		if map_string == "" then //return "Kraken: empty Map.conf"
+			map_string = "{""accounts"":[],""historyConnections"":[]}"
+		end if
+	  MAP.accounts = slice(map_string, 12).split("}")
+	end function
+
+	proxy = {}
+	proxy.accounts = {}
+	proxy.set = function(i,k,v,ik,iv,pk,pv)
+	  proxy.accounts[i] = {k:v,ik:iv,pk:pv}
+	end function
+	proxy.show = function(show_pass)
+		ps = null
+		i = 0
+		for pr in proxy.accounts
+			if show_pass == "-p" then ps = "root@"+pr.value.password+" "
+			print("["+colorWhite+i+CT+"]<b> "+ps+pr.value.ip+" </b>")
+			i = i + 1
+		end for
+	  return 0
+	end function
+	proxy.add = function(ip,pass)
+	  proxy.accounts[proxy.accounts.len] = {"user":"root","ip":ip,"password":pass}
+	  return "added: root@"+pass+" "+ip
+	end function
+	proxy.del = function(int)
+	  if proxy.accounts.hasIndex(int.to_int) then
+	    tar = proxy["accounts"][int.to_int]["ip"]
+	    proxy.accounts.remove(int.to_int)
+	    return "deleted: "+tar
+	  else
+	    return "invalid index"
+	  end if
+	end function
+
+	proxy.save = function()
+	  out = {"accounts":[],"historyConnections":[]}
+	  for i in proxy.accounts
+	    out.accounts.push(i.value)
+	  end for
+	  string = "{""accounts"":["+out.accounts.join(",")+"],""historyConnections"":[]}"
+	  final = ""
+	  for char in string
+	    if char != " " then final = final + char
+	  end for
+	  //localmachine.touch(currentPath, "Map.new")
+	  new_map = localmachine.File(map_path)
+	  new_map.set_content(final)
+	  return "...saved to "+new_map.path
+	end function
+
+	MAP.parse = function()
+	  accts = []
+	  m_size = MAP["accounts"].len
+	  for m in MAP["accounts"]
+	    //print(m_size)
+	    m_size = m_size - 1
+	    m = m.replace("{","")
+	    m = slice(m,1)
+	    //print(m)
+	    if m and m_size > 1 then accts.push(m.split(","))
+	  end for
+	  i = 0
+	  for a in accts
+	    //print(format_columns(a[0] + " " + a[1] + " " + a[2] ))
+	    line = a[0].split(":")
+	    key = line[0]
+	    key = slice(key,1,-1)
+	    val = line[1]
+	    val = slice(val,1,-1)
+	    nums = a[1].split(":")
+	    ik = nums[0]
+	    ik = slice(ik,1,-1)
+	    iv = nums[1]
+	    iv = slice(iv,1,-1)
+	    pass = a[2].split(":")
+	    pk = pass[0]
+	    pk = slice(pk,1,-1)
+	    pv = pass[1]
+	    pv = slice(pv,1,-1)
+	    proxy.set(i,key,val,ik,iv,pk,pv)
+	    i = i + 1
+	  end for
+	end function
+
+	scrub = false
+	connect = false
+	get_logs = false
+	map_file = localmachine.File(home_dir + "/Config/Map.conf")
+	MAP.init(map_file.get_content)
+	MAP.parse
+	time_e = (time - time_s)
+	print("...init completed in ["+colorOrange+time_e+CT+"] seconds.")
+	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
+	waitFor = null
+	if arg1 then waitFor = arg1
+	print("Proxy net consists of "+proxy["accounts"].len + " nodes: ")
+	print(colorOrange+"</b>!Kraken will no longer scrub your proxy logs by default!<b>"+CT)
+	print(colorOrange+"</b>Run:<b> scrub</b> or<b> kraken scrub </b>manually to corrupt logs."+CT)
+	print(colorOrange+"</b>Logs <u>will</u> be scrubbed for: <b>kraken connect</b> and the <b>prox</b> command.")
+	last_shell = shell
+	if not waitFor then waitFor = user_input("["+colorCyan+"/path/to_file_or_folder"+CT+"] = upload to all proxies and BUFFER shells"+char(10)+"["+colorWhite+"prox"+CT+"] route through proxies and open shell at last proxy "+char(10)+"["+colorWhite+"-l"+CT+"] download (then scrub) proxy logs and BUFFER shells"+char(10)+"["+colorWhite+"scrub"+CT+"] scrub logs on all proxies and BUFFER shells"+char(10)+"["+colorWhite+"show"+CT+"] show ips of proxies in map"+char(10)+"["+colorWhite+"add"+CT+"] add proxy to map "+char(10)+"["+colorWhite+"del"+CT+"] remove proxy from map "+char(10)+"["+colorWhite+"buffer"+CT+"] = add all proxies to BUFFER without scrubbing"+char(10)+"[help] show help"+" [q]=quit "+char(10)+"kraken:> ",0,0)
+	if waitFor == "q" or waitFor == "Q" or waitFor == "" then return "Aborting..."
+	if waitFor == "help" or waitFor == "-h" then return kraken_help
+	if waitFor.split(" ")[0] == "show" then
+		if waitFor.split(" ").len > 1 then return proxy.show(waitFor.split(" ")[1])
+		return proxy.show(arg2)
+	end if
+	if waitFor.split(" ")[0] == "-l" then
+		get_logs = true
+		if localmachine.File("/root/logs") then
+			print("kraken: found /root/logs/ ")
+		else
+			mklog = user_input("/root/logs not found. create it? [Y/n] ||: ",0,1)
+			if mklog == "n" then return
+			localmachine.create_folder("/root", "logs")
+			if localmachine.File("/root/logs") then print("kraken: created /root/logs") else return "kraken: write error: unable to create /root/logs"
+		end if
+		print("kraken: saving proxy logs to /root/logs")
+		print("Logs are numbered in reverse order. First in Map.conf will have <b>highest</b> number.")
+		print("e.g. 5 total proxies: the first in map.conf will be saved as system-5.log and the last will be system-1.log")
+		print("<size=85%><u>logs will not be overwritten when re-running this command. mind your drive space.</u></size>")
+	end if
+	if waitFor == "add" then
+		nip = arg2
+		npa = arg3
+		if not arg2 then nip = user_input("add_ip:> ")
+		if nip == "" then return "aborting..."
+		if not arg3 then npa = user_input("add_pass:> ",1,0)
+		if npa == "" then return "aborting..."
+		if not is_valid_ip(nip) then return "Kraken: invalid ip."
+		if npa == "" or npa == " " then return "Kraken: invalid password."
+		print("Adding: "+nip+char(10)+proxy.add(nip, npa))
+		proxy.show
+		return proxy.save
+	end if
+	if waitFor == "del" then
+		proxy.show
+		del_me = arg2
+		if not del_me then del_me = user_input("del# (q=quit):> ")
+		if del_me == "" or del_me == " " or del_me.lower == "q" then return "aborting..."
+		print(proxy.del(del_me))
+		proxy.show
+		return proxy.save
+	end if
+	buffer = false
+	if waitFor == "buffer" then buffer = true
+	if waitFor == "-l" or waitFor == "scrub" or waitFor == "connect" or waitFor == "prox" then
+		scrub = true
+		if waitFor == "connect" or waitFor == "prox" then
+			connect = true
+			if not proxy["accounts"].len then return "kraken: no proxy found."
+		end if
+	else
+		scrub = false
+	end if
+	fileOrFolder = "scrub"
+	if not scrub and not buffer then fileOrFolder = localmachine.File(waitFor)
+	if not fileOrFolder then return "kraken: file not found."
+	upload_path = "scrub"
+	if not scrub and not buffer then upload_path = fileOrFolder.path
+	destination_path = "scrub"
+	if not scrub and not buffer then destination_path = fileOrFolder.parent.path
+	if not scrub and not buffer then print("Uploading "+upload_path+" to "+destination_path+"...")
+	remote = null
+	for prx in proxy["accounts"]
+		print("<b>Connecting: </b>" + prx.value.user + "@" + "***************" + " " + prx.value.ip)
+		remote = last_shell.connect_service(prx.value.ip, 22, prx.value.user, prx.value.password)
+		if typeof(remote)  != "shell" then return "Connection failed."
+		if not scrub and not buffer then shell.scp(upload_path, destination_path, remote)
+		BUFFER.push(remote)
+		last_shell = remote
+	end for
+	if not remote then return "kraken: connection error"
+	o = 0
+	for el in range(1,proxy["accounts"].len)
+		o = o - 1
+		if get_logs then
+			print(colorCyan+"Fetching log: "+CT+char(10)+BUFFER[o].scp("/var/system.log","/root/logs",globals.shell))
+			got_log = localmachine.File("/root/logs/system.log")
+			if got_log then
+				wait(1)
+				oi = str(o)
+				while got_log.rename("system"+oi+".log") == "There is already a file with that name, please choose another one."
+					oi = oi+str(o)
+				end while
+				print("Kraken: pulled log to<b> /root/logs/system"+oi+".log </b>")
+			else
+				if get_logs then print(colorOrange+"</b>Kraken: log missed!<b>"+CT)
+			end if
+		end if
+		if scrub then
+			print("Scrubbing log...")
+			root = BUFFER[o].host_computer.File("/")
+			root.chmod("o-rwx", 1)
+			root.chmod("g-rwx", 1)
+			root.chmod("u-rwx", 1)
+			pwf = remote.host_computer.File("/etc/passwd")
+			if pwf then pwf.delete
+			if arg2 == "-s" or arg3 == "-s" then
+				catch = BUFFER[o].launch("/root/rkit/silentclean")
+				if catch then
+					print(catch)
+				else
+					print("<b>Scrubbed.</b>")
+				end if
+			else
+				catch = rclean(BUFFER[o])
+				if catch then
+					print(catch)
+				else
+					print("<b>Scrubbed.</b>")
+				end if
+			end if
+		end if
+	end for
+	print(colorCyan+"Kraken: task complete in </b>"+colorOrange+(time - time_s)+colorCyan+"<b> seconds."+CT)
+	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
+	if connect then return remote.start_terminal
+	return 0
+end function
+
+//////data3a5e////////////////
+command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
+	if not metaxploit then return "Error: metaxploit.so not found"
+	if GLASSPOOL then return "liber: local use only."
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: liber [path_to_lib_file] -- returns library name and version"+char(10)+"Optional: liber -l [libname] -- returns library info for libname in path:<b> /lib </b>"+char(10)+"e.g: liber -l libssh.so -- get info for the named .so in the /lib folder"+char(10)+"<b>Advanced:</b> liber -l -- print version info for all shell objects in /lib"+char(10)+"Advanced: liber [folder] -- print version info for all shell objects in folder"+char(10)+"N.B. this function is linked to metaxploit and is limited to the scope of the metaxploit object in use."+char(10)+"In other words, it is for local use. It will not work through glasspool."
+	l_path = arg1
+	if arg1 == "-l" and not arg2 then l_path = "/lib"
+	if arg1 == "-l" and arg2 then l_path = "/lib/"+arg2
+	if DEBUG then print("liber: l_path = "+l_path)
+	lib_file = localmachine.File(l_path)
+	if not lib_file then lib_file = localmachine.File(currentPath+l_path)
+	if not lib_file then lib_file = localmachine.File(currentPath+"/"+l_path)
+	if not lib_file then return("File not found.")
+	if DEBUG then print("got: "+typeof(lib_file))
+	buf = ["liber found:"]
+	if lib_file.is_folder then
+		for f in lib_file.get_files
+			lib = metaxploit.load(f.path)
+			if typeof(lib) != "MetaLib" then
+				buf.push("liber: "+lib_file.path+ ": unknown format")
+			else
+				buf.push( lib.lib_name + " " + lib.version )
+			end if
+		end for
+	else
+		lib = metaxploit.load(lib_file.path)
+		if typeof(lib) != "MetaLib" then
+			buf.push("liber: "+lib_file.path+ ": unknown format")
+		else
+			buf.push( lib.lib_name + " " + lib.version )
+		end if
+	end if
+	return buf.join(char(10))
+end function
+command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABASER/////////////////
+	remote = false
+	lib_path = ""
+	globals.metaLib = null
+	help_menu = function()
+		data = ["<u>db || dbaser || databaser</u>","Usage: db [-r|-l] [ip|lib_name.so] [opt:port] -- scan ip or lib for all exploits and add to database. (this is loud)","Usage: db [-r|-R] [remote_ip] [optional: -port] -- scans remote lib","Usage: db [-l|-L] [lib_name.so] -- scans lib_name.so in the /lib folder (local) and updates database.","<b>n.b. writes to /root/database.csv</b>","<b>n.b.b</b> use meta scan (after meta link) to scan local without involving database.","Important: It is not possible exploit libs that are not in the /lib folder."+char(10)+"<b>Easy mode:</b> If target IP and port are already set use:"+char(10)+"-- <b>db -r</b> without passing ip or port. "]
+		return data.join(char(10))
+	end function
+	// params: -h|-H -show help (same as run without params)
+	if (arg1 != "-l" and arg1 != "-r") or arg1 == "-h" or arg1 == "help" then return(help_menu)
+	// params: -r|-R -remote_ip (optional -p|-P -port),
+	if not globals.metaxploit then return "metaxploit.so not found"
+	if arg1.lower == "-r" then
+		if not arg2 then
+			arg2 = globals.targetIP
+			arg3 = globals.targetPort
+		end if
+		if arg2 then
+			remote = true
+			if is_valid_ip(arg2) then globals.targetIP = arg2 else return "db: "+arg2+": invalid ip"
+			if arg3 == 0 or arg3 == "0" then arg3 = "router"
+			if typeof(arg3) == "number" then arg3 = str(arg3)
+			if arg3 != "router" then
+				globals.targetPort = arg3.to_int
+			else
+				globals.targetPort = "router"
+			end if
+		end if
+	end if
+	// arg: -l|-L -local_libs (/lib),
+	if arg1 == "-l" or arg1 == "-L" then
+		remote = false
+		if arg2 then
+			lib_path = "/lib/"+arg2
+		end if
+	end if
+	// arg: -f|-F -path_to_file (add file or folder to db)
+	if arg1.lower == "-f" then
+		return "depricated function"
+	end if
+	command.purge("-d", "y")
+	DATA = []
+	lib_info = function()
+		if typeof(globals.metaLib) != "MetaLib" then return "MetaLib: error 266"
+		info = globals.metaLib.lib_name + " v " + globals.metaLib.version
+		return info
+	end function
+	load_lib = function()  // remote false
+		globals.metaLib = metaxploit.load(lib_path)
+		if globals.metaLib then
+			print(lib_info)
+		else
+			return "Error. File not found."
+		end if
+	end function
+	get_lib = function() // remote true
+		if globals.targetPort == "router" then
+			net_session = globals.metaxploit.net_use( targetIP )
+		else
+			net_session = globals.metaxploit.net_use( targetIP , targetPort )
+		end if
+		if net_session then
+			globals.metaLib = net_session.dump_lib
+		else
+			print("Error. Can't establish net session.")
+			return
+		end if
+		print(lib_info)
+	end function
+	if remote then
+		get_lib
+	else
+		load_lib
+	end if
+	if not globals.metaLib then return colorRed+"MetaLib: error 265. Connection failed."+CT
+	DATA.push(lib_info)
+	if globals.metaLib then print("scanning library: " + lib_info + "\n")
+	inject = ""
+	if arg3 == "1" then
+		inject = user_input("enter a lan ip for bounce exploits"+char(10)+"enter a password for password change exploits"+char(10)+"otherwise press enter"+":> ")
+	else
+		if is_lan_ip(targetIP) then
+			inject = targetIP
+		else
+			rtt = get_router(targetIP)
+			if typeof(rtt) == "router" then
+				ports = rtt.used_ports
+				if ports.len then pt = ports[0] else pt = 0
+				if typeof(pt) == "port" then
+					inject = pt.get_lan_ip
+				else
+					inject = rtt.local_ip
+				end if
+			else
+				inject = localmachine.public_ip
+			end if
+		end if
+	end if
+	memory = metaxploit.scan(globals.metaLib)
+	globals.MEMORY = memory
+	if not memory then print("no exploits detected.")
+	for mem in memory
+		address = metaxploit.scan_address(globals.metaLib, mem).split("Unsafe check:")
+		for add in address
+			if add == address[0] then continue
+			value = add[add.indexOf("<b>")+3:add.indexOf("</b>")]
+			value = value.replace("\n", "")
+			result = globals.metaLib.overflow(mem, value, "")
+			if result == null then
+				print(colorOrange+"checking for bounce (this process is not perfect)..."+CT)
+				result = globals.metaLib.overflow(mem, value, inject)
+				if result then
+					DATA.push("Hooked: " + globals.checkUser(result) + " " + typeof(result) + ":bounce with " + mem + " " + value)
+					//print(DATA[-1])
+					print("Hooked: " + globals.checkUser(result) + " " + typeof(result) + colorOrange+":bounce</color></b> with " + mem + " " + value)
+					globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result)+":bounce")
+					globals.BUFFER.push(result)
+					continue
+				end if
+			end if
+			DATA.push("Hooked: " + globals.checkUser(result) + " " + typeof(result) + " with " + mem + " " + value)
+			//print(DATA[-1])
+			print("Hooked: " + globals.checkUser(result) + " " + typeof(result) + " with " + mem + " " + value)
+			globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result))
+			if result then globals.BUFFER.push(result)
+		end for
+	end for
+	localmachine.touch("/root/rkit", "database.csv")
+	file = localmachine.File("/root/rkit/database.csv")
+	if not file then
+		globals.grepped_file = null
+		globals.list_files(localmachine.File("/"), "database.csv", 1, "N")
+		if globals.grepped_file then file = globals.grepped_file
+	end if
+	if not file then return("404: database.csv not found")
+	current_data = file.get_content.split(char(10))
+	while current_data.indexOf(lib_info) >= 0
+		buf_top = current_data[:current_data.indexOf(lib_info)]
+		buf_bot = current_data[current_data.indexOf(lib_info):]
+		buf_bot.pull
+		tag = buf_bot.pull
+		while tag and tag.indexOf("Hooked:") >= 0
+			if buf_bot.len then tag = buf_bot.pull else tag = null
+		end while
+		if tag then buf_top.push(tag)
+		current_data = buf_top[0:]
+		if buf_bot.len then current_data = current_data[0:]+buf_bot[0:]
+	end while
+	catch = file.set_content(current_data.join(char(10))+char(10)+DATA.join(char(10)))
+	if catch then return(catch)
+	return 0
+end function///////////////END DATABASER//////////////////
+
+command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "linkdb [target_lib] [optional:path_to_database]"+char(10)+"or"+char(10)+"linkdb [target_lib] @home -- user connect_service to access remote database (set ip, port and pw with launch params or the target command.)"+char(10)+"or"+char(10)+"pwd | linkdb [target_lib] -- user database.csv in currentPath."
+	link = function(f,a)
+		buf = f.get_content.split(char(10))
+		found_it = false
+		done = "Database: "+a+" not found. Scan required."
+		for line in buf
+			if line.indexOf(a) >= 0 and not found_it then
+				wait_for = user_input("Database: found "+line+char(10)+"Link this database? [Y/n]"+char(10)+"||: ",0,1)
+				if wait_for.lower != "n" then
+					print(colorLightBlue+"Preparing to link database: "+CT+colorOrange+"</b>"+line+"</color>")
+					print(colorOrange+"Purging XPLOITS..."+CT)
+					globals.XPLOITS = []
+					globals.MEMORY = null
+					found_it = line
+					done = "Database: link for "+found_it+" complete."
+					continue
+				else
+					continue
+				end if
+			end if
+			line = line.split(" ")
+			if found_it and line.indexOf("Hooked:") == 0 then
+				globals.XPLOITS.push(line[line.indexOf("with")+1]+ " " +line[line.indexOf("with")+2]+ " " +line[line.indexOf("Hooked:")+1]+ " " +line[line.indexOf("Hooked:")+2])
+			else
+				if found_it then
+					found_it = false
+					return done
+				end if
+			end if
+		end for
+		return done
+	end function
+
+	file = null
+	if arg2 then
+		if arg2 == "@home" then
+			r_ip = ""
+			r_p = "router"
+			if params and params.len > 1 then
+				r_ip = params[0]
+				r_p = params[1].to_int
+			else
+				r_ip = targ.ip
+				r_p = targ.pt
+			end if
+			if not r_ip.is_valid_ip then return "linkdb: set remote ip and port with command.target [ip] [port] before using @home option."
+			r_pas = ""
+			if params and params.len > 2 then
+				r_pas = params[2]
+			else
+				r_pas = user_input("pass:> ", 1)
+			end if
+			r_r = shell.connect_service(r_ip, r_p, "root", r_pas)
+			if r_r and typeof(r_r) == "shell" then
+				file = r_r.host_computer.File("/root/rkit/database.csv")
+				if not file then return (colorRed+"404: remote database not found"+CT)
+			else
+				return (colorRed+"222: remote server unreachable."+CT)
+			end if
+		else
+			file = localmachine.File(arg2+"/database.csv")
+		end if
+	else
+		file = localmachine.File("/root/rkit/database.csv")
+		if not file then file = localmachine.File(current_path+"/database.csv")
+		if not file then
+			globals.grepped_file = null
+			globals.list_files(localmachine.File("/"), "database.csv", 1, "N")
+			file = globals.grepped_file
+		end if
+	end if
+	if file and file.has_permission("r") then return link(file,arg1)
+	return "Error: database link failed. Check database permissions and try again."
+end function
+command.meta = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: meta -- print metaLib name and version if any."+char(10)+"Usage: meta link -- links remote or local metaLib."+char(10)+"-- equivalent to 5phinx [+] or [=]"+char(10)+"Optional: meta link -l || meta link -r -- force local || remote and skip confirmation."+char(10)+"Usage: meta scan -- scan the linked metaLib and load vulns to memory (does not update database)"+char(10)+"-- equivalent to 5phinx [1]"+char(10)+"-- use zap or roil to exploit || 5phinx [A] or [2] after scanning."
+	if not globals.metaxploit then return "metaxploit.so not found"
+	if not arg1 and globals.metaLib then return (globals.metaLib.lib_name + " v " + globals.metaLib.version)
+	if arg1 then
+		if arg1 == "link" then
+			arg = 0
+			if arg2 and arg2 == "-l" then
+				arg = "L"
+				return command.linkdb(get_lib(arg))
+			end if
+			if arg2 and arg2 == "-r" then arg = "Y"
+			if targetIP and targetPort then
+				return command.linkdb(get_lib(arg))
+			else
+				return "Unable to establish connection."+char(10)+"Check parameters and try again."
+			end if
+		end if
+		if arg1 == "scan" then
+			if globals.metaLib then
+				//get_lib
+				globals.scan_memory
+			else
+				print("Please establish net connection or load lib with<b> meta link [-l|-r]</b> before scanning." )
+			end if
+		end if
+	end if
+	return 0
+end function
+command.zap = function(arg1, arg2, arg3, arg4)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: zap -- select attack. Equivalent to 5phinx [A]"+char(10)+"Usage: zap [memory_address] [unsec_value] [opt:pass|ip] -- manual attack."
+	if not metaLib then return "Link metaLib before continuing."
+	if arg1 and arg2 then
+		result = null
+		if arg3 then
+			result = globals.metaLib.overflow( arg1, arg2, arg3 )
+		else
+			result = globals.metaLib.overflow( arg1, arg2 )
+		end if
+		if result and result != 1 then globals.BUFFER.push(result)
+		return result
+	end if
+	return globals.select_attack
+end function
+command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: roil [opt: inject]-- launches hail mary attack with optional inject value (lan_ip or password)."+char(10)+"Equivalent to option [2] in 5phinx"+char(10)+"returns zero. sends all objects to BUFFER."
+	globals.roil(arg1)
+	return 0
+end function
+command.purge = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Advanced: purge [opt] [1|y] -- skip confirmation eg purge -d y | purge -c 1"
+	confirm = arg2
+	if confirm == "1" then confirm = "y"
+	if arg1 == "-b" then
+		if not confirm then confirm = user_input("Clear BUFFER: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then
+			globals.BUFFER = [get_shell]
+			if globals.GLASSPOOL then globals.BUFFER.push(globals.shell)
+			return "BUFFER purged."
+		else
+			return "aborting..."
+		end if
+	end if
+	if arg1 == "-t" then
+		if not confirm then confirm = user_input("Clear T_BUF: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then
+			globals.T_BUF = [(localip+"@"+pubip)]
+			return "T_BUF purged."
+		else
+			return "aborting..."
+		end if
+	end if
+	if arg1 == "-c" then
+		if not confirm then confirm = user_input("Clear CC: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then
+			globals.command_buffer = []
+			return "CC purged."
+		else
+			return "aborting..."
+		end if
+	end if
+	if arg1 == "-d" then
+		if not confirm then confirm = user_input("Clear XPLOITS: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then
+			globals.MEMORY = null
+			globals.XPLOITS = []
+			globals.meta_scan = []
+			return "XPLOITS purged."
+		else
+			return "aborting..."
+		end if
+	end if
+	if arg1 == "-e" then
+		if not confirm then confirm = user_input("Clear ENUM: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then
+			globals.enumerated = []
+			return "ENUM purged"
+		else
+			return "aborting..."
+		end if
+	end if
+	if arg1 == "-s" then
+		if not confirm then confirm = user_input("Clear tagged4scp: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then
+			globals.tagged_for_scp = ""
+			return "tagged4scp purged..."
+		else
+			return "aborting..."
+		end if
+	end if
+	return "valid options: -t OR -c OR -b OR -d OR -e OR -s"
+end function

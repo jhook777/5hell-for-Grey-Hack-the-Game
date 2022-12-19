@@ -1,0 +1,115 @@
+if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")
+command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if typeof(@arg1) == "function" then
+		globals.clip_board_alpha = @arg1
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+		return @globals.clip_board_alpha
+	end if
+	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard alpha || clipa || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipa: pipe outputs to clipa with: command | clipa"+char(10)+" clipa [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipa"+char(10)+"clipa -- <b>Returns</b> contents of clipa if no arguments."+char(10)+"scribus @clipa -- edit clipa directly with the text editor."
+	if arg1 == "0" then
+		globals.clip_board_alpha = "0"
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+		return globals.clip_board_alpha
+	end if
+	if arg1 == 0 then
+		if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
+	end if
+	globals.clip_board_alpha = arg1
+	if arg1 == "@tbuf" then
+		globals.T_BUF.pull
+		globals.clip_board_alpha = globals.T_BUF.join(char(10))
+		globals.T_BUF = [(localip+"@"+pubip)]
+	end if
+	if arg1 == "@cc" then	globals.clip_board_alpha = globals.command_buffer.join(char(10))
+	if arg1 == "@B" then
+		if globals.BUFFER.len < 1 then return "BUFFER is empty."
+		i = 0
+		for b in globals.BUFFER
+			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+			i = i + 1
+		end for
+		get = arg2
+    if get and get != "-m" then get = arg2.to_int
+    if get == "-m" then get = user_input("clipa:> ").to_int
+		if typeof(get) != "number" then return "BUFFER: invalid selection."
+		if get >= 0 and get < BUFFER.len then globals.clip_board_alpha = BUFFER[get] else return "BUFFER: invalid selection."
+	end if
+	print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+	if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
+end function
+command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if typeof(@arg1) == "function" then
+		globals.clip_board_beta = @arg1
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+		return @globals.clip_board_beta
+	end if
+	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard beta || clipb || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipb: pipe outputs to clipb with: command | clipb"+char(10)+" clipb [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}|function]"+char(10)+"-- add any of the above to clipb"+char(10)+"clipb -- <b>Returns</b> contents of clipb if no arguments."+char(10)+"scribus @clipb -- edit clipb directly with the text editor."+char(10)+"N.B. please be awake that command.<b>append</b> works a bit differently with clipb than with clipa or clipc."+char(10)+"-- see append -h for more info."
+	if arg1 == "0" then
+		globals.clip_board_beta = "0"
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+		return globals.clip_board_beta
+	end if
+	if arg1 == 0 then
+		if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
+	end if
+	globals.clip_board_beta = arg1
+	if arg1 == "@tbuf" then
+		globals.T_BUF.pull
+		globals.clip_board_beta = globals.T_BUF.join(char(10))
+		globals.T_BUF = [(localip+"@"+pubip)]
+	end if
+	if arg1 == "@cc" then	globals.clip_board_beta = globals.command_buffer.join(char(10))
+	if arg1 == "@B" then
+		if globals.BUFFER.len < 1 then return "BUFFER is empty."
+		i = 0
+		for b in globals.BUFFER
+			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+			i = i + 1
+		end for
+		get = arg2
+		if get and get != "-m" then get = arg2.to_int
+		if get == "-m" then get = user_input("clipb:> ").to_int
+		if typeof(get) != "number" then return "BUFFER: invalid selection."
+		if get >= 0 and get < BUFFER.len then globals.clip_board_beta = BUFFER[get] else return "BUFFER: invalid selection."
+	end if
+	print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+	if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
+end function
+command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if typeof(@arg1) == "function" then
+		globals.clip_board_gamma = @arg1
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+		return @globals.clip_board_gamma
+	end if
+	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard gamma || clipc || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipc: pipe outputs to clipc with: command | clipc"+char(10)+" clipc [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipc"+char(10)+"clipc -- <b>Returns</b> contents of clipc if no arguments."+char(10)+"scribus @clipc -- edit clipc directly with the text editor."
+	if arg1 == "0" then
+		globals.clip_board_gamma = "0"
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+		return globals.clip_board_gamma
+	end if
+	if arg1 == 0 then
+		if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
+	end if
+	globals.clip_board_gamma = arg1
+	if arg1 == "@tbuf" then
+		globals.T_BUF.pull
+		globals.clip_board_gamma = globals.T_BUF.join(char(10))
+		globals.T_BUF = [(localip+"@"+pubip)]
+	end if
+	if arg1 == "@cc" then	globals.clip_board_gamma = globals.command_buffer.join(char(10))
+	if arg1 == "@B" then
+		if globals.BUFFER.len < 1 then return "BUFFER is empty."
+		i = 0
+		for b in globals.BUFFER
+			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+			i = i + 1
+		end for
+		get = arg2
+		if get and get != "-m" then get = arg2.to_int
+		if get == "-m" then get = user_input("clipc:> ").to_int
+		if typeof(get) != "number" then return "BUFFER: invalid selection."
+		if get >= 0 and get < BUFFER.len then globals.clip_board_gamma = BUFFER[get] else return "BUFFER: invalid selection."
+	end if
+	print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+	if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
+end function

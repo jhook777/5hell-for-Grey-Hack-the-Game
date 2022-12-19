@@ -1,0 +1,443 @@
+// Jokers Wild Blackjack by Plu70 (aka raal, aka jhook777)
+// feel free to use the deck in your own games!
+//localhost = get_shell
+//localmachine = localhost.host_computer
+
+  // START 3nigma DECK /////////////////////////////////
+  RC = "<color=red>"
+  BC = "<color=#606060>"
+  GC = "<color=green><b>"
+  OC = "<color=#FF8400FF>"
+  CW = "<color=white>"
+  CLB = "<color=#2382FFFF><b>"
+  CC = "</color>"
+  SU = ["V","^","+","&"] // ace: heart, spade, diamond, club; index: 1, 14, 27, 40
+  //cards = params[0].split(",")
+  //cards.pull
+  //num_cards = cards.len - 1
+  Deck = {}
+  i = 1
+  C = null
+  Deck[0] = RC+" _____ "+CC+"::"+RC+"|@  .^|"+CC+"::"+BC+"| @ {)|"+CC+"::"+RC+"|   $$|"+CC+"::"+BC+"|  *__|"+CC+"::"+RC+"|__JJ[|"+CC
+  for S in SU
+    if S == "V" or S == "+" then C = RC
+    if S == "^" or S == "&" then C = BC
+    for N in range(1,13)
+      if N == 1 and S == "V" then Deck[i] = C+" _____ "+CC+"::"+C+"|A_ _ |"+CC+"::"+C+"|( v )|"+CC+"::"+C+"| \ / |"+CC+"::"+C+"|  .  |"+CC+"::"+C+"|____V|"+CC
+      if N == 1 and S == "^" then Deck[i] = C+" _____ "+CC+"::"+C+"|A .  |"+CC+"::"+C+"| /.\ |"+CC+"::"+C+"|(_._)|"+CC+"::"+C+"|  |  |"+CC+"::"+C+"|____V|"+CC
+      if N == 1 and S == "+" then Deck[i] = C+" _____ "+CC+"::"+C+"|A ^  |"+CC+"::"+C+"| / \ |"+CC+"::"+C+"| \ / |"+CC+"::"+C+"|  .  |"+CC+"::"+C+"|____V|"+CC
+      if N == 1 and S == "&" then Deck[i] = C+" _____ "+CC+"::"+C+"|A _  |"+CC+"::"+C+"| ( ) |"+CC+"::"+C+"|(_'_)|"+CC+"::"+C+"|  |  |"+CC+"::"+C+"|____V|"+CC
+      if N == 2 then Deck[i] = C+" _____ "+CC+"::"+C+"|2    |"+CC+"::"+C+"|  "+S+"  |"+CC+"::"+C+"|     |"+CC+"::"+C+"|  "+S+"  |"+CC+"::"+C+"|____Z|"+CC
+      if N == 3 then Deck[i] = C+" _____ "+CC+"::"+C+"|3    |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|     |"+CC+"::"+C+"|  "+S+"  |"+CC+"::"+C+"|____E|"+CC
+      if N == 4 then Deck[i] = C+" _____ "+CC+"::"+C+"|4    |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|     |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|____h|"+CC
+      if N == 5 then Deck[i] = C+" _____ "+CC+"::"+C+"|5    |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|  "+S+"  |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|____S|"+CC
+      if N == 6 then Deck[i] = C+" _____ "+CC+"::"+C+"|6    |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|____9|"+CC
+      if N == 7 then Deck[i] = C+" _____ "+CC+"::"+C+"|7    |"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|____L|"+CC
+      if N == 8 then Deck[i] = C+" _____ "+CC+"::"+C+"|8    |"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"| "+S+" "+S+" |"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"|____8|"+CC
+      if N == 9 then Deck[i] = C+" _____ "+CC+"::"+C+"|9    |"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"|____6|"+CC
+      if N == 10 then Deck[i] = C+" _____ "+CC+"::"+C+"|10 "+S+" |"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"|"+S+" "+S+" "+S+"|"+CC+"::"+C+"|___0I|"+CC
+      if N == 11 then Deck[i] = C+" _____ "+CC+"::"+C+"|J  ww|"+CC+"::"+C+"| "+S+" {)|"+CC+"::"+C+"|   % |"+CC+"::"+C+"|   % |"+CC+"::"+C+"|__%%[|"+CC
+      if N == 12 then Deck[i] = C+" _____ "+CC+"::"+C+"|Q  ww|"+CC+"::"+C+"| "+S+" {(|"+CC+"::"+C+"|   %%|"+CC+"::"+C+"|  %%%|"+CC+"::"+C+"|_%%%O|"+CC
+      if N == 13 then Deck[i] = C+" _____ "+CC+"::"+C+"|K  WW|"+CC+"::"+C+"| "+S+" {)|"+CC+"::"+C+"|   %%|"+CC+"::"+C+"|  %%%|"+CC+"::"+C+"|_%%%>|"+CC
+      i = i+1
+    end for
+  end for
+  // END 3nigma DECK  ////////////////
+
+  // START display ///
+  send_display = function(cards)
+    cards = cards.split(",")
+    cards.pull
+    line = range(0,5)
+    display = range(0,5)
+    for e in line
+      for card in cards
+        //if card == "0" then continue
+        cardf = Deck[card.val].split("::")
+        if display[e] == e then
+          display[e] = cardf[e]
+        else
+          display[e] = display[e] + " " + cardf[e]
+        end if
+      end for
+    end for
+    for l in display
+      print(l)
+    end for
+  end function
+  // END display ////
+
+  // END client services ///  split here!
+
+  // START server ///
+  // START DECK ////////////////////////
+  deck = {}
+  suits = ["hearts","spades","diamonds","clubs"]
+  trumps = ["jack","queen","king"]
+  deck[0] = {"joker":"joker"}
+  i = 1
+  for s in suits
+    if i == 1 or i == 14 or i == 27 or i == 40 then
+      deck[i] = {"ace":s}
+      i =  i + 1
+    end if
+    for r in range(2,10)
+      deck[i] = {r:s}
+      i = i + 1
+    end for
+    for t in trumps
+      deck[i] = {t:s}
+      i = i + 1
+    end for
+  end for
+  //END DECK ////////////////////////
+
+
+  //for c in deck
+  //	print(c.value)
+  //end for
+  print("Shuffling...")
+  deck.shuffle
+  //for c in deck
+  //	print(c.value)
+  //end for
+  print("Shuffling...")
+  deck.shuffle
+  //for c in deck
+  //	print(c.value)
+  //end for
+
+  player = {}
+  player.balance = 100
+  player.bet = 0
+  player.hand = []
+  player.total = 0
+  player.has_ace = 0
+
+  player.purge = function ()
+    flush = self.hand.len
+    for c in range(0, flush)
+      self.hand.pop
+    end for
+    self.has_ace = 0
+    self.total = 0
+  end function
+
+  player.calculate = function()
+    //print(dealer.hand)
+    total = 0
+    player.has_ace = 0
+    hand = player.hand
+    for card in hand
+      card = card.indexes
+      card = card.pull
+      //print(card)
+      if card == "joker" then
+        //player.hand.pull
+        //player.hand.pull
+        return 21
+      end if
+      if card == "ace" then
+        total = total + 11
+        player.has_ace = player.has_ace + 1
+      else
+        if card == "jack" or card == "queen" or card == "king" then
+          total = total + 10
+        else
+          total = total + card
+        end if
+        //print(total)
+      end if
+    end for
+    //print(total)
+    if total < 1 then return("Stack error!")
+    return total
+  end function
+
+  player.hit = function()
+    if player.total == 21 then return false
+    if player.total > 21 then
+      if player.has_ace then
+        while player.has_ace
+          player.total = player.total - 10
+          player.has_ace = player.has_ace - 1
+        end while
+        print("total: " + player.total + " (ace used)")
+      else
+        print(CLB+"player busts at: "+C+player.total)
+        return false
+      end if
+    end if
+    if player.total >= 21 then return false
+    hit = user_input("[hit/stay/double]:> ")
+    if hit == "hit" then
+      return true
+    end if
+    if hit == "stay" or hit == "0" then
+      print(CLB+"player stays at: "+C+player.total)
+      wait(.5)
+      return false
+    end if
+    if hit == "double" then
+      player.bet = player.bet + player.bet
+      return 2
+    end if
+    return true
+  end function
+
+  player.show_hand = function()
+    hnd = player.hand
+    c2 = "0"
+    for c in hnd
+      v = c.indexes
+      v = v.pull
+      s = c.values
+      s = s.pull
+      if v == "ace" then v = 1
+      if v == "jack" then v = 11
+      if v == "queen" then v = 12
+      if v == "king" then v = 13
+      if v > 0 then v = v
+      //print(s)
+      if s == "hearts" then s = 0
+      if s == "spades" then s = 13
+      if s == "diamonds" then s = 26
+      if s == "clubs" then s = 39
+      //print("v:"+v+" s:"+s)
+      c1 = v + s
+      c2 = c2 +","+ c1
+    end for
+
+    //print("debug: "+c2)
+    //localhost.launch(localmachine.current_path+"/3deck", c2)
+    send_display(c2)
+    //player.hand.pull
+    //player.hand.pull
+  end function
+
+  dealer = {}
+  dealer.hand = []
+  dealer.total = 0
+  dealer.has_ace = 0
+
+  dealer.purge = function ()
+    flush = self.hand.len
+    for c in range(0, flush)
+      self.hand.pop
+    end for
+    self.has_ace = 0
+    self.total = 0
+  end function
+
+  dealer.calculate = function()
+    //print(dealer.hand)
+    total = 0
+    dealer.has_ace = 0
+    hand = dealer.hand
+    for card in hand
+      card = card.indexes
+      card = card.pull
+      //print(card)
+      if card == "joker" then
+        //dealer.hand.pull
+        //dealer.hand.pull
+        return 21
+      end if
+      if card == "ace" then
+        total = total + 11
+        dealer.has_ace = dealer.has_ace + 1
+      else
+        if card == "jack" or card == "queen" or card == "king" then
+          total = total + 10
+        else
+          total = total + card
+        end if
+        //print(total)
+      end if
+    end for
+    //dealer.hand.pull
+    //dealer.hand.pull
+    //print(total)
+    if total < 1 then return("Stack error!")
+    return total
+  end function
+
+  dealer.hit = function()
+    if dealer.total == 21 then return false
+  //	if dealer.total > 21 then
+  //		while dealer.has_ace
+  //			dealer.total = dealer.total - 10
+  //			dealer.has_ace = dealer.has_ace - 1
+  //		end while
+  //	end if
+    if dealer.total >= 16 then
+      while (dealer.has_ace and dealer.total >= 16)
+        dealer.total = dealer.total - 10
+        dealer.has_ace = dealer.has_ace - 1
+      end while
+      if dealer.total >= 16 then return false
+    end if
+    return true
+  end function
+
+  dealer.show_hand = function()
+    hnd = dealer.hand
+    c2 = "0"
+    for c in hnd
+      v = c.indexes
+      v = v.pull
+      s = c.values
+      s = s.pull
+      if v == "ace" then v = 1
+      if v == "jack" then v = 11
+      if v == "queen" then v = 12
+      if v == "king" then v = 13
+      if v > 0 then v = v
+      //print(s)
+      if s == "hearts" then s = 0
+      if s == "spades" then s = 13
+      if s == "diamonds" then s = 26
+      if s == "clubs" then s = 39
+      //print("v:"+v+" s:"+s)
+      c1 = v + s
+      c2 = c2 +","+ c1
+    end for
+
+      //print("debug: "+c2)
+    //localhost.launch(localmachine.current_path+"/3deck", c2)
+    send_display(c2)
+  end function
+
+
+  deal = function(pass_deck)
+    i=1
+    pd = pass_deck
+    print("Shuffling...")
+    pd.shuffle
+    print("Dealing...")
+    wait(.5)
+    clear_screen
+    dealer.hand.push(pd[i])
+    dealer.hand.push(pd[i+1])
+    dealer.show_hand
+    dealer.total = dealer.calculate
+    print(CW+"dealer: " +C+ dealer.total + " " + pd[i] + " | " + pd[i+1])
+    i = i + 2
+    print(GC+"-------------------------------------------"+C)
+    player.hand.push(pd[i])
+    player.hand.push(pd[i+1])
+    player.total = player.calculate
+    print(CLB+"player: " +C+ player.total + " " + pd[i] + " | " + pd[i+1])
+    player.show_hand
+    i = i + 2
+    print
+    if player.total == 21 then return 3
+    hitting = true
+    while hitting
+      hitting = player.hit
+      if hitting then
+        if hitting == 2 then
+          hitting = false
+          print(CLB+"player doubles: "+C)
+          wait(.5)
+        else
+          print(CLB+"player hits: "+C)
+          wait(.5)
+        end if
+        player.hand.push(pd[i])
+        player.total = player.calculate
+        clear_screen
+        dealer.show_hand
+        print(CW+"dealer: " +C+ dealer.total)
+        print(GC+"-------------------------------------------"+C)
+        print(CLB+"player: " +C+ player.total)
+        player.show_hand
+        i = i + 1
+      end if
+    end while
+
+    if player.total > 21 then return false
+    print(GC+"-------------------------------------------"+C)
+    hitting = true
+    while hitting
+      hitting = dealer.hit
+      if hitting then
+        dealer.hand.push(pd[i])
+        dealer.total = dealer.calculate
+        clear_screen
+        print(CW+"dealer hits: "+C)
+        dealer.show_hand
+        print(CW+"dealer: " +C+ dealer.total)
+        print(GC+"-------------------------------------------"+C)
+        print(CLB+"player: " +C+ player.total)
+        player.show_hand
+
+        wait(.5)
+        i = i + 1
+      else
+        print(char(10)+CW+"dealer stays at: " +C+ dealer.total)
+        wait(.5)
+      end if
+    end while
+
+    if dealer.total > 21 then
+      print("dealer<b> busts</b>.")
+      return true
+    end if
+    outcome = null
+    if dealer.total > player.total then
+      outcome = false
+    else
+      if dealer.total ==  player.total then
+        outcome = 2
+      else
+        outcome = true
+      end if
+    end if
+    return(outcome)
+  end function
+
+  blackjack = function(game_deck)
+    d = game_deck
+    playing = true  // this never gets set to false
+    while playing
+      d.shuffle
+      if player.balance < 0 then
+        print("Oh No! You owe the mob money! Run for your life!")
+        wait(2)
+        return("You didn't get away! Your legs are broken, encased in cement and you are tossed in the river.\nGame over!")
+      end if
+      if player.balance < 1 then return("You're broke! You have no more bucks to give.\nGame over!")  // exit condition 1
+      print
+      bet = user_input("Place yer bet! [balance: <b>" + player.balance + "</b>]\n  ")
+      if bet == "q" or bet == "Q" or bet == "quit" or bet == "exit" then break  // exit condition 2
+      if bet.val > 0 and bet.val <= player.balance then
+        print("Bet of <b>"+bet.val+"</b> bucks placed.")
+        player.bet = bet.val
+        result = deal(d)
+        dealer.purge
+        player.purge
+        if result then
+          if result == 2 then
+            print("<b>Push!</b>\n [balance unchanged]")
+          else
+            if result == 3 then
+              print("Blackjack! Paying time-and-a-half. [<b>" + floor(player.bet * 1.5) + " </b>bucks credited to balance]")
+              player.balance = player.balance + floor(player.bet * 1.5)
+            else
+              print("<b>You win!</b>\n [<b>" + player.bet + " </b>bucks credited to balance]")
+              player.balance = player.balance + player.bet
+            end if
+          end if
+        else
+          print("<b>You lose!</b>\n [<b>" + player.bet + " </b>bucks debited from balance]")
+          player.balance = player.balance - player.bet
+        end if
+      else
+        print("Bet must be between 1 and "+player.balance+" or [q]uit.")
+      end if
+    end while
+  end function
+
+  blackjack(deck)
+  print("Goodbye.")

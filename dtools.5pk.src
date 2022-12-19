@@ -1,0 +1,516 @@
+if DEBUG then print("<size=75%>loading dtools.5pk...(24.516kb)</size>")
+re = {}
+re.match = function(regexp, text)
+  if regexp[0] == "^" then
+		regexp.pull
+		return re.match_here(regexp,text)
+	end if
+  while text.len > 0
+    if re.match_here(regexp, text) then return 1
+
+		text.pull
+  end while
+  return 0
+end function
+re.match_here = function(regexp, text)
+  if not regexp then return 1
+  if regexp.len > 1 and regexp[1] == "*" then
+		//return self.match_star(regexp[0], regexp[2:], text)
+		char = regexp.pull
+		regexp.pull
+		return re.match_star(char, regexp, text)
+	end if
+  if regexp[0] == "$" and not regexp.hasIndex(1) then
+    if text.hasIndex(1) then return 0 else return 1
+  end if
+  if text.len > 0 and (regexp[0] == "." or regexp[0] == text[0]) then
+		//return self.match_here(regexp[1:], text[1:])
+		regexp.pull
+		text.pull
+		return re.match_here(regexp,text)
+	end if
+  return 0
+end function
+// re.match_star needs work. misses certain cases.
+re.match_star = function(c, regexp, text)
+  while text.len and (text[0] == c or c == ".")
+    if re.match_here( regexp, text) then return 1
+    //text = text[1:]
+		text.pull
+  end while
+  return 0
+end function
+if DEBUG then print("<size=75%>loading regex engine...</size>")
+command.poke = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
+  if arg1 == "-n" then
+    if not arg2 then return "poke: -n option requires a valid path to a file."
+    arg1 = arg2
+    arg2 = "!!nullify!!23tqg43qg34g!!"
+  end if
+  destination = null
+  final_name = null
+  dest = globals.get_file(arg1)
+  if not dest then
+    split = arg1.split("/")
+    final_name = split.pop
+		if DEBUG then print("split: "+split)
+    if split.len and split[0] == "" then dest = globals.get_file(split.join("/")) else dest = globals.get_file(split.join("/"))
+		if DEBUG then print("dest: ["+dest+"]")
+		if not dest then
+      if arg1[0] == "/" then destination = "/" else destination = currentPath
+    else
+      destination = dest.path
+    end if
+  else
+    if dest.is_folder then
+      return "poke: "+arg1+" is a folder."
+    else
+      destination = dest.parent.path
+      final_name = dest.name
+    end if
+  end if
+
+	dest_folder = globals.get_file(destination)
+	if not dest_folder then return("poke: " + dest_path + " not found")
+	if not dest_folder.has_permission("w") then return("poke: permission denied")
+	try = localmachine.touch(dest_folder.path, final_name)
+	if try != 1 then
+		print("poke: "+try)
+		if arg2 then
+			if try == "The file already exists" and user_input("overwrite contents? [Y/n] ||: ",0,1).lower == "n" then
+				return "aborting..."
+			end if
+		end if
+	end if
+  dest_name = ""
+	if dest_folder.path != "/" then dest_name = "/"+final_name else dest_name = final_name
+	output = localmachine.File(dest_folder.path+dest_name)
+	if not output then return "poke: write error"
+	if arg2 and output.has_permission("w") then
+    if arg2 == "!!nullify!!23tqg43qg34g!!" then arg2 = ""
+    if output.is_binary then
+      return "poke: can't poke a binary file."
+    else
+      output.set_content(arg2)
+    end if
+  else
+    if arg2 then return "poke: permission denied."
+  end if
+	return output
+end function
+command.merge = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg1 or not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: merge file_path_1 file_path_2 --  combine files. file_1 will have file_2 appended to it."
+	file1 = localmachine.File(arg1)
+	file2 = localmachine.File(arg2)
+	if file1 and file2 then
+		catch = file1.set_content( file1.get_content.trim + file2.get_content.trim )
+	else
+		return("Check path(s) and try again.")
+	end if
+	return catch
+end function
+command.append = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "Usage: append [path_to_file] [text] (works best with pipe) --  add text to end of file."+char(10)+"Usage: append @clipa|b|c [text] -- append to the end of a clip space."+char(10)+"N.B.<b> @clipa and @clipc will append text directly with no new line. </b>"+char(10)+" -- @clipb will add a new line and then append text."
+	path_to_file = arg1
+	buf = arg2
+	if path_to_file == "@clipa" then
+		globals.clip_board_alpha = globals.clip_board_alpha+buf
+		return "clipped:"+char(10)+globals.clip_board_alpha
+	end if
+	if path_to_file == "@clipb" then
+		globals.clip_board_beta = globals.clip_board_beta+char(10)+buf
+		return "clipped:"+char(10)+globals.clip_board_beta
+	end if
+	if path_to_file == "@clipc" then
+		globals.clip_board_gamma = globals.clip_board_gamma+buf
+		return "clipped:"+char(10)+globals.clip_board_gamma
+	end if
+	file = localmachine.File(path_to_file)
+	if not file then file = localmachine.File(currentPath+"/"+path_to_file)
+	if not file then file = localmachine.File(currentPath+path_to_file)
+	if not file then return "404: file not found"
+	if file.get_content == "" then return file.set_content(buf)
+	return file.set_content(file.get_content+char(10)+buf)
+end function
+command.dfit = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "Usage: dfit [path_to_file]"+char(10)+"Takes text file and splits contents by newline, joins by comma and outputs to a.csv by default."+char(10)+"As the name suggests, this is for making dictionary files. Output is a csv (comma separated values) file."
+	df = null
+	if arg1 then
+		df = arg1
+	else
+		return "Usage: dfit [path_to_file]"
+	end if
+	dump = localmachine.File(currentPath+"/"+df)
+	if not dump then
+		dump = localmachine.File(df)
+		if not dump then return(df+" not found.")
+	end if
+	P_LIST = []
+	outFileName = user_input("Enter outfile name or leave blank for a.csv: "+char(10))
+	if outFileName == "" or outFileName == " " then outFileName = "a.csv"
+	print("Scanning...")
+	lines = dump.get_content.split(char(10))
+	print("Found "+lines.len+" lines. Sorting... ")
+	for pw in lines
+		if pw == "" then continue
+		P_LIST.push(pw.trim)
+	end for
+	get_shell.host_computer.touch(currentPath,outFileName)
+	outfile = get_shell.host_computer.File(currentPath+"/"+outFileName)
+	if not outfile then return "Error: check write permissions"
+	outfile.set_content(P_LIST.join(","))
+	return (char(10)+"File "+outFileName+" saved. ")
+end function
+command.chop = function(arg1, arg2=0, arg3=0, arg4=0)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "chop [path_to_file] [index -- default 0] [delimiter -- default (char(32) aka 'a space' )] "+char(10)+"Prompts for output name. Outputs to current path with newline separated index values. "+char(10)+"e.g:<b> rnip 11 | porter 22 | poke test.txt | lock |  | clipb | append test.txt | chop test.txt 0 : | enum test.chop | enum -s </b> (assumes output file named test.chop)"+char(10)+"AdvanceD: chop @clipa/b/c [index] [delimiter] -- run chop on clip space instead of a file. Supports outputting to clip space as well."
+	file = null
+	clipping = false
+	if typeof(arg1) == "string" then
+		if arg1 == "@clipa" or arg1 == "@clipb" or arg1 == "@clipc" then
+			clipping = true
+		else
+			file = globals.get_file(arg1)
+			if not file then return "404: file not found"
+		end if
+	else
+		return "chop: arg1 must be string: /path or string: @clipa/b/c"+char(10)+"clipa/b/c contents must be string."
+	end if
+	new_name = user_input("Enter output file name or press <<b>return</b>> for: "+arg1.remove("@")+".chop "+char(10)+"Enter @clipa or @clipb or @clipc to send output to clip space."+char(10)+":> ",0,0)
+	if new_name == "" then new_name = arg1.remove("@")+".chop"
+	new_file = null
+	if new_name == "@clipa" or new_name == "@clipb" or new_name == "@clipc" then
+		new_file = new_name
+	else
+		localmachine.touch(currentPath, new_name)
+		new_file = globals.get_file(new_name)
+		if not new_file then return "chop: could not write output file. access denied. check write permissions or path and try again."
+	end if
+	if clipping == true then
+		if arg1 == "@clipa" then
+			if typeof(globals.clip_board_alpha) == "string" then data = globals.clip_board_alpha.replace(char(160),char(32)).split(char(10)) else return "chop: clipa contents incompatible. expects string."
+		end if
+		if arg1 == "@clipb" then
+		  if typeof(globals.clip_board_beta) == "string" then data = globals.clip_board_beta.replace(char(160),char(32)).split(char(10)) else return "chop: clipb contents incompatible. expects string."
+		end if
+		if arg1 == "@clipc" then
+			if typeof(globals.clip_board_gamma) == "string" then data = globals.clip_board_gamma.replace(char(160),char(32)).split(char(10)) else return "chop: clipc contents incompatible. expects string."
+		end if
+	else
+		data = file.get_content.replace(char(160),char(32)).split(char(10))
+	end if
+	out = []
+	del = char(32)
+	if arg3 then del = arg3
+	//print("del: "+del)
+	inde = 0
+	if arg2 then inde = arg2.to_int
+	if typeof(inde) != "number" then inde = 0
+	for line in data
+		if line == "" then continue
+		//print("Chopping "+line)
+		l_split = str(line).split(del)
+    i = 0
+    fix = []
+    for c in l_split
+      if c != "" then fix.push(l_split[i])
+      i = i + 1
+    end for
+		//print(fix)
+		if fix.hasIndex(inde) then out.push(fix[inde])
+	end for
+	if typeof(new_file) == "file" then
+		//print("error: "+new_file)
+		new_file.set_content(out.join(char(10)))
+		return new_file.get_content
+	else
+		if new_file == "@clipa" then return command.clipa(out.join(char(10)))
+		if new_file == "@clipb" then return command.clipb(out.join(char(10)))
+		if new_file == "@clipc" then return command.clipc(out.join(char(10)))
+	end if
+end function
+command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: gopher [/path/file|file_object] -- decipher user:hash combo(s) in file. outputs to /current_path/dump.txt"+char(10)+"Uses onboard dictionary by default then crypto.decipher if not found."+char(10)+"Example:<b> poke pass root:1f3870be274f6c49b3e31a0c6728957f | gopher</b>"+char(10)+" -- writes the root:hash combo to pass in current path and pipes output file to gopher for deciphering."+char(10)+"-- see cerebrum and hashim for additional options."+char(10)+"Usage: gopher [/path/to/file] --  decrypt file contents"+char(10)+"Advanced: tree / Bank.txt 0 Y -- automatically decipher Bank.txt, no piping required (tree calls gopher)."+char(10)+"n.b. the <b>tree</b> command, typed without args, will prompt to call gopher on passwd, bank and mail files if found."
+	if not globals.crypto then return "Crypto: not found"
+	if typeof(arg1) == "file" then
+		file = arg1
+	else
+		file = globals.get_file(arg1)
+	end if
+	catch = "gopher: "+arg1+"not found or invalid."
+	if arg1 then catch = globals.Gopher(file)
+	return catch
+end function
+command.grep = function(a1, a2, arg3=0, arg4=0)
+	if not a1 or not a2 or a1 == "-h" or a1 == "help" then return "Usage: grep [string] [file/folder]"+char(10)+"Advanced: grep [string] [object] -- search piped object (shell|file|computer) for string. "+char(10)+"-- piped computer and shell objects will be searched from / directory."+char(10)+"-- piping a file object searches from path of file."+char(10)+"n.b. supports partial matches and limited regular expressions."+char(10)+"<u>current regex tokens (more planned):</u>"+char(10)+"c   matches any literal character 'c'"+char(10)+"-- bob matches bob anywhere in the text."+char(10)+"^   match pattern from beginning of word"+char(10)+"-- ^ber matches bertha  does not match robert"+char(10)+"$   match end of line (goes at end of pattern)"+char(10)+"-- .txt$ matches file.txt does not match file.txt.src"+char(10)+"*   matches one or more of preceding character"+char(10)+"-- c* matches c, cc, ccc, cccc "+char(10)+".   matches any unicode char (wildcard)"+char(10)+"-- .*:.*  matches root:password, email@domain.com:password, xyz:1234"+char(10)+"Important! Runtime depends on length of pattern and size of text to check. Since grep will recurse any folders in a given path, this command could result in very long run times. It is up to you to limit the scope of your searches accordingly."
+	gresult = []
+	gp = function(grep_tar, t_f, use_re)
+		if t_f.is_folder and t_f.is_binary then
+			sub_folders = t_f.get_folders
+			sub_files = t_f.get_files
+			g_buf = null
+			for sub in sub_folders
+				if use_re == true then
+					if re.match(grep_tar.values, sub.name.values) then gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+				else
+					if sub.name == grep_tar or sub.name.indexOf(grep_tar) then gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+				end if
+				gp(grep_tar, sub, use_re)
+			end for
+			for f in sub_files
+				if use_re == true then
+					if re.match(grep_tar.values, f.name.values) then gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+				else
+					if f.name == grep_tar or f.name.indexOf(grep_tar) >= 0 then gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+				end if
+				gp(grep_tar, f, use_re)
+			end for
+		end if
+		if t_f.is_binary then return
+		buf = t_f.get_content
+		if buf == "" then return
+		lines = buf.split(char(10))
+		for line in lines
+			words = line.split(" ")
+			for word in words
+				if use_re == true then
+					if re.match(grep_tar.values, word.values) then gresult.push(colorLightBlue+"Found: "+CT+colorWhite+word+CT+colorLightBlue+" on line "+lines.indexOf(line)+" word "+words.indexOf(word)+" in file: "+ t_f.path + CT)
+				else
+					if word == grep_tar or word.indexOf(grep_tar) >= 0 then gresult.push(colorLightBlue+"Found: "+CT+colorWhite+word+CT+colorLightBlue+" on line "+lines.indexOf(line)+" word "+words.indexOf(word)+" in file: "+ t_f.path + CT)
+				end if
+			end for
+		end for
+	end function
+	output = "No "+a1+" found."
+	t_f = null // target file or folder
+	grep_tar = a1.trim
+	invoke_regex = false
+	special_chars = ["*","^","$","."]
+	for special in special_chars
+		if grep_tar.indexOf(special) >= 0 then invoke_regex = true
+	end for
+	tf_path = a2
+	if typeof(tf_path) == "string" then
+		t_f = globals.get_file(tf_path)
+		if not t_f then return "grep: "+a2+" not found."
+	end if
+	// piped object handling. Unused if run as standalone but if baked into your own script, pipe objects to grep them.
+	if typeof(tf_path) == "file" then t_f = tf_path
+	if typeof(tf_path) == "computer" then t_f = tf_path.File("/")
+	if typeof(tf_path) == "shell" then t_f = tf_path.host_computer.File("/")
+	if typeof(t_f) != "file" then return "grep: "+a2+": unkown type."
+	// end piped object handling.
+	gp(grep_tar, t_f, invoke_regex)
+	if gresult != [] then output = gresult.join(char(10))
+	return output
+end function
+command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "Usage: tree -- view filesystem tree (from / if no argument)"+char(10)+"Usage: <b>tree [path]</b> -- view filesystem from path down"+char(10)+"Usage: tree [opt: path] [opt: grep_target] [bool: 1/0] [opt: R|Y|N]"+char(10)+"-- [path] - path to descend"+char(10)+"-- [grep_target] - search for traget file by name"+char(10)+"<b>-- Returns a file object if grep_target and grep is successful.</b>"+char(10)+"-- [1|0] -  1 = quiet, supress output"+char(10)+"-- [1|0] - 0 = verbose, print output"+char(10)+"-- [r|n|y] - r = to tbuf, n = skip, y = decipher in place (default is <b>R</b>)"+char(10)+"-- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+"Advanced: tree @clipa/b/c [grep] [1|0] [r|y|n] -- tree from object in [clipa/b/c] [optional grep] [quiet_mode] [rmote|yes|no]"+char(10)+"e.g. -<b> tree / database.csv 1 N | file -b</b> -- find database.csv on filesystem, display properties and send to BUFFER (if database.csv exists)."+char(10)+"N.B. You may use @a, @b, @c in place of @clipa, @clipb, @clipc if you prefer."
+	tem = null
+	if arg1 then
+		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
+		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
+		if arg1 == "@clipc"  or arg1 == "@c" then arg1 = globals.clip_board_gamma
+		if typeof(arg1) == "string" then tem = localmachine.File(arg1)
+		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
+		if typeof(arg1) == "computer" then tem = arg1.File("/")
+		if typeof(arg1) == "file" then
+			while arg1.name != "/"
+				arg1 = arg1.parent
+			end while
+			tem = arg1
+		end if
+	else
+		tem = localmachine.File("/")
+	end if
+	if arg3 == "0" then arg3 = 0
+	globals.grepped_file = null
+	if tem then globals.list_files(tem, arg2, arg3, arg4)
+	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
+	return 0
+end function
+command.makfit = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg1 or not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: makfit [/full_path_to_source] [size_in_bytes] [optional: -A --include uppercase]"+char(10)+"Builds to size and outputs to current path."+char(10)+"Extra: makfit [-n] [size_in_bytes] [opt:-A] -- no_source file || no_source file optional: use caps."
+	no_source = false
+	time_start = time
+	source_path = arg1
+	SIZE = arg2.to_int
+	out_path = currentPath
+	out_file = null
+	split = source_path.split("/")
+	temp_path = currentPath+"/"+split[-1]
+	og_name = split[-1].split(".")[0]
+	if og_name == "-n" or og_name == "-nA" then
+		no_source = true
+		og_name = "probe.src"
+		if currentPath != "/" then source_path = currentPath+"/"+og_name else source_path = currentPath+og_name
+	 	command.poke(source_path)
+	end if
+	print(colorLightBlue+"Building "+CT+colorWhite+ og_name +CT+colorLightBlue+" to file size <= " +CT+colorWhite+ SIZE +CT+colorLightBlue+" bytes. "+CT)
+	print("<align=center>"+char(3675)+"</align>")
+	get_file = function(arg)
+		tf = localmachine.File(arg)
+		if tf and typeof(tf) == "file" then return tf
+		return 0
+	end function
+	source_file = get_file(source_path)
+	source = ""
+	if source_file then
+		source = source_file.get_content
+		if no_source then source = "print"
+	else
+		return(colorRed+"404: source file not found."+CT)
+	end if
+	last_size = (SIZE + 1000)
+	last_name = ""
+	new_name = function(int)
+		nm = []
+		r = range("a".code,"z".code)
+		if arg3 == "-A" then
+			R = range("A".code, "Z".code) // it is somehow faster (for me) with this commented out. ymmv
+			r = r + R											// i get about 45 sec avg with lowercase and 100 sec avg with upper+lower
+		end if
+		for loop in range(0, int)
+			r.shuffle
+			nm.push(char(r[0]))
+		end for
+		nm.push(".")
+		r.shuffle
+		nm.push(r[0])
+		nm = nm.join("")
+		return nm
+	end function
+	//
+	i = 0
+	l = 1
+	while last_size > SIZE
+		i = i + 1
+		if i >= 50 then
+			l = l + 1
+			i = 1
+		end if
+		n = new_name(l)
+		catch = localmachine.touch(currentPath, n+".src")
+		temp_path = currentPath+"/"+n+".src"
+		temp = get_file(temp_path)
+		temp.set_content(source)
+		catch = shell.build(temp.path, currentPath)
+		//wait(1)
+		out_path = currentPath+"/"+n
+		out_file = get_file(out_path)
+		if not out_file then return(colorRed+"404 "+out_path+" not found"+CT)
+		last_size = out_file.size.to_int
+		if out_file.size.to_int > SIZE then
+			out_file.delete
+			temp.delete
+		end if
+	end while
+	//
+	time_end = time
+	print(colorLightBlue+"Compiled "+colorWhite+out_file.name+colorLightBlue+" to size: "+colorWhite+out_file.size+colorLightBlue+" bytes."+CT)
+	print(colorLightBlue+"Process completed in "+colorOrange+ (time_end - time_start) +colorLightBlue+ " seconds."+CT)
+	out_file.rename(og_name)
+	return out_file.path+" renamed to: "+currentPath+"/"+og_name
+end function
+command.make = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" or arg1 == 0 or arg2 == 0 then return "Usage: make [/path/file.src] [/path/destination_folder] -- build the .src file and ouput to destination folder."+char(10)+"-- final file name will be input file name with .src stripped."+char(10)+"e.g.<b> make /root/src/5hell.src /bin </b>-- build 5hell.src into a binary and output to:<b> /bin/5hell</b>"+char(10)+"n.b. make requires the source file have the .src extension."
+	pathSource = arg1
+	programPath = arg2
+	fileSource = globals.get_file(pathSource)
+	folderDest = globals.get_file(programPath)
+	if fileSource == null then return("build: can't find "+ pathSource)
+	if folderDest == null then return("build: can't find " + folderDest)
+	output = shell.build(fileSource.path, folderDest.path)
+	if output.len == 0 then
+		return("build successful.")
+	else
+		return(output)
+	end if
+	return 0
+end function
+command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
+	if arg1 == "-h" or arg1 == "help" then return "aptm: apt-get menu -- manage apt functions, add/remove/search repositories."+char(10)+"Advanced: [7] hot_swap_libs -- reload meta/crypto/apt to use latest versions after updating."
+  if not globals.apt_get then return colorRed+"Error:aptclient.so not found in /lib or current_path"+CT
+  if GLASSPOOL then print(colorOrange+"Ignores Glasspool."+CT)
+	// apt menu by Plu70
+	apt = {}
+	apt.go_back = function()
+		return 0
+	end function
+	apt.check_upgrade = function()
+    chk_upg = function(check)
+      if apt_get.check_upgrade(check) then
+        sp = check.split("/")
+        nm = sp.pop
+        if sp != [] then
+					print("__")
+          apt_get.install(nm, sp.join("/"))
+        else
+					print("__")
+          apt_get.install(nm)
+        end if
+        return "apt-get: "+check+" upgrade complete"
+      else
+        return "apt-get: "+check+" no upgrades found"
+      end if
+    end function
+	  cup = user_input("upgrade file_name or /path"+char(10)+":> ")
+    if not cup or cup == "" or cup == " " then return
+    f = get_shell.host_computer.File(cup)
+    if f and f.is_folder then
+      files = f.get_files
+			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
+      for sub in files
+        print(chk_upg(sub.path))
+      end for
+      return "Batch complete."
+    end if
+    return chk_upg(cup)
+	end function
+	apt.add_repo = function()
+	  return apt_get.add_repo(user_input("add repo ip:> "))
+	end function
+	apt.del_repo = function()
+		apt.update
+	  return apt_get.del_repo(user_input("del repo ip:> "))
+	end function
+	apt.install = function()
+	  return apt_get.install( user_input("install:> "), user_input("directory:> ") )
+	end function
+	apt.search = function()
+		apt.update
+	  return apt_get.search(user_input("search:> "))
+	end function
+	apt.show = function()
+		apt.update
+		print("_____________________________________________"+char(10))
+		rb = apt_get.show(user_input("show repo:> "))
+	  return char(10)+rb
+	end function
+	apt.hot_swap = function()
+		hot_swap_libs
+		return "Libraries hot_swapped."
+	end function
+	apt.update = function()
+	  return apt_get.update
+	end function
+	apting = true
+	while apting
+	  apt.update
+	  i = 0
+	  for c in apt.indexes
+		 print("["+colorWhite+i+CT+"] - apt-get."+"<b>"+c+"</b>")
+	    i = i + 1
+	  end for
+	  //print("["+colorWhite+i+CT+"] - Exit")
+		a_choice = user_input("(q=quit)||: ",0,1).to_int
+	  if a_choice == 0 or a_choice == "q" then return 0
+	  if typeof(a_choice) != "number" or a_choice >= i or a_choice < 0 then continue
+	  print(apt.indexes[a_choice])
+	  catch = apt[apt.indexes[a_choice]]
+	  print(catch)
+	  print("_____________________________________________")
+	  print
+	end while
+	return 0
+end function

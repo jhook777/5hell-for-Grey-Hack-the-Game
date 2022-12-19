@@ -1,0 +1,189 @@
+if DEBUG then print("<size=75%>loading dig.5pk...(11.760kb)</size>")
+
+command.fakepass = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: fakepass [opt:ip] [opt:pass] -- create passwd.src in current_path. Check src and build to /bin/passwd. PW capture malware."
+	ip = arg1
+	p = arg2
+	if not ip then ip = """"+user_input("remote ip:> ",0,0)+"""" else ip = """"+ip+""""
+	if ip == """"+""+"""" then return "aborting..."
+	if not p then p = """"+user_input("remote pass:> ",1,0)+"""" else p = """"+p+""""
+	if p == """"+""+"""" then return "aborting..."
+	passwd = "if params.len != 1 then exit(""<b>Usage: passwd [username]</b>""+char(10)+""Example: passwd john"");print(""Changing password for user ""+params[0]+""."");pass = user_input(""New password:"", 1);catch = get_shell.host_computer.change_password(params[0], pass);if catch != 1 then;if catch then exit(catch);exit(""Error: password not modified"");end if;"
+	rem_c = "localmachine=get_shell.host_computer;ip = "+ip+";pt = 22;user = ""root"";p="+p+";remote = get_shell.connect_service(ip, pt, user, p);if remote then;remote.host_computer.touch(""/root/rkit"",""rpm"");rpm=remote.host_computer.File(""/root/rkit/rpm"");if rpm then rpm.set_content(rpm.get_content+char(10)+pass+char(10)+localmachine.public_ip+char(10)+localmachine.local_ip);end if;"
+	scrub = "syslog = localmachine.File(""/var/system.log"");if syslog then;localmachine.touch(""/var"",""system.bak"");sbk=localmachine.File(""/var/system.bak"");if sbk then;sbk.set_content(""No IPs Today :D"");syslog.delete;sbk.move(""/var"", ""system.log"");end if;end if;"
+	final = "if catch == 1 then exit(""password modified OK"");if catch then exit(catch);print(""Error: password not modified"")"
+	fp = passwd + rem_c + scrub + final
+	localmachine.touch(currentPath, "passwd.src")
+	source = globals.get_file("passwd.src")
+	print("FakePass v 0.2, by Plu70")
+	print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+	if not source then return "write error: unable to create passwd.src in "+currentPath
+	source.set_content(fp)
+	wait (1)
+	print(source.get_content)
+	print
+	saved = "password.src"
+	if currentPath != "/" then saved = "/password.src"
+	print(colorLightBlue+"Saved to: "+colorWhite+currentPath+saved+CT)
+	print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+	return 0
+end function
+command.cad = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "cad: cloak and dagger protocol."+char(10)+"Usage: cad [optional: ip ] -- or enter rshell-server ip at prompt"+char(10)+"Creates ps.src in current path. "+char(10)+"Review ps.src and build with make or makfit into /bin"+char(10)+"Remove .src, run /bin/ps once with metaxploit.so present then remove metaxploit.so"+char(10)+"The result is a hidden backdoor on the target. Use with care."
+	ps = """"+"ps"+""""
+	shell = """"+"5hell"+""""
+	zp = """"+"0.0%"+""""
+	z2 = """"+"0.3%"+""""
+	z1 = """"+"0.4%"+""""
+	zf = [zp,z1,z2]
+	zf.shuffle
+	m_path = """"+"/lib/metaxploit.so"+""""
+	m = """"+"metaxploit.so"+""""
+	add = arg1
+	if not add then add = """"+user_input("rshell addr:> ")+"""" else add = """"+add+""""
+	if add == """"+""+"""" then return "aborting..."
+	rip="ps=function();zp="+zp+";z2="+z2+";z1="+z1+";zf=[zp,z1,z2];zf.shuffle;procs = get_shell.host_computer.show_procs;k_tar = "+ps+";k_tar1 = "+shell+";processes = [];processes = procs.split(char(10));for p in processes;process = p.split(char(32));process_CMD = process[4];process_MEM = process[3];process_CPU = process[2];process_ID = process[1];process_user = process[0];if process_CMD == k_tar or process_CMD == k_tar1 then;continue;else;print(format_columns(process_user + char(32) + process_ID + char(32) + process_CPU + char(32) + process_MEM + char(32) + process_CMD));end if;end for;rng = range(1120, 9982);rng.shuffle;return(format_columns(active_user+char(32)+rng.pop+char(32)+"+zp+"+char(32)+zf.pop+char(32)+"+ps+"));end function"
+	// nop
+	nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+",1222,"+ps+");exit(ps)"
+	header = char(10)+"// Cloak and Dagger"+char(10)
+	cd = (header+char(10)+rip+char(10)+nop)
+	localmachine.touch(currentPath, "ps.src")
+	source = globals.get_file("ps.src")
+	print("Cloak and Dagger Protocol v 0.4, by Plu70")
+	print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+	if source then
+	  source.set_content(cd)
+	  wait(1)
+	  out = source.get_content
+	  print(out)
+	  print
+		print(colorLightBlue+"Saved to: "+colorWhite+currentPath+"/ps.src"+CT)
+	else
+	  print("write failed"+char(10))
+	end if
+	print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+	return 0
+end function
+command.dig = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: dig [ip] [opt:port] -- upload a netcrawler to deep scan a network. "+char(10)+"port may be 0 or blank (dig [ip]) for standard use (targets router)."+char(10)+"crawler attempts to scrub logs but this may need to be done manually"+char(10)+"Advanced: clipb @B 1 | dig  (where BUFFER[1] contained a shell) -- dig that shell"+char(10)+"other methods may be used to pipe shells. eg zap | dig (this is redundant as dig runs zap internally)"+char(10)+"<b>N.B. dig is not (yet) integrated with db (the databaser) please scan libs before running dig.</b>"+char(10)+"N.B. future versions will also include an all command line version (to bypass the interactive setup)"+char(10)+"<b>Important</b>: Press enter at most prompts to use defaults (recommended)."+char(10)+"When prompted for an exploit to use, select a shell exploit."+char(10)+"If you know the password you may enter it on the SECOND password prompt. It will be colored cyan."+char(10)+"If you don't know the password, DIG is useful for finding it."+char(10)+"You may customize dig, to some degree, when prompted."
+	// dig local vars
+	del_rkit = "y"
+	have_pass = ""
+  id_target = function()
+    tar_shel = null
+    target_ip = arg1
+    port = "router"
+    if arg2 then port = arg2
+    if port == "0" or not port then port = "router"
+		// insert dbaser code here
+    if typeof(target_ip) == "shell" then return target_ip
+    if not is_valid_ip(target_ip) then return "dig: invalid ip"
+    print(colorGold+"Initiating pre-dig outer scan..."+CT)
+    command.probe(target_ip,port)
+    command.meta("link", "-r")
+    tar_shel = command.zap
+    if tar_shel and typeof(tar_shel) == "shell" and (tar_shel.host_computer.public_ip == target_ip or tar_shel.host_computer.local_ip == target_ip) then
+      print(colorLightBlue+"dig: target accquired: "+CT+colorOrange+"["+checkUser(tar_shel)+":"+typeof(tar_shel)+"] "+CT+"<b>"+tar_shel.host_computer.public_ip+"</b>")
+    else
+      return "dig: unable to find a shell on the target"
+    end if
+    return tar_shel
+  end function
+
+  prepare_package = function()
+    pay_path = user_input("full path to rkit (default: /root/rkit) "+char(10)+":> ",0,0)
+    if pay_path == "" or pay_path == " " then pay_path = "/root/rkit"
+    if pay_path == "" or pay_path == " " then return "aborting..."
+    payload = localmachine.File(pay_path)
+    if not payload then return "404: "+pay_path+" not found"
+    localmachine.touch(payload.path, "dig.bat")
+    dig_bat = localmachine.File(payload.path+"/dig.bat")
+    if not dig_bat then return "write error: could not create dig.bat"
+    dig_bat.set_content("ifconfig -l | probe -f"+char(10))
+    print(char(10)+"Found: "+payload.path + " " + payload.size + " " + payload.permissions+char(10))
+    print("<b>edit permissions</b>? (default: yes)")
+    mod = user_input("[<b>0</b>] yes [1] no (q=quit)||: ",0,1)
+    if mod != "1" then
+      print("e.g. o+rwx g-rwx u+x (string all edits on one line separated by spaces)")
+			ed_in = user_input("params for [perms/chmod -r] (default:<b> o+rwx </b>, q=quit)"+char(10)+":> ")
+			if ed_in.lower == "q" then return "aborting..."
+			if ed_in == "" then ed_in = ["o+rwx"] else ed_in = ed_in.split(" ")
+      for ed in ed_in
+        command.perms("-r", ed, payload.path)
+      end for
+    end if
+		if mod.lower == "q" then return "aborting..."
+		print
+		print("Would you like to edit dig.bat before uploading? (default: no)")
+		edit_bat = user_input("[<b>0</b>] no [1] yes (q=quit)"+char(10)+"||: ",0,1)
+		if edit_bat == "1" then
+			bat_path = payload.path + "/dig.bat"
+			print(colorGold+"Editing "+bat_path+char(10)+"Please use caution. Abort with @@ on a new line.")
+			command.scribus(bat_path)
+			dig_bat.set_content(dig_bat.get_content+char(10))
+		end if
+		print(char(10)+"<b>Payload Ready: "+payload.path + " " + payload.size + " " + payload.permissions+"</b>"+char(10))
+    return payload // (package)
+  end function
+
+  upload_package = function(package) // (payload)
+    tar = id_target
+    if typeof(tar) == "string" then return tar
+    command.clipb(tar)
+    print("Expanding filesystem: search for a vulnerable entry point...")
+    command.tree("@clipb","/",0,"N")
+    dest_folder = user_input("destination folder (default: /home/guest) "+char(10)+":> ")
+		del_rkit = user_input("Delete the rkit once uploaded? [Y/n]"+char(10)+"||: ",0,1)
+		if dest_folder == "" or dest_folder == " " then dest_folder = "/home/guest"
+		dig_bat = localmachine.File(package.path+"/dig.bat")
+		if del_rkit.lower != "n" then
+			dig_bat.set_content(dig_bat.get_content+"echo <b>deleting rkit</b>"+char(10)+"rm -r "+dest_folder+"/rkit"+char(10))
+		end if
+		have_pass = user_input(colorCyan+"enter a password for dig to use (leave blank for cerebrum or type:<b> -f brutus </b> :to force brutus without cerebrum.)"+CT+char(10)+":> ")
+		if have_pass == "-f brutus" then
+			dig_bat.set_content(dig_bat.get_content+"echo <b>Getting root/covering tracks...</b>"+char(10)+"brutus | rclean"+char(10))
+		else
+			if have_pass != "" and have_pass != " " then
+				dig_bat.set_content(dig_bat.get_content+"echo <b>Getting root/covering tracks...</b>"+char(10)+"psudo -s "+have_pass+" | rclean"+char(10))
+			else
+				dig_bat.set_content(dig_bat.get_content+"echo <b>Getting root...</b> | cerebrum"+char(10))
+				dig_bat.set_content(dig_bat.get_content+"echo <b>Covering tracks...</b>"+char(10)+"brutus | rclean"+char(10))
+			end if
+		end if
+		print(colorGold+"<u>=======uploading rkit package=======</u>")
+	  if typeof(tar) == "shell" then
+	  	print(shell.scp(package.path, dest_folder, tar))
+			print("Locking down localhost")
+			command.perms("lock","all")
+	    hold = globals.shell
+	    globals.shell = tar
+	    globals.localmachine = shell.host_computer
+	    dig_bat = localmachine.File(dest_folder+"/rkit/dig.bat")
+	    if not dig_bat then
+	    	print("I/O error...")
+	      globals.shell = hold
+	      globals.localmachine = shell.host_computer
+	      return "dig: upload failed"
+	    end if
+      print(colorGold+"Digging network..."+CT+char(10))
+      command.run(dest_folder+"/rkit/5hell", "do 1 -f dig.bat")
+      globals.shell = hold
+      globals.localmachine = shell.host_computer
+      return "dig: complete. remember to lock down permissions! (ie type: lock)"
+    else
+      return "dig: failed. remember to lock down permissions! (ie type: lock)"
+    end if
+    return 0
+  end function
+
+  deploy_package = function()
+    print(colorGold+"<u>------DIG-v-0.5.3------</u>"+CT+char(10)+"Follow defaults at prompts for <u>standard</u> use. (ie press [enter] at prompts)")
+    return upload_package(prepare_package)
+  end function
+  // ifconfig -p | probe -f
+  // cerebrum
+  // rm -r /home/guest/rkit
+  // brutus | rclean
+  catch = deploy_package
+  return catch
+end function

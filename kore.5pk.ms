@@ -1,0 +1,1218 @@
+if DEBUG then print("<size=75%>loading kore.5pk...(53.202kb)</size>")
+command.kore = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
+	globals.CYCLES = 0
+	if arg1 == "-r" then make_rkit = true else make_rkit = false
+	kore = function()
+		kore_version = "0.7"
+		print("KORE: Hypothetical Threading v "+ kore_version + ", by Plu70")
+		print("////////////////////////////////////////////////////////////")
+		// globals
+		TICK = 1 // seconds to wait between updates
+		config_path = "/virt/thread.cfg" // Setup ip for bridge here
+		config = localmachine.File(config_path)
+		bridge_address = ""
+		if arg1 == "-r" then config = 1
+		if not config then
+			print(colorOrange+"[404] "+config_path+" not found."+CT)
+			create = user_input("Create /virt/thread.cfg ? [Y/n]")
+			if create == "n" or create == "N" then return("Aborting...")
+			v_path = localmachine.File("/virt")
+			if not v_path then localmachine.create_folder("/virt")
+			localmachine.touch("/virt", "thread.cfg")
+			config = localmachine.File(config_path)
+			if not config then return(colorRed+"[401] check write permissions."+CT)
+			if arg1 == "-b" then
+				bridge_address = localmachine.public_ip
+			else
+				bridge_address = user_input("Bridge address (leave blank to skip): ")
+			end if
+			config.set_content("Bridge:"+char(10)+bridge_address)
+		end if
+		cfg = config.get_content.split(char(10))
+
+		// vritu_files
+		virt_path = "/virt"
+		swap_path = "swap.spc"
+		cache1_path = "cache1.spc"
+		share_path = "share.spc"
+
+		// addresses
+		bridge_address = cfg[cfg.indexOf("Bridge:")+1]
+		print("Locating bridge at "+bridge_address)
+
+		BRIDGE = "" // buffer space
+		// BRIDGE files
+		localmachine.touch(virt_path, swap_path)
+		SWAP = localmachine.File(virt_path+"/"+swap_path)
+		localmachine.touch(virt_path, cache1_path)
+		CACHE1 = localmachine.File(virt_path+"/"+cache1_path)
+		CACHE2 = ""
+		CACHE3 = ["--END--"]
+		localmachine.touch(virt_path, share_path)
+		SHARE = localmachine.File(virt_path+"/"+share_path)
+		if not SWAP or not CACHE1 or not SHARE then return(colorRed+"[111] Write error."+CT)
+		// out files
+		localmachine.touch("/var","kore.log")
+		LOG = localmachine.File("/var/kore.log")
+		out_path = "/virt/out.spc"
+		localmachine.touch("/virt", "out.spc")
+		OUT = localmachine.File(out_path)
+		if not LOG or not OUT then return(colorRed+"[215] Write error."+CT)
+		rkp = localmachine.File("/root/rkit")
+		if not rkp then localmachine.create_folder("/root/rkit")
+		DBF = localmachine.File("/root/rkit/database.csv")
+		if not DBF then localmachine.touch("/root/rkit", "database.csv")
+		DBF = localmachine.File("/root/rkit/database.csv")
+		if not DBF then return(colorRed+"[217] Write error."+CT)
+		//print("Folders created. Securing system with <b>perms lock all</b>.")
+		//command.perms("lock","all")
+		// end globals
+		print(colorLightBlue+"Memtest complete...."+CT+char(10)+colorWhite+"Kore is configured correctly."+CT)
+
+		globals.IGNORE = 0
+		globals.DECRYPT = 0
+		globals.DBASE = 0
+		globals.PURGE = 0
+
+		binval = function( s="1,0,0,0" )
+			print(s)
+			b = s.split(",")
+			if b.len != 4 then b = [1,0,0,0]
+			globals.IGNORE = b[0]
+			globals.DECRYPT = b[1]
+			globals.DBASE = b[2]
+			globals.PURGE = b[3]
+		end function
+
+		run_as_bridge = false
+		run_as_core = false
+		make_rkit = false
+		if arg1 == "-b" then run_as_bridge = true
+		if arg1 == "-c" then run_as_core = true
+		if arg1 == "-r" then make_rkit = true
+
+		SWAP.set_content("")
+		CACHE1.set_content("")
+		SHARE.set_content("")
+		globals.CYCLES = 0
+		connection_true=function()
+			return true // make sure cores are up and running
+		end function
+		cycle = function(timeout=1)
+			max_wait = 10
+			//clear_screen
+			while timeout < max_wait
+				print("<voffset=0em>["+"_"*timeout+"_]</voffset>")
+				for i in range(0,timeout) // progress bar by Rasputin
+					print(colorRed+"<voffset="+(3+(2.85*i))+"em>"+"#"*(i+1)+"#</voffset>"+CT)
+					wait(TICK)
+				end for
+				globals.CYCLES = globals.CYCLES + 1
+				if globals.CYCLES >= 5 then
+					globals.CYCLES = 0
+					clear_screen
+				end if
+				if connection_true then return //"Connection reestablished."
+				timeout = timeout + timeout
+			end while
+			return("Connection timed out. Exiting...")
+		end function
+
+		///////////////////
+
+		MAX_CYCLES = 161
+		BRIDGE = SHARE.get_content
+		virtu_bridge = function()
+			icon = "0"
+			if arg2 then icon = arg2
+			cycles = 0
+			running = true
+			while running
+				if BRIDGE == SHARE.get_content then
+					//update stuff
+					act = false
+					if SWAP.get_content != CACHE1.get_content then
+						act = true
+						OUT.set_content(SWAP.get_content)
+						LOG.set_content(LOG.get_content+char(10)+CACHE1.get_content+char(10)+SWAP.get_content)
+						SWAP.set_content("")
+						CACHE1.set_content("")
+						BRIDGE = ""
+					else
+						cycles = cycles + 1
+						if cycles >= MAX_CYCLES then
+							cycles = 0
+							SWAP.set_content("")
+							BRIDGE = ""
+						end if
+					end if
+					if CACHE2 != "" and CACHE1.get_content == "" then
+						act = true
+						SHARE.set_content(CACHE2)
+						CACHE2 = ""
+						BRIDGE = ""
+					end if
+					if CACHE3.len > 1 and CACHE3[-1] != "--END--" and CACHE2 == "" then
+						CACHE2 = CACHE3.pop
+						BRIDGE = ""
+						act = true
+					end if
+				else
+					act = true
+					cycles = 0
+					BRIDGE = SHARE.get_content
+					if SWAP.get_content == "" then
+						SWAP.set_content(BRIDGE)
+						CACHE1.set_content(BRIDGE)
+						SHARE.set_content("")
+						BRIDGE = ""
+					else
+						if CACHE2 == "" then
+							CACHE2 = BRIDGE
+							SHARE.set_content("")
+							BRIDGE = ""
+						else
+							CACHE3.push(BRIDGE)
+							SHARE.set_content("")
+							BRIDGE = ""
+						end if
+					end if
+				end if
+				o_f = ""
+				if SWAP.get_content == "" then o_f = colorGreen else o_f = colorOrange
+				if CACHE3.len > 2 then o_f = colorRed
+				w_w = colorLightBlue
+				if act then w_w = colorWhite
+				print(w_w+"<"+CT+o_f+icon+CT+w_w+">"+CT)
+				cycle
+			end while
+			return time
+		end function
+
+		virtu_core = function()
+			myip = localmachine.public_ip
+			icon = "@"
+			if arg2 then icon = arg2
+			pt = 22 // default, change this for dedicated port
+			user = "root"
+			pass = user_input("Core Init requires root pass of bridge machine :> ", 1)
+			remote = get_shell.connect_service(bridge_address, pt, user, pass)
+			IO = remote.host_computer.File("/virt/swap.spc")
+			BRIDGE_DB = remote.host_computer.File("/root/rkit/database.csv")
+			localmachine.touch("/virt", "proc.st")
+			proc_state = localmachine.File("/virt/proc.st")
+			if not proc_state then return(colorRed+"[369]: Write error."+CT)
+			running = true
+			while running
+				if BRIDGE == IO.get_content or IO.get_content == "x5gF43purge9R2mGuP41s" then
+					act = false
+					w = false
+					PURGE = false
+				else
+					act = true
+					BRIDGE = IO.get_content
+					T_T = BRIDGE.split(char(10))
+					for t in T_T
+						if t.indexOf("Learn:") >= 0 then
+							DECRYPT = false
+							DBASE = true
+						end if
+						if t.indexOf("Decrypt:") >= 0 then
+							DECRYPT = true
+							DBASE = false
+						end if
+
+					end for
+					if not DECRYPT and not DBASE then PURGE = true
+				end if
+				if DECRYPT then
+					w = true
+					DECRYPT = false
+					temp = []
+					for t in T_T
+						if t.indexOf(":") > 0 then
+							spl = t.split(":")
+							ts = spl[1]
+							if ts.len == 32 then temp.push(t)
+						end if
+					end for
+					SWAP.set_content(temp.join(char(10))) // decrypt script listens on /virt/swap.spc
+					CACHE1.set_content(temp.join(char(10))) // compare to detect change
+					proc_state.set_content(localmachine.public_ip+": BUSY ")
+				end if
+				if DBASE then
+					w=true
+					DBASE = false
+					temp = []
+					for t in T_T
+						if t.indexOf("Learn:") >= 0 then temp.push(t)
+					end for
+					CACHE2 = temp.join(char(10))
+					SHARE.set_content(CACHE2)
+					proc_state.set_content(localmachine.public_ip+": BUSY ")
+				end if
+				if SHARE.get_content != CACHE2 and SHARE.get_content != "" then
+					w = true
+					act = true
+					BRIDGE = SHARE.get_content
+					T_T = ""
+					LOG.set_content(LOG.get_content+char(10)+T_T.join(char(10))+char(10)+BRIDGE)
+					OUT.set_content(BRIDGE)
+					SHARE.set_content("")
+					CACHE2 = ""
+					BRIDGE_DB.set_content(BRIDGE)
+					IO.set_content(BRIDGE)
+					BRIDGE = ""
+					proc_state.set_content(localmachine.public_ip+": READY ")
+				end if
+				if SWAP.get_content != CACHE1.get_content and SWAP.get_content != "" then
+					w = true
+					act = true
+					BRIDGE = T_T.join(char(10))+char(10)+SWAP.get_content
+					T_T = ""
+					LOG.set_content(LOG.get_content+char(10)+BRIDGE)
+					OUT.set_content(BRIDGE)
+					SWAP.set_content("")
+					CACHE1.set_content("")
+					proc_state.set_content(localmachine.public_ip+": READY ")
+					IO.set_content(BRIDGE)
+					BRIDGE = ""
+				end if
+				if PURGE then
+					BRIDGE = "x5gF43purge9R2mGuP41s"
+					SHARE.set_content("")
+					CACHE1.set_content("")
+					CACHE2 = ""
+					SWAP.set_content("")
+					if IO.get_content != "x5gF43purge9R2mGuP41s" then IO.set_content(BRIDGE)
+					proc_state.set_content(localmachine.public_ip+": READY ")
+					PURGE = false
+					w = true
+				end if
+				o_f = colorGreen
+				if act then o_f = colorOrange
+				w_w = colorLightBlue
+				if w then w_w = colorWhite
+				print(w_w+"<"+CT+o_f+icon+CT+w_w+">"+CT)
+				cycle
+			end while
+			return
+		end function
+		print(colorLightBlue+"Status: Ready. Press enter to continue.")
+		user_input("<::>")
+		if run_as_bridge then return(virtu_bridge)
+		if run_as_core then return(virtu_core)
+	end function
+	if make_rkit then
+		if globals.instance then pro_path = globals.instance.path else return "kore: 5hell instance deleted. unable to automate rkit construction."
+		print("Validating /root/rkit...")
+		print(command.mkdir("/root/rkit"))
+		print("Copying: "+pro_path+" to /root/rkit...")
+		print(command.cp(pro_path, "/root/rkit" ))
+		if globals.metaxploit then
+			mpath = null
+			if globals.mlib == true then
+				mpath = "/lib/metaxploit.so"
+			else
+				mpath = command.tree("/","metaxploit.so","1","N")
+				if typeof(mpath) == "file" then mpath = mpath.path else return "kore: metaxploit.so not found"
+			end if
+		else
+			return "kore: metaxploit.so not found"
+		end if
+		print("Copying: "+mpath+" to /root/rkit...")
+		command.cp(mpath, "/root/rkit")
+		if globals.crypto then
+			cpath = null
+			if globals.clib == true then
+				cpath = "/lib/crypto.so"
+			else
+				cpath = command.tree("/","crypto.so","1","N")
+				if typeof(cpath) == "file" then cpath = cpath.path else return "kore: crypto.so not found"
+			end if
+		else
+			return "kore: crypto.so not found"
+		end if
+		print("Copying: "+cpath+" to /root/rkit")
+		command.cp(cpath, "/root/rkit")
+		return "kore: rkit construction complete."
+	end if
+	return kore
+end function
+command.target = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "target [optional:ip] [optional:port]"+char(10)+"May be set at launch as params[0] and params[1]"+char(10)+"When this targets your remote server set password with params[3] (for use with transmit)."+char(10)+"Options: -t 5phinx target ip and port gets 5hell target ip and port"+char(10)+"Options: -T set 5phinx ip and port and copy to 5hell target ip and port"+char(10)+"Options: ip | pt -- return target ip or target port."
+	if arg1 == "ip" then return targ.ip
+	if arg1 == "pt" then return targ.pt
+	if arg1 == "-t" then
+		globals.targetIP = targ.ip
+		globals.targetPort = targ.pt
+		return targ.ip+" "+targ.pt
+	end if
+	if arg1 == "-T" then
+		globals.set_ip
+		globals.targ.ip = globals.targetIP
+		globals.targ.pt = globals.targetPort
+		return targ.ip+" "+targ.pt
+	end if
+	if arg1 == "-p" and arg2 then globals.targ.pt = arg2.to_int
+	if arg1 and arg1 != "-p" then globals.targ.ip = arg1
+	if arg2 then globals.targ.pt = arg2.to_int
+	return targ.ip+" "+targ.pt
+end function
+command.transmit = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return ("Usage: transmit [ip] [port] -- transmit text to remote file. Default port 22."+char(10)+"-- you may set ip with command.target instead"+char(10)+"-- you may set ip with launch params: 5hell [ip] [port]"+char(10)+"-- simply type transmit without params if ip is set this way."+char(10)+"---- Enter data 1 line at a time. "+char(10)+"---- Send with @send on new line")+char(10)+char(10)+"Transmit is intended to write information to a remote text file."+char(10)+"While desinged for use with hashim and dbmon, you"+char(10)+" may use it to transmit standard text files if you find that useful."
+	if arg2 == 0 then arg2 = "22" // default ssh port for transmit
+	remote_ip = targ.ip
+	remote_port = targ.pt
+	pass_path = user_input("transmit_to_this_path (q=quit):> ")
+	if pass_path.lower == "q" or pass_path == "" then return ("aborting...")
+	if arg1 then
+		remote_ip = arg1
+		if arg2 then remote_port = arg2.val
+	end if
+	print("Establishing connection to "+remote_ip+" ... ")
+	skip_wait = true
+	if not is_valid_ip(remote_ip) then return ("transmit: invalid ip: "+remote_ip)
+	passwd = user_input("Remote password (not stored. leave blank to abort): ",1)
+	if passwd == "" then return ("aborting...")
+	remote = shell.connect_service(remote_ip, remote_port, "root", passwd)
+	if not remote then return "Unable to establish connection."
+	passfile = remote.host_computer.File(pass_path)
+	if not passfile then return("404: shared file: "+passfile+" not found. ")
+	t_buf = globals.T_BUF
+	transmit = ""
+	print("Connection established. "+char(10)+"<b>@tbuf</b> added to transmission."+char(10)+"Type <b>@send</b> on a newline to finish and transmit. "+char(10)+"Type <b>@clipb</b> on a newline to paste from clipboard 'b' "+char(10)+"Type @wait to await a response from hashim or dbmon. Will write response to clipb."+char(10)+"Type @q or @@ on newline to abort")
+	while t_buf[-1] != "@send"
+		transmit = user_input(":>") // line to send
+		if transmit == "@q" then return "aborting..."
+		if transmit == "@clipb" then
+			t_buf.push(command.clipb(0,0))
+		else
+			if transmit == "@wait" then
+				skip_wait = false
+			else
+				t_buf.push(transmit)
+			end if
+		end if
+	end while
+	t_buf = t_buf.join(char(10))
+	passfile.set_content(t_buf)
+	print(t_buf)
+	waiting = true
+	print("Transmission sent. Awaiting response...")
+	while waiting
+		//wait(2)
+		out = remote.host_computer.File("/virt/out.spc")
+		if not out then
+			print("/virt/out.spc not found")
+			skip_wait = true
+		end if
+		if passfile.get_content != t_buf or skip_wait then
+			if skip_wait then
+				//print(passfile.get_content)
+				waiting = false
+				print("...transmission complete.")
+			else
+				last_out = out.get_content
+				if last_out != out.get_content then
+					waiting = false
+					last_out = out.get_content
+					//print("Clipped: "+char(10)+last_out)
+					print("Receiving response...")
+					print(command.clipb(last_out))
+				end if
+			end if
+		end if
+	end while
+	globals.T_BUF = [(localip+"@"+pubip)]
+	return 0
+end function
+command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor output file"+char(10)+"Usage: outmon [path_to_monitor -- default /virt/out.spc] [interval -- default 2 seconds, range(.1, 300)]"+char(10)+"-- prints changes to a text file every [interval] seconds"
+	out_space = localmachine.File("/virt/out.spc")
+	if arg1 then out_space = globals.get_file(arg1)
+	if not out_space then return "outmon: "+ arg1 + ": file not found."
+	last_read = "-EMPTY-" // out_space.get_content
+	//print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
+	int = arg2 // interval (ntbcw integer), may be float in range .1, 300
+	if int != 0 then int = int.val
+	if typeof(int) != "number" or int < .1 or int > 300 then int = 2
+	running = true
+	while running
+	  if last_read == out_space.get_content then
+	    //skip
+	  else
+	    last_read = out_space.get_content
+	    print(colorGreen+"///////////////////////////////////////"+CT)
+	    print(last_read)
+	    print(colorGreen+"///////////////////////////////////////"+CT)
+	    print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
+	  end if
+	  wait(int)
+	end while
+	return 0
+end function
+command.dbmon = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "dbmon: database daemon for use with KORE"+char(10)+"Usage: dbmon [/path -- default /root/pass] [interval -- default 2 seconds, range(.1, 300)]"+char(10)+"-- vulnerability database daemon. Write ip addresses to the given path and dbmon will database the ip."+char(10)+"Usage: use transmit, poke, scribus, etc to write to the pass file."+char(10)+"-- as ips are added to the pass file dbmon will run the databaser (command.db) on the ip (and port, if supplied.)"+char(10)+"-- add ips one per line to the pass file."+char(10)+"-- adjust interval to increase or decrease sample rate."+char(10)+"-- outputs to database.csv (wherever that file may be on the machine)"
+	db_file = command.tree("/","database.csv",1,"N")
+	if not db_file then return "dbmon: missing database.csv"
+	shar = globals.get_file("/root/pass")
+	if arg1 then shar = globals.get_file(arg1)
+	if not shar then return "dbmon: "+arg1+": file not found"
+	int = arg2 // interval (ntbcw integer), may be float in range .1, 300
+	if int != 0 then int = int.val
+	if typeof(int) != "number" or int < .1 or int > 300 then int = 2
+	running = true
+	last_check = ""
+	clear_me = false
+	print(colorWhite+"Listening on:"+shar.path+" for connections..."+CT)
+	while running
+		if last_check == shar.get_content or shar.get_content == "" then
+			// skip
+		else
+			last_check = shar.get_content
+			//print(last_check)
+			buf = last_check.split(char(10))
+			for b in buf
+				bs = b.split(" ")
+				if is_valid_ip(bs[0].trim)  then
+					//print(bs[0]+"__"+bs[1]+"__"+bs.len)
+					if bs.hasIndex(1) then
+						command.db("-r", bs[0].trim, bs[1].to_int)
+					else
+	        	command.db("-r", bs[0].trim)
+					end if
+				end if
+				if bs.indexOf("@clear") >= 0 then clear_me = true
+			end for
+	    if clear_me then
+				db_file.set_content("-empty-")
+				shar.set_content(db_file.get_content)
+				clear_me = false
+			else
+				shar.set_content(db_file.get_content)
+			end if
+	    last_check = shar.get_content
+			print(colorWhite+"Listening on:"+shar.path+" for connections..."+CT)
+		end if
+		wait(int)
+	end while
+	return 0
+end function
+command.hashim = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then
+		if arg2 and arg2 == "extra" then
+			return "Files required: /root/tables/t5/XX (XX is all files from<b> pwgen hash </b>, ascii), 5hell (bin)."+char(10)+"Files created: /root/dump.txt (ascii) -- the output file with cracked passwords"+char(10)+"Input format: "+char(10)+"   user:hash "+char(10)+"Once per line in /root/pass or specified path (see also <b>transmit</b>). "+char(10)+"May be of type bank, mail, passwd."
+		else
+			return "hashim: hash daemon"+char(10)+"Usage: hashim [-d|-f] [path] -- listen on [path] and decipher contents using tables/t5"+char(10)+"-- default path is /root/pass"+char(10)+"-- -f == run once on specified path"+char(10)+"-- -d == run as daemon on specified path"+char(10)+"N.B. Please run <b> pwgen hash </b> to setup resources for hashim."+char(10)+"n.b.b This command requires root access and it is recommended to use, along with pwgen, on a dedicated server due to the number of files involved. ie try not to spam hashim servers. a single one works wonders."+char(10)+"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
+		end if
+	end if
+	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [path] -- -f == run once on specified path, -d == run in daemon mode on specified path. Default path: /root/pass."
+	if not crypto then print(colorOrange+"WARNING: crypto.so not found"+CT)
+	localmachine.touch("/root", "dump.txt")
+	dump = localmachine.File("/root/dump.txt")
+	if not dump then return "404: /root/dump.txt not found. check read/write permissions."
+	swap_path = "/root/pass"//params[0]
+	swap_file = localmachine.File(swap_path)
+	if not swap_file then return("404: "+swap_path+" not found.")
+	//out_path = "/virt/out.spc"
+	//out_file = localmachine.File(out_path)
+	//if not out_file then return("404: "+out_path+" not found"+char(10)+"type<b> kore </b>without params to create (you may skip adding an ip)")
+	cache = []
+	found = false
+	daemon = true
+	if arg1 == "false" or arg1 == "-f" then daemon = false
+	hashim = function(daemon,swap_file)
+		//if not daemon then swap_path = "/root/pass"
+		//swap_file = globals.get_file(swap_path)
+		if not swap_file then return "404: "+swap_path+" not found."
+		last_read = "" //swap_file.get_content
+		running = true
+		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
+		while running
+			found = false
+			hash = ""
+			user = ""
+			if last_read == swap_file.get_content or swap_file.get_content == "" then
+				// skip
+			else
+				time_s = time
+				last_read = swap_file.get_content.split(char(10))
+				for hash in last_read
+					found = false
+
+					//print("{"+hash+"}")
+					//if hash == last_read[0] then continue
+					if hash.indexOf(":") >= 0 then
+						user = hash.split(":")[0]
+						hash = hash.split(":")[-1]
+					else
+						continue
+					end if
+					hash = hash.trim
+					if hash.indexOf("@") >= 0 then continue
+					if hash.len != 32 then continue
+					print("["+hash+"]")
+					t_folder = localmachine.File("/root/tables/t5")
+					if not t_folder then return "/root/tables/t5 not found. run<b> pwgen hash </b>before continuing."
+					files = t_folder.get_files
+					for f in files
+						if found then continue
+						lines = f.get_content.split(char(10))
+						for line in lines
+							if found then continue
+							if line == lines[0] then continue
+							spl = line.split("=")
+							h = spl[0]
+							p = spl[1]
+							if h == hash then
+								print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
+								cache.push(user + ":" + p)
+								found = true
+								continue
+							end if
+						end for
+					end for
+					if found then continue
+					if crypto then
+						password = null
+						password = crypto.decipher(hash)
+						if password then
+							print("Hashim: " + user + ":" + colorWhite + password + CT + " found in " + (time-time_s) + " seconds.")
+							cache.push(user + ":" + password)
+							found = true
+							continue
+						end if
+					end if
+					print(colorRed+"Hash not found: unknown: "+hash+CT)
+				end for
+				last_read = cache.join(char(10))
+				if daemon then print("Sending: "+char(10)+last_read)
+				if daemon then swap_file.set_content(last_read)
+				print("Saving to dump.txt...")
+				dump.set_content(dump.get_content+char(10)+last_read)
+				cache = []
+				print(colorLightBlue+"Hashim: completed task in "+(time-time_s)+" seconds."+CT)
+				wait(1)
+				if daemon then
+					print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
+				else
+					return 0
+				end if
+			end if
+		end while
+		return 0
+	end function
+	return hashim(daemon,swap_file)
+end function
+command.filemon = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "Usage: filemon [opt:interval] -- monitor /virt/share.spc for transmissions (see transmit/TxBUF) "+char(10)+"-- and decipher using Gopher (interval default: 1 second) "+char(10)+"Usage: filemon -nl [interval] -- same as above but disables logging to /var/filemon.log "+char(10)+"Usage: filemon [opt:interval] <b>-p [path_to_shared_file]<b> -- monitor given file (default: /virt/share.spc)]"+char(10)+"n.b. since this command uses gopher isntead of the pwgen tables it is an alternative to running a hashim server since you may run cerebrum before running filemon, getting the same effect as hashim, with only a 2-3 minute setup."+char(10)+"N.B. filemon writes to /var/filemon.log"+char(10)+"-- the log will contain the incoming ip when command.transmit is used"+char(10)+"-- the log will contain the hashed lines."+char(10)+"-- cracked passwords are written to dump.txt"+char(10)+"N.B. if not using transmit, simply paste or pipe lines to the indicated path and filemon will act automatically."
+	logging = true
+	SWAPSPACE = []
+	interval = 1 // how long to wait between checks
+	if arg1 and arg1 != "-nl" and arg1 != "-p" and arg1.val > 1 then interval = arg1.val
+	if arg2 and arg2 != "-nl" and arg1 != "-p" and arg2.val > 1 then interval = arg2.val
+	if arg1 == "-nl" or arg2 == "-nl" then logging = false
+	v = localmachine.File("/virt")
+	if not v then localmachine.create_folder("/virt")
+	localmachine.touch("/virt/share.spc")
+	pass_path = "/virt/share.spc" // path to shared file
+	if arg1 == "-p" and typeof(arg2) == "string" then pass_path = arg2
+	out_path = "/virt/out.spc" // path to output from custom decipher
+	localmachine.touch("/virt", "out.spc")
+	out = localmachine.File(out_path)
+	if not out then return(colorRed+"outfile: check write permissions")
+	swap_path = "/root/rkit/swap.spc"
+	localmachine.touch("/root/rkit","swap.spc")
+	swap_file = localmachine.File(swap_path)
+	if not swap_file then return(colorRed+"Swap: check write permissions"+CT)
+	pass_file = localmachine.File(pass_path)
+	if not pass_file then return(colorRed+"404: shared file not found"+CT)
+	log_path = "/var/filemon.log"
+	localmachine.touch("/var", "filemon.log")
+	log_file = localmachine.File(log_path)
+	if not log_file then return(colorRed+"Log: check write permission")
+	SWAPSPACE = pass_file.get_content.split(char(10))
+	running = true
+	print(colorWhite+"waiting for updates on "+pass_file.path+"..."+CT)
+	while running
+		new_content = pass_file.get_content.split(char(10))
+		if SWAPSPACE[0] == new_content[0] and SWAPSPACE[-1] == new_content[-1] then
+			//skip
+		else
+			SWAPSPACE = new_content
+			last_ip = SWAPSPACE.pull
+			//last_ip = SWAPSPACE[0]
+			print(colorOrange+last_ip+" has connected..."+CT)
+			print(colorLightBlue+"Communication detected... "+CT)
+			swap_file.set_content(SWAPSPACE.join(char(10)))
+			globals.Gopher(swap_file)
+			dump = localmachine.File(currentPath+"/dump.txt")
+			if not dump then return(colorRed+"404: dump.txt not found"+CT)
+			pass_file.set_content(dump.get_content)
+			SWAPSPACE = pass_file.get_content.split(char(10))
+			//self.merge("/root/rkit/dump.txt", "/virt/out.spc")
+			out.set_content(dump.get_content)
+			print(colorLightBlue+"Response sent."+CT)
+			print(colorOrange+last_ip+" has closed connection."+CT)
+			if logging then log_file.set_content(log_file.get_content +char(10)+swap_file.get_content +":"+ last_ip + char(10)+time+char(10))
+			print(colorWhite+"waiting for updates..."+CT)
+		end if
+		wait(interval)
+		//clear_screen
+	end while
+	return 0
+end function
+command.rsi = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "rshell_interface: listen for connections on port 1222"+char(10)+"Runs once then exits. For daemon mode use:"+char(10)+"rsi -d -- daemon mode, continues to listen for connections until rhsell connects."
+	if not metaxploit then return "Error: Can't find metaxploit library in the /lib path or the current folder"
+	print("Listening for upcoming connections...")
+	shells = []
+	option = arg1
+	st = arg2
+	while shells.len == 0
+		shells = metaxploit.rshell_server
+		if typeof(shells) == "string" then return shells
+		if shells.len == 0 and arg1 != "-d" then return "no rshells connected. use<b> rsi -d </b> to run in daemon mode."
+	end while
+	option = "0"
+	while typeof(option) != "number" or option > shells.len or option < 0
+		print(shells.len + " shell(s) connected!\n<b>Select a shell to start a terminal:</b>")
+		for i in range(0, shells.len - 1)
+			print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + shells[i].host_computer.public_ip + char(10) + "Local IP: " + shells[i].host_computer.local_ip + char(10) + colorWhite + shells[i].host_computer.show_procs + CT )
+		end for
+		print(colorLightBlue+"-----------"+CT)
+		option = user_input("Select shell ([0|q] to abort) :> ").to_int
+		if option == 0 or option == "q" then return 0
+	end while
+	if option == 0 or option == "q" then return 0
+	print("Accessing shell [" + option + "]")
+	ts = shells[option - 1]
+	print("[4] buff_it [5] rclean [6] run "+char(10)+"[1] glassp [2] start_terminal [3] scp ")
+	st = user_input("[K] kill [0|q] abort ||: ",0,1)
+	if st == "0" or st.lower == "q" then return 0
+	if st.lower == "k" then print(ts.host_computer.close_program(user_input("kill pid:> ").to_int ) )
+	if st == "1" then
+		print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
+		hold_shell = globals.shell
+		globals.shell = ts
+		globals.localmachine = ts.host_computer
+		if currentPath and homePath then
+		 	globals.GLASSPOOL = globals.GLASSPOOL + 1
+			print(colorWhite+"...glasspool initialization successful. "+char(10)+colorOrange+"Type <u>return</b> to deactivate (exit or quit to terminate program)"+CT)
+			if typeof(shell) == "ftpshell" then print(colorOrange+"Warning: many commands will not work with ftpshells!"+CT)
+			command.shell
+			globals.shell = hold_shell
+			globals.localmachine = globals.shell.host_computer
+			globals.GLASSPOOL = globals.GLASSPOOL - 1
+			return colorLightBlue+"GLASSPOOL: "+colorOrange+"deactivating..."+CT
+		end if
+		return colorOrange+"...glasspool failed to initialize. Check permissions."+CT
+	end if
+	if st == "2" then ts.start_terminal
+	if st == "3" then
+		if GLASSPOOL then
+			print(colorLightBlue+"GLASSPOOL: "+colorOrange+"active"+colorLightBlue+" on: "+CT)
+			print(colorWhite+globals.shell.host_computer.local_ip+"@"+globals.shell.host_computer.public_ip+CT)
+			print("Upload from / Download to the linked filesystem:")
+		end if
+		globals.secure_copy(ts)
+	end if
+	if st == "4" then
+		BUFFER.push(ts)
+		print("Shell sent to BUFFER.")
+	end if
+	if st == "5" then globals.rclean(ts)
+	if st == "6" then
+		print(ts.launch(user_input("command_path:> ",0,0), user_input("params:> ",0,0)))
+		globals.stack_pool = globals.stack_pool - 1
+	end if
+	return "rsi: exiting..."
+end function
+command.scpm = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "scpm: scp menu"+char(10)+"Usage: scpm -- from menu select target shell (active shell is shown with an '*'). "+char(10)+"-- input source path and then destination path at prompts."+char(10)+"-- select upload or download. Note the printed trajectories."+char(10)+"-- (these can change when glasspool is involved)."+char(10)+"-- if uploading indicate if editing permissions"+char(10)+"-- if editing permissions press enter for defaults"+char(10)+"-- default is o+rwx before uploading and then o-rwx after uploading."+char(10)+"Always mind permissions! Type lock constantly to feel secure."+char(10)+"Advanced: scpm [string_path|piped_file] -- open scpm menu with path or file.path tagged for scp"+char(10)+"Advanced: scpm [piped_shell] -- skip menu and scp to/from piped shell"
+	target_shell = null
+	if typeof(arg1) == "string" then
+		tag = globals.get_file(arg1)
+		if tag then globals.tagged_for_scp = tag.path
+	end if
+	if typeof(arg1) == "file" then
+		if globals.get_file(arg1.path) then globals.tagged_for_scp = arg1.path else return "scpm: "+arg1.name+" is not local to this shell. Check glasspool status."
+	end if
+	if typeof(arg1) == "computer" then
+		return "scpm: computer object is an invalid input."+char(10)+"  valid inputs: string_path, shell, file"
+	end if
+	if typeof(arg1) == "shell" then
+		target_shell = arg1
+	else
+		temp_buf = []
+		for b in BUFFER
+			if typeof(b) == "shell" or typeof(b) == "ftpshell" then temp_buf.push(b)
+		end for
+		r_index = temp_buf.len
+		if metaxploit then
+			r_buf = metaxploit.rshell_server
+			if typeof(r_buf) != "string" then temp_buf = temp_buf + r_buf
+		end if
+		ti = 0
+		print(colorLightBlue+"<size=85%><mark=blue>======================================================================</mark></size>"+CT)
+		active_icon = "<b> - </b>"
+		print("<u>BUFFER contains: "+temp_buf.len+" (r)shell(s) ["+colorWhite+"0"+CT+"] == localhost "+colorCyan+"*"+CT+" == "+colorCyan+"active shell"+CT+"</u>"+char(10)+"<size=75%><u>"+colorLightBlue+" rshells "+CT+"are listed after"+colorOrange+" BUFFER "+CT+"shells. rshells in BUFFER will be listed twice.</size></u>")
+		color_shelle = colorOrange
+		she_buf = []
+		for tb in temp_buf
+			if tb.host_computer.public_ip == globals.shell.host_computer.public_ip and tb.host_computer.local_ip == globals.shell.host_computer.local_ip then active_icon = colorCyan+" * "+CT
+			if ti >= r_index then color_shelle = colorLightBlue
+			she_buf.push("["+colorWhite+ti+CT+"]"+active_icon+""+color_shelle+"["+checkUser(tb)+":"+typeof(tb)+"] "+CT+tb.host_computer.local_ip+" @ <b>"+tb.host_computer.public_ip+"</b>")
+			active_icon = "<b> - </b>"
+			ti = ti + 1
+		end for
+		print(she_buf.join(char(10)))
+		slect = user_input("select a <b>target</b> shell (q=quit): ").to_int
+		if typeof(slect) != "number" then return "aborting..."
+		if slect >= 0 and slect < temp_buf.len then
+			target_shell = temp_buf[slect]
+		else
+			return "aborting..."
+		end if
+	end if
+	globals.secure_copy(target_shell)
+	return 0
+end function
+command.iwlist = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: iwlist -- returns wifi networks in range. (uses command.air false)"
+	return command.air("false")
+end function
+command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: ifconfig [option:-l|local -p|public] --  returns ip and gateway information"+char(10)+"Usage: ifconfig [-c|connect] [lan_ip] [gateway] -- connect via ethernet to gateway and request lan_ip."+char(10)+"Usage: ifconfig -d -- list network devices"
+	print(colorGreen+"- - - - - - - - - - - - - - - - - - - - - - -"+CT)
+	dat = []
+	globals.localip = globals.localmachine.local_ip
+	globals.pubip = globals.localmachine.public_ip
+	if arg1 == "-l" or arg1 == "local" or arg2 == "-l" or arg2 == "local" then dat.push(localip)
+	if arg1 == "-p" or arg1 == "public" or arg2 == "-p" or arg2 == "public" then dat.push(pubip)
+	if arg1 == "-d" or arg2 == "-d" then
+		dat.push("___")
+		dat.push(localmachine.network_devices)
+	end if
+	if arg1 == "-c" or arg1 == "connect" then
+		device = "eth0"
+		address = arg2
+		gateway = arg3
+		if not is_valid_ip(address) then return("ifconfig: invalid ip address")
+		if not is_valid_ip(gateway) then return("ifconfig: invalid gateway")
+		output = localmachine.connect_ethernet(device, address, gateway)
+		return output
+	end if
+	//if arg1 == 0 then dat.push(localip)
+	if arg1 == 0 and arg2 == 0 then //dat.push(pubip)
+		if localmachine.is_network_active then
+			router = get_router(localmachine.network_gateway)
+			dat.push("Connected to: "+localmachine.active_net_card)
+			if localmachine.active_net_card == "WIFI" then
+				dat.push("<b>"+router.essid_name+"</b>")
+				dat.push(router.bssid_name)
+			end if
+			dat.push(localmachine.network_gateway+char(10)+"<b>"+localmachine.public_ip+char(10)+"<b>"+localmachine.local_ip)
+		else
+			dat.push(char(10)+"No active network connection."+char(10))
+		end if
+	end if
+	return dat.join(char(10))
+end function
+command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
+	if arg1 == "help" or arg1 == "-h" then return "air: aircrack menu. Saves cracked .cap files to current path and reads those files from current path. "+char(10)+"Advanced: air [-f|false] -- same as command.iwlist, prints wifi nets in range and exits."+char(10)+"Advanced: air -c [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+"Advanced: select option [h] within air to activate detection of hidden wifi signals."+char(10)+"-- You must be within range (on the same network) to detect and connect to these non-broadcasting signals."+char(10)+"-- This allows bypassing firewalls in many instances."
+	print("AirMenu v 0.1.3, by Plu70")
+	is_it_known = function(a)
+		chrom = ""
+		line = a.split(" ")
+		p = "/"
+		if globals.currentPath != "/" then p = globals.currentPath + "/"
+		file = localmachine.File(p + line[2]+".cap")
+		if file then
+			chrom = colorGreen
+		else
+			chrom = colorOrange
+		end if
+		parsed_data = chrom + a + CT
+		return parsed_data
+	end function
+	data_stream = function(alist)
+		data = ""
+		i = 0
+		for element in alist
+			data = data + "[" + colorWhite + i + CT + "] " + is_it_known(element) + char(10)
+			i = i + 1
+		end for
+		return data
+	end function
+
+	scan_wifi = function(a1,detect_hidden)
+		print(command.ifconfig)
+		dev = localmachine.network_devices
+		dsp = dev.split(char(10))
+		wl = false
+		for dl in dsp
+			if dl.split(" ")[0] == "wlan0" then wl = true
+		end for
+		if not wl then
+			print(colorRed+"Error: wlan0 not found."+CT)
+			return 0
+		end if
+		crypto.airmon("start", "wlan0")
+		print(colorGreen+"- - - - - - - - - - - - - - - - - - - - - - -"+CT)
+		print(format_columns("DEV NAME MON"+char(10)+dev))
+		bssid = "temp"
+		essid = "temp"
+		power = "temp"
+		ip = get_shell.host_computer.public_ip
+		if detect_hidden == 2 then print("Probing for hidden signals on local network: "+char(10)+ip)
+		print("<align=center><b>(>|<)</b></align>")
+		networks = localmachine.wifi_networks("wlan0")
+		output = []
+		if detect_hidden == 2 then
+			if not localmachine.is_network_active then
+				print("No network detected.")
+				return 1
+			end if
+			router = get_router( ip )
+			clist = router.devices_lan_ip
+			if DEBUG then print(clist)
+			output = []
+			for c in clist
+				rw = get_router(c)
+				if typeof(rw) != "router" then continue
+				if rw.local_ip == router.local_ip then continue
+				if rw.essid_name then
+					wire = rw.bssid_name+ " 100% " +rw.essid_name
+					output.push(wire)
+				end if
+			end for
+			if output.len then
+				print( "Found "+output.len+" hidden wireless signal(s): ")
+				print(output.join(char(10)) + char(10) + "<b>- - - - - - - - - - - - - - - - </b>")
+			else
+				print("No hidden wireless signals found.")
+			end if
+		end if
+		networks = networks + output
+		print(data_stream(networks))
+		waitFor = false
+		if a1 and a1 == "false" then waitFor = "false"
+		if not waitFor then waitFor = user_input("Select a network # ( m=manual, h=detect_hidden, q=quit )"+char(10)+":> ").to_int
+		if waitFor == "h" or waitFor == "H" then
+			if globals.GLASSPOOL then print(colorOrange+"Warning: Operation ignores GLASSPOOL."+CT)
+			return 2
+		end if
+		if waitFor < networks.len and waitFor >= 0 and typeof(waitFor) == "number" then
+			memory = networks[waitFor].split(" ")
+			print(memory)
+			bssid = memory[0]
+			power = memory[1]
+			essid = memory[2]
+		else
+			if waitFor == "m" or waitFor == "M" then
+				bssid = user_input("bssid:> ")
+				essid = user_input("essid:> ")
+				if bssid == "" or essid == "" then return 0
+				power = user_input("estimated_power must be non-zero. If internal (hidden) wifi use 100 or 100%  "+char(10)+"estimated_power:> ")
+				if power == "" then return 0
+				memory = [bssid, power, essid]
+			else
+				return 0
+			end if
+		end if
+		if is_it_known(memory.join(" ")) then passw = crypto.aircrack(globals.currentPath + "/" + essid + ".cap")
+		if passw and passw != "temp" then
+			print(passw + "@" + bssid)
+			print("Connection status: [" + localmachine.connect_wifi("wlan0", bssid, essid, passw) + "]"+char(10))
+			wait(1)
+			return detect_hidden
+		end if
+		print("Note: answering y/Y will use brutus. This will take a long long time. ")
+		print("Note: answering c/C will allow you to type the password")
+		print("Note: answering q/Q will abort")
+		print("Note: anything else will use aircrack to crack the wifi key ")
+		print("ie:"+colorCyan+" press enter"+CT+"; recommended)")
+		brut = user_input("Brute force the key? [c/y/N] (q=quit)"+char(10)+":> ")
+		if brut.lower == "q" then return "aborting..."
+		if brut == "y" or brut == "Y" then
+			d_count = 0
+			time_s = time
+			print("Trying: "+colorGold+dict_a.len+CT+" passwords..."+char(10)+"<b>This may take some time...</b>")
+			temd = globals.dict_a
+			for d in temd
+				try = localmachine.connect_wifi("wlan0", bssid, essid, d)
+				if try == 1 then
+					print(d+"@"+bssid)
+					print("Connection status: [" + try + "]"+char(10))
+					wait(1)
+					return detect_hidden
+				end if
+				d_count = d_count + 1
+				if d_count > 1000 then
+					d_count = 0
+					print(" working for: "+colorOrange+( (time - time_s) / 60 )+CT+" minutes...")
+				end if
+			end for
+		end if
+		if brut.lower == "c" then
+			ur_p = user_input("network credentials (q=quit):> ")
+			if ur_p.lower == "q" then return "aborting..."
+			try = localmachine.connect_wifi("wlan0", bssid, essid, ur_p)
+			if try == 1 then print(essid+" @ "+bssid)
+			print("Connection status: [" + try + "]"+char(10))
+			return detect_hidden
+		end if
+		max = (300000 / power.remove("%").val)
+		max = max + 10 // just in case
+		status = crypto.aireplay(bssid, essid, max)
+		if status then print(status) else print("Scan complete.")
+		print("Processing...")
+		wait(2)
+		cap = globals.get_file(home_dir+"/file.cap")
+		if cap then
+			catch = cap.move(globals.currentPath, essid+".cap")
+			if catch then print(catch)
+		else
+			print("Error! file.cap not found.")
+		end if
+		cap = globals.get_file(essid+".cap")
+		if not cap then
+			print("Error. Failed to rename file.cap to " + essid+".cap")
+		else
+			print("...file saved as " + essid+".cap")
+			print("The key is:<b> "+crypto.aircrack(globals.currentPath + "/" + essid + ".cap")+"</b>")
+		end if
+		return detect_hidden
+	end function
+	scw = 1
+	if arg1 == "-f" then arg1 = "false"
+	if arg1 == "-c" then
+		if arg2 then
+			cap = globals.get_file(arg2)
+			if cap then return "air_crack: key:<b> "+crypto.aircrack(cap.path)+"</b>" else return "air_crack: "+arg2+" not found."
+		else
+			return "usage: air -c [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"
+		end if
+	end if
+	while scw
+		scw = scan_wifi(arg1,scw)
+		//wait(1)
+	end while
+	return "air: exiting..."
+end function
+command.probe = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: probe [optional: ip] [optional: port] -- scan network (scans 15 per subnet)"+char(10)+"probe -f [opt:ip] [opt:port] -- full scan (takes longer. gets all non-firewalled machines on network.)"+char(10)+"i.e. 255 per subnet."+char(10)+"</b>Usage: probe [-s|show] -- display portmap.</b>"+char(10)+"N.B. remote scanning has been nerfed by the dev. Scan networks locally to get all machines."+char(10)+"Quick: probe -q [opt:ip] [opt:port] -- quick scan, max 2 per subnet."
+	if arg1 =="-s" or arg1 == "show" then
+		if PORT_MAP then return globals.display_portmap(1)
+	end if
+	if arg1 then globals.targetIP = arg1
+	if arg2 then globals.targetPort = arg2.to_int
+	get = 15
+	if arg1 == "-f" then
+		if arg2 then globals.targetIP = arg2
+		if arg3 then globals.targetPort = arg3.to_int
+		get = 255
+	end if
+	if arg1 == "-q" then
+		if arg2 then globals.targetIP = arg2
+		if arg3 then globals.targetPort = arg3.to_int
+		get = 2
+	end if
+	if not arg1 or not is_valid_ip(globals.targetIP) or (arg1 == "-f" and not arg2) then set_ip
+	if not arg2 or ( (arg1 == "-f" or arg1 == "-q") and not arg3) then globals.targetPort = "router"
+	if arg4 and arg4 == "1" then
+		who_scan(get,0,1)
+		return 0
+	end if
+	who_scan(get,0,0)
+	return 0
+end function
+command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: lanpro [ip] -- full lan scan. returns only lan addresses."+char(10)+"Does not autoset ip or portmap for 5phinx. Use<b> probe -f </b>instead."
+	if is_valid_ip(arg1) then return globals.lan_probe(get_router(arg1)).join(char(10))
+	return globals.lan_probe(get_router).join(char(10))
+end function
+command.nsl = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup</u>"+char(10)+"Usage: nsl [www.webAdress.com] -- uses nslookup on address and returns ip as a string"+char(10)+"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+"Experimental: nsl will attempt to append <b>www.</b> to a domain if it is omitted."
+	address = arg1
+	print("Address: "+address)
+	prefix = address[0:4]
+	if DEBUG then print("debug_prefix:["+prefix+"]")
+	if prefix != "www." then address = "www."+address
+	if DEBUG then print("debug_address:"+address)
+	print(colorLightBlue+"IP: ")
+	return nslookup(address)
+end function
+command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return command_info("ping_usage")
+	if not is_valid_ip(arg1) then return command_info("ping_usage")
+	time_s = time
+	catch = shell.ping(arg1)
+	time_e = ( (time - time_s) * 1000 )
+	if catch then
+		if typeof(catch) == "string" then
+			print(catch)
+		else
+			print(colorLightBlue+"Ping "+arg1+": successful"+CT)
+			color_time = colorOrange
+			if time_e < .03 then color_time = colorGreen
+			if time_e > .1 then color_time = colorRed
+			return colorLightBlue+"Ping: packet round trip: "+CT+color_time+time_e+CT+colorLightBlue+" ms."+CT
+		end if
+	else
+		print("Ping "+arg1+": unreachable.")
+		return 0
+	end if
+	return 0
+end function
+command.whois = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "Usage: whois [ip] --  returns whois information."+char(10)+"Usage: whois -- returns local whois information if no params."
+	if not arg1 then return "whois: no ip provided. Returning localhost:"+char(10)+whois(globals.pubip)
+	if not is_valid_ip(arg1) then return "whois: invalid ip"
+	return whois(arg1)
+end function
+command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
+	ssh_help = function()
+		return "ssh_usage: ssh [user@pass] [ip] [optional:pt (default 22)]"+char(10)+"ssh_usage: ssh [user@-brutus] [ip] [opt:pt] --  remote brute force attack"+char(10)+"e.g. ssh root@1234 1.1.1.1 "+char(10)+"e.g. ssh root@-brutus 1.2.3.4 21 ftp"+char(10)+"Sends shells to BUFFER or you may open immediately."
+	end function
+	if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return ssh_help
+	rem_ip = arg2.trim
+	rem_pt = 22
+	rem_usr = ""
+	rem_pass = ""
+	if arg1.indexOf("@") >= 0 then
+		split = arg1.split("@")
+		rem_usr = split[0].trim
+		rem_pass = split[1].trim
+	else
+		return "ssh: expects user@pass [ip]"
+	end if
+	if arg2 == "-t" then
+		rem_ip = globals.targetIP
+		if globals.targetPort then rem_pt = globals.targetPort else rem_pt = 22
+	end if
+	if arg3 and arg3 != "" and arg3 != " " then rem_pt = arg3.to_int
+	if typeof(rem_pt) != "number" or not rem_pt then return "Invalid port."
+	if not arg4 or (arg4 != "ftp" and arg4 != "ssh") then arg4  = "ssh"
+	if rem_ip == "" or rem_pt == "" or rem_usr == "" or rem_pass == "" then return "Error: invalid input."
+	if not rem_ip or not rem_pt or not rem_usr or not rem_pass or not arg4 then return "Error: invalid input."
+	print("Connecting: "+rem_ip+" "+rem_pt+" "+rem_usr+" "+rem_pass+" "+arg4)
+	rem_shell = null
+	if rem_pass == "-brutus" then return command.brutus("-s", shell, rem_usr, rem_ip, rem_pt)
+	rem_shell = shell.connect_service( rem_ip, rem_pt, rem_usr, rem_pass, arg4 )
+	if typeof(rem_shell) == "shell" or typeof(rem_shell) == "ftpshell" then
+		globals.BUFFER.push(rem_shell)
+		print("Shell sent to BUFFER. Access via memory_alpha.")
+	end if
+	return rem_shell
+end function
+command.calc = function(arg1="0", arg2="0", arg3="0", arg4=0)
+	calc_help = function()
+		return "calc [arg1] [arg2: + - * / (or: add, sub, mul, div)] [arg3] "+char(10)+"calc (a)sin/(a)cos/(a)tan/ [arg]"+char(10)+"calc pwr/abs/sqrt [arg]"+char(10)+"calc [min] rnd [max] |or| calc rnd [max]   (min=0)"+char(10)+"calc [arg1] pwr [arg2]"+char(10)+"calc [arg1] == [arg2] (check if equal.)"+char(10)+"Use pi to indicate pi. eg: calc pi || calc pi / 2 || calc cos pi || etc"+char(10)+"N.B. If an input is a function it will be evaluated"+char(10)+"-- EXCEPT when using the equals function (ie x == y)"+char(10)+"-- in this case function pointers will be compared."+char(10)+"You may use @a or @clipa, @b or @clipb, @c or @clipc to reference the clipboards."+char(10)+"-- ie calc @a + @b"+char(10)+"Returns: evaluation as string."
+	end function
+	if @arg1 == "-h" or @arg1 == "help" then return calc_help
+	calc = {}
+	calc.equals = function(a1,a3)
+		if @a1 == @a3 then
+			print("equal")
+			return 1
+		else
+			print("not equal")
+			return 0
+		end if
+	end function
+	calc.add = function(a1,a3)
+		return (a1 + a3)
+	end function
+	calc.sub = function(a1,a3)
+		return (a1 - a3)
+	end function
+	calc.mul = function(a1,a3)
+		return (a1 * a3)
+	end function
+	calc.div = function(a1,a3)
+		return (a1 / a3)
+	end function
+	calc.cos = function(a1,a3)
+		return cos(a1)
+	end function
+	calc.sin = function(a1,a3)
+		return sin(a1)
+	end function
+	calc.tan = function(a1,a3)
+		return tan(a1)
+	end function
+	calc.acos = function(a1,a3)
+		return acos(a1)
+	end function
+	calc.asin = function(a1,a3)
+		return asin(a1)
+	end function
+	calc.atan = function(a1,a3)
+		return atan(a1)
+	end function
+	calc.sqrt = function(a1,a3)
+		return sqrt(a1)
+	end function
+	calc.pwr = function(a1,a3)
+		tm=1
+		for i in range(1,a3)
+			tm=(tm * a1)
+		end for
+		return tm
+	end function
+	calc.rnd = function(a1,a3=0)
+		//if typeof(a1) != "number" then a1 = a1.to_int
+		ran = range(a3, a1)
+		ran.shuffle
+		return ran[0]
+		//return (floor((rnd * a3.val) + a1.val))
+	end function
+	calc.abs = function(a1,a3)
+		return abs(a1)
+	end function
+	calc.pi = function(a1,a3)
+		return "3.14159265358"
+	end function
+	if @arg1 == "@a" or @arg1 == "@clipa" then arg1 = @globals.clip_board_alpha
+	if @arg1 == "@b" or @arg1 == "@clipb" then arg1 = @globals.clip_board_beta
+	if @arg1 == "@c" or @arg1 == "@clipc" then arg1 = @globals.clip_board_gamma
+	if @arg2 == "@a" or @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
+	if @arg2 == "@b" or @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
+	if @arg2 == "@c" or @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
+	if @arg3 == "@a" or @arg3 == "@clipa" then arg3 = @globals.clip_board_alpha
+	if @arg3 == "@b" or @arg3 == "@clipb" then arg3 = @globals.clip_board_beta
+	if @arg3 == "@c" or @arg3 == "@clipc" then arg3 = @globals.clip_board_gamma
+	if @arg2 == "==" then arg2 = "equals"
+	if @arg1 == "pi" and @arg2 == 0 then return calc.pi
+	if @arg1 == "pi" then arg1 = calc.pi
+	if @arg2 == "pi" then arg2 = calc.pi
+	if @arg3 == "pi" then arg3 = calc.pi
+	if @arg2 == "+" then arg2 = "add"
+	if @arg2 == "-" then arg2 = "sub"
+	if @arg2 == "*" then arg2 = "mul"
+	if @arg2 == "/" then arg2 = "div"
+	if calc.hasIndex(@arg1) then
+		c = @calc[arg1]
+		if typeof(@arg2) == "number" then arg2 = str(arg2)
+		return str(c(arg2.val))
+	else
+		if calc.hasIndex(@arg2) then
+			c = @calc[arg2]
+			par1 = 0
+			par2 = 0
+			if typeof(@arg1) == "function" then par1 = @arg1 else par1 = arg1
+			if typeof(@arg3) == "function" then par2 = @arg3 else par2 = arg3
+			if DEBUG then print("par1: "+typeof(@par1)+char(10)+"par2: "+typeof(@par2)+char(10))
+			if typeof(@arg1) == "string" then par1 = arg1.val
+			if typeof(@arg3) == "string" then par2 = arg3.val
+			if DEBUG then print("par1: "+@par1+char(10)+"par2: "+@par2+char(10))
+			return str(c(@par1,@par2))
+		else
+			return calc_help
+		end if
+	end if
+end function
