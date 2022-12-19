@@ -1,3 +1,4 @@
+// original pwgen by usespython, additions by Plu70
 if DEBUG then print("<size=75%>loading pwgen.5pk...(25.573kb)</size>")
 command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "pwgen: generate a friggin lot of passwords with hashes."+char(10)+"Usage: pwgen -- generate tables/tp/ and files with one password per line"+char(10)+"Usage: pwgen hash -- generate tables/t5 and files with hash=pw one per line"+char(10)+"Use cerebrum to expand onboard dictionary."
