@@ -1,12 +1,13 @@
-// 5hell v 3.2.4 by Plu70 aka jhook
-// released v 3.2.4
+// 5hell v 3.1.5 by Plu70
+// released v 3.1.5
 // imports .5pk files
-ver = "3.2.4 _loose_change_"
+ver = "3.2.5 _loose_change_"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
 //
 // changes:
+// updated dictionary file imports. Default is no import. Create files per instructions (below) and uncomment import lines as needed.
 // rclean: fixed bug caused by switch from @B to @b
 // clipb: changed @B to @b
 // changed easy clip to @A,@B,@C
@@ -118,16 +119,34 @@ instance = localmachine.File(program_path)
 
 import_code("/root/src/5phinx.5pk")
 if DEBUG then print("<size=75%>loading dictionary...</size>")
-import_code("/root/src/a.csv") // dict_a | list of strings
-import_code("/root/src/b.csv") // dict_b | list of strings
-import_code("/root/src/c.csv")
-import_code("/root/src/d.csv")
-import_code("/root/src/e.csv")
-import_code("/root/src/f.csv")
-import_code("/root/src/g.csv")
-import_code("/root/src/h.csv")
-import_code("/root/src/i.csv")
-import_code("/root/src/j.csv")
+// Uncomment the appropriate import lines for the dictionary files you want to hard code into the compiled binary.
+// Remember each file can be up to 160kb and the max size of a script is 4MB.
+//
+// *.csv file format is as follows:
+//
+// a.csv is a text file with contents:
+// dict_a="a,word,string,seperated,by,commas,"
+// b.csv => dict_b="b,another,word,string,"
+// ...
+// z.csv => dict_z="z,no,ending,comma,here"
+//
+// There should be no spaces and the list should end with a comma except for the last .csv file.
+// This is because the strings are combined and then split by the comma.
+// You don't have to group them alphabetically, 5hell will load them all regardless of how they are sorted.
+// IMPORTANT!!
+// Remember you can decide not to use this at all and still generate passwords at runtime with Cerebrum!
+// IMPRTANT!!
+//
+//import_code("/root/src/a.csv") // dict_a | list of strings
+//import_code("/root/src/b.csv") // dict_b | list of strings
+//import_code("/root/src/c.csv")
+//import_code("/root/src/d.csv")
+//import_code("/root/src/e.csv")
+//import_code("/root/src/f.csv")
+//import_code("/root/src/g.csv")
+//import_code("/root/src/h.csv")
+//import_code("/root/src/i.csv")
+//import_code("/root/src/j.csv") // contents: dict_j="j,blaj,blah,blarg,"
 //("/root/src/k.csv")
 //("/root/src/l.csv")
 //("/root/src/m.csv")
@@ -144,10 +163,21 @@ import_code("/root/src/j.csv")
 //("/root/src/x.csv")
 //("/root/src/y.csv")
 //("/root/src/z.csv")
-
-dict_a = dict_a + dict_b + dict_c + dict_d + dict_e + dict_f + dict_g +dict_h + dict_i + dict_j //+ dict_k + dict_l + dict_m + dict_n + dict_o + dict_p + dict_q + dict_r + dict_s + dict_t + dict_u + dict_v + dict_w + dict_x + dict_y + dict_z
+//
+/////
+//// IF you are importing dictionary files, uncomment the line below up to the corresponding dictionary variable.
+// The variables themselves are defined IN the .csv file. So dict_f="a,csv,string" is defined in f.csv !!!!
+//dict_a = dict_a + dict_b + dict_c + dict_d + dict_e + dict_f + dict_g + dict_h + dict_i + dict_j //+ dict_k + dict_l + dict_m + dict_n + dict_o + dict_p + dict_q + dict_r + dict_s + dict_t + dict_u + dict_v + dict_w + dict_x + dict_y + dict_z
 if DEBUG then ds = dict_a.len
-dict_a = dict_a.split(",")
+//
+///// Uncomment the line below if you are importing dictionary files THEN comment out the very next line after.
+//dict_a = dict_a.split(",")
+dict_a = ["a"] // comment this out if you uncommented the line above!
+// if you are not using dictionary imports, the above lines sets the onboard dictionary to "a"
+// it can still be expanded at runtime with Cerebrum.
+////
+///
+
 if DEBUG then print("<size=75%>dictionary loaded...("+(ds/1000)+"kb)</size>")
 routerLib = null
 globals.targetIP = null
