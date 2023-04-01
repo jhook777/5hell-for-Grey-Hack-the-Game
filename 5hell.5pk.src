@@ -1,7 +1,7 @@
-// 5hell v 3.1.5 by Plu70
-// released v 3.1.5
+// 5hell v 3.2.6 by Plu70
+// released v 3.2.6
 // imports .5pk files
-ver = "3.2.5 _loose_change_"
+ver = "3.2.6 _loose_change_"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
