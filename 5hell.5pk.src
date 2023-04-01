@@ -7,6 +7,7 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
 //
 // changes:
+// reverted easy clip to @a,@b,@c. reverted buffer selection to clipb @B -m|#
 // updated dictionary file imports. Default is no import. Create files per instructions (below) and uncomment import lines as needed.
 // rclean: fixed bug caused by switch from @B to @b
 // clipb: changed @B to @b
