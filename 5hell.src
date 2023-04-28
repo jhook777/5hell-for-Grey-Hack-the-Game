@@ -120,16 +120,16 @@ command.shell = function(input=null)
         catch = null
         args = str(@f).split( "FUNCTION" )[1].split(", ") // get the number of args required by the function
         if DEBUG then print("target function takes: "+args.len+" arguments.")
-        if args.hasIndex(4) then // san check #4,5,6,7
+        if prompt.hasIndex(4) then // san check #4,5,6,7
           catch = f(prompt[1],prompt[2],prompt[3],prompt[4]) // this is where the magic happens (aka this fires the command)
         else
-          if args.hasIndex(3) then
+          if prompt.hasIndex(3) then
             catch = f(prompt[1],prompt[2],prompt[3])
           else
-            if args.hasIndex(2) then
+            if prompt.hasIndex(2) then
               catch = f(prompt[1],prompt[2])
             else
-              if args.hasIndex(1) then
+              if prompt.hasIndex(1) then
                 catch = f(prompt[1])
               else
                 catch = f         /// compatibility with improperly formatted, imported functions
@@ -185,8 +185,9 @@ end function
 //
 ////////////////// IMPRTS SECTION ////////////////////////////
 /////// PASTE YOUR IMPORTED COMMANDS HERE!!  ////////
-/////// BE SURE TO FOLLOW THE TEMPLATE in template.5pk.src available from the website ///////
+/////// BE SURE TO FOLLOW THE TEMPLATE BELOW! ///////
 // e.g:
+//
 // command.my_func = function(arg1, arg2=0,arg3=0,arg4=0)
 // if arg1 == "help" or arg1 == "-h" then return "Usage: command -- info"
 //    // code and additional functions
@@ -205,7 +206,7 @@ end function
 //
 //////////////////////////////////// SECURITY GOES HERE //////////////////////
 ///// customize this line fully for the most security ////////
-access_codes = {"Alpha":"your_access_code_here", "Beta":"your_other_access_code_here"}//////////////////////////////////////////////////////////////
+access_codes = {"Alpha":"your access code here", "Beta":"your other access code here"}//////////////////////////////////////////////////////////////
 // if you rename access_codes be sure to edit the below line
 rnac = access_codes.indexes
 rnac.shuffle
