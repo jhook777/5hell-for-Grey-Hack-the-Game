@@ -1,13 +1,31 @@
-// 5hell v 3.2.6 by Plu70
-// released v 3.2.6
-// imports .5pk files
-ver = "3.2.6 _loose_change_"
+// 5hell v 3.3.5 by Plu70
+// released v 3.2.5
+// imports .5pk files from /root/src
+ver = "3.3.8_crunchy_springroll_"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
 //
 // changes:
-// reverted easy clip to @a,@b,@c. reverted buffer selection to clipb @B -m|#
+// minor update to the 5phinx gui
+// rclean: fixed an input bug
+// aptm: changed "go back" to "exit" to avoid confusion
+// changed position of jtr and cob in the help menu
+// cerebrum: fixed a bigbrain bug
+// added several additional checks for active network to avoid crashes (more to come)
+// target: rewritten to be more useful and intuitive
+// fixed makfit pathing errors
+// added rsi -i|install -- install the rshell server if librshell.so is in /lib
+// updated cerebrum and brutus dictionary imports
+// changed clipspace buffer selection back to @B (clipb @B -m|#)
+// changed ez clip back to @a,@b,@c
+// updated help search to include regex
+// added 'search' as param for help
+// added highlighting to help -s|show|search
+// updated cob to have an install function (install functions from custom object)
+// fixed outmon interval (maybe?)
+// fixed easy clip and clipspace buffer selection (@b)
+// fixed crash when checking wifi when wifi is disabled
 // updated dictionary file imports. Default is no import. Create files per instructions (below) and uncomment import lines as needed.
 // rclean: fixed bug caused by switch from @B to @b
 // clipb: changed @B to @b
@@ -148,27 +166,27 @@ if DEBUG then print("<size=75%>loading dictionary...</size>")
 //import_code("/root/src/h.csv")
 //import_code("/root/src/i.csv")
 //import_code("/root/src/j.csv") // contents: dict_j="j,blaj,blah,blarg,"
-//("/root/src/k.csv")
-//("/root/src/l.csv")
-//("/root/src/m.csv")
-//("/root/src/n.csv")
-//("/root/src/o.csv")
-//("/root/src/p.csv")
-//("/root/src/q.csv")
-//("/root/src/r.csv")
-//("/root/src/s.csv")
-//("/root/src/t.csv")
-//("/root/src/u.csv")
-//("/root/src/v.csv")
-//("/root/src/w.csv")
-//("/root/src/x.csv")
-//("/root/src/y.csv")
-//("/root/src/z.csv")
+//import_code("/root/src/k.csv")
+//import_code("/root/src/l.csv")
+//import_code("/root/src/m.csv")
+//import_code("/root/src/n.csv")
+//import_code("/root/src/o.csv")
+//import_code("/root/src/p.csv")
+//import_code("/root/src/q.csv")
+//import_code("/root/src/r.csv")
+//import_code("/root/src/s.csv")
+//import_code("/root/src/t.csv")
+//import_code("/root/src/u.csv")
+//import_code("/root/src/v.csv")
+//import_code("/root/src/w.csv")
+//import_code("/root/src/x.csv")
+//import_code("/root/src/y.csv")
+//import_code("/root/src/z.csv")
 //
 /////
-//// IF you are importing dictionary files, uncomment the line below up to the corresponding dictionary variable.
-// The variables themselves are defined IN the .csv file. So dict_f="a,csv,string" is defined in f.csv !!!!
-//dict_a = dict_a + dict_b + dict_c + dict_d + dict_e + dict_f + dict_g + dict_h + dict_i + dict_j //+ dict_k + dict_l + dict_m + dict_n + dict_o + dict_p + dict_q + dict_r + dict_s + dict_t + dict_u + dict_v + dict_w + dict_x + dict_y + dict_z
+dict_a = "a"
+//// IF you are importing dictionary files, uncomment the line below up to the corresponding dictionary variable. The variables themselves are defined IN the .csv file. So dict_f="a,csv,string" is defined in f.csv !!!!
+//dict_a = dict_a + dict_b + dict_c + dict_d + dict_e + dict_f + dict_g + dict_h + dict_i + dict_j + dict_k + dict_l + dict_m + dict_n + dict_o + dict_p + dict_q + dict_r + dict_s + dict_t + dict_u //+ dict_v + dict_w + dict_x + dict_y + dict_z
 if DEBUG then ds = dict_a.len
 //
 ///// Uncomment the line below if you are importing dictionary files THEN comment out the very next line after.
@@ -225,10 +243,7 @@ globals.get_file = function(input_string)
   if file then return file else return 0
 end function
 if DEBUG then print("<size=75%>loaded get_file...</size>")
-if DEBUG then print("<size=75%>loading 5hell.5pk...(68.713kb)")
-
-//command = {}
-//command = get_custom_object
+if DEBUG then print("<size=75%>loading 5hell.5pk...(72.846kb)")
 
 import_code("/root/src/clipcommander.5pk")
 command.passwd = function(arg1, arg2, arg3=0, arg4=0)
@@ -334,14 +349,14 @@ end function
 command.cd = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: cd [path] -- change current working directory to path."+char(10)+"Usage: cd .. -- go back to parent directory."+char(10)+"Usage: cd -- return to home directory."+char(10)+"Returns: 0 on success or string on failure."
 	if arg1 == "" then arg1 = 0
-	cd = localmachine.File(currentPath)
+	cd = localmachine.File(globals.currentPath)
 	if not arg1 then
 		globals.currentPath = globals.homePath
 		return 0
 	end if
 	if not cd then
-		globals.currentPath = globals.homePath
-		return "cd: path error. Setting path to<b> "+globals.homePath+" </b>"+char(10)+"...please try again."
+		globals.currentPath = "/"
+		return "cd: path error. Setting path to<b> / </b>"+char(10)+"...please try again."
 	end if
 	if arg1 == ".." then
 		if cd.name != "/" then
@@ -509,7 +524,8 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		pathFile = arg3
 		isRecursive = 1
 	end if
-	file = globals.get_file(pathFile)
+	if typeof(pathFile) == "string" then file = globals.get_file(pathFile)
+	if typeof(pathFile) == "file" then file = pathFile 
 	if not file then return("perms: can't find " + pathFile)
 	output = file.chmod(perms, isRecursive)
 	if output then print(output)
@@ -652,7 +668,7 @@ command.fwr = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if arg1 == "help" or arg1 == "-h" then return "Usage: fwr [ip] -- returns firewall rules for ip. returns local rules if no ip given."
 	router = get_router
 	if arg1 and is_valid_ip(arg1) then
-		router = get_router(arg1)
+		if localmachine.is_network_active then router = get_router(arg1) else return "fwr: no network connection."
 	end if
 	return router.firewall_rules
 end function
@@ -662,7 +678,7 @@ command.memdump = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.dump_memory
 end function
 command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: enum [/path|file_object|array] -- buffer file contents as a list of lines indexed from 0; useful for 5hell scripting (see the '<b>do</b>' command)."+char(10)+"e.g. enum file.txt | enum 1 -- enumerate file.txt then return the 2nd element (index [1]) from the list. "+char(10)+"Usage: enum -l -- return length of enum buffer."+char(10)+"Usage: enum -s -- show buffer and return length"+char(10)+"Usage: enum -d -- enumerate the onboard dictionary"+char(10)+"Advanced: poke files.txt | lock |  | ls | append files.txt | cat files.txt | clipb | enum"+char(10)+"Or: ls | enum -- enumerate files in local directory"+char(10)+"Advanced: lanpro | enum -- scan network and enumerate all LAN addresses found. "+char(10)+"Advanced: enum -e -- return the enumerated buffer as a list."
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: enum [/path|file_object|array] -- buffer file contents as a list of lines indexed from 0; useful for 5hell scripting (see the '<b>do</b>' command)."+char(10)+"e.g. enum file.txt | enum 1 -- enumerate file.txt then return the 2nd element (index [1]) from the list. "+char(10)+"Usage: enum -l -- return length of enum buffer."+char(10)+"Usage: enum -s -- show buffer and return length"+char(10)+"Usage: enum -d -- enumerate the onboard dictionary"+char(10)+"Advanced: poke files.txt | lock |  | ls | append files.txt | cat files.txt | clipb | enum"+char(10)+"Or: ls | enum -- enumerate files in local directory"+char(10)+"Advanced: lanpro | enum -- scan network and enumerate all LAN addresses found. "+char(10)+"Advanced: enum -e -- return the enumerated buffer as a list."
 	if arg1 == null then return 0
 	if not arg1 or arg1 == "0" then
 		if globals.enumerated.len then return globals.enumerated[0] else return 0
@@ -756,8 +772,8 @@ command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: rclean [opt: int ] -- select an object from buffer to (attempt to) remote wipe."+char(10)+"Advanced: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+"e.g. clipb @B 1 | rclean where BUFFER[1] was a file|shell|computer"+char(10)+"rclean with no params will display a menu "+char(10)+"rclean is intended for remote scrubbing using BUFFER objects."+char(10)+"You may use silentclean or rclean for local log scrubbing"
 	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "computer" or typeof(arg1) == "file") then return globals.rclean(arg1)
 
-	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@b",arg1))
-	if globals.BUFFER.len then return globals.rclean(command.clipb("@b","-m")) else return "BUFFER empty"
+	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@B",arg1))
+	return globals.rclean(command.clipb("@B","-m"))
 end function
 command.ipfit = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: ipfit -- menu to specify a way to generate ips. (wip)"+char(10)+"Recommendation: pipe the output to a file or to the clipboard."+char(10)+"e.g<b> ipfit | clipb </b>, or<b> ipfit | poke iplist </b>"
@@ -810,6 +826,7 @@ command.rnip = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: porter [port] [comma,or,newline,separated,ip,list] --  print lib version of service on port, if any, for given ip address(es)"
+	if not localmachine.is_network_active then return "nsl: no network connection."
 	r_buf = []
 	ip = arg2
 	if ip.split(char(10)).len > 1 then
@@ -833,6 +850,7 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorLightBlue+"<align=center><b>(>|<)</b></align>"+CT)
 	for r in range(1, a_size)
 		i = ip[r-1]
+		if not localmachine.is_network_active then return "porter: no network connection found."
 		rtr = get_router(i)
 		if typeof(rtr) != "router" then continue
 		if port then
@@ -999,8 +1017,10 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		if act == 0 then act = "-b" else act = "-a"
 		return command.code(act, cipher_text)
 	end if
+	if typeof(@arg1) == "function" then return globals.decompiler(@arg1)
 	if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "file" or typeof(arg1) == "computer" or typeof(arg1) == "map" or typeof(arg1) == "custom_object" or typeof(arg1) == "list" then return globals.decompiler(arg1)
-	if typeof(@arg1) == "function" then globals.decompiler(@arg1)
+	if typeof(arg1) == "pshell" or typeof(arg1) == "pcomputer" or typeof(arg1) == "pfile" or typeof(arg1) == "prouter" then return globals.decompiler(arg1)
+	if typeof(arg1) == "list" or "map" then return globals.decompiler(arg1)
 	if arg1 == "\n" then return str(char(10).code)
 	buf = []
 	if typeof(arg1) == "string" then
@@ -1285,15 +1305,19 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, Silent, Deckard, Minidevil96, MrMember, Clover, Trashed, Bit, OmegaKawaii, Nyx "+char(10)+"and many others!")
 	return 0
 end function
+import_code("/root/src/cobble.5pk")
+import_code("/root/src/jtr.5pk")
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
-	if state == "help" or state == "-h" then return "quit: exits the program"
-	if user_input("Exit "+colorRed+"5hell"+char(8482)+CT+"? [y/N]"+char(10)+":> ").lower != "y" then return "aborting shutdown..."
+	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."
+	if not state then 
+		if user_input("Exit "+colorRed+"5hell"+char(8482)+CT+"? [y/N]"+char(10)+":> ").lower != "y" then return "aborting shutdown..."
+	end if
 	exit(state)
 end function
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "help"
 	if arg1 == "shell" then return (colorRed+instance.name+CT+" v "+ver+" by Plu70"+char(10)+"(type<b> shell </b> for more info.)")
-	if arg1 == "-s" or arg1 == "show" then
+	if arg1 == "-s" or arg1 == "show" or arg1 == "search" then
 		c_buf = []
 		h_buf = []
 		for cmd in command.indexes.sort
@@ -1304,8 +1328,31 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		end for
 		c_buf.push(colorWhite+"shell"+char(10)+"Usage: shell -- outputs instance_name, num_commands and dictionary_size.")
 		if arg2 then
+			invoke_regex = false
+			special_chars = ["*","^","$","."]
+			for special in special_chars
+				if arg2.indexOf(special) >= 0 then invoke_regex = true
+			end for
 			for c in c_buf
-				if c.indexOf(arg2) >= 0 then h_buf.push(c+colorBlack+"<u>---</u>"+CT+char(10))
+				found = false
+				if not invoke_regex then 
+					if c.indexOf(arg2) >= 0 then 
+						//h_buf.push(c.replace(arg2,colorRed+arg2+CT)+char(10)+colorGold+"<u>---</u>"+CT+char(10))
+						found = true
+						//if DEBUG then print("attempting regex: "+arg2+ " | " + c)
+					end if
+				else
+					for w in c.split(" ")
+						if globals.re.match(arg2.values, w.values) then 
+							//h_buf.push( c.replace(arg2, colorRed+arg2+CT) +char(10)+ colorBlack+"<u>---</u>"+ CT +char(10) )
+							//if DEBUG then print(h_buf[-1])
+							c = c.replace(w,colorRed+w+CT)
+							found = true
+						end if
+					end for
+				end if
+				if found then h_buf.push( c.replace(arg2, colorRed+arg2+CT) +char(10)+ colorGold+"<u>---</u>"+ CT +char(10) )
+				if DEBUG then print(h_buf[-1])
 			end for
 			return colorGold+"<u>= = = = = = Help Search = = = = = =</u>"+char(10)+colorLightBlue+"Found: </b>"+h_buf.len+"<b> results."+CT+char(10)+h_buf.join(char(10))
 		end if
@@ -1348,7 +1395,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		return 0
 	end if
 	num_commands = index.len
-	columns = 6 // # commands per line
+	columns = 7 // # commands per line
 	if globals.DEBUG then print("commands: "+num_commands+" columns: "+columns)
 	rows = ceil(num_commands / columns)
 	if globals.DEBUG then print("rows: "+rows)
@@ -1362,24 +1409,24 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(format_columns(buf.join(char(10))).replace("sphinx", colorRed+"sphinx"+char(8482)+CT) )
 	print("<u>Conventions:</u> "+char(10)+"||: is an 'anyKey' prompt. |> and :> prompts expect enter after a string"+char(10)+"Defaults are capitalized: [Y/n] == typing anything except 'n' results in 'Y' ")
 	print("There are many buffers: [r/y/N] --> r == <b>tbuf</b> or 'transmission buffer'"+char(10)+"-- Usage example:<b> clipb @tbuf | poke pass | gopher pass </b>"+char(10)+"--> pipes tbuf to clipb then to a file named pass then deciphers with gopher.")
-	print("Main tools:"+char(10)+colorCyan+" probe, sphinx (5phinx), malp, dig, scpm, kraken, scribus, cerebrum, brutus"+CT)
+	print("Main tools:"+char(10)+colorCyan+" probe, "+colorRed+"sphinx (5phinx)"+CT+", <b>malp</b>, dig, scpm, kraken, scribus, cerebrum, brutus"+CT)
 	print("Easy clip: "+char(10)+"Any command parameter may be @a, @b, @c to reference the contents of that clipspace.")
-	print("-- |><b> rnip 1 | clipa | probe -q @A | append @clipb @A | echo @B</b>")
+	print("-- |><b> rnip 1 | clipa | probe -q @a | append @clipb @a | echo @b</b>")
 	print("<u>End Conventions.</u>"+char(10))
 	print(":><b> help guide </b>-- for a quick getting started guide")
 	print(":> help [-s|show] -- for a descriptive list.")
-	print(":> help [-s|show] [word] -- search all help info for matching word (or piped string).")
+	print(":> help [-s|show|search] [word|string|regex] -- search all help info for argument"+char(10)+"-- see grep -h for regex tokens")
 	print(":> help -a -- for an alphabetical list.")
 	print(":> lock -- shortcut for perms lock all.")
 	print(":> prompt -- toggle full_prompt on and off.")
 	print(":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
-import_code("/root/src/cobble.5pk")
+
 ///////////////////////////////////////////////////////////////////////////////
 if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
-if DEBUG then print("initializing portmap...")
-command.probe("-q",pubip,"0","1")
+//if DEBUG then print("initializing portmap...")
+//if localmachine.is_network_active then command.probe("-q",pubip,"0","1")
 if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
 /////////////////////BEGIN MAIN////////////////////////////////////////////////
