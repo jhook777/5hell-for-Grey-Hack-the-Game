@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kraken.5pk...(29.575kb)</size>")
+if DEBUG then print("<size=75%>loading kraken.5pk...(29.688kb)</size>")
 command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 and (arg1 == "-h" or (arg1 != "-d" and arg1 != "-n")) then
 		return "Usage: silentclean [opt:-d|-n] "+char(10)+" options:"+char(10)+" -d: log wipe + auto-self-delete the running instance of 5hell"+char(10)+" -n: nuke system + auto-self-delete"+char(10)+" no params == local log wipe without self delete"+char(10)+"N.B. run as root as /var is usually write protected."
@@ -349,6 +349,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	if (arg1 != "-l" and arg1 != "-r") or arg1 == "-h" or arg1 == "help" then return(help_menu)
 	// params: -r|-R -remote_ip (optional -p|-P -port),
 	if not globals.metaxploit then return "metaxploit.so not found"
+	if DEBUG then print("In command.db...")
 	if arg1.lower == "-r" then
 		if not arg2 then
 			arg2 = globals.targetIP
@@ -371,6 +372,9 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		remote = false
 		if arg2 then
 			lib_path = "/lib/"+arg2
+		else 
+			lib_path = "/lib/"+globals.get_lib("L").split(" ")[0]
+			if DEBUG then print("lib_path "+lib_path)
 		end if
 	end if
 	// arg: -f|-F -path_to_file (add file or folder to db)
@@ -387,7 +391,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	load_lib = function()  // remote false
 		globals.metaLib = metaxploit.load(lib_path)
 		if globals.metaLib then
-			print(lib_info)
+			if DEBUG then print(lib_info)
 		else
 			return "Error. File not found."
 		end if
@@ -404,7 +408,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			print("Error. Can't establish net session.")
 			return
 		end if
-		print(lib_info)
+		if DEBUG then print(lib_info)
 	end function
 	if remote then
 		get_lib
@@ -421,7 +425,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if is_lan_ip(targetIP) then
 			inject = targetIP
 		else
-			rtt = get_router(targetIP)
+			rtt = ""
+			if localmachine.is_network_active then rtt = get_router(targetIP)
 			if typeof(rtt) == "router" then
 				ports = rtt.used_ports
 				if ports.len then pt = ports[0] else pt = 0
@@ -491,15 +496,16 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 end function///////////////END DATABASER//////////////////
 
 command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "linkdb [target_lib] [optional:path_to_database]"+char(10)+"or"+char(10)+"linkdb [target_lib] @home -- user connect_service to access remote database (set ip, port and pw with launch params or the target command.)"+char(10)+"or"+char(10)+"pwd | linkdb [target_lib] -- user database.csv in currentPath."
-	link = function(f,a)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "linkdb [target_lib] [optional:path_to_database]"+char(10)+"or"+char(10)+"linkdb [target_lib] @home -- user connect_service to access remote database (set ip, port and pw with launch params or the target command.)"+char(10)+"or"+char(10)+"pwd | linkdb [target_lib] -- user database.csv in currentPath."
+	link = function(f,a,y)
 		buf = f.get_content.split(char(10))
 		found_it = false
-		done = "Database: "+a+" not found. Scan required."
+		done = 0 //"Database: "+a+" not found. Scan required."
 		for line in buf
 			if line.indexOf(a) >= 0 and not found_it then
-				wait_for = user_input("Database: found "+line+char(10)+"Link this database? [Y/n]"+char(10)+"||: ",0,1)
-				if wait_for.lower != "n" then
+				wait_for = "y"
+				if not y then wait_for = user_input("Database: found "+line+char(10)+"Link this database? [Y/n]"+char(10)+"||: ",0,1)
+				if wait_for != "n" and wait_for != "N" then
 					print(colorLightBlue+"Preparing to link database: "+CT+colorOrange+"</b>"+line+"</color>")
 					print(colorOrange+"Purging XPLOITS..."+CT)
 					globals.XPLOITS = []
@@ -523,8 +529,15 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 		end for
 		return done
 	end function
-
+	if arg1 == "no_network" then return 0
+	boo = 0
 	file = null
+	if arg2 and arg2.lower == "-y" then 
+		boo = 1
+		arg2 = 0
+	end if	
+	if arg3 and arg3.lower == "-y" then boo = 1
+	if arg4 and arg4.lower == "-y" then boo = 1
 	if arg2 then
 		if arg2 == "@home" then
 			r_ip = ""
@@ -562,8 +575,17 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 			file = globals.grepped_file
 		end if
 	end if
-	if file and file.has_permission("r") then return link(file,arg1)
-	return "Error: database link failed. Check database permissions and try again."
+	if file and file.has_permission("r") then 
+		catch = link(file,arg1,boo)
+		if catch then
+			print(catch)
+			return 0 
+		else 
+			return "Database: data not found. Scan required."
+		end if
+	end if
+	print( "Database: link failed. Check database path or permissions and try again." )
+	return 0
 end function
 command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: meta -- print metaLib name and version if any."+char(10)+"Usage: meta link -- links remote or local metaLib."+char(10)+"-- equivalent to 5phinx [+] or [=]"+char(10)+"Optional: meta link -l || meta link -r -- force local || remote and skip confirmation."+char(10)+"Usage: meta scan -- scan the linked metaLib and load vulns to memory (does not update database)"+char(10)+"-- equivalent to 5phinx [1]"+char(10)+"-- use zap or roil to exploit || 5phinx [A] or [2] after scanning."
@@ -574,11 +596,12 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			arg = 0
 			if arg2 and arg2 == "-l" then
 				arg = "L"
-				return command.linkdb(get_lib(arg))
+				return command.linkdb(get_lib(arg),"-y")
 			end if
 			if arg2 and arg2 == "-r" then arg = "Y"
 			if targetIP and targetPort then
-				return command.linkdb(get_lib(arg))
+				if not localmachine.is_network_active then return "meta: no network connection!"
+				return command.linkdb(get_lib(arg),"-y")
 			else
 				return "Unable to establish connection."+char(10)+"Check parameters and try again."
 			end if
@@ -588,7 +611,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				//get_lib
 				globals.scan_memory
 			else
-				print("Please establish net connection or load lib with<b> meta link [-l|-r]</b> before scanning." )
+				print("Please establish net session or load lib with:<b> meta link [-l|-r]</b> before scanning." )
 			end if
 		end if
 	end if
