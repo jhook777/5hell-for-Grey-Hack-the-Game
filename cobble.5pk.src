@@ -1,106 +1,127 @@
-// cobble, get_custom_object interface by Plu70
-if DEBUG then print("<size=75%>loading cobble.5pk...(5.214kb)</size>")
+  // cobble, get_custom_object interface by Plu70
+  if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
 
-//command={}
-command.cob = function(arg1,arg2,arg3=0,arg4=0)
-  usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+"-- returns string on success or error"+char(10)+"Usage: cob get [key] -- get value of custom object key."+char(10)+"-- returns value at key or returns null on failure"+char(10)+"-- returns @reference (pointer) if value is a function"+char(10)+"Usage: cob inspect -- returns custom object as a map object."+char(10)+"-- pipe to command.<b>code</b> to decompile the object."+char(10)+"-- ie:<b> cob inspect | code</b>"+char(10)+"Usage: cob search [val] --  search for index of val."+char(10)+"-- returns string; key or failure message."+char(10)+"Inactive: cob sign -- future ability to sign custom object."+char(10)+"-- currently returns 0 (zero)."+char(10)+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+"-- returns string on success or failure."+char(10)+"Advanced: to export the onboard dictionary to the custom object:"+char(10)+"--<b> enum -d |  | enum -e | cob set dictionary</b>"+char(10)+"Advanced: to import from the custom object to the onboard dictionary"+char(10)+"--<b> cob get [dictionary] | cerebrum -i</b>"+char(10)+"OR just use<b> cob export and cob import"+char(10)+"Advanced: cob export -- export onboard dictionary to custom object"+char(10)+"Advanced: cob import -- import from custom object dictionary to onboard dictinary"+char(10)+"N.B. this is allows you to run cerebrum once, then export/import to nested shell.launches."
-  if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
+  //command={}
+  command.cob = function(arg1,arg2,arg3=0,arg4=0)
+    usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+"-- returns string on success or error"+char(10)+"Usage: cob get [key] -- get value of custom object key."+char(10)+"-- returns value at key or returns null on failure"+char(10)+"-- returns @reference (pointer) if value is a function"+char(10)+"Usage: cob return -- returns the raw custom object"+char(10)+"-- pipe to command.<b>code</b> to decompile the object."+char(10)+"-- ie:<b> cob return | code</b>"+char(10)+"Usage: cob inspect -- returns decompiled custom object (same as cob return | code)."+char(10)+"Usage: cob search [val] --  search for index of val."+char(10)+"-- returns string; key or failure message."+char(10)+"Inactive: cob sign -- future ability to sign custom object."+char(10)+"-- currently returns 0 (zero)."+char(10)+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+"-- returns string on success or failure."+char(10)+"Usage: cob install [key] [val] -- install piped function (val) to command.[key]"+char(10)+"-- i.e. install functions from custom object to command list"+char(10)+"Advanced: to export the onboard dictionary to the custom object:"+char(10)+"--<b> enum -d |  | enum -e | cob set dictionary</b>"+char(10)+"Advanced: to import from the custom object to the onboard dictionary"+char(10)+"--<b> cob get [dictionary] | cerebrum -i</b>"+char(10)+"OR just use<b> cob export and cob import"+char(10)+"Advanced: cob export -- export onboard dictionary to custom object"+char(10)+"Advanced: cob import -- import from custom object dictionary to onboard dictinary"+char(10)+"N.B. this is allows you to run cerebrum once, then export/import to nested shell.launches."
+    if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
 
-  cobble = get_custom_object
-  cob = {}
-  cob.set = function( key=0, val=0, nil=0, nul=0 )
-    if not @key then return null
-    if typeof(@key) == "function" then
-      if typeof(@val) == "function" then
-        cobble[@key] = @val
+    cobble = get_custom_object
+    cob = {}
+    cob.set = function( key=0, val=0, nil=0, nul=0 )
+      if not @key then return null
+      if typeof(@key) == "function" then
+        if typeof(@val) == "function" then
+          cobble[@key] = @val
+        else
+          cobble[@key] = val
+        end if
       else
-        cobble[@key] = val
+        if typeof(@val) == "function" then
+          cobble[key] = @val
+        else
+          cobble[key] = val
+        end if
       end if
-    else
-      if typeof(@val) == "function" then
-        cobble[key] = @val
+      if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>." else return "cob: set error."
+    end function
+
+    cob.get = function( key=0, val=0, nil=0, nul=0 )
+      if cobble.hasIndex( @key ) then return cobble[@key]
+      if cobble.hasIndex( key ) then return cobble[ key ]
+      return "cob: key not found"
+    end function
+
+    cob.search = function ( val=0, key=0, nil=0, nul=0 )
+      if cobble.indexOf( @val ) != null then
+        if typeof(@val) == "function" then return cobble.indexOf( @val )
+        return cobble.indexOf( val )
       else
-        cobble[key] = val
+        if cobble.indexOf( val ) != null then return cobble.indexOf( val )
+        return "cob: value not found."
       end if
-    end if
-    if cobble.hasIndex( @key ) then return "cob: set<b> "+cobble.indexOf( @val )+"</b> to <b>"+@val+"</b>." else return "cob: set error."
-  end function
+    end function
 
-  cob.get = function( key=0, val=0, nil=0, nul=0 )
-    if cobble.hasIndex( @key ) then return cobble[@key]
-    if cobble.hasIndex( key ) then return cobble[ key ]
-    return "cob: key not found"
-  end function
+    cob.inspect = function( key=0, val=0, nil=0, nul=0 )
+      return command.code(cobble,0,0,0)
+    end function
 
-  cob.search = function ( val=0, key=0, nil=0, nul=0 )
-    if cobble.indexOf( @val ) != null then
-      if typeof(@val) == "function" then return cobble.indexOf( @val )
-      return cobble.indexOf( val )
-    else
-      if cobble.indexOf( val ) != null then return cobble.indexOf( val )
-      return "cob: value not found."
-    end if
-  end function
+    cob.del = function( key=0, val=0, nil=0, nul=0 )
+      if typeof(@key) == "function" then
+        if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>." //else return "cob: key not found."
+      else
+        if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>." else return "cob: key not found."
+      end if
+    end function
 
-  cob.inspect = function( key=0, val=0, nil=0, nul=0 )
-    return cobble
-  end function
+    cob.sign = function( key=0, val=0, nil=0, nul=0 )
+      return cob.set( "signature" , command.code("-a", key))
+    end function
 
-  cob.del = function( key=0, val=0, nil=0, nul=0 )
-    if typeof(@key) == "function" then
-      if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>." //else return "cob: key not found."
-    else
-      if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>." else return "cob: key not found."
-    end if
-  end function
-
-  cob.sign = function( key=0, val=0, nil=0, nul=0 )
-    return cob.set( "signature" , "SortaSigned")
-  end function
-
-  if arg1 == "set" then
-    if @arg3 then
-      if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
-      if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
-      if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
-      return cob.set( @arg2, @arg3 )
-    else
-      return usage_info
-    end if
-  end if
-  if arg1 == "get" then
-    if @arg2 then
+    cob.install = function(key=0, val=0, nil=0, nul=0)
       g = @cob.get
-      return g( @arg2 )
-      //if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
-    else
-      return usage_info
+      new_command = g(key)
+      if typeof(@new_command) == "string" then return key +": "+ new_command + ". Install failed."
+      if typeof(@new_command) == "function" then 
+        command[key] = @new_command 
+        return "Set command."+key+" to "+@new_command
+      else 
+        return "cob: install expects a function"
+      end if
+    end function
+
+    if arg1 == "return" then return cobble
+    if arg1 == "install" then 
+      return cob.install(arg2)
     end if
-  end if
-  if arg1 == "inspect" then
-    return cob.inspect
-  end if
-  if arg1 == "sign" then return cob.sign
-  if arg1 == "search" then
-    if @arg2 then return cob.search( @arg2 ) else return usage_info
-  end if
-  if arg1 == "export" then
-    cob.set("dictionary",globals.dict_a)
-    return "Exported "+cobble.dictionary.len+" password(s) from onbaord dictionary to custom_object.dictionary"
-  end if
-  if arg1 == "import" then
-    if cobble.hasIndex("dictionary") then
-      globals.dict_a = cob.get("dictionary")
-    else
-      return "cob: dictionary not found in index. set with <b>cob export</b>"
+    if arg1 == "set" then
+      if @arg3 then
+        //if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
+        //if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
+        //if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
+        return cob.set( @arg2, @arg3 )
+      else
+        return usage_info
+      end if
     end if
-    if typeof(globals.dict_a) == "list" and globals.dict_a.len > 0 then return "Imported "+globals.dict_a.len+" passwords from custom_object.dictionary to onboard dictionary." else return "cerebrum: invalid dictionary"+char(10)+"cob: import error"
-  end if
-  if arg1 == "del" then
-    if @arg2 then return cob.del( @arg2 ) else return usage_info
-  end if
-  return usage_info
-end function
-//print(command.cob("get","get"))
-//catch = command.cob("get","get")
-//print(@catch)
+    if arg1 == "get" then
+      if @arg2 then
+        g = @cob.get
+        return g( @arg2 )
+        //if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
+      else
+        return usage_info
+      end if
+    end if
+    if arg1 == "inspect" then
+      return cob.inspect
+    end if
+    if arg1 == "sign" then return cob.sign(signature)
+    if arg1 == "search" then
+      if @arg2 then return cob.search( @arg2 ) else return usage_info
+    end if
+    if arg1 == "export" then
+      cob.set("dictionary",globals.dict_a)
+      return "Exported "+cobble.dictionary.len+" password(s) from onbaord dictionary to custom_object.dictionary"
+    end if
+    if arg1 == "import" then
+      if cobble.hasIndex("dictionary") then
+        globals.dict_a = cob.get("dictionary")
+      else
+        return "cob: dictionary not found in index. set with <b>cob export</b>"
+      end if
+      if typeof(globals.dict_a) == "list" and globals.dict_a.len > 0 then 
+        globals.BIGBRAIN = true
+        return "Imported "+globals.dict_a.len+" passwords from custom_object.dictionary to onboard dictionary." 
+      else 
+        return "cerebrum: invalid dictionary"+char(10)+"cob: import error"
+      end if
+    end if
+    if arg1 == "del" then
+      if @arg2 then return cob.del( @arg2 ) else return usage_info
+    end if
+    return usage_info
+  end function
+  //print(command.cob("get","get"))
+  //catch = command.cob("get","get")
+  //print(@catch)
