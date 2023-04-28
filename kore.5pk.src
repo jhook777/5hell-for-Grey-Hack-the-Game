@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk...(53.202kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk...(55.424kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -341,30 +341,23 @@ command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	return kore
 end function
 command.target = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "target [optional:ip] [optional:port]"+char(10)+"May be set at launch as params[0] and params[1]"+char(10)+"When this targets your remote server set password with params[3] (for use with transmit)."+char(10)+"Options: -t 5phinx target ip and port gets 5hell target ip and port"+char(10)+"Options: -T set 5phinx ip and port and copy to 5hell target ip and port"+char(10)+"Options: ip | pt -- return target ip or target port."
-	if arg1 == "ip" then return targ.ip
-	if arg1 == "pt" then return targ.pt
-	if arg1 == "-t" then
-		globals.targetIP = targ.ip
-		globals.targetPort = targ.pt
-		return targ.ip+" "+targ.pt
+	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
+	if not arg1 then return "<b>"+globals.targetIP+" "+globals.targetPort
+	if arg1 == "ip" then return "<b>"+ globals.targetIP
+	if arg1 == "pt" then return "<b>"+ globals.targetPort
+	if arg1 == "-p" then 
+		if arg2 and arg2.to_int >= 0 then globals.targetPort = arg2.to_int
+		return "<b>"+globals.targetPort
 	end if
-	if arg1 == "-T" then
-		globals.set_ip
-		globals.targ.ip = globals.targetIP
-		globals.targ.pt = globals.targetPort
-		return targ.ip+" "+targ.pt
-	end if
-	if arg1 == "-p" and arg2 then globals.targ.pt = arg2.to_int
-	if arg1 and arg1 != "-p" then globals.targ.ip = arg1
-	if arg2 then globals.targ.pt = arg2.to_int
-	return targ.ip+" "+targ.pt
+	if is_valid_ip(arg1) then globals.targetIP = arg1 
+	if arg2 and arg2.to_int >= 0 then globals.targetPort = arg2.to_int
+	return "<b>"+globals.targetIP+" "+globals.targetPort
 end function
 command.transmit = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return ("Usage: transmit [ip] [port] -- transmit text to remote file. Default port 22."+char(10)+"-- you may set ip with command.target instead"+char(10)+"-- you may set ip with launch params: 5hell [ip] [port]"+char(10)+"-- simply type transmit without params if ip is set this way."+char(10)+"---- Enter data 1 line at a time. "+char(10)+"---- Send with @send on new line")+char(10)+char(10)+"Transmit is intended to write information to a remote text file."+char(10)+"While desinged for use with hashim and dbmon, you"+char(10)+" may use it to transmit standard text files if you find that useful."
+	if arg1 == "-h" or arg1 == "help" then return ("Usage: transmit [ip] [port] -- transmit text to remote file. Default port 22."+char(10)+"-- you may set ip with <b>target [ip] [port]</b> instead"+char(10)+"-- you may set ip with launch params: 5hell [ip] [port]"+char(10)+"-- simply type transmit without params if ip is set this way."+char(10)+"---- Enter data 1 line at a time. "+char(10)+"---- Send with @send on new line")+char(10)+"---- the contents of <b>@tbuf</b> are automatically added"+char(10)+char(10)+"Transmit is intended to write information to a remote text file."+char(10)+"While desinged for use with hashim and dbmon, you"+char(10)+" may use it to transmit standard text files if you find that useful."
 	if arg2 == 0 then arg2 = "22" // default ssh port for transmit
-	remote_ip = targ.ip
-	remote_port = targ.pt
+	remote_ip = globals.targetIP
+	remote_port = globals.targetPort
 	pass_path = user_input("transmit_to_this_path (q=quit):> ")
 	if pass_path.lower == "q" or pass_path == "" then return ("aborting...")
 	if arg1 then
@@ -429,15 +422,15 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor output file"+char(10)+"Usage: outmon [path_to_monitor -- default /virt/out.spc] [interval -- default 2 seconds, range(.1, 300)]"+char(10)+"-- prints changes to a text file every [interval] seconds"
+	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor an output file"+char(10)+"Usage: outmon [path] [opt:interval]"+char(10)+"path -- path to file. default /virt/out.spc"+char(10)+"interval -- refresh rate. default 2 seconds, range(.1, 300)"+char(10)+"-- prints changes to a text file every [interval] seconds"
 	out_space = localmachine.File("/virt/out.spc")
 	if arg1 then out_space = globals.get_file(arg1)
 	if not out_space then return "outmon: "+ arg1 + ": file not found."
 	last_read = "-EMPTY-" // out_space.get_content
 	//print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
-	int = arg2 // interval (ntbcw integer), may be float in range .1, 300
-	if int != 0 then int = int.val
-	if typeof(int) != "number" or int < .1 or int > 300 then int = 2
+	interval = arg2 // refresh interval, may be float in range .1, 300
+	if interval and typeof(interval) == "string" then interval = interval.val
+	if typeof(interval) != "number" or interval < .1 or interval > 300 then interval = 2
 	running = true
 	while running
 	  if last_read == out_space.get_content then
@@ -449,7 +442,7 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
 	    print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
 	  end if
-	  wait(int)
+	  wait(interval)
 	end while
 	return 0
 end function
@@ -665,20 +658,40 @@ command.filemon = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "rshell_interface: listen for connections on port 1222"+char(10)+"Runs once then exits. For daemon mode use:"+char(10)+"rsi -d -- daemon mode, continues to listen for connections until rhsell connects."
+	if arg1 == "help" or arg1 == "-h" then return "Usage: <b>rsi</b> -- rshell_interface: listen for connections on port 1222"+char(10)+"-- Runs once then exits. For daemon mode use:"+char(10)+"rsi -d -- daemon mode, continues to listen for connections until an rshell connects."+char(10)+"<b>Advanced</b>: rsi [-i|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10) +"Advanced: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"
 	if not metaxploit then return "Error: Can't find metaxploit library in the /lib path or the current folder"
-	print("Listening for upcoming connections...")
+	if not localmachine.is_network_active then return "nsl: no network connection."
+	if arg1 == "stop" then 
+		rserver = null
+		rserver = include_lib("/lib/librshell.so")
+		if rserver then rc = rserver.stop_service else return colorRed+"rsi: /lib/librshell.so not found"+CT
+		if rc then return colorGreen + "rsi: service stopped" +CT else return colorOrange + "rsi: service is not running" + CT
+	end if
+	if arg1 == "start" then 
+		rserver = null
+		rserver = include_lib("/lib/librshell.so")
+		if rserver then rc = rserver.start_service else return colorRed+"rsi: /lib/librshell.so not found"+CT
+		if rc then return colorGreen + "rsi: service started" +CT else return colorOrange + "rsi: service is already running" + CT
+	end if
+	if arg1 == "-i" or arg1 == "install" then 
+		rserver = null
+		rserver = include_lib("/lib/librshell.so")
+		rc = null
+		if rserver then rc = rserver.install_service else return colorRed+"rsi: /lib/librshell.so not found"+CT
+		if rc then return colorGreen+"rsi: service installed"+CT else return colorRed + "rsi: failed to install service" + CT
+	end if
+	print(colorLightBlue+"Listening for upcoming connections...")
 	shells = []
 	option = arg1
 	st = arg2
 	while shells.len == 0
 		shells = metaxploit.rshell_server
 		if typeof(shells) == "string" then return shells
-		if shells.len == 0 and arg1 != "-d" then return "no rshells connected. use<b> rsi -d </b> to run in daemon mode."
+		if shells.len == 0 and arg1 != "-d" then return colorOrange+"no rshells connected. use<b> rsi -d </b> to run in daemon mode."+CT
 	end while
-	option = "0"
+	if not arg1 then option = "0"
 	while typeof(option) != "number" or option > shells.len or option < 0
-		print(shells.len + " shell(s) connected!\n<b>Select a shell to start a terminal:</b>")
+		print(colorLightBlue + shells.len + "</b> shell(s) connected!\n<b>Select a shell to start a terminal:"+CT)
 		for i in range(0, shells.len - 1)
 			print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + shells[i].host_computer.public_ip + char(10) + "Local IP: " + shells[i].host_computer.local_ip + char(10) + colorWhite + shells[i].host_computer.show_procs + CT )
 		end for
@@ -1005,6 +1018,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 end function
 command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: probe [optional: ip] [optional: port] -- scan network (scans 15 per subnet)"+char(10)+"probe -f [opt:ip] [opt:port] -- full scan (takes longer. gets all non-firewalled machines on network.)"+char(10)+"i.e. 255 per subnet."+char(10)+"</b>Usage: probe [-s|show] -- display portmap.</b>"+char(10)+"N.B. remote scanning has been nerfed by the dev. Scan networks locally to get all machines."+char(10)+"Quick: probe -q [opt:ip] [opt:port] -- quick scan, max 2 per subnet."
+	if not localmachine.is_network_active then return "probe: no network connection."
 	if arg1 =="-s" or arg1 == "show" then
 		if PORT_MAP then return globals.display_portmap(1)
 	end if
@@ -1032,11 +1046,13 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: lanpro [ip] -- full lan scan. returns only lan addresses."+char(10)+"Does not autoset ip or portmap for 5phinx. Use<b> probe -f </b>instead."
+	if not localmachine.is_network_active then return "lanpro: no network connection."
 	if is_valid_ip(arg1) then return globals.lan_probe(get_router(arg1)).join(char(10))
 	return globals.lan_probe(get_router).join(char(10))
 end function
 command.nsl = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup</u>"+char(10)+"Usage: nsl [www.webAdress.com] -- uses nslookup on address and returns ip as a string"+char(10)+"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+"Experimental: nsl will attempt to append <b>www.</b> to a domain if it is omitted."
+	if not localmachine.is_network_active then return "nsl: no network connection."
 	address = arg1
 	print("Address: "+address)
 	prefix = address[0:4]
@@ -1047,14 +1063,16 @@ command.nsl = function(arg1, arg2, arg3=0, arg4=0)
 	return nslookup(address)
 end function
 command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return command_info("ping_usage")
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return command_info("ping_usage")+char(10)+"Note: returns a string."
+	if not localmachine.is_network_active then return "ping: no network connection."
 	if not is_valid_ip(arg1) then return command_info("ping_usage")
 	time_s = time
 	catch = shell.ping(arg1)
 	time_e = ( (time - time_s) * 1000 )
+	if DEBUG then print("catch: "+catch)
 	if catch then
 		if typeof(catch) == "string" then
-			print(catch)
+			return catch
 		else
 			print(colorLightBlue+"Ping "+arg1+": successful"+CT)
 			color_time = colorOrange
@@ -1063,8 +1081,7 @@ command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
 			return colorLightBlue+"Ping: packet round trip: "+CT+color_time+time_e+CT+colorLightBlue+" ms."+CT
 		end if
 	else
-		print("Ping "+arg1+": unreachable.")
-		return 0
+		return "Ping "+arg1+": unreachable."
 	end if
 	return 0
 end function
@@ -1076,9 +1093,10 @@ command.whois = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 	ssh_help = function()
-		return "ssh_usage: ssh [user@pass] [ip] [optional:pt (default 22)]"+char(10)+"ssh_usage: ssh [user@-brutus] [ip] [opt:pt] --  remote brute force attack"+char(10)+"e.g. ssh root@1234 1.1.1.1 "+char(10)+"e.g. ssh root@-brutus 1.2.3.4 21 ftp"+char(10)+"Sends shells to BUFFER or you may open immediately."
+		return "Secure Shell Protocol"+char(10)+"Usage: ssh [user@pass] [ip] [optional:pt (default 22)]"+char(10)+"ssh_usage: ssh [user@-brutus] [ip] [opt:pt] --  remote brute force attack"+char(10)+"e.g. ssh root@1234 1.1.1.1 "+char(10)+"e.g. ssh root@-brutus 1.2.3.4 21 ftp"+char(10)+"Sends shells to BUFFER or you may open immediately."
 	end function
 	if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return ssh_help
+	if not localmachine.is_network_active then return "nsl: no network connection."
 	rem_ip = arg2.trim
 	rem_pt = 22
 	rem_usr = ""
