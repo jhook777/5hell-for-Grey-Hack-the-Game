@@ -1,0 +1,77 @@
+//cob = get_custom_object
+   // cob.jtr = function(arg1,arg2,arg3,arg4=0)
+if DEBUG then print("<size=75%>loading jtr.5pk...(3.397kb)</size>")
+command.jtr = function(arg1,arg2,arg3,arg4=0)
+    if arg1 == "help" or arg1 == "-h" or not arg3 then return "John The Ripper password generator"+char(10)+"Usage: jtr [set_size] [word_length(1-15)] [opt:aAns] [opt:1]" + char(10) + "a - lowercase alpha" +char(10)+ "A - uppercase alpha"+char(10)+"n - numbers"+char(10)+"s - special characters"+char(10)+"note: at least ONE option must be selected"+char(10)+"1 -- optional only first letter is upper case (any value here is considered 1/true), leave blank for false."
+    if arg1.to_int <= 0 then return "size error: greater than zero expected"
+    if arg2.to_int <= 0 or arg2.to_int > 15 then return "length error: expected between 1 and 15"
+
+    array = []
+    alpha_l = range("a".code,"z".code)
+    i = 0
+    for c in alpha_l
+        alpha_l[i] = char(c)
+        i = i + 1
+    end for
+    alpha_u = range("A".code,"Z".code)
+    i = 0
+    for c in alpha_u
+        alpha_u[i] = char(c)
+        i = i + 1
+    end for
+    numbers = range(0,9)
+    special = ["!","@","#","$","%","^","&","*","(",")","-","+","=","}","{","[","]",";",":","<",">",",",".","'",""""]
+
+    SET_SIZE = arg1.to_int // generate 1000 words 
+    SET_RANGE = arg2.to_int // string of length 15
+    PARAMS = [0,0,0,0] // use alpha_l, use alpha_u, use numbers, use special
+    if arg3.indexOf("a") >= 0 then PARAMS[0] = 1
+    if arg3.indexOf("A") >= 0 then PARAMS[1] = 1
+    if arg3.indexOf("n") >= 0 then PARAMS[2] = 1
+    if arg3.indexOf("s") >= 0 then PARAMS[3] = 1
+    if PARAMS.indexOf(1) == null then return "option error: must select a, A, n, and/or s"
+
+    first_cap = 0
+    if arg4 then first_cap = 1
+    //print("arg4 is "+arg4+" and first_cap is "+ first_cap)
+    output = []
+
+    line = []
+    if PARAMS[0] then line = line + alpha_l
+    if PARAMS[1] then line = line + alpha_u
+    if PARAMS[2] then line = line + numbers
+    if PARAMS[3] then line = line + special
+    //print(line)
+    if typeof(line) != "list" then return "PARAMS error"
+    print("<b>Generating wordlist...</b>")
+    loops = SET_SIZE
+    while loops
+        i = 0
+        array = range( 0 , SET_RANGE - 1 )
+        while i < SET_RANGE
+            line.shuffle
+            if first_cap == true then 
+                if i == 0 then  
+                    array[i] = line[0].upper
+                else
+                    array[i] = line[0].lower
+                end if
+            else 
+                array[i] = line[0]
+            end if
+            i = i + 1
+        end while
+        if output.indexOf(array.join("")) == null then // ouput
+            output.push(array.join(""))
+            loops = loops - 1
+        end if
+        if SET_SIZE / loops == 4 then print("loading... 75% complete")
+        if SET_SIZE / loops == 2 then print("loading... 50% complete")
+    end while
+    return output.join(char(10)) // max string size is 1 million chars
+end function
+
+
+// if params.len != 3 then exit( "Usage: jtr [set_size] [word_length(1-15)] [opt:aAns]" + char(10) + "a - lowercase alpha" +char(10)+ "A - uppercase alpha"+char(10)+"n - numbers"+char(10)+"s - special characters"+char(10)+"note: at least ONE option must be selected" )
+
+// print(jtr(params[0],params[1],params[2]))
