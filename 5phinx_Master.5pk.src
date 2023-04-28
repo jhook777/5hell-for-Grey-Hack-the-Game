@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.2.1 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk...(96.102kb)</size>")
+// Sphinx Hacking Interface v 2.3.0 by Plu70
+if DEBUG then print("<size=75%>loading 5phinx.5pk...(96.447kb)</size>")
 
 //Define Globals
-sphinx_version = "2.2.6"
-malp_version = "1.1.4"
+sphinx_version = "2.3.2"
+malp_version = "1.1.6"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -135,7 +135,8 @@ decompiler = function(object)
   print("<mark=yellow>"+act+": "+@object+"</mark>")
   //print(object)
   c = @object
-  e = new @object
+  //e = new @object
+  f=[]
   for d in @c
     print(d)
   end for
@@ -143,11 +144,15 @@ decompiler = function(object)
     args = str(@c).split( "FUNCTION" )[1].split(", ")
     print("function takes: "+args.len+" arguments")
     catch = c
-    print("function returns: "+typeof(catch))
-    if typeof(catch) == "number" then catch = str(catch)
+    print("function returns: "+typeof(@catch))
+    if typeof(@catch) == "number" then catch = str(catch)
     return catch
   end if
-  return e.remove("__isa")
+  if typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "prouter" then 
+    f = c.__isa.indexes
+    return f.join(", ")
+  end if  
+  return 0
 end function
 
 curl = function(hacked_thing)
@@ -656,12 +661,28 @@ memory_alpha = function()
         i = i + 1
       end for
       print(colorWhite+"__________________________________")
-      selection = user_input("Select an object to access:> ").to_int
+      selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
       if selection >= BUFFER.len or selection < 0 or typeof(selection) != "number" then continue
       if BUFFER.hasIndex(selection) and @BUFFER[selection] then
         buffer_selection = @BUFFER[selection]
         ////////////////////evaluate selection///////
-        print("Expanding... ["+colorWhite+typeof(@buffer_selection)+CT+"]")
+        print(colorOrange+"Expanding... "+CT+"["+colorWhite+typeof(@buffer_selection)+CT+"]")
+        if typeof(@buffer_selection) == "pshell" or typeof(@buffer_selection) == "pcomputer" or typeof(@buffer_selection) == "pfile" or typeof(@buffer_selection) == "prouter" then 
+          methods = globals.decompiler(buffer_selection)
+          print(colorLightBlue+"<u>======================</u>"+CT)
+          print(colorWhite+"Available methods: ")
+          got_host = false
+          for m in methods.split(", ")
+            print("[ "+colorLightBlue+ m +CT+" ]")
+            if m == "host_computer" then got_host = true
+          end for 
+          print(colorWhite+"<u>======================</u>"+CT)
+          if got_host and user_input("BUFFER computer object? [y/N] ||: ",0,1).lower == "y" then 
+            globals.BUFFER.push(buffer_selection.host_computer)
+            print("Sent computer object to BUFFER.")
+          end if
+          continue
+        end if
         if typeof(@buffer_selection) == "string" or typeof(@buffer_selection) == "list" or typeof(@buffer_selection) == "map" or typeof(@buffer_selection) == "number" or typeof(@buffer_selection) == "function" then
           if typeof(@buffer_selection) == "function" then
             args = str(@buffer_selection).split( "FUNCTION" )[1].split(", ")
@@ -997,7 +1018,7 @@ Gopher = function(file) // takes file object
     if d != "," then pData = pData + d + char(10)
   end for
   if dump then
-    dump.set_content(pData)
+    dump.set_content(char(10)+pData)
     print(colorOrange+"*"+CT)
     print(format_columns(dump.get_content))
     print("Data saved to dump.txt")
@@ -1506,7 +1527,8 @@ hooked_comp = function(result)
     end if
     if pause == "7" then
       print(colorWhite+"<size=50%><u>launching mitm attack... attempting to filter networks...</u></size>")
-      nets = result.wifi_networks("wlan0")
+      nets = null
+      if result.is_network_active and result.active_net_card == "WIFI" then nets = result.wifi_networks("wlan0") else print(colorRed + "Wifi card is disabled!" + CT)
       for n in nets
         print(n)
       end for
@@ -1515,7 +1537,12 @@ hooked_comp = function(result)
       interface = user_input("[0] abort [1] wifi [2] ethernet ||: ",0,1)
       if interface == "0" then continue
       if interface == "1" then
-        nets = result.wifi_networks("wlan0")
+        if result.is_network_active and result.active_net_card == "WIFI" then 
+          nets = result.wifi_networks("wlan0") 
+        else 
+          print(colorRed + "Wifi card is disabled!" + CT)
+          continue 
+        end if
         i = 0
         for n in nets
           print("["+i+"]"+n)
@@ -1670,7 +1697,9 @@ select_attack = function()
   waitFor = user_input("Select an exploit #: ").val
   if waitFor == 0 then
     custom_mem = user_input("Enter memory address: ")
+    if custom_mem == "" then return
     custom_exploit = user_input("Enter overflow: ")
+    if custom_exploit == "" then return
     memory = [custom_mem , custom_exploit]
   else
     if waitFor > 0 and waitFor <= XPLOITS.len then
@@ -1873,30 +1902,38 @@ who_scan = function(tally=15,pause=1,quiet=false)
   t_router = null
   is_switch = false
   if is_valid_ip(ip) then
-    if not quiet then print("\nscanning ip: " + ip)
-    if not quiet and is_lan_ip(ip) then
-      waitFor = user_input(colorWhite+"[<b>1</b>] get_router [2] get_router(</b>"+ip+"<b>) [3] get_router(</b>"+localmachine.network_gateway+"<b>)"+CT+char(10)+"(enter=1, q=quit)||: ",0,1)
-      if waitFor.lower == "q" then return
-      if waitFor == "" then waitFor == "1"
-      if waitFor == "1" then
-        t_router = get_router
-      else
-        if waitFor == "2" then
-          t_router = get_router(ip)
-        else
-          if waitFor == "3" then
-            t_router = get_router(localmachine.network_gateway)
-          else
-            t_router = get_router
-          end if
-        end if
-      end if
-    else
-      t_router = get_router(ip)
-    end if
+    if not quiet then print(char(10)+"Scanning ip: " + ip)
+    // if not quiet and is_lan_ip(ip) then
+    //   waitFor = user_input(colorWhite+"[<b>1</b>] get_router [2] get_router(</b>"+ip+"<b>) [3] get_router(</b>"+localmachine.network_gateway+"<b>)"+CT+char(10)+"(enter=1, q=quit)||: ",0,1)
+    //   if waitFor.lower == "q" then return
+    //   if waitFor == "" then waitFor == "1"
+    //   if waitFor == "1" then
+    //     t_router = get_router
+    //   else
+    //     if waitFor == "2" then
+    //       t_router = get_router(ip)
+    //     else
+    //       if waitFor == "3" then
+    //         t_router = get_router(localmachine.network_gateway)
+    //       else
+    //         t_router = get_router
+    //       end if
+    //     end if
+    //   end if
+    // else
+         t_router = get_router(ip)
+    // end if
+    
     if not t_router then
-      if not quiet then print("Invalid data or input.")
-      return
+      ip = ip.split(".")
+      ip[-1] = 1
+      ip = ip.join(".")
+      if not quiet then print("probe: ip is not a router, attempting to locate router at: "+char(10)+colorWhite+ip+CT)
+      t_router = get_router( ip )
+      if not t_router then 
+        if not quiet then print("probe: failed, portscan aborted.")
+        return
+      end if
     end if
     if not quiet then print(t_router.public_ip + " details:")
     if not quiet then print(whois(t_router.public_ip))
@@ -1999,6 +2036,10 @@ get_lib = function(waitFor=0)
       end if
       return "Invalid selection."
     end if
+  end if
+  if not localmachine.is_network_active then
+    print(colorOrange+"No network connection!")
+    return "no_network"
   end if
   if port == "router" then
     net_session = metaxploit.net_use( address )
@@ -2218,9 +2259,9 @@ switch = function(resolve,tt)
   end if
   if resolve == "+" or resolve == "=" then
     if targetIP and targetPort then
-      print(command.linkdb(get_lib))
+      print(command.linkdb(get_lib,"-y"))
     else
-      print("Unable to establish connection.\nCheck parameters and try again.")
+      print(colorOrange+"Please set target IP and Port before continuing.")
     end if
     return true
   end if
@@ -2238,6 +2279,10 @@ switch = function(resolve,tt)
     print("Complete.")
   end if
   if resolve == "0" or resolve.lower == "w" then
+    if not localmachine.is_network_active then 
+      print(colorOrange+"No Network Connection!")
+      return true
+    end if
     if targetIP then
       who_scan
     else
@@ -2267,12 +2312,16 @@ switch = function(resolve,tt)
   end if
   if resolve == "3" or resolve.lower == "d" then
     if globals.metaLib and tt == "local" then
-      confirm = user_input("Scan "+globals.metaLib.lib_name+" and update database? [Y/n] ||: ",0,1)
+      confirm = user_input("Scan local lib: "+globals.metaLib.lib_name+" and update database? [Y/n] ||: ",0,1)
       if confirm.lower != "n" then command.db("-l", metaLib.lib_name) else print("aborting...")
       return true
     else
+      if not localmachine.is_network_active then 
+        print(colorOrange+"No network connection!")
+        return true
+      end if
       if globals.targetIP and globals.targetPort then
-        confirm = user_input("Scan "+globals.targetIP+" "+globals.targetPort+" and update database? [Y/n] ||: ",0,1)
+        confirm = user_input("Scan remote lib: "+globals.targetIP+" "+globals.targetPort+" and update database? [Y/n] ||: ",0,1)
         if confirm.lower != "n" then command.db("-r", globals.targetIP, globals.targetPort)
         return true
       else
@@ -2396,9 +2445,10 @@ main = function()
       print
       first_run = false
     end if
+    target_type = "local"
     print(char(10)+colorWhite + "5phinx"+char(8482) +" "+ sphinx_version + ", by Plu70 localhost: "+localmachine.local_ip+CT)
     print("<b>/////////////////////////////////////////////</b>")
-    if metaLib and (metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
+    if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
       target_type = "local"
     end if
     if PORT_MAP then
@@ -2415,7 +2465,7 @@ main = function()
         if PI[0] == "libcam" or PI[0] == "cam" then target_type = "camera"
         if PI[0] == "http" then target_type = "http"
       end if
-      if metaLib and (metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
+      if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
         target_type = "local"
       end if
       if target_type == "camera" then
@@ -2451,10 +2501,10 @@ main = function()
       print(format_columns("[ " + tarLan +   " ] [ " + portInfo +    " ]" ))
     end if
     if metaLib then
-      print(format_columns("[<b>metaLib loaded</b> [" + NUM_SPLOITS + "] Exploits Found]"))
-      print(format_columns("[<b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]"))
+      print(format_columns("["+colorGreen+"MetaLib: loaded"+CT+" [" + NUM_SPLOITS + "] Exploits Found]"))
+      print(format_columns("[MetaLink: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]"))
     else
-      print("[metaLib "+colorOrange+"not loaded</b></color>] [<b>F1</b>] for <b>help")
+      print("[MetaLib: "+colorOrange+"not loaded</b></color>] [<b>F1</b>] for <b>help")
     end if
     if alert then
       print(colorRed + "[/var/system.log: I/O detected " + logSize + "  bytes]\n Alert! Filesize Change!")
@@ -2468,18 +2518,18 @@ main = function()
       print("0001020304050607080900")
     end if
     if targetIP then
-      print("0[<b>0</b>]....<b>WHOIS</b>.....0900")
-      print("00[<b>1</b>]...<b>SCAN</b>..07080900")
+      print("0[<b><color=white>0</color></b>]....<b><color=white>W</color>HOIS</b>.....0900")
+      print("00[<b><color=white>1</color></b>]...<b><color=white>S</color>CAN</b>..07080900")
     else
       print("0001020304050607080900")
       print("0001020304050607080900")
     end if
     if targetIP and targetPort then
-      print("000.[<b>2</b>].<b>ROIL</b>....080900")
-      print("000..[<b>3</b>]<b>DBASER</b>...80900")
+      print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....080900")
+      print("000..[<b><color=white>3</color></b>]<b><color=white>D</color>BASER</b>...80900")
     else
-      print("0010SET IP WITH [4]900")
-      print("0001SET PT WITH [5]900")
+      print("001 SET IP WITH [<color=white>4</color>] 00")
+      print("000 SET PT WITH [<color=white>5</color>] 00")
     end if
     print(".QT.<b>A</b>..<b>IP</b>[<b>4</b>][<b>5</b>]<b>PT</b>.....")
     print("[Q][A][Z]["+char(177)+"]06<b>v</b>7<b><</b>8<b>></b>9<b>^</b>0")
