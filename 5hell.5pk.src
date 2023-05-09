@@ -1,12 +1,17 @@
 // 5hell v 3.3.5 by Plu70
 // released v 3.2.5
 // imports .5pk files from /root/src
-ver = "3.3.8_crunchy_springroll_"
+ver = "3.4.5_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
 //
 // changes:
+// scribus: disabled confirmation before opening file
+// fixed crash in grep when grepping
+// added partial support for partial objects
+// fixed crash in db when target ip invalid
+// fixed crash in make when path invalid
 // minor update to the 5phinx gui
 // rclean: fixed an input bug
 // aptm: changed "go back" to "exit" to avoid confusion
@@ -116,6 +121,7 @@ globals.GLASSPOOL = 0
 globals.command_buffer = []
 globals.shell = get_shell
 globals.metaLib = null
+globals.net_session = null
 globals.localmachine = shell.host_computer
 globals.currentPath = current_path
 globals.homePath = home_dir
@@ -244,8 +250,121 @@ globals.get_file = function(input_string)
 end function
 if DEBUG then print("<size=75%>loaded get_file...</size>")
 if DEBUG then print("<size=75%>loading 5hell.5pk...(72.846kb)")
-
-import_code("/root/src/clipcommander.5pk")
+if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")
+command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if typeof(@arg1) == "function" then
+		globals.clip_board_alpha = @arg1
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+		return @globals.clip_board_alpha
+	end if
+	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard alpha || clipa || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipa: pipe outputs to clipa with: command | clipa"+char(10)+" clipa [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipa"+char(10)+"clipa -- <b>Returns</b> contents of clipa if no arguments."+char(10)+"scribus @clipa -- edit clipa directly with the text editor."
+	if arg1 == "0" then
+		globals.clip_board_alpha = "0"
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+		return globals.clip_board_alpha
+	end if
+	if arg1 == 0 then
+		if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
+	end if
+	globals.clip_board_alpha = arg1
+	if arg1 == "@tbuf" then
+		globals.T_BUF.pull
+		globals.clip_board_alpha = globals.T_BUF.join(char(10))
+		globals.T_BUF = [(localip+"@"+pubip)]
+	end if
+	if arg1 == "@cc" then	globals.clip_board_alpha = globals.command_buffer.join(char(10))
+	if arg1 == "@B" then
+		if globals.BUFFER.len < 1 then return "BUFFER is empty."
+		i = 0
+		for b in globals.BUFFER
+			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+			i = i + 1
+		end for
+		get = arg2
+    if get and get != "-m" then get = arg2.to_int
+    if get == "-m" then get = user_input("clipa:> ").to_int
+		if typeof(get) != "number" then return "BUFFER: invalid selection."
+		if get >= 0 and get < BUFFER.len then globals.clip_board_alpha = BUFFER[get] else return "BUFFER: invalid selection."
+	end if
+	print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+	if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
+end function
+command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if typeof(@arg1) == "function" then
+		globals.clip_board_beta = @arg1
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+		return @globals.clip_board_beta
+	end if
+	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard beta || clipb || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipb: pipe outputs to clipb with: command | clipb"+char(10)+" clipb [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}|function]"+char(10)+"-- add any of the above to clipb"+char(10)+"clipb -- <b>Returns</b> contents of clipb if no arguments."+char(10)+"scribus @clipb -- edit clipb directly with the text editor."+char(10)+"N.B. please be awake that command.<b>append</b> works a bit differently with clipb than with clipa or clipc."+char(10)+"-- see append -h for more info."
+	if arg1 == "0" then
+		globals.clip_board_beta = "0"
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+		return globals.clip_board_beta
+	end if
+	if arg1 == 0 then
+		if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
+	end if
+	globals.clip_board_beta = arg1
+	if arg1 == "@tbuf" then
+		globals.T_BUF.pull
+		globals.clip_board_beta = globals.T_BUF.join(char(10))
+		globals.T_BUF = [(localip+"@"+pubip)]
+	end if
+	if arg1 == "@cc" then	globals.clip_board_beta = globals.command_buffer.join(char(10))
+	if arg1 == "@B" then
+		if globals.BUFFER.len < 1 then return "BUFFER is empty."
+		i = 0
+		for b in globals.BUFFER
+			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+			i = i + 1
+		end for
+		get = arg2
+		if get and get != "-m" then get = arg2.to_int
+		if get == "-m" then get = user_input("clipb:> ").to_int
+		if typeof(get) != "number" then return "BUFFER: invalid selection."
+		if get >= 0 and get < BUFFER.len then globals.clip_board_beta = BUFFER[get] else return "BUFFER: invalid selection."
+	end if
+	print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+	if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
+end function
+command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if typeof(@arg1) == "function" then
+		globals.clip_board_gamma = @arg1
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+		return @globals.clip_board_gamma
+	end if
+	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard gamma || clipc || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipc: pipe outputs to clipc with: command | clipc"+char(10)+" clipc [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipc"+char(10)+"clipc -- <b>Returns</b> contents of clipc if no arguments."+char(10)+"scribus @clipc -- edit clipc directly with the text editor."
+	if arg1 == "0" then
+		globals.clip_board_gamma = "0"
+		print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+		return globals.clip_board_gamma
+	end if
+	if arg1 == 0 then
+		if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
+	end if
+	globals.clip_board_gamma = arg1
+	if arg1 == "@tbuf" then
+		globals.T_BUF.pull
+		globals.clip_board_gamma = globals.T_BUF.join(char(10))
+		globals.T_BUF = [(localip+"@"+pubip)]
+	end if
+	if arg1 == "@cc" then	globals.clip_board_gamma = globals.command_buffer.join(char(10))
+	if arg1 == "@B" then
+		if globals.BUFFER.len < 1 then return "BUFFER is empty."
+		i = 0
+		for b in globals.BUFFER
+			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+			i = i + 1
+		end for
+		get = arg2
+		if get and get != "-m" then get = arg2.to_int
+		if get == "-m" then get = user_input("clipc:> ").to_int
+		if typeof(get) != "number" then return "BUFFER: invalid selection."
+		if get >= 0 and get < BUFFER.len then globals.clip_board_gamma = BUFFER[get] else return "BUFFER: invalid selection."
+	end if
+	print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+	if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
+end function
 command.passwd = function(arg1, arg2, arg3=0, arg4=0)
   if arg1 == "help" or arg1 == "-h" then return "Usage: passwd [optional: user] [option: pass] -- change passwd. prompts if no arguments given."
 	user = null
@@ -608,15 +727,15 @@ command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		f = localmachine.File(p)
 		if not f then f = localmachine.File(currentPath+"/"+p)
 		if not f then f = localmachine.File(currentPath+p)
-		if not f then return "404: "+p+" not found. "
-		w = user_input(f.path+" found. Open it? [Y/n] ||:",0,1)
-		if w.lower == "n" then return "aborting..."
+		if not f then return "scribus: "+p+" not found. "
+		//w = user_input(f.path+" found. Open it? [Y/n] ||:",0,1)
+		//if w.lower == "n" then return "aborting..."
 		return globals.scribus(f)
 		//return 1
 	end if
 	return 0
 end function
-import_code("/root/src/pwgen.5pk")
+//import_code("/root/src/pwgen.5pk")
 if DEBUG then print("<size=75%>loading battleship.5pk...(24.905kb)</size>")
 if DEBUG then print("<size=75%>loading blackjack.5pk...(14.256kb)</size>)")
 command.games = function(arg1, arg2, arg3=0, arg4=0)
@@ -626,11 +745,11 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 	print("[2] Blackjack  - jokers wild")
 	print("[3] Back")
 	bat = function(s)
-		import_code("/root/src/battleship.5pk")
+		//import_code("/root/src/battleship.5pk")
 		return 0
 	end function
 	g2 = function()
-		import_code("/root/src/blackjack.5pk")
+		//import_code("/root/src/blackjack.5pk")
 	end function
 
 	pick = user_input("||: ",0,1)
@@ -642,10 +761,214 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.mail = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "mail: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+"-- name your function<b> command.mail </b> to overwrite this one."+char(10)+"-- see 5hell.src, template.5pk.src for instructions."+char(10)+"N.B. You may overwrite any command this way."+char(10)+"<b>Advanced: when prompted for a password enter:</b> -brutus"+char(10)+"-- this will invoke <b>brutus</b> and attempt to crack the email password."
-	import_code("/root/src/herme5.5pk")
+        herme5 = function()
+            mail = {}
+            mail.meta = null  // metaMail object
+            if globals.inbox then mail.meta = globals.inbox
+            mail.data = null
+            if globals.inbox then mail.data = mail.meta.fetch
+            mail.user = null
+            if globals.inbox then mail.user = globals.mail_user
+            mail.pass = null
+            if globals.inbox then mail.pass = true
+          
+            mail.pwn = function(arg)
+              dsize = globals.dict_a.len
+              mode = user_input("[<b>0</b>] Onboard Dictionary -- [1] /root/tables/tp ")
+              if mode == "0" or mode == "" then
+                reverse = user_input("[0] start at dict_a[0]  --  [1] start at dict_a[-1] "+char(10)+"(type anything else to abort) ||:",0,1 )
+                if reverse == "1" or reverse == "0" then
+                  reverse = reverse.to_int
+                else
+                  return 0
+                end if
+                show_count = user_input("Show the count? ["+dsize+"] [y/N] ||: ",0,1)
+                show_pass = user_input("Show passwords? [y/N] ||: ",0,1)
+                if show_pass.lower == "y" then show_pass = true else show_pass = false
+                if show_count.lower == "y" then show_count = true else show_count = false
+                print(colorGold+"Accessing onboard dictionary..."+CT+char(10)+"<align=center><<>></align>")
+                ds = dsize - 1
+                for p in range( 0, ds )
+                  dsize = dsize - 1
+                  if reverse then pa = globals.dict_a[0 - p] else pa = globals.dict_a[p]
+                  if show_count then print(colorGold+colorWhite+"["+CT+dsize+colorWhite+"]"+CT+CT)
+                  if show_pass then print(colorGold+colorWhite+"["+CT+pa+colorWhite+"]"+CT+CT)
+                  try = mail_login(arg, pa)
+                  if typeof(try) == "MetaMail" then
+                    print("brutus: <b>password found</b>: "+colorWhite+pa+CT)
+                    return try
+                  end if
+                end for
+              else
+                if mode == "1" then
+                  tp = localmachine.File("/root/tables/tp")
+                  if not tp then return 0
+                  print(colorGold+"Accessing /root/tables/tp..."+CT+char(10)+"<align=center><<>></align>")
+                  tp_f = tp.get_files
+                  i=0
+                  for f in tp_f
+                    i = i + 1
+                    print(i+"/"+(tp_f.len))
+                    chunc = f.get_content.split(char(10))
+                    for p in chunc
+                      try = mail_login( arg, p )
+                      if typeof(try) == "MetaMail" then
+                        print("brutus: <b>password found</b>: "+colorWhite+p+CT)
+                        return try
+                      end if
+                    end for
+                  end for
+                end if
+              end if
+              return 0
+            end function
+          
+            mail.Login = function()
+              if globals.inbox then
+                mail.meta = globals.inbox
+                return mail.user+" is already logged in."
+              end if
+              mail.user = user_input("email:> ")
+              if mail.user == "" or mail.user == " " then mail.user = user_mail_address
+              if not mail.user then return "Invalid mail address."
+              print("Enter <b>-brutus</b> to crack password with brutus.")
+              mail.pass = user_input(mail.user+" pass:> ", 1)
+              if mail.pass == "" or mail.pass == " " then return "Invalid login credentials."
+              if mail.pass == "-brutus" then
+                mail.meta = mail.pwn(mail.user)
+              else
+                mail.meta = mail_login(mail.user, mail.pass)
+              end if
+          
+              if typeof(mail.meta) == "MetaMail" then
+                globals.inbox = mail.meta
+                globals.mail_user = mail.user
+                return "Login complete."
+              end if
+              return "Invalid login credentials."
+            end function
+            mail.get_id = function(arg)
+              ds = mail.data[arg].split(char(10))
+              //print(ds)
+              i = ds[2].split(" ")
+              i = i[1]
+              return i
+            end function
+            mail.Fetch = function()
+              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+              mail.data = mail.meta.fetch
+              return "Fetching mail for: "+mail.user+"..."+char(10)
+            end function
+            mail.Read = function()
+              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+              print(mail.Fetch)
+              print(mail.data_stream(mail.data))
+              r = user_input("read:> ").to_int
+              print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
+          
+              if r >= 0 and r < mail.data.len then
+                read_this = mail.meta.read(mail.get_id(r))
+                print(read_this)
+                if read_this.split(char(10))[2] == "Subject: *" then
+                  print(colorLightBlue+"<u><mark=black>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
+                  print(command.code("-b", read_this[read_this.indexOf("Subject: *")+11:]))
+                end if
+                done = user_input("press <<b>anyKey</b>> to return")
+                return "_____"
+              end if
+              return "aborting..."
+            end function
+            mail.Write = function()
+              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+              addr = user_input("address:> ")
+              subj = user_input("subj:> ")
+              mbuf = []
+              send = ""
+              body = globals.scribus(mbuf)
+              munin = user_input(colorLightBlue+"Encode with <mark=black>M</mark>unin<mark=black>C</mark>ipher before sending? [Y/n] ||: "+CT,0,1)
+              if munin.lower != "n" then
+                send = command.code("-a",body)
+                subj = "*"
+              else
+                send = body
+                print(colorGreen+"<u>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</u>"+CT)
+              end if
+              return mail.meta.send( addr, subj, send )
+            end function
+            mail.Delete = function()
+              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+              print(mail.Fetch)
+              print(mail.data_stream(mail.data))
+              r = user_input("delete:> ").to_int
+              if typeof(r) == "number" and mail.data.hasIndex(r) then
+                id = mail.get_id(r)
+                if id then print("Deleting (crt+c to cancel): "+id+"...")
+                wait(.5)
+                print("in 3...")
+                wait(1)
+                print("2...")
+                wait(1)
+                print(mail.meta.delete( id ))
+                return mail.Fetch
+              else
+                return "aborting..."
+              end if
+              return 0
+            end function
+            mail.Widget = function()
+              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
+              if HERMES == true then
+                globals.HERMES = false
+                wState = "off"
+              else
+                globals.HERMES = true
+                wState = "on"
+                globals.this_mail = user_input("Configuring widget..."+char(10)+"pin_mail_# (default: 0 for newest):> ").to_int
+                mail.data = mail.meta.fetch
+                if typeof(globals.this_mail) == "number" and globals.this_mail >= 0 and globals.this_mail < mail.data.len then
+                  print(colorGold+"Pinned: "+colorWhite+globals.this_mail+colorGold+"."+CT+char(10)+colorGold+"Herme5 mail widget configured."+CT)
+                else
+                  print(colorGold+"Defaulting to: "+colorWhite+"0"+colorGold+"."+CT+char(10)+colorGold+"Herme5 mail widget configured."+CT)
+                  globals.this_mail = 0
+                end if
+              end if
+              return "Herme5 mail widget toggled "+wState+"."
+            end function
+            mail.Exit = function()
+              return "herme5: exiting..."
+            end function
+            mail.data_stream = function(alist)
+              d = ""
+              i = 0
+              for el in alist
+                d = d + "[" +colorWhite+ i +CT+ "] " + el + char(10)
+                i = i + 1
+              end for
+              return d
+            end function
+            mail.menu = function()
+              mailing = true
+              menu_options = ["Exit", "Login", "Fetch", "Read", "Write", "Widget", "Delete"]
+              while mailing
+                print(colorGold+"- - - - - - - Herme5 v 0.4.4 by Plu70 - - - - - - - - "+CT)
+                print(mail.data_stream(menu_options))
+                opt = user_input("(q=quit)||: ",0,1).to_int
+                print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
+                if opt == "q" then return 0
+                if opt < 0 or opt > menu_options.len-1 or typeof(opt) != "number" then continue
+                mm = @mail[menu_options[opt]]
+                print(mm)
+                mailing = opt
+              end while
+              return mailing
+            end function
+            return mail.menu
+          end function
+          // end Herme5
+          //herme5          
 	return herme5
 end function
-import_code("/root/src/kraken.5pk")
+//import_code("/root/src/kraken.5pk")
 command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	if @arg1 == "-h" or @arg1 == "help" then return "malp: Memory Alpha - buffer, object and database management menu. "+char(10)+"Usage: malp -- Access all<b> BUFFER </b>objects from here."+char(10)+"Advanced: malp [piped_object] -- adds ANY piped object to the BUFFER."+char(10)+"-- May be of any type: string, list, map, shell, file, computer, et al."
 	if DEBUG then print("@arg1: "+typeof(@arg1))
@@ -737,7 +1060,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	end if
 	return "enum: error: unknown"
 end function
-import_code("/root/src/felix.5pk")
+//import_code("/root/src/felix.5pk")
 command.sniff = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: sniff -- listen to network traffic. Prints a string if connections detected."+char(10)+"-- runs in daemon mode. exits on first sniffed connection (or ctrl+c)."
 	if not globals.metaxploit then return "sniff: metaxploit not found"
@@ -748,9 +1071,11 @@ command.sniff = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if not snout then print(colorRed+"Write Error: cannot create"+CT+colorOrange+currentPath+"/sniffed"+CT)
 	print(colorRed+"-------sniffing--------"+CT)
 	sniffed = globals.metaxploit.sniffer(1)
-	if snout then
+	if snout.has_permission("w") and snout.has_permission("r") then
 		snout.set_content(snout.get_content+char(10)+sniffed)
 		print("sniff: output saved to "+snout.path)
+    else 
+        return "sniff: unable to write "
 	end if
 	if localmachine.File(program_path+"/encode.src") then print("sniff: encode.src saved to "+program_path+"/encode.src (hopefully...)")
 	return command.clipb(sniffed)
@@ -766,7 +1091,7 @@ command.rshell = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if globals.metaxploit then return metaxploit.rshell_client(arg1,arg3.to_int,arg2) else return "rshell: metaxploit.so not found"
 end function
-import_code("/root/src/dig.5pk") // non free malwares
+//import_code("/root/src/dig.5pk") // non free malwares
 command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 	if DEBUG then print("in rclean: got: "+typeof(@arg1))
 	if arg1 == "help" or arg1 == "-h" then return "Usage: rclean [opt: int ] -- select an object from buffer to (attempt to) remote wipe."+char(10)+"Advanced: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+"e.g. clipb @B 1 | rclean where BUFFER[1] was a file|shell|computer"+char(10)+"rclean with no params will display a menu "+char(10)+"rclean is intended for remote scrubbing using BUFFER objects."+char(10)+"You may use silentclean or rclean for local log scrubbing"
@@ -1305,8 +1630,8 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, Silent, Deckard, Minidevil96, MrMember, Clover, Trashed, Bit, OmegaKawaii, Nyx "+char(10)+"and many others!")
 	return 0
 end function
-import_code("/root/src/cobble.5pk")
-import_code("/root/src/jtr.5pk")
+//import_code("/root/src/cobble.5pk")
+//import_code("/root/src/jtr.5pk")
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
 	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."
 	if not state then 
