@@ -56,6 +56,7 @@ Once 5hell is built you do not need the build files anymore unless you plan on r
 
 To start using 5hell:
 You can use it right away out of the box but more benefits come from the following:
+( |> indicates the prompt, don't type |> for the commands)
 <code>
 create your rootkit folder:
 |> mkdir /root/rkit
@@ -84,20 +85,20 @@ Important Notes:
 
 Beginners should type 
 |> help
-For basic help info and a command list.
+--For basic help info and a command list.
 |> help -s
-To see info on all commands at once
+--To see info on all commands at once
 |> help -s [keyword]
-To search all of the help info for that keyword (to find commands easier)
+--To search all of the help info for that keyword (to find commands easier)
 |> help guide
-To get a quick start guide
+--To get a quick start guide
 
 Beginners should also use 5phinx (sphinx) as this automates most hacking.
 
 Results from 5phinx (or command line hacking) are sent to the BUFFER in memory alpha
 type
 |> malp
-to access memory alpha, then press 5 to access the buffer.
+--to access memory alpha, then press 5 to access the buffer.
 
 If you've built the rkit correctly, you can also simply type
 |> dig [ip] [opt: port]
