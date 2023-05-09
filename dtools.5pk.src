@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk...(26.087kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk...(62.957kb)</size>")
 re = {}
 re.match = function(regexp, text) // expects character arrays
 	if DEBUG then print("<b> in globals.re(gex)")
@@ -269,7 +269,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 		end if
 		if t_f.is_binary then return
 		buf = t_f.get_content
-		if buf == "" or buff == null then return
+		if buf == "" or buf == null then return
 		lines = buf.split(char(10))
 		for line in lines
 			words = line.split(" ")
@@ -436,8 +436,8 @@ command.make = function(arg1, arg2, arg3=0, arg4=0)
 	programPath = arg2
 	fileSource = globals.get_file(pathSource)
 	folderDest = globals.get_file(programPath)
-	if fileSource == null then return("build: can't find "+ pathSource)
-	if folderDest == null then return("build: can't find " + folderDest)
+	if not fileSource then return("build: can't find "+ pathSource)
+	if not folderDest then return("build: can't find " + folderDest)
 	output = shell.build(fileSource.path, folderDest.path)
 	if output.len == 0 then
 		return("build successful.")
@@ -532,3 +532,779 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	end while
 	return 0
 end function
+// felix file explorer by, Plu70
+if DEBUG then print("<size=75%>loading felix.5pk...(13.691kb)</size>")
+command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
+  if arg1 == "help" or arg1 == "-h" then return "Usage: felix -- file explorer v 0.2, (wip). Use arrow keys to navigate. Press / to manually type a path."+char(10)+"Advanced: felix [shell|computer|file] -- run felix on filesys of piped object."+char(10)+"e.g. clipb @B 1 | felix -- where BUFFER[1] contained a file, shell or computer."
+  action = {}
+  action.cursor = 0
+  action.last = 0
+  min = 0
+  action.max = 0
+
+  action.memory = null
+  action.buffer = function(arg=null)
+    if arg then action.memory = arg
+    if not action.memory then return char(176)
+    return action.memory.name
+  end function
+  action.b = function(inf)
+    selected = action.get_selected(inf)
+    if not selected then return inf
+    globals.BUFFER.push(selected)
+    conf = user_input("felix:<b> sent "+selected.name+" to BUFFER. Acces via memory_alpha.</b>"+char(10)+"press <<b>anyKey</b>> to continue",0,1)
+    return inf
+  end function
+  action.get_selected = function(infile)
+    folders = infile.get_folders
+    files = infile.get_files
+    contents = folders + files
+    if contents.len == 0 then return 0
+    if contents.hasIndex(action.cursor) then return contents[action.cursor] else return 0
+  end function
+  action.r = function(inf) //  remove
+    selected = action.get_selected(inf)
+    if not selected then return inf
+    confirm = user_input("<b>delete</b> "+selected.path+"? [y/N] ||: ",0,1)
+    if confirm.lower == "y" or confirm == "RightArrow" then
+      check = selected.delete
+      if check then print(check) else print("...deleted.")
+    else
+      print("aborting...")
+    end if
+    return inf
+  end function
+  action.z = function(f)
+    if action.memory then action.memory = null
+    return f
+  end function
+  action.x = function(inf)
+    nf = action.get_selected(inf)
+    if nf then action.buffer(nf)
+    return inf
+  end function
+  action.v = function(inf)
+    selected = action.get_selected(inf)
+    if not selected then return inf
+    if not action.memory then return inf
+    dest = inf.path
+    label = ""
+    print("[0] abort "+char(10)+"[1] overwrite "+selected.name+char(10)+"[2] paste to "+inf.path)
+    if selected.is_folder then print("[3] paste to "+selected.path)
+    opt = user_input("(q=quit)||: ",0,1)
+    if opt == "0" or opt.lower == "q" then return inf
+    coop = user_input("[<b>0</b>] - Copy or [1] - Move (q=quit)||: ",0,1)
+    if coop.lower == "q" then return inf
+    if opt == "3" and selected.is_folder then
+      dest = selected.path
+      label = action.memory.name
+      if coop.to_int == 1 then
+        action.memory.move(dest, label)
+      else
+        action.memory.copy(dest, label)
+      end if
+      return inf
+    end if
+    if opt == "1" then
+      label = selected.name
+    else
+      if opt == "2" then
+        label = action.memory.name
+      else
+        return inf
+      end if
+    end if
+    if coop.to_int == 1 then
+      action.memory.move(dest, label)
+    else
+      action.memory.copy(dest, label)
+    end if
+    //action.memory = null
+    return inf
+  end function
+  action.e = function(f)
+    // poke, mkdir, rename
+    return f
+  end function
+  action.f = function(inf)
+    selected = action.get_selected(inf)
+    if not selected then return inf
+    print(command.file(selected))
+    print(colorGreen+"<u>==================================</u>"+CT)
+    wait_for = user_input("press <<b>anyKey</b>> to continue",0,1)
+    return inf
+  end function
+  action.n = function(inf)
+    selected = action.get_selected(inf)
+    if not selected then return inf
+    new_name = user_input("rename_"+selected.name+"(null=abort):> ")
+    if new_name == "" or new_name == " " then return inf
+    print(selected.rename(new_name))
+    return inf
+  end function
+  action.d = function(inf)
+    return action.RightArrow(inf)
+  end function
+  action.RightArrow = function(inf)
+    selected = action.get_selected(inf)
+    if not selected then return inf
+    if selected.is_folder then // descend into folder
+      inf = selected
+      action.last = abs(action.cursor)
+      action.cursor = 0
+      return inf
+    end if
+    if selected.is_binary then // run prompt
+      if selected.name.split(".")[-1] != "so" then
+        doit = user_input("launch "+selected.name+"? [y/N] "+char(10)+"||: ",0,1).lower
+        if doit == "y" or doit == "RightArrow" then
+          if typeof(shell) == "ftpshell" then
+            print("launch not available in ftpshell")
+            return inf
+          end if
+          try = shell.launch(selected.path, user_input("params for: "+char(10)+selected.path+" "))
+          globals.stack_pool = globals.stack_pool - 1
+          if try then print(try)
+        end if
+        return inf
+      else
+        if selected.path.split("/")[1] == "lib" then
+          if user_input("database this lib.so? [y/N] ||:",0,1).lower == "y" then
+            if globals.metaxploit then command.db("-l", selected.name)
+          end if
+          return inf
+        else
+          print(colorOrange+"Selected .so is not in /lib "+CT+char(10)+"aborting... ")
+          return inf
+        end if
+      end if
+    end if
+    if selected.has_permission("r") then
+      print(selected.get_content)
+      pause = user_input(char(10)+"press <<b>anyKey</b>> to continue",0,1)
+    end if
+    return inf
+  end function
+
+  action.a = function(f)
+    return action.LeftArrow(f)
+  end function
+  action.LeftArrow = function(f)
+    if f.name != "/" then
+      f = f.parent
+      action.cursor = abs(action.last)
+    end if
+    return f
+  end function
+
+  action.w = function(f)
+    return action.UpArrow(f)
+  end function
+  action.UpArrow = function(f)
+    if action.cursor <= min then
+      action.cursor = action.max
+      return f
+    end if
+    action.cursor = action.cursor - 1
+    return f
+  end function
+
+  action.s = function(f)
+    return action.DownArrow(f)
+  end function
+  action.DownArrow = function(f)
+    if action.cursor >= action.max then
+      action.cursor = min
+      return f
+    end if
+    action.cursor = action.cursor + 1
+    return f
+  end function
+
+  action.f1 = function(f)
+    print("-----")
+    print("Navigation: [w][a][s][d] or ArrowKeys ")
+    print("            [d] - rightArrow to: launch bin, open text, scan .so, descend dir")
+    print("Manual  cd: [/] - type path stating with / ")
+    print("               -- the [/] initiates manual entry ")
+    print("Select:     [x] - selection buffer; sets item to copy from ")
+    print("Paste:      [v] - performs a paste using selection buffer ")
+    print("               -- to highlighted selection (opens context menu) ")
+    print("Remove:     [r] - deletes file ")
+    print("Unselect:   [z] - remove item from selection buffer ")
+    print("Clr_scrn:   [c] - toggle clear screen or regular view ")
+    print("File info:  [f] - get file info/properties for highlighted selection ")
+    print("Buffit:     [b] - send highlighted selection to BUFFER ")
+    print("Rename:     [n] - rename highlighted selection ")
+
+    print("_____note: launching binaries via felix does NOT activate glasspool_____")
+    print("-----")
+    pause = user_input("press <<b>anyKey</b>> to continue",0,1)
+    return f
+  end function
+
+  action.get = function(arg, afile)
+    arg = arg.trim
+    if arg != "DownArrow" and arg != "UpArrow" and arg != "LeftArrow" and arg != "RightArrow" then arg = arg.lower
+    //print(arg)
+    if action.hasIndex(arg) then
+      a = @action[arg]
+      return a(afile)
+    else
+      return afile
+    end if
+  end function
+
+  action.branch = function(f, arg) // takes a file object
+    file_object = f
+    f_path = arg.split("/")
+    if f_path[0] == "" then f_path[0] = "/"
+    while file_object.name != "/"
+      file_object = file_object.parent
+    end while
+    print("f_path: "+f_path) // debug
+    print("arg: "+arg)       // debug
+    while file_object.path != arg.trim
+      globals.grepped_file = null
+      globals.list_files(file_object, f_path.pull, 1,"N") // requires 5hell or 5hell.so
+      if globals.grepped_file then file_object = globals.grepped_file else return f
+    end while
+    return file_object
+  end function
+
+  path_contents = function(f)
+    folders = f.get_folders
+    files = f.get_files
+    contents = folders + files
+    action.max = contents.len - 1
+    output = f.permissions+" "+f.owner+" "+f.group+" "+f.size+" "+char(1068)+"["+f.is_binary+"] "+f.path + char(10) + char(166) + " [ " + action.buffer + " ]"
+    i = 0
+    get = ""
+    c_put = ""
+    for c in contents
+      c_put = c.permissions+" "+c.owner+" "+c.group+" "+c.size+" "+char(1068)+"["+c.is_binary+"] "+c.name
+      output = output+char(10)+c_put
+      if i == action.cursor then
+        get = c.name
+        if get == null then get = ""
+      end if
+      i = i + 1
+    end for
+    if get then print( format_columns(output).replace(get,colorOrange+get+CT).replace(".src",colorCyan+".src"+CT).replace(".exe",colorRed+".exe"+CT).replace(".txt",colorWhite+".txt"+CT).replace(".log",colorLightBlue+".log"+CT).replace(".jpg",colorLightBlue+"</b>.jpg</color>").replace(".so",colorGold+"</b>.so</color>").replace(".html",colorCyan+".html"+CT) ) else print(format_columns(output))
+    return
+  end function
+
+  ////BEGIN MAINish
+  felix = function(file)
+    currentPath = file.path
+    contents = file.get_folders + file.get_files
+    action.max = contents.len - 1
+    CLEAR = -1
+    while true
+      if CLEAR > 0 then
+        clear_screen
+        button_c = "<b>C</b>"
+      else
+        button_c = "<b>c</b>"
+      end if
+      path_contents(file)
+      print(colorLightBlue+currentPath+CT)
+      print("[F1] help [w][a][s][d] == [^][<][v][>] [q] quit")
+      print("[z] clr slct [x] select [v] paste [f] file [n] rename ")
+      input = user_input("["+button_c+"] tog clrs [r] remove [b] buffit ||: ",0,1)
+      print
+      if input.lower == "c" then
+        CLEAR = (CLEAR * (-1)) //  flipbit
+        continue
+      end if
+      if input.lower == "q" then return "Goodbye."
+      if input == "/" then
+        input = input + user_input(input,0,0)
+        file = action.branch(file, input)
+        currentPath = file.path
+        continue
+      end if
+      file = action.get(input, file)
+      currentPath = file.path
+    end while
+    return 0
+  end function
+  /// END MAINish
+  init = function(file_object)
+    print(colorOrange+"Felix file explorer v 1.1 by Plu70"+CT)
+    print(colorLightBlue+"-----------------------------------------"+CT)
+    while file_object.name != "/"
+      file_object = file_object.parent
+    end while
+    return felix(file_object)
+  end function
+  if typeof(arg1) == "shell" then return init(arg1.host_computer.File("/"))
+  if typeof(arg1) == "computer" then return init(arg1.File("/"))
+  if typeof(arg1) == "file" then return init(arg1)
+  return init(localmachine.File("/"))
+end function
+
+command.file = function(arg1, arg2=0, arg3=0, arg4=0)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: file [/path|file_object] -- file properties information. Takes path or file_object and returns string. "+char(10)+"Usage: file [-l|-c] [/path|file_object] -- returns int lines or int chars for given file."+char(10)+"Example: (copy the command in bold)<b> tree /root Config 0 N | file </b>"+char(10)+"Advanced: file -b [/path|file_object] -- send file to BUFFER (and display file info)"
+  get_lines = false
+	get_chars = false
+  to_buffer = false
+	if arg1 == "-l" or arg1 == "-c" or arg1 == "-b" then
+		if arg1 == "-l" then get_lines = true
+		if arg1 == "-c" then get_chars = true
+    if arg1 == "-b" then to_buffer = true
+		if arg2 then arg1 = arg2 else return "file: input error"
+	end if
+	if typeof(arg1) == "string" then
+		file = null
+		file = globals.get_file(arg1)
+		if not file then return "id: error: "+arg1+" not found."
+		arg1 = file
+	end if
+	if typeof(arg1) == "file" then
+    imp_status = arg1.allow_import
+    if imp_status then imp_status = "Yes" else imp_status = "No"
+  	file_id_info = ["name: "+arg1.name, "path: "+arg1.path, "size: "+arg1.size, "owner: "+arg1.owner, "group: "+arg1.group, "perms: "+arg1.permissions]
+		if arg1.is_folder then
+			file_id_info.push("type: folder")
+			conts = arg1.get_folders.len + arg1.get_files.len
+			file_id_info.push("subs: "+conts)
+		else
+			if arg1.is_binary then
+				file_id_info.push("type: binary")
+        file_id_info.push("import: "+imp_status)
+			else
+				file_id_info.push("type: ascii")
+				lines = 0
+				chars = 0
+				if arg1.get_content then
+					lines = arg1.get_content.split(char(10)).len
+					chars = arg1.get_content.values.len
+				end if
+				file_id_info.push("lines: "+str(lines))
+				file_id_info.push("chars: "+str(chars))
+			end if
+		end if
+		if get_lines then
+			if file_id_info.indexOf("type: binary") == null then return str(lines) else return "file: "+arg1.path+" is binary"
+		end if
+		if get_chars then
+			if file_id_info.indexOf("type: binary") == null then return str(chars) else return "file: "+arg1.path+" is binary"
+		end if
+    print(colorGreen+"<u>==================================</u>"+CT)
+    if to_buffer then
+      globals.BUFFER.push(arg1)
+      print("file: <b>"+arg1.name+"</b> sent to <b>BUFFER</b>")
+    end if
+		return format_columns(file_id_info.join(char(10)))
+	end if
+	return "file: unknown error"
+end function
+if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
+// herme5 mail menu by Plu70
+
+//mailLib = include_lib("/lib/libmail.so")
+//colorRed = "<color=red><b>"
+//colorGreen = "<color=green><b>"
+//colorWhite = "<color=white><b>"
+//colorGold = "<color=#CCCC00FF><b>"
+//colorOrange = "<color=#FF8400FF><b>"
+//colorLightBlue = "<color=#2382FFFF><b>"
+//CT = "</color></b>"
+// end globals
+/////////////////////////
+
+  // cobble, get_custom_object interface by Plu70
+  if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
+
+  //command={}
+  command.cob = function(arg1,arg2,arg3=0,arg4=0)
+    usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+"-- returns string on success or error"+char(10)+"Usage: cob get [key] -- get value of custom object key."+char(10)+"-- returns value at key or returns null on failure"+char(10)+"-- returns @reference (pointer) if value is a function"+char(10)+"Usage: cob return -- returns the raw custom object"+char(10)+"-- pipe to command.<b>code</b> to decompile the object."+char(10)+"-- ie:<b> cob return | code</b>"+char(10)+"Usage: cob inspect -- returns decompiled custom object (same as cob return | code)."+char(10)+"Usage: cob search [val] --  search for index of val."+char(10)+"-- returns string; key or failure message."+char(10)+"Inactive: cob sign -- future ability to sign custom object."+char(10)+"-- currently returns 0 (zero)."+char(10)+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+"-- returns string on success or failure."+char(10)+"Usage: cob install [key] [val] -- install piped function (val) to command.[key]"+char(10)+"-- i.e. install functions from custom object to command list"+char(10)+"Advanced: to export the onboard dictionary to the custom object:"+char(10)+"--<b> enum -d |  | enum -e | cob set dictionary</b>"+char(10)+"Advanced: to import from the custom object to the onboard dictionary"+char(10)+"--<b> cob get [dictionary] | cerebrum -i</b>"+char(10)+"OR just use<b> cob export and cob import"+char(10)+"Advanced: cob export -- export onboard dictionary to custom object"+char(10)+"Advanced: cob import -- import from custom object dictionary to onboard dictinary"+char(10)+"N.B. this is allows you to run cerebrum once, then export/import to nested shell.launches."
+    if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
+
+    cobble = get_custom_object
+    cob = {}
+    cob.set = function( key=0, val=0, nil=0, nul=0 )
+      if not @key then return null
+      if typeof(@key) == "function" then
+        if typeof(@val) == "function" then
+          cobble[@key] = @val
+        else
+          cobble[@key] = val
+        end if
+      else
+        if typeof(@val) == "function" then
+          cobble[key] = @val
+        else
+          cobble[key] = val
+        end if
+      end if
+      if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>." else return "cob: set error."
+    end function
+
+    cob.get = function( key=0, val=0, nil=0, nul=0 )
+      if cobble.hasIndex( @key ) then return cobble[@key]
+      if cobble.hasIndex( key ) then return cobble[ key ]
+      return "cob: key not found"
+    end function
+
+    cob.search = function ( val=0, key=0, nil=0, nul=0 )
+      if cobble.indexOf( @val ) != null then
+        if typeof(@val) == "function" then return cobble.indexOf( @val )
+        return cobble.indexOf( val )
+      else
+        if cobble.indexOf( val ) != null then return cobble.indexOf( val )
+        return "cob: value not found."
+      end if
+    end function
+
+    cob.inspect = function( key=0, val=0, nil=0, nul=0 )
+      return command.code(cobble,0,0,0)
+    end function
+
+    cob.del = function( key=0, val=0, nil=0, nul=0 )
+      if typeof(@key) == "function" then
+        if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>." //else return "cob: key not found."
+      else
+        if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>." else return "cob: key not found."
+      end if
+    end function
+
+    cob.sign = function( key=0, val=0, nil=0, nul=0 )
+      return cob.set( "signature" , command.code("-a", key))
+    end function
+
+    cob.install = function(key=0, val=0, nil=0, nul=0)
+      g = @cob.get
+      new_command = g(key)
+      if typeof(@new_command) == "string" then return key +": "+ new_command + ". Install failed."
+      if typeof(@new_command) == "function" then 
+        command[key] = @new_command 
+        return "Set command."+key+" to "+@new_command
+      else 
+        return "cob: install expects a function"
+      end if
+    end function
+
+    if arg1 == "return" then return cobble
+    if arg1 == "install" then 
+      return cob.install(arg2)
+    end if
+    if arg1 == "set" then
+      if @arg3 then
+        //if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
+        //if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
+        //if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
+        return cob.set( @arg2, @arg3 )
+      else
+        return usage_info
+      end if
+    end if
+    if arg1 == "get" then
+      if @arg2 then
+        g = @cob.get
+        return g( @arg2 )
+        //if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
+      else
+        return usage_info
+      end if
+    end if
+    if arg1 == "inspect" then
+      return cob.inspect
+    end if
+    if arg1 == "sign" then return cob.sign(signature)
+    if arg1 == "search" then
+      if @arg2 then return cob.search( @arg2 ) else return usage_info
+    end if
+    if arg1 == "export" then
+      cob.set("dictionary",globals.dict_a)
+      return "Exported "+cobble.dictionary.len+" password(s) from onbaord dictionary to custom_object.dictionary"
+    end if
+    if arg1 == "import" then
+      if cobble.hasIndex("dictionary") then
+        globals.dict_a = cob.get("dictionary")
+      else
+        return "cob: dictionary not found in index. set with <b>cob export</b>"
+      end if
+      if typeof(globals.dict_a) == "list" and globals.dict_a.len > 0 then 
+        globals.BIGBRAIN = true
+        return "Imported "+globals.dict_a.len+" passwords from custom_object.dictionary to onboard dictionary." 
+      else 
+        return "cerebrum: invalid dictionary"+char(10)+"cob: import error"
+      end if
+    end if
+    if arg1 == "del" then
+      if @arg2 then return cob.del( @arg2 ) else return usage_info
+    end if
+    return usage_info
+  end function
+  //print(command.cob("get","get"))
+  //catch = command.cob("get","get")
+  //print(@catch)
+  if DEBUG then print("<size=75%>loading dig.5pk...(11.760kb)</size>")
+
+  command.fakepass = function(arg1=0, arg2=0, arg3=0, arg4=0)
+      if arg1 == "help" or arg1 == "-h" then return "Usage: fakepass [opt:ip] [opt:pass] -- create passwd.src in current_path. Check src and build to /bin/passwd. PW capture malware."
+      ip = arg1
+      p = arg2
+      if not ip then ip = """"+user_input("remote ip:> ",0,0)+"""" else ip = """"+ip+""""
+      if ip == """"+""+"""" then return "aborting..."
+      if not p then p = """"+user_input("remote pass:> ",1,0)+"""" else p = """"+p+""""
+      if p == """"+""+"""" then return "aborting..."
+      passwd = "if params.len != 1 then exit(""<b>Usage: passwd [username]</b>""+char(10)+""Example: passwd john"");print(""Changing password for user ""+params[0]+""."");pass = user_input(""New password:"", 1);catch = get_shell.host_computer.change_password(params[0], pass);if catch != 1 then;if catch then exit(catch);exit(""Error: password not modified"");end if;"
+      rem_c = "localmachine=get_shell.host_computer;ip = "+ip+";pt = 22;user = ""root"";p="+p+";remote = get_shell.connect_service(ip, pt, user, p);if remote then;remote.host_computer.touch(""/root/rkit"",""rpm"");rpm=remote.host_computer.File(""/root/rkit/rpm"");if rpm then rpm.set_content(rpm.get_content+char(10)+pass+char(10)+localmachine.public_ip+char(10)+localmachine.local_ip);end if;"
+      scrub = "syslog = localmachine.File(""/var/system.log"");if syslog then;localmachine.touch(""/var"",""system.bak"");sbk=localmachine.File(""/var/system.bak"");if sbk then;sbk.set_content(""No IPs Today :D"");syslog.delete;sbk.move(""/var"", ""system.log"");end if;end if;"
+      final = "if catch == 1 then exit(""password modified OK"");if catch then exit(catch);print(""Error: password not modified"")"
+      fp = passwd + rem_c + scrub + final
+      localmachine.touch(currentPath, "passwd.src")
+      source = globals.get_file("passwd.src")
+      print("FakePass v 0.2, by Plu70")
+      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+      if not source then return "write error: unable to create passwd.src in "+currentPath
+      source.set_content(fp)
+      wait (1)
+      print(source.get_content)
+      print
+      saved = "password.src"
+      if currentPath != "/" then saved = "/password.src"
+      print(colorLightBlue+"Saved to: "+colorWhite+currentPath+saved+CT)
+      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+      return 0
+  end function
+  command.cad = function(arg1=0, arg2=0, arg3=0, arg4=0)
+      if arg1 == "help" or arg1 == "-h" then return "cad: cloak and dagger protocol."+char(10)+"Usage: cad [optional: ip ] -- or enter rshell-server ip at prompt"+char(10)+"Creates ps.src in current path. "+char(10)+"Review ps.src and build with make or makfit into /bin"+char(10)+"Remove .src, run /bin/ps once with metaxploit.so present then remove metaxploit.so"+char(10)+"The result is a hidden backdoor on the target. Use with care."
+      ps = """"+"ps"+""""
+      shell = """"+"5hell"+""""
+      zp = """"+"0.0%"+""""
+      z2 = """"+"0.3%"+""""
+      z1 = """"+"0.4%"+""""
+      zf = [zp,z1,z2]
+      zf.shuffle
+      m_path = """"+"/lib/metaxploit.so"+""""
+      m = """"+"metaxploit.so"+""""
+      add = arg1
+      if not add then add = """"+user_input("rshell addr:> ")+"""" else add = """"+add+""""
+      if add == """"+""+"""" then return "aborting..."
+      rip="ps=function();zp="+zp+";z2="+z2+";z1="+z1+";zf=[zp,z1,z2];zf.shuffle;procs = get_shell.host_computer.show_procs;k_tar = "+ps+";k_tar1 = "+shell+";processes = [];processes = procs.split(char(10));for p in processes;process = p.split(char(32));process_CMD = process[4];process_MEM = process[3];process_CPU = process[2];process_ID = process[1];process_user = process[0];if process_CMD == k_tar or process_CMD == k_tar1 then;continue;else;print(format_columns(process_user + char(32) + process_ID + char(32) + process_CPU + char(32) + process_MEM + char(32) + process_CMD));end if;end for;rng = range(1120, 9982);rng.shuffle;return(format_columns(active_user+char(32)+rng.pop+char(32)+"+zp+"+char(32)+zf.pop+char(32)+"+ps+"));end function"
+      // nop
+      nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+",1222,"+ps+");exit(ps)"
+      header = char(10)+"// Cloak and Dagger"+char(10)
+      cd = (header+char(10)+rip+char(10)+nop)
+      localmachine.touch(currentPath, "ps.src")
+      source = globals.get_file("ps.src")
+      print("Cloak and Dagger Protocol v 0.4, by Plu70")
+      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+      if source then
+        source.set_content(cd)
+        wait(1)
+        out = source.get_content
+        print(out)
+        print
+          print(colorLightBlue+"Saved to: "+colorWhite+currentPath+"/ps.src"+CT)
+      else
+        print("write failed"+char(10))
+      end if
+      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+      return 0
+  end function
+  // command.dig = function(arg1, arg2, arg3=0, arg4=0)
+  // 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: dig [ip] [opt:port] -- upload a netcrawler to deep scan a network. "+char(10)+"port may be 0 or blank (dig [ip]) for standard use (targets router)."+char(10)+"crawler attempts to scrub logs but this may need to be done manually"+char(10)+"Advanced: clipb @B 1 | dig  (where BUFFER[1] contained a shell) -- dig that shell"+char(10)+"other methods may be used to pipe shells. eg zap | dig (this is redundant as dig runs zap internally)"+char(10)+"<b>N.B. dig is not (yet) integrated with db (the databaser) please scan libs before running dig.</b>"+char(10)+"N.B. future versions will also include an all command line version (to bypass the interactive setup)"+char(10)+"<b>Important</b>: Press enter at most prompts to use defaults (recommended)."+char(10)+"When prompted for an exploit to use, select a shell exploit."+char(10)+"If you know the password you may enter it on the SECOND password prompt. It will be colored cyan."+char(10)+"If you don't know the password, DIG is useful for finding it."+char(10)+"You may customize dig, to some degree, when prompted."
+  // 	// dig local vars
+  // 	del_rkit = "y"
+  // 	have_pass = ""
+  //   id_target = function()
+  //     tar_shel = null
+  //     target_ip = arg1
+  //     port = "router"
+  //     if arg2 then port = arg2
+  //     if port == "0" or not port then port = "router"
+  // 		// insert dbaser code here
+  //     if typeof(target_ip) == "shell" then return target_ip
+  //     if not is_valid_ip(target_ip) then return "dig: invalid ip"
+  //     print(colorGold+"Initiating pre-dig outer scan..."+CT)
+  //     command.probe(target_ip,port)
+  //     command.meta("link", "-r")
+  //     tar_shel = command.zap
+  //     if tar_shel and typeof(tar_shel) == "shell" and (tar_shel.host_computer.public_ip == target_ip or tar_shel.host_computer.local_ip == target_ip) then
+  //       print(colorLightBlue+"dig: target accquired: "+CT+colorOrange+"["+checkUser(tar_shel)+":"+typeof(tar_shel)+"] "+CT+"<b>"+tar_shel.host_computer.public_ip+"</b>")
+  //     else
+  //       return "dig: unable to find a shell on the target"
+  //     end if
+  //     return tar_shel
+  //   end function
+  
+  //   prepare_package = function()
+  //     pay_path = user_input("full path to rkit (default: /root/rkit) "+char(10)+":> ",0,0)
+  //     if pay_path == "" or pay_path == " " then pay_path = "/root/rkit"
+  //     if pay_path == "" or pay_path == " " then return "aborting..."
+  //     payload = localmachine.File(pay_path)
+  //     if not payload then return "404: "+pay_path+" not found"
+  //     localmachine.touch(payload.path, "dig.bat")
+  //     dig_bat = localmachine.File(payload.path+"/dig.bat")
+  //     if not dig_bat then return "write error: could not create dig.bat"
+  //     dig_bat.set_content("ifconfig -l | probe -f"+char(10))
+  //     print(char(10)+"Found: "+payload.path + " " + payload.size + " " + payload.permissions+char(10))
+  //     print("<b>edit permissions</b>? (default: yes)")
+  //     mod = user_input("[<b>0</b>] yes [1] no (q=quit)||: ",0,1)
+  //     if mod != "1" then
+  //       print("e.g. o+rwx g-rwx u+x (string all edits on one line separated by spaces)")
+  // 			ed_in = user_input("params for [perms/chmod -r] (default:<b> o+rwx </b>, q=quit)"+char(10)+":> ")
+  // 			if ed_in.lower == "q" then return "aborting..."
+  // 			if ed_in == "" then ed_in = ["o+rwx"] else ed_in = ed_in.split(" ")
+  //       for ed in ed_in
+  //         command.perms("-r", ed, payload.path)
+  //       end for
+  //     end if
+  // 		if mod.lower == "q" then return "aborting..."
+  // 		print
+  // 		print("Would you like to edit dig.bat before uploading? (default: no)")
+  // 		edit_bat = user_input("[<b>0</b>] no [1] yes (q=quit)"+char(10)+"||: ",0,1)
+  // 		if edit_bat == "1" then
+  // 			bat_path = payload.path + "/dig.bat"
+  // 			print(colorGold+"Editing "+bat_path+char(10)+"Please use caution. Abort with @@ on a new line.")
+  // 			command.scribus(bat_path)
+  // 			dig_bat.set_content(dig_bat.get_content+char(10))
+  // 		end if
+  // 		print(char(10)+"<b>Payload Ready: "+payload.path + " " + payload.size + " " + payload.permissions+"</b>"+char(10))
+  //     return payload // (package)
+  //   end function
+  
+  //   upload_package = function(package) // (payload)
+  //     tar = id_target
+  //     if typeof(tar) == "string" then return tar
+  //     command.clipb(tar)
+  //     print("Expanding filesystem: search for a vulnerable entry point...")
+  //     command.tree("@clipb","/",0,"N")
+  //     dest_folder = user_input("destination folder (default: /home/guest) "+char(10)+":> ")
+  // 		del_rkit = user_input("Delete the rkit once uploaded? [Y/n]"+char(10)+"||: ",0,1)
+  // 		if dest_folder == "" or dest_folder == " " then dest_folder = "/home/guest"
+  // 		dig_bat = localmachine.File(package.path+"/dig.bat")
+  // 		if del_rkit.lower != "n" then
+  // 			dig_bat.set_content(dig_bat.get_content+"echo <b>deleting rkit</b>"+char(10)+"rm -r "+dest_folder+"/rkit"+char(10))
+  // 		end if
+  // 		have_pass = user_input(colorCyan+"enter a password for dig to use (leave blank for cerebrum or type:<b> -f brutus </b> :to force brutus without cerebrum.)"+CT+char(10)+":> ")
+  // 		if have_pass == "-f brutus" then
+  // 			dig_bat.set_content(dig_bat.get_content+"echo <b>Getting root/covering tracks...</b>"+char(10)+"brutus | rclean"+char(10))
+  // 		else
+  // 			if have_pass != "" and have_pass != " " then
+  // 				dig_bat.set_content(dig_bat.get_content+"echo <b>Getting root/covering tracks...</b>"+char(10)+"psudo -s "+have_pass+" | rclean"+char(10))
+  // 			else
+  // 				dig_bat.set_content(dig_bat.get_content+"echo <b>Getting root...</b> | cerebrum"+char(10))
+  // 				dig_bat.set_content(dig_bat.get_content+"echo <b>Covering tracks...</b>"+char(10)+"brutus | rclean"+char(10))
+  // 			end if
+  // 		end if
+  // 		print(colorGold+"<u>=======uploading rkit package=======</u>")
+  // 	  if typeof(tar) == "shell" then
+  // 	  	print(shell.scp(package.path, dest_folder, tar))
+  // 			print("Locking down localhost")
+  // 			command.perms("lock","all")
+  // 	    hold = globals.shell
+  // 	    globals.shell = tar
+  // 	    globals.localmachine = shell.host_computer
+  // 	    dig_bat = localmachine.File(dest_folder+"/rkit/dig.bat")
+  // 	    if not dig_bat then
+  // 	    	print("I/O error...")
+  // 	      globals.shell = hold
+  // 	      globals.localmachine = shell.host_computer
+  // 	      return "dig: upload failed"
+  // 	    end if
+  //       print(colorGold+"Digging network..."+CT+char(10))
+  //       command.run(dest_folder+"/rkit/5hell", "do 1 -f dig.bat")
+  //       globals.shell = hold
+  //       globals.localmachine = shell.host_computer
+  //       return "dig: complete. remember to lock down permissions! (ie type: lock)"
+  //     else
+  //       return "dig: failed. remember to lock down permissions! (ie type: lock)"
+  //     end if
+  //     return 0
+  //   end function
+  
+  //   deploy_package = function()
+  //     print(colorGold+"<u>------DIG-v-0.5.3------</u>"+CT+char(10)+"Follow defaults at prompts for <u>standard</u> use. (ie press [enter] at prompts)")
+  //     return upload_package(prepare_package)
+  //   end function
+  //   // ifconfig -p | probe -f
+  //   // cerebrum
+  //   // rm -r /home/guest/rkit
+  //   // brutus | rclean
+  //   catch = deploy_package
+  //   return catch
+  // end function
+  command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
+      t = arg1
+      p = arg2
+      if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b>DIG v 2.0 Netcrawler</b>"+char(10)+"Usage: dig [ip] [port] -- auto-infiltrate a target"+char(10)+"-- scans ports on target"+char(10)+"-- infiltrates via shell"+char(10)+"-- uploads rkit and runs 5hell on the target"+char(10)+"-- gains root and wipes the log"+char(10)+"-- performs other user defined tasks"+char(10)+"Note: edit /root/rkit/dib.bat to customize behavior"+char(10)+"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+"-- you may add/remove commands to be executed by dig here"+char(10)+"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+"-- e.g. <b> rnip 1 | dig </b>"
+      print(colorGold+"<u>------DIG-v-1.0.1------</u>"+CT+char(10))
+      // find the root kit     
+      kit = command.tree("/","rkit",1,"N")
+      if not kit then return "rkit not found"
+      pe = kit.permissions.values
+      r = 0
+      w = 0
+      x = 0
+      if pe[-1] == "x" then x = 1
+      if pe[-2] == "w" then w = 1
+      if pe[-3] == "r" then r = 1
+      // edit dig.bat if necessary
+      bat_file = localmachine.File(kit.path+"/dig.bat")
+      if not bat_file then 
+          command.poke(kit.path+"/dig.bat", "ifconfig -p | probe -f"+char(10)+"cob import"+char(10)+"brutus | rclean")
+          bat_file = localmachine.File(kit.path+"/dig.bat")
+          if not bat_file then return "dig: unable to find or create dig.bat, aborting."
+      end if
+      if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
+          print("Editing the batch file: "+bat_file.path)
+          command.scribus(bat_file)
+          if arg1 == "--edit" then return 1
+      end if	
+      // verify that we're ready to go
+      print("Checking dictionary...")
+      if not BIGBRAIN then 
+          tabs = localmachine.File("/root/tables/tp")
+          if tabs then 
+              command.cerebrum("-i",tabs.path)
+          else 
+              command.cerebrum
+          end if
+      end if
+      command.cob("export")
+      // portmap target
+      command.probe(t,p)
+      // if not in database, scan target
+      if command.meta("link","-r") then
+          command.db("-r")
+          if command.meta("link","-r") then
+              return "dig: database error!"
+          end if
+      end if
+      // if shell exploit, exploit target
+      mem = ""
+      val = ""
+      for x in globals.XPLOITS
+          y = x.split(" ")
+          z = y[-1]
+          if z == "shell" then 
+              mem = y[0]
+              val = y[1]
+          end if
+      end for
+      dig_this = null
+      dig_this = command.zap(mem,val,0)
+      if typeof(dig_this) != "shell" then return "dig: failed to obtain shell on target."
+      // upload rkit (mind permissions)
+      
+      command.perms("-r","o+rwx", kit.path)
+      globals.shell.scp(kit.path, "/home/guest", dig_this)
+      // command.perms("-r","o-rwx","/root/rkit")
+      pe = ""
+      if not r then pe = pe + "r"
+      if not w then pe = pe + "w"
+      if not x then pe = pe + "x"
+      if pe != "" then command.perms("-r","o-"+pe, kit.path)
+      // run 5hell on target with params:
+      // -- cob import | brutus
+      // -- other user defined params
+      dig_this.launch("/home/guest/rkit/5hell", "do 1 -f /home/guest/rkit/dig.bat")
+      // rclean and exit
+      // repeat if necessary
+      end function
