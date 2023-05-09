@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.3.0 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk...(96.447kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk...(100.906kb)</size>")
 
 //Define Globals
-sphinx_version = "2.3.2"
-malp_version = "1.1.6"
+sphinx_version = "2.3.4"
+malp_version = "1.1.9"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -22,6 +22,10 @@ end function
 update_path = function()
   globals.currentPath = current_path
 end function
+
+p_validate = function( object, query )
+	return (object.__isa.hasIndex(query))
+end function 
 
 hot_swap_libs = function()
   globals.metaxploit = null
@@ -116,6 +120,7 @@ dump_memory = function()
   memdump = globals.get_file(m_name)
   if memdump then
     buf = []
+    if globals.targetIP then buf.push(globals.targetIP+": "+globals.targetPort+char(10))
     if MEMORY then buf.push(MEMORY.join( char(10) ) + char(10) )
     if XPLOITS then buf.push(XPLOITS.join( char(10) ) + char(10) )
     if meta_scan then buf.push(meta_scan.join( char(10) ) + char(10) )
@@ -190,8 +195,11 @@ end function
 secure_copy = function(shl)
   glass_stat = "inactive"
   active_s = colorCyan+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
-  target_s = colorOrange+shl.host_computer.local_ip+"</b> @ <b>"+shl.host_computer.public_ip+CT
-  if shl.host_computer.local_ip == localmachine.local_ip and shl.host_computer.public_ip == localmachine.public_ip then active_s = colorOrange+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
+  target_s = colorOrange+"pshell"+CT
+  if p_validate(shl, "host_computer") then
+    target_s = colorOrange+shl.host_computer.local_ip+"</b> @ <b>"+shl.host_computer.public_ip+CT
+    if shl.host_computer.local_ip == localmachine.local_ip and shl.host_computer.public_ip == localmachine.public_ip then active_s = colorOrange+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
+  end if
   if globals.GLASSPOOL then glass_stat = "active"
   print(char(10)+colorLightBlue+"<u>GLASSPOOL: "+CT+colorOrange+glass_stat+CT+"<b> Active Shell</b>: "+active_s+"</u>")
   print(colorWhite+"Upload|Push trajectory: "+CT+char(10)+active_s+"--->"+target_s)
@@ -221,8 +229,12 @@ secure_copy = function(shl)
       if typeof(shl) == "ftpshell" then
         print(shl.put(copy_from, copy_to, globals.shell))
       else
-        print("aborting...")
-        return
+        if typeof(shl) == "pshell" then 
+          print(shl.scp(copy_from,copy_to,globals.shell))
+        else
+          print("aborting...")
+          return
+        end if
       end if
     end if
   else
@@ -261,7 +273,7 @@ secure_copy = function(shl)
         end if
         print("scp complete: "+payload.path + " " + payload.size + " " + payload.permissions)
       else
-        if typeof(shell) == "ftpshell" then print(shell.put(copy_from, copy_to, shl)) else print("aborting...")
+        if typeof(globals.shell) == "ftpshell" then print(shell.put(copy_from, copy_to, shl)) else print("aborting...")
       end if
     end if
   end if
@@ -472,6 +484,14 @@ scribus = function(f_obj)
   return new_array // returns a string
 end function
 
+netdump = function()
+  print("Gateway_status: ["+globals.net_session.get_num_conn_gateway+"]")
+  print("Port_forwards: ["+globals.net_session.get_num_portforward+"]")
+  print("Registered users: ["+globals.net_session.get_active_users+"]")
+  if globals.net_session.is_any_active_user == true then print("A user is active.") else print("No active user.")
+  if globals.net_session.is_root_active_user == true then print("Root is active.") else print("Root is inactive.")
+end function
+
 /// END Scribus
 fw_rules = function()
   print(get_router(targetIP).firewall_rules)
@@ -490,9 +510,11 @@ memory_alpha = function()
     if PORT_MAP then print(colorLightBlue+"[0] Portmap Loaded. "+CT)
     if XPLOITS then print(colorLightBlue+"[1] XPLOITS loaded: ["+NUM_SPLOITS+"] "+CT)
     if metaLib then
-      print(colorLightBlue+"</b>[2] MetaLib available. "+ metaLib.lib_name + " v " + metaLib.version+CT)
+      linked = "MetaLib"
+      if globals.net_session then linked = "Netsession"
+      print(colorLightBlue+"[2] "+linked+" linked to: "+ metaLib.lib_name + " v " + metaLib.version+CT)
       if meta_scan then
-        print(colorLightBlue+"</b>[+] "+metaLib.lib_name +" source decompiled."+CT)
+        print(colorLightBlue+"</b>    [+] MetaLib source decompiled."+CT)
       end if
     end if
     if MEMORY or XPLOITS.len or PORT_MAP then print(colorLightBlue+"[3] Dump Memory "+CT)
@@ -553,21 +575,42 @@ memory_alpha = function()
       display_portmap
       continue
     end if
+
     if waitFor == "1" then
-      data = ""
+      // data = ""
+      // i = 1
+      // for x in XPLOITS
+      //   data =  data + "[" + i + "]" + x + "\n"
+      //   i = i + 1
+      // end for
+      // print(format_columns(data))
+      // for m in meta_scan
+      //   //print(m)
+      //   for n in m
+      //     print(n)
+      //   end for
+      // end for
+      data = []
       i = 1
-      for x in XPLOITS
-        data =  data + "[" + i + "]" + x + "\n"
+      scanned = ["decompiling source.."]
+      if globals.meta_scan then 
+        for m in globals.meta_scan 
+          for n in m
+            if DEBUG then print(n)
+            if n.indexOf("searching unsecure values...") >= 0 or n.indexOf("decompiling source...") >= 0 then continue
+            scanned.push(n)
+          end for
+        end for 
+      end if
+      for x in globals.XPLOITS
+        data.push("[" +colorWhite+ i +CT+ "]"+colorLightBlue+ x+CT)
+        if globals.meta_scan then data.push(scanned[i])
         i = i + 1
       end for
-      print(format_columns(data))
-      for m in meta_scan
-        //print(m)
-        for n in m
-          print(n)
-        end for
-      end for
+      print(data.join(char(10)))
+      continue
     end if
+
     if waitFor == "+" then
       for m in metaLib
         print(m)
@@ -581,21 +624,29 @@ memory_alpha = function()
           end for
         end for
       end for
+      continue
     end if
+
     if waitFor == "2" then
+      if globals.net_session then netdump
+      print("<u>=======</u>")
       if meta_scan then
         for m in meta_scan
-          for n in m
-            print(n)
-          end for
+          print(m)
+          // for n in m
+          //   print(n)
+          // end for
         end for
       else
-        conf = user_input("Decompile source for vuln requirements? [Y/n] ||: ",0,1)
+        if globals.metaLib then conf = user_input("Decompile source for vuln requirements? [Y/n] ||: ",0,1) else continue
         if conf.lower == "n" then continue
         print(colorGold+"<mark=red>decompiling...</mark>"+CT)
         scan_memory
+        print("Source decompiled. Please select <b>[2]</b> again to view.")
       end if
+      continue
     end if
+
     if waitFor == "3" then
       dump_memory
     end if
@@ -1256,9 +1307,10 @@ r_hecks = function()
           continue
         end if
       end if
-      net_session = metaxploit.net_use( ip , port )
-      if not net_session then continue
-      globals.metaLib = net_session.dump_lib
+      globals.net_session = null
+      globals.net_session = metaxploit.net_use( ip , port )
+      if not globals.net_session then continue
+      globals.metaLib = globals.net_session.dump_lib
       if metaLib.version != lib_v then
         print(metaLib.lib_name + " v " + metaLib.version + " does not match target library. Skipping (<b>we left a connection log behind!</b>).")
         continue
@@ -1971,6 +2023,7 @@ scan_memory = function()
   scanalysis = []
   data = ""
   globals.MEMORY = metaxploit.scan(metaLib)
+  globals.meta_scan = []
   for mem in MEMORY
     address = metaxploit.scan_address(metaLib, mem).split("Unsafe check: ")
     globals.meta_scan.push(address)
@@ -1993,6 +2046,7 @@ end function
 load_lib = function(lib_path)
   if lib_path.len < 1 then return
   new_lib = metaxploit.load(lib_path)
+  globals.net_session =  null
   if new_lib then
     waitFor = user_input("metaLib: found "+new_lib.version+". Load this metaLib? [Y/n] "+char(10)+"||: ",0,1)
     if waitFor == "n" or waitFor == "N" then
@@ -2042,16 +2096,16 @@ get_lib = function(waitFor=0)
     return "no_network"
   end if
   if port == "router" then
-    net_session = metaxploit.net_use( address )
-    if typeof(net_session) == "metaLib" then globals.routerLib = net_session.dump_lib
+    globals.net_session = metaxploit.net_use( address )
+    if typeof(globals.net_session) == "netsession" then globals.routerLib = globals.net_session.dump_lib
   else
-    net_session = metaxploit.net_use( address, port )
+    globals.net_session = metaxploit.net_use( address, port )
   end if
-  if not net_session then
+  if not globals.net_session then
     print("Error: can't connect to net session")
     return "Error: can't connect to net session"
   end if
-  globals.metaLib = net_session.dump_lib
+  globals.metaLib = globals.net_session.dump_lib
   print("metaLib: loaded: "+metaLib.lib_name + " v " + metaLib.version)
   return (metaLib.lib_name + " v " + metaLib.version)
 end function
