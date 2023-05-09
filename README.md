@@ -56,7 +56,7 @@ Once 5hell is built you do not need the build files anymore unless you plan on r
 
 To start using 5hell:
 You can use it right away out of the box but more benefits come from the following:
-
+<code>
 create your rootkit folder:
 |> mkdir /root/rkit
 populate the folder:
@@ -106,3 +106,4 @@ Type exit once dig is done to return to the 5hell session that launched the dig.
 Alternatively, edit dig.bat and put 
 exit dig_complete
 on the last line to autoexit and echo completion
+<code>
