@@ -56,7 +56,7 @@ Once 5hell is built you do not need the build files anymore unless you plan on r
 
 To start using 5hell:
 You can use it right away out of the box but more benefits come from the following:
-( |> indicates the prompt, don't type |> for the commands)
+<br> |> indicates the prompt, don't type |> for the commands) <br>
 <code>
 create your rootkit folder:
 |> mkdir /root/rkit
