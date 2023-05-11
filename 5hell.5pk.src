@@ -1,7 +1,7 @@
-// 5hell v 3.3.5 by Plu70
-// released v 3.2.5
+// 5hell v 3.4.6 by Plu70
+// released v 3.4.5
 // imports .5pk files from /root/src
-ver = "3.4.5_amalgamated_horrors"
+ver = "3.4.6_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -745,11 +745,11 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 	print("[2] Blackjack  - jokers wild")
 	print("[3] Back")
 	bat = function(s)
-		//import_code("/root/src/battleship.5pk")
+		import_code("/root/src/battleship.5pk")
 		return 0
 	end function
 	g2 = function()
-		//import_code("/root/src/blackjack.5pk")
+		import_code("/root/src/blackjack.5pk")
 	end function
 
 	pick = user_input("||: ",0,1)
