@@ -2,8 +2,8 @@
 if DEBUG then print("<size=75%>loading 5phinx.5pk...(100.906kb)</size>")
 
 //Define Globals
-sphinx_version = "2.3.4"
-malp_version = "1.1.9"
+sphinx_version = "2.3.5"
+malp_version = "1.2.0"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -485,11 +485,13 @@ scribus = function(f_obj)
 end function
 
 netdump = function()
+  if not p_validate(get_num_conn_gateway) then return 1
   print("Gateway_status: ["+globals.net_session.get_num_conn_gateway+"]")
   print("Port_forwards: ["+globals.net_session.get_num_portforward+"]")
   print("Registered users: ["+globals.net_session.get_active_users+"]")
   if globals.net_session.is_any_active_user == true then print("A user is active.") else print("No active user.")
   if globals.net_session.is_root_active_user == true then print("Root is active.") else print("Root is inactive.")
+  return 0
 end function
 
 /// END Scribus
