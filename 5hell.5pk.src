@@ -1,7 +1,7 @@
 // 5hell v 3.4.6 by Plu70
 // released v 3.4.5
 // imports .5pk files from /root/src
-ver = "3.4.6_amalgamated_horrors"
+ver = "3.4.7_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -235,6 +235,7 @@ CT = "</color></b>"
 // end globals
 globals.get_file = function(input_string)
 	if DEBUG then print("in_get_file: "+@input_string)
+	if typeof(input_string) == "file" then return input_string.path
 	if typeof(@input_string) != "string" then return 0
 	if input_string == "" or input_string == " " or not input_string then return 0
 	if input_string.split("/")[0] == "" then
@@ -689,15 +690,26 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 import_code("/root/src/dtools.5pk")
 command.run = function(arg1, arg2, arg3=0, arg4=0, arg5=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run [absolute_path] [options]"+char(10)+"N.B. max 14 before stack call error."
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run [file|path_to_file] [parameters] -- use the current active shell to launch a binary"+char(10)+"-- piped file objects are launch from the objects path"+char(10)+"N.B. max 14 nested launches before stack call error."+char(10)+"Advanced: run [file|path] [piped shell object] -- launch a binary using the piped shell object"+char(10)+"-- you will be prompted for launch parameters"+char(10)+"-- supports pshells with the launch function"
+	if arg2 and typeof(arg2) != "string" then
+		if p_validate( arg2, "launch" ) then 
+			parameters = user_input("Launch parameters (if any) "+char(10)+":> ")
+			if typeof(arg1) == "string" then return arg2.launch(arg1, parameters)
+			if typeof(arg1) == "file" then return arg2.launch(arg1.path, parameters)
+			return "run: arg1 should be file or path to file"
+		else 
+			return "run: arg2 should be (p)shell or string"
+		end if
+	end if
 	file = globals.get_file(arg1)
 	if not file then return "run: "+arg1+" not found."
-	globals.stack_pool = globals.stack_pool - 1
-	if arg5 then return shell.launch(file.path, arg2+" "+arg3+" "+arg4+" "+arg5)
-	if arg4 then return shell.launch(file.path, arg2+" "+arg3+" "+arg4)
-	if arg3 then return shell.launch(file.path, arg2+" "+arg3)
-	if arg2 then return shell.launch(file.path, arg2)
-	if arg1 then return shell.launch(file.path)
+	//globals.stack_pool = globals.stack_pool - 1
+	parameters = ""
+	if arg2 and typeof(arg2) == "string" then parameters = arg2
+	if arg3 and typeof(arg3) == "string" then parameters = parameters + " " + arg3 
+	if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
+	if arg5 and typeof(arg5) == "string" then parameters = parameters + " " + arg5 
+	return shell.launch(file.path, parameters)
 end function
 command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "scribus [path_to_file] -- terminal text editor"+char(10)+"Advanced: scribus @clipa|@clipb|@clipc -- This edits the clipboard directly."+char(10)+"Advanced: scribus @cc -- edit the command buffer."+char(10)+"Advanced: scribus [file_object] -- text only, open contents of piped object."+char(10)+"Advanced: scribus @do -- edit the do buffer (no longer @clipb)"
@@ -1342,20 +1354,21 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		if act == 0 then act = "-b" else act = "-a"
 		return command.code(act, cipher_text)
 	end if
-	if typeof(@arg1) == "function" then return globals.decompiler(@arg1)
-	if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "file" or typeof(arg1) == "computer" or typeof(arg1) == "map" or typeof(arg1) == "custom_object" or typeof(arg1) == "list" then return globals.decompiler(arg1)
-	if typeof(arg1) == "pshell" or typeof(arg1) == "pcomputer" or typeof(arg1) == "pfile" or typeof(arg1) == "prouter" then return globals.decompiler(arg1)
-	if typeof(arg1) == "list" or "map" then return globals.decompiler(arg1)
-	if arg1 == "\n" then return str(char(10).code)
+	if DEBUG then print("Checking types...")
 	buf = []
 	if typeof(arg1) == "string" then
 		print("<mark=yellow><size=75%>Processing string...</mark></size>")
+		if arg1 == "\n" then return str(char(10).code)
 		arg1 = arg1.values
 		for letter in arg1
 			buf.push(letter.code)
 		end for
 		return buf.join(", ")
 	end if
+	//if typeof(@arg1) == "function" then return globals.decompiler(@arg1)
+	if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "file" or typeof(arg1) == "computer" or typeof(arg1) == "map" or typeof(arg1) == "custom_object" or typeof(arg1) == "list" then return globals.decompiler(arg1)
+	if typeof(arg1) == "pshell" or typeof(arg1) == "pcomputer" or typeof(arg1) == "pfile" or typeof(arg1) == "prouter" then return globals.decompiler(arg1)
+	//if typeof(arg1) == "list" or "map" then return globals.decompiler(arg1)	
 	return "code: unkown type"
 end function
 command.md5 = function(arg1, arg2, arg3=0, arg4=0)
