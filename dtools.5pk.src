@@ -44,6 +44,13 @@ end function
 if DEBUG then print("<size=75%>loaded regex engine...</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
+  skip = false
+  if arg1 == "-f" then 
+    arg1 = arg2
+    arg2 = arg3
+    arg3 = arg4
+    skip = true
+  end if
   if arg1 == "-n" then
     if not arg2 then return "poke: -n option requires a valid path to a file."
     arg1 = arg2
@@ -79,7 +86,7 @@ command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if try != 1 then
 		print("poke: "+try)
 		if arg2 then
-			if try == "The file already exists" and user_input("overwrite contents? [Y/n] ||: ",0,1).lower == "n" then
+			if try == "The file already exists" and skip != true and user_input("overwrite contents? [Y/n] ||: ",0,1).lower == "n" then
 				return "aborting..."
 			end if
 		end if
