@@ -814,7 +814,7 @@ memory_alpha = function()
           print(colorGreen+"<u>==================================</u>"+CT)
           print("[f] - felix file explorer")
           if not buffer_selection.is_binary then print("[7] open_text [8] upload_txt [9] dnload_txt ")
-          file_menu = user_input("[4] tag 4 scp [5] curl [6] log spoof "+char(10)+"[1] root file [2] rDelete [3] rPerms"+char(10)+"[0] exit [d] decompiler (q=quit)||: ",0,1 )
+          file_menu = user_input("[4] tag 4 scp [5] curl [6] log spoof "+char(10)+"[1] root file [2] rDelete [3] rPerms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
           if choice == "d" then 
             print(globals.decompiler(buffer_selection))
             continue
@@ -1566,7 +1566,7 @@ hooked_comp = function(result)
     print("[K] - kill [G] - glassp [c] curl ")
     print("[7] iwlist [8] iwconfig [9] chUnlock")
     print("[4] chngpw [5] sclean   [6] useradd")
-    pause = user_input("[1] home   [2] passfile [3] logfile \n[0] abort [d] decompiler ||: ",0,1)
+    pause = user_input("[1] home   [2] passfile [3] logfile \n[0] abort  [d] decompiler ||: ",0,1)
     if pause == "d" then 
       print(globals.decompiler(result))
       continue
