@@ -1896,17 +1896,23 @@ command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Advanced: purge [opt] [1|y] -- skip confirmation eg purge -d y | purge -c 1"
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #" 
 	confirm = arg2
-	if confirm == "1" then confirm = "y"
 	if arg1 == "-b" then
-		if not confirm then confirm = user_input("Clear BUFFER: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
+		if confirm == "0" then return "purge: cannot purge launch shell."
+		if typeof(confirm) != "number" and typeof(confirm.to_int) == "number" then confirm = confirm.to_int
+		if not confirm then confirm = user_input("Clear BUFFER: are you sure? [y/N] ||: ",0,1)
+		if confirm == "y" or confirm == "Y" then
 			globals.BUFFER = [get_shell]
 			if globals.GLASSPOOL then globals.BUFFER.push(globals.shell)
 			return "BUFFER purged."
 		else
-			return "aborting..."
+			if typeof(confirm) == "number" then 
+				print("purging...")
+				if globals.BUFFER.hasIndex(confirm) then return globals.BUFFER.remove(confirm) else return "purge: invalid index"
+			else
+				return "aborting..."
+			end if
 		end if
 	end if
 	if arg1 == "-t" then
