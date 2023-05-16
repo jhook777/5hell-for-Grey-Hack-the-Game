@@ -1,12 +1,14 @@
 // 5hell v 3.4.6 by Plu70
 // released v 3.4.5
 // imports .5pk files from /root/src
-ver = "3.4.7_amalgamated_horrors"
+ver = "3.4.8_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
 //
 // changes:
+// extended partial object support to all main object types
+// added more partial object support
 // scribus: disabled confirmation before opening file
 // fixed crash in grep when grepping
 // added partial support for partial objects
