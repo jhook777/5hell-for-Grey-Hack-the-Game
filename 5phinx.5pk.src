@@ -167,7 +167,7 @@ decompiler = function(object)
     if DEBUG then print("debug: i: "+i+" methods: "+methods.len)
     print(colorWhite+"<u>======================</u>"+CT)
     pr = user_input("Select a function to execute (q=quit):> ")
-    if pr.lower == "q" then return "aborting..." 
+    if pr.lower == "q" or pr == "" or pr == " " then return "aborting..." 
     pr = pr.to_int
     rcv = null
     if pr >= 0 and pr <= i then rcv = globals.p_exe( c , methods[pr])
