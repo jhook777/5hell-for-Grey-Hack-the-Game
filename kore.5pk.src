@@ -351,7 +351,7 @@ command.target = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if is_valid_ip(arg1) then globals.targetIP = arg1 
 	if arg2 and arg2.to_int >= 0 then globals.targetPort = arg2.to_int
-	return "<b>"+globals.targetIP+" "+globals.targetPort
+	return globals.targetIP+" "+globals.targetPort
 end function
 command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return ("Usage: transmit [ip] [port] -- transmit text to remote file. Default port 22."+char(10)+"-- you may set ip with <b>target [ip] [port]</b> instead"+char(10)+"-- you may set ip with launch params: 5hell [ip] [port]"+char(10)+"-- simply type transmit without params if ip is set this way."+char(10)+"---- Enter data 1 line at a time. "+char(10)+"---- Send with @send on new line")+char(10)+"---- the contents of <b>@tbuf</b> are automatically added"+char(10)+char(10)+"Transmit is intended to write information to a remote text file."+char(10)+"While desinged for use with hashim and dbmon, you"+char(10)+" may use it to transmit standard text files if you find that useful."
