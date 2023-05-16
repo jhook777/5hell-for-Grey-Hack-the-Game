@@ -836,6 +836,7 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == 0 and arg2 == 0 then //dat.push(pubip)
 		if localmachine.is_network_active then
 			router = get_router(localmachine.network_gateway)
+			if not router then return "ifconfig: gateway error. Please reconnect to wifi."
 			dat.push("Connected to: "+localmachine.active_net_card)
 			if localmachine.active_net_card == "WIFI" then
 				dat.push("<b>"+router.essid_name+"</b>")
@@ -884,7 +885,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			if dl.split(" ")[0] == "wlan0" then wl = true
 		end for
 		if not wl then
-			print(colorRed+"Error: wlan0 not found."+CT)
+			print(colorRed+"air: error: wlan0 not found."+CT)
 			return 0
 		end if
 		crypto.airmon("start", "wlan0")
@@ -898,12 +899,14 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		print("<align=center><b>(>|<)</b></align>")
 		networks = localmachine.wifi_networks("wlan0")
 		output = []
+		if DEBUG then print("dh: "+detect_hidden)
 		if detect_hidden == 2 then
 			if not localmachine.is_network_active then
 				print("No network detected.")
 				return 1
 			end if
 			router = get_router( ip )
+			if not router then return "air: router not found"
 			clist = router.devices_lan_ip
 			if DEBUG then print(clist)
 			output = []
@@ -911,6 +914,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				rw = get_router(c)
 				if typeof(rw) != "router" then continue
 				if rw.local_ip == router.local_ip then continue
+				if rw.indexOf("essid_name") == null then continue
 				if rw.essid_name then
 					wire = rw.bssid_name+ " 100% " +rw.essid_name
 					output.push(wire)
