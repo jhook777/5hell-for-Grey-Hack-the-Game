@@ -1,7 +1,7 @@
 // 5hell v 3.4.6 by Plu70
 // released v 3.4.5
 // imports .5pk files from /root/src
-ver = "3.4.9_amalgamated_horrors"
+ver = "3.5.0_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -692,10 +692,10 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 import_code("/root/src/dtools.5pk")
 command.run = function(arg1, arg2, arg3=0, arg4=0, arg5=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run [file|path_to_file] [parameters] -- use the current active shell to launch a binary"+char(10)+"-- piped file objects are launch from the objects path"+char(10)+"N.B. max 14 nested launches before stack call error."+char(10)+"Advanced: run [file|path] [piped shell object] -- launch a binary using the piped shell object"+char(10)+"-- you will be prompted for launch parameters"+char(10)+"-- supports pshells with the launch function"
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run [file|path_to_file] [parameters] -- use the current active shell to launch a binary"+char(10)+"-- piped file objects are launch from the objects path"+char(10)+"N.B. max 14 nested launches before stack call error."+char(10)+"Advanced: run [file|path] [piped shell object] [params] -- launch a binary using the piped shell object"+char(10)+"-- you must pipe launch params if more than one word"+char(10)+"-- use easy clip for best results (@a,@b,@c)"+char(10)+"-- supports pshells with the launch function"
 	if arg2 and typeof(arg2) != "string" then
 		if p_validate( arg2, "launch" ) then 
-			parameters = user_input("Launch parameters (if any) "+char(10)+":> ")
+			if arg3 then parameters = arg3 else parameters = ""
 			if typeof(arg1) == "string" then return arg2.launch(arg1, parameters)
 			if typeof(arg1) == "file" then return arg2.launch(arg1.path, parameters)
 			return "run: arg1 should be file or path to file"
@@ -1108,7 +1108,7 @@ end function
 //import_code("/root/src/dig.5pk") // non free malwares
 command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 	if DEBUG then print("in rclean: got: "+typeof(@arg1))
-	if arg1 == "help" or arg1 == "-h" then return "Usage: rclean [opt: int ] -- select an object from buffer to (attempt to) remote wipe."+char(10)+"Advanced: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+"e.g. clipb @B 1 | rclean where BUFFER[1] was a file|shell|computer"+char(10)+"rclean with no params will display a menu "+char(10)+"rclean is intended for remote scrubbing using BUFFER objects."+char(10)+"You may use silentclean or rclean for local log scrubbing"
+	if arg1 == "help" or arg1 == "-h" then return "Usage: rclean [opt: int ] -- select an object from buffer to (attempt to) remote wipe."+char(10)+"Advanced: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+"e.g. clipb @B 1 | rclean where BUFFER[1] was a file|shell|computer"+char(10)+"-- rclean with no params will display a menu "+char(10)+"-- rclean is intended for remote scrubbing using BUFFER objects."+char(10)+"-- However you may use silentclean or rclean for local log scrubbing"+char(10)+"-- if rclean detects a file named <b>silentclean</b> it will use that file to scrub the log"+char(10)+"-- for this reason it is a good idea to include an empty file named silentclean in the rkit"
 	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "computer" or typeof(arg1) == "file") then return globals.rclean(arg1)
 
 	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@B",arg1))
@@ -1214,7 +1214,7 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		print("Function() detected...")
 		return globals.decompiler(@arg1)
 	end if
-	if arg1 == null or arg1 == "-h" or arg1 == "help" then return "Usage: code [char] -- returns ascii code for char"+char(10)+"Usage: code -c [int] -- returns ascii char(int)"+char(10)+"Usage: code [shell|file|computer|any_object] -- sends object to decompiler to view object map."+char(10)+"N.B. will evaluate piped functions."+char(10)+"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+"Advanced: code [-a|-b] [opt:input] -- encode|decode; brings up a buffer_prompt if no input supplied; enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+"N.B. if input is more than one word use code -a|-b without params or use pipe: e.g.<b> cat /file | code -a </b>,<b> echo three two one | code -a</b>"+char(10)+"N.B. options -a and -b both use MuninCipher instead of standard cipher."+char(10)+"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+"[-f] prompt for enc/dec, [-fa|-af] - force encode, [-fb|-bf] force decode (uses MC)"+char(10)+"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
+	if arg1 == null or arg1 == "-h" or arg1 == "help" then return "<b>CODE</b> encode and decode utility"+char(10)+"Usage: code [char] -- returns ascii code for char"+char(10)+"Usage: code -c [int] -- returns ascii char(int)"+char(10)+"Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+"-- will evaluate piped functions."+char(10)+"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+"Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher</b>\n-- prompts for input if not supplied\n-- enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+"-- if input is more than one word use without params for prompt"+char(10)+"-- or use piping or an input file (see -f options)"+char(10)+"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+"-- option [-f] [path] -- prompts for enc/dec\n-- option [-fa|-af] [path] -- encode contents of path with MuninCipher\n-- option [-fb|-bf] [path] -- decode contents of path with MuninCipher"+char(10)+"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
 	Encode = function(instruction, password)
     caesar = function(type, pass)
 				if pass == "" then return char(32)
@@ -1370,6 +1370,7 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 	//if typeof(@arg1) == "function" then return globals.decompiler(@arg1)
 	if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "file" or typeof(arg1) == "computer" or typeof(arg1) == "map" or typeof(arg1) == "custom_object" or typeof(arg1) == "list" then return globals.decompiler(arg1)
 	if typeof(arg1) == "pshell" or typeof(arg1) == "pcomputer" or typeof(arg1) == "pfile" or typeof(arg1) == "prouter" then return globals.decompiler(arg1)
+	if arg1.hasIndex("__isa") then return globals.decompiler(arg1)
 	//if typeof(arg1) == "list" or "map" then return globals.decompiler(arg1)	
 	return "code: unkown type"
 end function
