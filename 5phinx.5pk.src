@@ -2,8 +2,8 @@
 if DEBUG then print("<size=75%>loading 5phinx.5pk...(100.906kb)</size>")
 
 //Define Globals
-sphinx_version = "2.3.1"
-malp_version = "1.2.1"
+sphinx_version = "2.3.2"
+malp_version = "1.2.2"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -132,7 +132,7 @@ end function
 
 decompiler = function(object)
   act = "Decompiling"
-  if typeof(@object) == "function" then act   = "Evaluating"
+  if typeof(@object) == "function" then act = "Evaluating"
   print("<mark=yellow>"+act+": "+@object+"</mark>")
   //print(object)
   c = @object
@@ -142,24 +142,106 @@ decompiler = function(object)
       re.push(c.code)
     end for 
     return re.join(", ")
-  end if
-  f=[]
-  for d in @c
-    print(d)
-  end for
+  end if 
   if typeof(@c) == "function" then
     args = str(@c).split( "FUNCTION" )[1].split(", ")
     print("function takes: "+args.len+" arguments")
     catch = c
-    print("function returns: "+typeof(@catch))
+    print("function returns: "+typeof(@catch)+char(10))
     if typeof(@catch) == "number" then catch = str(catch)
-    return catch
+    return @catch
   end if
-  if typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "prouter" then 
-    f = c.__isa.indexes
-    return f.join(", ")
+  if typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "shell" or typeof(@c) == "file" or typeof(@c) == "computer" or typeof(@c) == "ftpshell" then 
+    methods = c.__isa.indexes
+    for ind in methods
+      print(ind+": "+c[ind])
+    end for
+    print("- - - - - - - - - - - - - - - -"+char(10))
+    //return f.join(", ")
+    i = 0
+    for m in methods
+      print("["+colorWhite+ i +CT+"] [ "+colorLightBlue+ m +CT+" ]")
+      i = i + 1
+    end for 
+    i = i - 1
+    if DEBUG then print("debug: i: "+i+" methods: "+methods.len)
+    print(colorWhite+"<u>======================</u>"+CT)
+    pr = user_input("Select a function to execute (q=quit):> ")
+    if pr.lower == "q" then return "aborting..." 
+    pr = pr.to_int
+    rcv = null
+    if pr >= 0 and pr <= i then rcv = globals.p_exe( c , methods[pr])
+    if typeof(rcv) == "shell" or typeof(rcv) == "computer" or typeof(rcv) == "file" or typeof(rcv) == "router" or typeof(rcv) == "port" or typeof(rcv) == "ftpshell" or typeof(rcv) == "netsession" or typeof(rcv) == "metaLib" then 
+      globals.BUFFER.push(rcv)
+      print( typeof(rcv) + " sent to BUFFER." ) 
+    end if
+    return rcv
   end if  
+  for d in @c
+    print(d+char(10))
+  end for
   return 0
+end function
+
+p_exe = function( obj, f_name )
+  if DEBUG then print("debug: In P_EXE...")
+  if p_validate(obj, f_name) then 
+    foo = @obj[f_name]
+    args = str(@foo).split( "FUNCTION" )[1].split(", ")
+    a=[]
+    i=0
+    for ar in args 
+      ar = ar.replace(")","").replace("(","")
+      if DEBUG then print("typeof "+ar+": "+typeof(ar))
+      if str(ar) == "self" then 
+        a.push(obj)
+        continue 
+      end if
+      inp = user_input(ar+": (use @a|b|c for clipboard, q=quit)"+char(10)+":> ")
+      if inp == "q" then return "aborting..."
+      if inp == "@a" then inp = @globals.clip_board_alpha
+      if inp == "@b" then inp = @globals.clip_board_beta
+      if inp == "@c" then inp = @globals.clip_board_gamma
+      a.push(inp)
+      i = i + 1
+    end for 
+    o = @obj[f_name]
+    catch = null
+    if DEBUG then print("debug: args: "+args.len)
+    if args.len == 1 then catch = o(a[0])
+    if args.len == 2 then catch = o(a[0], a[1])
+    if args.len == 3 then catch = o(a[0], a[1], a[2])
+    if args.len == 4 then catch = o(a[0], a[1], a[2], a[3])
+    if args.len == 5 then catch = o(a[0], a[1], a[2], a[3], a[4])
+    if args.len == 6 then catch = o(a[0], a[1], a[2], a[3], a[4], a[5])
+    return catch
+  else 
+    return "invalid object"
+  end if
+  return 0
+end function
+
+p_validate = function( object, query )
+  if object.hasIndex("__isa") then
+	  return (object.__isa.hasIndex(query))
+  else 
+    return 0
+  end if
+end function 
+
+netdump = function()
+  if not p_validate(globals.net_session, "get_num_conn_gateway") then return 1
+  print("Gateway_status: ["+globals.net_session.get_num_conn_gateway+"]")
+  print("Port_forwards: ["+globals.net_session.get_num_portforward+"]")
+  print("Registered users: ["+globals.net_session.get_num_users+"]")
+  if globals.net_session.is_any_active_user == true then print("A user is active.") else print("No active user.")
+  if globals.net_session.is_root_active_user == true then print("Root is active.") else print("Root is inactive.")
+  return 0
+end function
+
+/// END Scribus
+fw_rules = function()
+  print(get_router(targetIP).firewall_rules)
 end function
 
 curl = function(hacked_thing)
@@ -486,29 +568,6 @@ scribus = function(f_obj)
   return new_array // returns a string
 end function
 
-
-p_validate = function( object, query )
-  if object.hasIndex("__isa") then
-	  return (object.__isa.hasIndex(query))
-  else 
-    return 0
-  end if
-end function 
-
-netdump = function()
-  if not p_validate(globals.net_session, "get_num_conn_gateway") then return 1
-  print("Gateway_status: ["+globals.net_session.get_num_conn_gateway+"]")
-  print("Port_forwards: ["+globals.net_session.get_num_portforward+"]")
-  print("Registered users: ["+globals.net_session.get_num_users+"]")
-  if globals.net_session.is_any_active_user == true then print("A user is active.") else print("No active user.")
-  if globals.net_session.is_root_active_user == true then print("Root is active.") else print("Root is inactive.")
-  return 0
-end function
-
-/// END Scribus
-fw_rules = function()
-  print(get_router(targetIP).firewall_rules)
-end function
 ////////////// BEGIN_MEMORY_ALPHA //////////////////////////////
 memory_alpha = function()
   buffered_filesys = null
@@ -732,19 +791,7 @@ memory_alpha = function()
         ////////////////////evaluate selection///////
         print(colorOrange+"Expanding... "+CT+"["+colorWhite+typeof(@buffer_selection)+CT+"]")
         if typeof(@buffer_selection) == "pshell" or typeof(@buffer_selection) == "pcomputer" or typeof(@buffer_selection) == "pfile" or typeof(@buffer_selection) == "prouter" then 
-          methods = globals.decompiler(buffer_selection)
-          print(colorLightBlue+"<u>======================</u>"+CT)
-          print(colorWhite+"Available methods: ")
-          got_host = false
-          for m in methods.split(", ")
-            print("[ "+colorLightBlue+ m +CT+" ]")
-            if m == "host_computer" then got_host = true
-          end for 
-          print(colorWhite+"<u>======================</u>"+CT)
-          if got_host and user_input("BUFFER computer object? [y/N] ||: ",0,1).lower == "y" then 
-            globals.BUFFER.push(buffer_selection.host_computer)
-            print("Sent computer object to BUFFER.")
-          end if
+          print(globals.decompiler(buffer_selection))
           continue
         end if
         if typeof(@buffer_selection) == "string" or typeof(@buffer_selection) == "list" or typeof(@buffer_selection) == "map" or typeof(@buffer_selection) == "number" or typeof(@buffer_selection) == "function" then
@@ -768,7 +815,11 @@ memory_alpha = function()
           print(colorGreen+"<u>==================================</u>"+CT)
           print("[f] - felix file explorer")
           if not buffer_selection.is_binary then print("[7] open_text [8] upload_txt [9] dnload_txt ")
-          file_menu = user_input("[4] tag 4 scp [5] curl [6] log spoof "+char(10)+"[1] root file [2] rDelete [3] rPerms"+char(10)+"[0] exit (q=quit)||: ",0,1 )
+          file_menu = user_input("[4] tag 4 scp [5] curl [6] log spoof "+char(10)+"[1] root file [2] rDelete [3] rPerms"+char(10)+"[0] exit [d] decompiler (q=quit)||: ",0,1 )
+          if choice == "d" then 
+            print(globals.decompiler(buffer_selection))
+            continue
+          end if
           if file_menu.lower == "f" then
             command.felix(buffer_selection)
             continue
@@ -872,10 +923,10 @@ memory_alpha = function()
           //decompiler(buffer_selection)
           hooked_comp(buffer_selection)
           //BUFFER.pop
-          buf_this = user_input("Enter path to buffer or press <<b>return</b>> for / "+char(10)+":> ")
-          if buf_this == "" then buf_this = "/"
-          buffered_filesys = buffer_selection.File(buf_this)
-          print("Buffered filesystem ready. Access with [<b>4</b>] ")
+          //buf_this = user_input("Enter path to buffer or press <<b>return</b>> for / "+char(10)+":> ")
+          //if buf_this == "" then buf_this = "/"
+          //buffered_filesys = buffer_selection.File(buf_this)
+          //print("Buffered filesystem ready. Access with [<b>4</b>] ")
           continue
         end if
         if typeof(buffer_selection) == "shell" or typeof(buffer_selection) == "ftpshell" then
@@ -883,7 +934,11 @@ memory_alpha = function()
           print(format_columns(buffer_selection.host_computer.show_procs)+char(10)+char(10)+checkUser(buffer_selection)+"@"+buffer_selection.host_computer.local_ip+char(10)+buffer_selection.host_computer.public_ip)
           print(colorOrange+"<size=65%><mark=orange><u>= = = = = = = = = = = = = = = = = = = =</u></mark></size>"+CT)
           if typeof(buffer_selection) == "shell" then print("[7] scp    [8] run    [9] curl" )
-          choice = user_input("[4] glassp [5] rclean [6] compit "+char(10)+"[1] felix  [2] open shell [3] upload rkit"+char(10)+"[0] abort (q=quit)||: ",0,1)
+          choice = user_input("[4] glassp [5] rclean [6] compit "+char(10)+"[1] felix  [2] open shell [3] upload rkit"+char(10)+"[0] abort [d] decompile (q=quit)||: ",0,1)
+          if choice == "d" then 
+            print(globals.decompiler(buffer_selection))
+            continue
+          end if
           if choice == "0" or choice == "q" then
             buffered_filesys = buffer_selection.host_computer.File("/")
             print("Buffering filesystem..." )
@@ -1511,7 +1566,11 @@ hooked_comp = function(result)
     print("[K] - kill [G] - glassp [c] curl ")
     print("[7] iwlist [8] iwconfig [9] chUnlock")
     print("[4] chngpw [5] sclean   [6] useradd")
-    pause = user_input("[1] home   [2] passfile [3] logfile \n[0] abort ||: ",0,1)
+    pause = user_input("[1] home   [2] passfile [3] logfile \n[0] abort [d] decompiler ||: ",0,1)
+    if pause == "d" then 
+      print(globals.decompiler(result))
+      continue
+    end if
     if pause == "0" then hooking = false
     if pause.lower == "k" then print(result.close_program(user_input(colorWhite+"pid to kill:> "+CT).to_int ) )
     if pause.lower == "g" then
