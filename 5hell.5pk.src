@@ -1491,7 +1491,18 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
-if arg1 == "help" or arg1 == "-h" then return "work in progress: cer bios -- system info"+char(10)+"Advanced:<b> mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>-- where size is the max size of your hdd in bytes. "
+if arg1 == "help" or arg1 == "-h" then return "work in progress: cer bios -- system info"+char(10)+"Advanced:<b> mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+"-- where SIZE is the max size of your hdd in bytes. "+char(10)+"-- lets bios report remaining hdd space"+char(10)+"Usage: bios -a -- return the aptclientlib object"+char(10)+"Usage: bios -x -- return the metaxploit object"+char(10)+"Usage: bios -c -- return the crypto object"+char(10)+"Usage: bios -n -- return the netsession object"+char(10)+"Usage: bios -p -- return the port_map object"+char(10)+"Advanced: bios -l [path] -- runs <b>include_lib</b> on path and returns result"+char(10)+"-- prompts for path if not supplied"
+if arg1 == "-a" then return globals.apt_get 
+if arg1 == "-x" then return globals.metaxploit 
+if arg1 == "-c" then return globals.crypto 
+if arg1 == "-n" then return globals.net_session
+if arg1 == "-p" then return globals.PORT_MAP
+if arg1 == "-l" then 
+	if not arg2 then 
+		arg2 = user_input("Enter path to file.so :> ")
+	end if
+	return include_lib(arg2)
+end if
 bios_info = []
 bios_info.push("<mark=red><u>=======================================================================</u></mark>")
 bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.5_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
