@@ -139,7 +139,7 @@ decompiler = function(object)
   if typeof(@c) == "string" then 
     re = []
     for letter in c.values 
-      re.push(c.code)
+      re.push(letter.code)
     end for 
     return re.join(", ")
   end if 
@@ -171,7 +171,7 @@ decompiler = function(object)
     pr = pr.to_int
     rcv = null
     if pr >= 0 and pr <= i then rcv = globals.p_exe( c , methods[pr])
-    if typeof(rcv) == "shell" or typeof(rcv) == "computer" or typeof(rcv) == "file" or typeof(rcv) == "router" or typeof(rcv) == "port" or typeof(rcv) == "ftpshell" or typeof(rcv) == "netsession" or typeof(rcv) == "metaLib" then 
+    if rcv.hasIndex("__isa") then //typeof(rcv) == "shell" or typeof(rcv) == "computer" or typeof(rcv) == "file" or typeof(rcv) == "router" or typeof(rcv) == "port" or typeof(rcv) == "ftpshell" or typeof(rcv) == "netsession" or typeof(rcv) == "metaLib" then 
       globals.BUFFER.push(rcv)
       print( typeof(rcv) + " sent to BUFFER." ) 
     end if
