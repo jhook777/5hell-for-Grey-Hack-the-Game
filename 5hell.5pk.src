@@ -1,7 +1,7 @@
 // 5hell v 3.4.6 by Plu70
 // released v 3.4.5
 // imports .5pk files from /root/src
-ver = "3.4.8_amalgamated_horrors"
+ver = "3.4.9_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -1491,7 +1491,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
-if arg1 == "help" or arg1 == "-h" then return "work in progress: cer bios -- system info"+char(10)+"Advanced:<b> mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+"-- where SIZE is the max size of your hdd in bytes. "+char(10)+"-- lets bios report remaining hdd space"+char(10)+"Usage: bios -a -- return the aptclientlib object"+char(10)+"Usage: bios -x -- return the metaxploit object"+char(10)+"Usage: bios -c -- return the crypto object"+char(10)+"Usage: bios -n -- return the netsession object"+char(10)+"Usage: bios -p -- return the port_map object"+char(10)+"Advanced: bios -l [path] -- runs <b>include_lib</b> on path and returns result"+char(10)+"-- prompts for path if not supplied"
+if arg1 == "help" or arg1 == "-h" then return "CERBIOS"+char(10)+"Usage: bios -- system info"+char(10)+"Advanced:<b> mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+"-- where SIZE is the max size of your hdd in bytes. "+char(10)+"-- lets bios report remaining hdd space"+char(10)+"Usage: bios -a -- return the aptclientlib object"+char(10)+"Usage: bios -x -- return the metaxploit object"+char(10)+"Usage: bios -c -- return the crypto object"+char(10)+"Usage: bios -n -- return the netsession object"+char(10)+"Usage: bios -p -- return the port_map object"+char(10)+"Advanced: bios -l [path] -- runs <b>include_lib</b> on path and returns result"+char(10)+"-- prompts for path if not supplied"
 if arg1 == "-a" then return globals.apt_get 
 if arg1 == "-x" then return globals.metaxploit 
 if arg1 == "-c" then return globals.crypto 
