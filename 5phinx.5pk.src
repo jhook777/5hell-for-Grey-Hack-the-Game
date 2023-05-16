@@ -863,7 +863,7 @@ memory_alpha = function()
           if file_menu == "6" then
             if buffer_selection.path == "/var/system.log" then
               if buffer_selection.has_permission("w") then
-                print(colorWhite+"</b>"+f.name + " is spoofable!")
+                print(colorWhite+"</b>"+buffer_selection.name + " is spoofable!")
                 action = user_input("Spoof log? [Y/n] ")
                 if action.lower == "n" then continue
                 root = buffer_selection.parent
