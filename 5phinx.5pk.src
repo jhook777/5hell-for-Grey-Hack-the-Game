@@ -876,17 +876,19 @@ memory_alpha = function()
                     for ef in ff
                       if ef.name == "xorg.conf" then
                         ef.copy("/var","system.log")
+                        continue
                       end if
                     end for
                   end if
                 end for
               else
                 print(buffer_selection.name+" is write protected.")
+                continue
               end if
-              continue
             end if
             spf = user_input("Use this file to corrupt the log? (requires write access to /var/system.log)"+char(10)+"[Y/n] ||: ",0,1)
             if spf.lower != "n" then print(buffer_selection.copy("/var", "system.log"))
+            continue
           end if
           if file_menu == "5" then
             print( globals.curl(buffer_selection) )
