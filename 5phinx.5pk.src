@@ -3,7 +3,7 @@ if DEBUG then print("<size=75%>loading 5phinx.5pk...(100.906kb)</size>")
 
 //Define Globals
 sphinx_version = "2.3.2"
-malp_version = "1.2.2"
+malp_version = "1.2.3"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -106,6 +106,21 @@ end function
 mail_user_list = function(ip_address, port)
   if not crypto then return 0
   return crypto.smtp_user_list( ip_address , port )
+end function
+
+sus = function(a,b,c,d) // expects libname v version
+	db = null
+	db = command.tree( "/", "database.csv", "sc0", "n" )
+	if typeof(db) != "file" then return "sus: database.csv not found"
+	dat = db.get_content.split(char(10))
+	while true
+		ip = command.rnip("1")
+		rtr = get_router(ip)
+		if not rtr then continue
+		query = "kernel_router.so v "+rtr.kernel_version
+		if dat.indexOf(query) >= 0 then return ip
+	end while
+	return 0
 end function
 
 dump_memory = function()
@@ -868,6 +883,7 @@ memory_alpha = function()
               else
                 print(buffer_selection.name+" is write protected.")
               end if
+              continue
             end if
             spf = user_input("Use this file to corrupt the log? (requires write access to /var/system.log)"+char(10)+"[Y/n] ||: ",0,1)
             if spf.lower != "n" then print(buffer_selection.copy("/var", "system.log"))
