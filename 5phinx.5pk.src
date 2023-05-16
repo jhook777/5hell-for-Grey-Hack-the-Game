@@ -202,6 +202,7 @@ p_exe = function( obj, f_name )
       if inp == "@a" then inp = @globals.clip_board_alpha
       if inp == "@b" then inp = @globals.clip_board_beta
       if inp == "@c" then inp = @globals.clip_board_gamma
+      if typeof(inp.to_int) == "number" then inp = inp.to_int
       a.push(inp)
       i = i + 1
     end for 
@@ -806,7 +807,6 @@ memory_alpha = function()
           print(globals.decompiler(buffer_selection))
           continue
         end if
-        if buffer_selection.hasIndex("__isa") then print(globals.decompiler(buffer_selection))
         if typeof(buffer_selection) == "file" then
           //decompiler(buffer_selection)
           //list_files(buffer_selection, "0")
@@ -1053,7 +1053,8 @@ memory_alpha = function()
             end if
             buffer_selection.start_terminal
           end if
-        end if
+        end if // end shell handler
+        if buffer_selection.hasIndex("__isa") then print(globals.decompiler(buffer_selection))
       end if
     end if  // end option 5
     if waitFor == "6" then
