@@ -197,7 +197,7 @@ p_exe = function( obj, f_name )
         a.push(obj)
         continue 
       end if
-      inp = user_input(ar+": (use @a|b|c for clipboard, q=quit)"+char(10)+":> ")
+      inp = user_input("Use @a|b|c for clipboard (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
       if inp == "q" then return "aborting..."
       if inp == "@a" then inp = @globals.clip_board_alpha
       if inp == "@b" then inp = @globals.clip_board_beta
