@@ -2,7 +2,7 @@
 if DEBUG then print("<size=75%>loading 5phinx.5pk...(100.906kb)</size>")
 
 //Define Globals
-sphinx_version = "2.3.2"
+sphinx_version = "2.3.3"
 malp_version = "1.2.3"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -214,10 +214,11 @@ p_exe = function( obj, f_name )
       end if
       inp = user_input("Use @a|b|c for clipboard (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
       if inp == "q" then return "aborting..."
+      
       if inp == "@a" then inp = @globals.clip_board_alpha
       if inp == "@b" then inp = @globals.clip_board_beta
       if inp == "@c" then inp = @globals.clip_board_gamma
-      if typeof(inp.to_int) == "number" then inp = inp.to_int
+      if typeof(inp) == "string" and typeof(inp.to_int) == "number" then inp = inp.to_int
       a.push(inp)
       i = i + 1
     end for 
