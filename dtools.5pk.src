@@ -119,7 +119,7 @@ command.merge = function(arg1, arg2, arg3=0, arg4=0)
 	return catch
 end function
 command.append = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "Usage: append [path_to_file] [text] (works best with pipe) --  add text to end of file."+char(10)+"Usage: append @clipa|b|c [text] -- append to the end of a clip space."+char(10)+"N.B.<b> @clipa and @clipc will append text directly with no new line. </b>"+char(10)+" -- @clipb will add a new line and then append text."
+	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "Usage: append [path_to_file] [text] (works best with pipe) --  add text to end of file."+char(10)+"Usage: append [file_object] [text] -- append text to file object"+char(10)+"-- pipe file object to clipa/b/c and use @a/b/c to reference"+char(10)+"-- eg: clipb @B 1 -- where BUFFER[1] is a file, then: append @b [text]"+char(10)+"Usage: append @clipa|b|c [text] -- append to the end of a clip space."+char(10)+"N.B.<b> @clipa and @clipc will append text directly with no new line. </b>"+char(10)+" -- @clipb will add a new line and then append text."
 	path_to_file = arg1
 	buf = arg2
 	if path_to_file == "@clipa" then
@@ -134,9 +134,8 @@ command.append = function(arg1, arg2, arg3=0, arg4=0)
 		globals.clip_board_gamma = globals.clip_board_gamma+buf
 		return "clipped:"+char(10)+globals.clip_board_gamma
 	end if
-	file = localmachine.File(path_to_file)
-	if not file then file = localmachine.File(currentPath+"/"+path_to_file)
-	if not file then file = localmachine.File(currentPath+path_to_file)
+  if typeof(path_to_file) == "file" then file = path_to_file
+	if typeof(path_to_file) == "string" then file = globals.get_file(path_to_file)
 	if not file then return "404: file not found"
 	if file.get_content == "" then return file.set_content(buf)
 	return file.set_content(file.get_content+char(10)+buf)
@@ -238,16 +237,65 @@ command.chop = function(arg1, arg2=0, arg3=0, arg4=0)
 	end if
 end function
 command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: gopher [/path/file|file_object] -- decipher user:hash combo(s) in file. outputs to /current_path/dump.txt"+char(10)+"Uses onboard dictionary by default then crypto.decipher if not found."+char(10)+"Example:<b> poke pass root:1f3870be274f6c49b3e31a0c6728957f | gopher</b>"+char(10)+" -- writes the root:hash combo to pass in current path and pipes output file to gopher for deciphering."+char(10)+"-- see cerebrum and hashim for additional options."+char(10)+"Usage: gopher [/path/to/file] --  decrypt file contents"+char(10)+"Advanced: tree / Bank.txt 0 Y -- automatically decipher Bank.txt, no piping required (tree calls gopher)."+char(10)+"n.b. the <b>tree</b> command, typed without args, will prompt to call gopher on passwd, bank and mail files if found."
-	if not globals.crypto then return "Crypto: not found"
-	if typeof(arg1) == "file" then
-		file = arg1
-	else
-		file = globals.get_file(arg1)
-	end if
-	catch = "gopher: "+arg1+"not found or invalid."
-	if arg1 then catch = globals.Gopher(file)
-	return catch
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Gopher: decipher tool"+char(10)+"Usage: gopher [/path/to/file|file_object|hash_string|hash_list|@tbuf] -- decipher hashes using onboard dictionary or crypto.decipher."+char(10)+"-- outputs to /current_path/dump.txt"+char(10)+"-- see cerebrum for dictionary options."+char(10)+"-- gopher [/path] -- decipher contents of path"+char(10)+"-- gopher [object] -- decipher piped file object"+char(10)+"-- gopher [list] -- decipher piped list of strings"+char(10)+"-- gopher [string] -- decipher hash string (with or without preceding user: )"+char(10)+"-- gopher @tbuf -- deciphers contents of @tbuf"+char(10)+"-- tbuf is set when <b>tree</b> encounters a user:hash pair in /home or /etc/passwd"+char(10)+"-- eg: gopher user:ee11cbb19052e40b07aac0ca060c23ee or gopher ee11cbb19052e40b07aac0ca060c23ee"+char(10)+"N.B. function takes string, file_object, list. function writes to dump.txt. function returns string."+char(10)+"Advanced: gopher runs recursively on each line therefore each line of a file or list or string may:"+char(10)+"-- be a user:hash string"+char(10)+"-- be a hash string"+char(10)+"-- be a path to a file"+char(10)+"-- contain a list of the aforementioned types"
+	if not globals.crypto then print( "Warning: Crypto: not found" )
+	data = []
+  if DEBUG then print("top of gopher")
+  if arg1 == "@tbuf" then arg1 = globals.T_BUF
+  if typeof(arg1) == "file" then
+    if arg1.has_permission("r") then data = arg1.get_content.split(char(10)) else return "gopher: can't read "+arg1+": permission denied."
+  end if
+  if typeof(arg1) == "string" then
+    fpath = globals.get_file(arg1)
+    if fpath and typeof(fpath) == "file" then
+      if DEBUG then print("gopher: found file: "+fpath.path)
+      if fpath.has_permission("r") then data = fpath.get_content.split(char(10)) else return "gopher: can't read "+fpath.path+": permission denied."
+    else
+      if DEBUG then print("in gopher: is_string: arg1 is: "+arg1+" arg1 length is: "+arg1.len + " which is a "+typeof(arg1.len))
+      if arg1.len == 32 then // hash string
+        data = arg1
+      else 
+        if arg1.indexOf(char(10)) >= 0 then 
+          data = arg1.split(char(10))
+        else 
+          if arg1.indexOf(":") and arg1.len > 32 then data = arg1 else return "gopher: invalid string"
+        end if
+      end if
+    end if
+  end if
+  if typeof(arg1) == "list" then
+    data = arg1 
+  end if 
+  if DEBUG then print("data type is: "+typeof(data))
+  if typeof(data) == "list" then
+    for element in data 
+      ctc = (command.gopher( element ))
+      if ctc then print ctc
+    end for
+  end if
+  if typeof(data) == "string" then 
+    if DEBUG then print("starting decipher on: "+data)
+    user = "unknown_user"
+    if data.indexOf(":") then
+      data = data.split(":")
+      user = data[0]
+      data = data[1]
+    end if 
+    if data.len != 32 then return "gopher: invalid hash string"
+    pass = command.md5("-d",data) // decipher here
+    output = user + ":" + pass
+    print("["+colorGold+output+"]")
+    dump = command.tree("/","dump.txt","1","n")
+    if not dump then 
+      command.poke("dump.txt")
+      dump = globals.get_file("dump.txt")
+    end if
+    if dump and typeof(dump) == "file" and dump.has_permission("w") and dump.has_permission("r") then 
+      print("Saving to "+dump.path)
+      command.append(dump,output)
+    end if
+  end if 
+  return 0
 end function
 command.grep = function(a1, a2, arg3=0, arg4=0)
 	if not a1 or not a2 or a1 == "-h" or a1 == "help" then return "Usage: grep [string] [file/folder]"+char(10)+"Advanced: grep [string] [object] -- search piped object (shell|file|computer) for string. "+char(10)+"-- piped computer and shell objects will be searched from / directory."+char(10)+"-- piping a file object searches from path of file."+char(10)+"n.b. supports partial matches and limited regular expressions."+char(10)+"<u>current regex tokens (more planned):</u>"+char(10)+"c   matches any literal character 'c'"+char(10)+"-- bob matches bob anywhere in the text."+char(10)+"^   match pattern from beginning of word"+char(10)+"-- ^ber matches bertha  does not match robert"+char(10)+"$   match end of line (goes at end of pattern)"+char(10)+"-- .txt$ matches file.txt does not match file.txt.src"+char(10)+"*   matches one or more of preceding character"+char(10)+"-- c* matches c, cc, ccc, cccc "+char(10)+".   matches any unicode char (wildcard)"+char(10)+"-- .*:.*  matches root:password, email@domain.com:password, xyz:1234"+char(10)+"Important! Runtime depends on length of pattern and size of text to check. Since grep will recurse any folders in a given path, this command could result in very long run times. It is up to you to limit the scope of your searches accordingly."
@@ -1240,8 +1288,9 @@ if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
   command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
       t = arg1
       p = arg2
-      if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b>DIG v 2.0 Netcrawler</b>"+char(10)+"Usage: dig [ip] [port] -- auto-infiltrate a target"+char(10)+"-- scans ports on target"+char(10)+"-- infiltrates via shell"+char(10)+"-- uploads rkit and runs 5hell on the target"+char(10)+"-- gains root and wipes the log"+char(10)+"-- performs other user defined tasks"+char(10)+"Note: edit /root/rkit/dib.bat to customize behavior"+char(10)+"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+"-- you may add/remove commands to be executed by dig here"+char(10)+"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+"-- e.g. <b> rnip 1 | dig </b>"
-      print(colorGold+"<u>------DIG-v-1.0.1------</u>"+CT+char(10))
+      if t == "-s" then t = globals.sus
+      if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b>DIG v 2.0 Netcrawler</b>"+char(10)+"Usage: dig [ip] [port] -- auto-infiltrate a target"+char(10)+"-- scans ports on target"+char(10)+"-- infiltrates via shell"+char(10)+"-- uploads rkit and runs 5hell on the target"+char(10)+"-- gains root and wipes the log"+char(10)+"-- performs other user defined tasks"+char(10)+"Note: edit /root/rkit/dib.bat to customize behavior"+char(10)+"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+"-- type 'y' to exit and return to the script that launched dig"+char(10)+"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+"-- you may add/remove commands to be executed by dig here"+char(10)+"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+"-- e.g. <b> rnip 1 | dig </b>"+char(10)+"Experimental: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+"-- if the lib version is in the database, will dig that router"+char(10)+"-- for best results, use a database.csv that only includes entries with shell exploits"
+      print(colorGold+"<u>------DIG-v-2.0.0------</u>"+CT+char(10))
       // find the root kit     
       kit = command.tree("/","rkit",1,"N")
       if not kit then return "rkit not found"
@@ -1255,7 +1304,7 @@ if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
       // edit dig.bat if necessary
       bat_file = localmachine.File(kit.path+"/dig.bat")
       if not bat_file then 
-          command.poke(kit.path+"/dig.bat", "ifconfig -p | probe -f"+char(10)+"cob import"+char(10)+"brutus | rclean")
+          command.poke(kit.path+"/dig.bat", "ifconfig -p | probe -f"+char(10)+"cob import"+char(10)+"brutus | rclean"+char(10)+"cerebrum --purge")
           bat_file = localmachine.File(kit.path+"/dig.bat")
           if not bat_file then return "dig: unable to find or create dig.bat, aborting."
       end if
@@ -1276,7 +1325,7 @@ if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
       end if
       command.cob("export")
       // portmap target
-      command.probe(t,p)
+      command.probe("-q",t,p)
       // if not in database, scan target
       if command.meta("link","-r") then
           command.db("-r")
