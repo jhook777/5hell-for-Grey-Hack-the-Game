@@ -2,7 +2,7 @@
 if DEBUG then print("<size=75%>loading 5phinx.5pk...(100.906kb)</size>")
 
 //Define Globals
-sphinx_version = "2.3.4"
+sphinx_version = "2.3.5"
 malp_version = "1.2.3"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -1112,60 +1112,67 @@ memory_alpha = function()
 end function
 ///////////////////////////////////// END MEMORY ALPHA ///////////////////////////
 
-Gopher = function(file) // takes file object
-  if not file or typeof(file) != "file" then return "404: file not found"
-  cracked_data = []
-  pData = ""
-  localmachine.touch(currentPath , "dump.txt")
-  dump = localmachine.File(currentPath + "/dump.txt")
-  if dump then pData = dump.get_content
-  if not file.has_permission("r") then return("can't read "+file.name+"; Permission denied")
-  if file.get_content.len == 0 then return("decipher: no users found")
-  print("Found " + file.name)
-  lines = file.get_content.split(char(10))
-  print("Found " + lines.len + " line(s)")
-  password = null
-  for line in lines
-    password = null
-    found = false
-    if line.len > 0 and line != " " and line != "Decrypt:" and line != "Learn:" then
-      userPass = line.split(":")
-      if userPass.len != 2 or userPass[1] == "" then continue
-      print("\nDeciphering: \n" + line)
-      userPass[1] = userPass[1].replace("\n","")
-      if userPass[1].len != 32 then continue
-      //password = cryptools.decipher(userPass[0], userPass[1])
-      found = false
-      dbf = globals.dict_a
-      for d in dbf
-        if found == true then continue
-        h = md5(d)
-        if h == userPass[1] then
-          password = d
-          found = true
-          continue
-        end if
-      end for
-      if not password then password = cryptools.decipher(userPass[1])
-      account = userPass[0]
-      print(account + ":" + password)
-      cracked_data.push(account.trim + ":" + password)
-    end if
-  end for
-  for d in cracked_data
-    if d != "," then pData = pData + d + char(10)
-  end for
-  if dump then
-    dump.set_content(char(10)+pData)
-    print(colorOrange+"*"+CT)
-    print(format_columns(dump.get_content))
-    print("Data saved to dump.txt")
-  else
-    print("Error saving data to dump.txt")
-    return 0
-  end if
-  return 1
+Gopher = function( input )
+
+
+
 end function
+
+
+// Gopher = function(file) // takes file object
+// if not file or typeof(file) != "file" then return "404: file not found"
+//   cracked_data = []
+//   pData = ""
+//   localmachine.touch(currentPath , "dump.txt")
+//   dump = localmachine.File(currentPath + "/dump.txt")
+//   if dump then pData = dump.get_content
+//   if not file.has_permission("r") then return("can't read "+file.name+"; Permission denied")
+//   if file.get_content.len == 0 then return("decipher: no users found")
+//   print("Found " + file.name)
+//   lines = file.get_content.split(char(10))
+//   print("Found " + lines.len + " line(s)")
+//   password = null
+//   for line in lines
+//     password = null
+//     found = false
+//     if line.len > 0 and line != " " and line != "Decrypt:" and line != "Learn:" then
+//       userPass = line.split(":")
+//       if userPass.len != 2 or userPass[1] == "" then continue
+//       print("\nDeciphering: \n" + line)
+//       userPass[1] = userPass[1].replace("\n","")
+//       if userPass[1].len != 32 then continue
+//       //password = cryptools.decipher(userPass[0], userPass[1])
+//       found = false
+//       dbf = globals.dict_a
+//       for d in dbf
+//         if found == true then continue
+//         h = md5(d)
+//         if h == userPass[1] then
+//           password = d
+//           found = true
+//           continue
+//         end if
+//       end for
+//       if not password then password = cryptools.decipher(userPass[1])
+//       account = userPass[0]
+//       print(account + ":" + password)
+//       cracked_data.push(account.trim + ":" + password)
+//     end if
+//   end for
+//   for d in cracked_data
+//     if d != "," then pData = pData + d + char(10)
+//   end for
+//   if dump then
+//     dump.set_content(char(10)+pData)
+//     print(colorOrange+"*"+CT)
+//     print(format_columns(dump.get_content))
+//     print("Data saved to dump.txt")
+//   else
+//     print("Error saving data to dump.txt")
+//     return 0
+//   end if
+//   return 1
+// end function
 
 transmit = function(send, passwd=0)
   // transmit
