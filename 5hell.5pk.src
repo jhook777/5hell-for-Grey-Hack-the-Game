@@ -1,12 +1,14 @@
-// 5hell v 3.4.6 by Plu70
+// 5hell v 3.5.4 by Plu70
 // released v 3.4.5
 // imports .5pk files from /root/src
-ver = "3.5.0_amalgamated_horrors"
+ver = "3.5.4_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
 //
 // changes:
+// updated some help documentation
+// completely rewrote gopher, commented out old version in 5phinx.5pk
 // extended partial object support to all main object types
 // added more partial object support
 // scribus: disabled confirmation before opening file
@@ -714,7 +716,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0, arg5=0)
 	return shell.launch(file.path, parameters)
 end function
 command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "scribus [path_to_file] -- terminal text editor"+char(10)+"Advanced: scribus @clipa|@clipb|@clipc -- This edits the clipboard directly."+char(10)+"Advanced: scribus @cc -- edit the command buffer."+char(10)+"Advanced: scribus [file_object] -- text only, open contents of piped object."+char(10)+"Advanced: scribus @do -- edit the do buffer (no longer @clipb)"
+	if arg1 == "help" or arg1 == "-h" then return "Scribus Terminal Text Editor by Plu70"+char(10)+"scribus [path_to_file] -- open terminal text editor on file at path"+char(10)+"Advanced: scribus @clipa|@clipb|@clipc -- This edits the clipboard directly."+char(10)+"Advanced: scribus @cc -- edit the command buffer."+char(10)+"Advanced: scribus [file_object] -- text only, open contents of piped object."+char(10)+"Advanced: scribus @do -- edit the do buffer (to write / edit <b>do</b> scripts without launching them)"+char(10)+"-- see <b>do -h</b> for more info"+char(10)+"Note: you may press <b>@h</b> on a new line to get additional command info within the editor."
 	p = arg1
 	if not p then
 		print(":> "+colorCyan+"/relative/path/to/file"+CT+" - open a text file in the editor")
