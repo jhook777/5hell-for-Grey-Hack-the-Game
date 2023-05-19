@@ -751,7 +751,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	return "rsi: exiting..."
 end function
 command.scpm = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "scpm: scp menu"+char(10)+"Usage: scpm -- from menu select target shell (active shell is shown with an '*'). "+char(10)+"-- input source path and then destination path at prompts."+char(10)+"-- select upload or download. Note the printed trajectories."+char(10)+"-- (these can change when glasspool is involved)."+char(10)+"-- if uploading indicate if editing permissions"+char(10)+"-- if editing permissions press enter for defaults"+char(10)+"-- default is o+rwx before uploading and then o-rwx after uploading."+char(10)+"Always mind permissions! Type lock constantly to feel secure."+char(10)+"Advanced: scpm [string_path|piped_file] -- open scpm menu with path or file.path tagged for scp"+char(10)+"Advanced: scpm [piped_shell] -- skip menu and scp to/from piped shell"
+	if arg1 == "help" or arg1 == "-h" then return "SCPM: 5hell.SCP Menu"+char(10)+"Usage: scpm -- from menu select target shell (active shell is shown with an '*'). "+char(10)+"-- input source path and then destination path at prompts."+char(10)+"-- select upload or download. Note the printed trajectories."+char(10)+"-- (these can change when glasspool is involved)."+char(10)+"-- if uploading indicate if editing permissions"+char(10)+"-- if editing permissions press <b>enter</b> for defaults"+char(10)+"-- default is <b>o+rwx</b> before uploading and then o-rwx after uploading."+char(10)+"Always mind permissions! Type lock constantly to feel secure."+char(10)+"Advanced: scpm [string_path|piped_file] -- open scpm menu with path or file.path tagged for scp"+char(10)+"Advanced: scpm [piped_shell] -- skip menu and scp to/from piped shell"+char(10)+"E.G. - clipb @B 1 | scpm -- use the shell object from buffer[1] with .scp"
 	target_shell = null
 	if typeof(arg1) == "string" then
 		tag = globals.get_file(arg1)
@@ -1035,7 +1035,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	return "air: exiting..."
 end function
 command.probe = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: probe [optional: ip] [optional: port] -- scan network (scans 15 per subnet)"+char(10)+"probe -f [opt:ip] [opt:port] -- full scan (takes longer. gets all non-firewalled machines on network.)"+char(10)+"i.e. 255 per subnet."+char(10)+"</b>Usage: probe [-s|show] -- display portmap.</b>"+char(10)+"N.B. remote scanning has been nerfed by the dev. Scan networks locally to get all machines."+char(10)+"Quick: probe -q [opt:ip] [opt:port] -- quick scan, max 2 per subnet."
+	if arg1 == "help" or arg1 == "-h" then return "<u><b>Probe || nMap || portscan</b></u>"+char(10)+"Usage: probe [optional: ip] [optional: port] -- standard whois and portmap"+char(10)+"probe -f [opt:ip] [opt:port] -- full scan. Takes longer. Gets all reachable, non-firewalled machines on subnet."+char(10)+"</b>Usage: probe [-s|show] -- display currently loaded portmap.</b>"+char(10)+"-- when local on a network, probe each router by LAN ip to probe that subnet"+char(10)+"Quick: probe -q [opt:ip] [opt:port] -- quick scan, gets only surface level machines on subnet."+char(10)+"Note: in all cases probe will set target ip and target port."
 	if not localmachine.is_network_active then return "probe: no network connection."
 	if arg1 =="-s" or arg1 == "show" then
 		if PORT_MAP then return globals.display_portmap(1)
@@ -1754,7 +1754,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 end function///////////////END DATABASER//////////////////
 
 command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "linkdb [target_lib] [optional:path_to_database]"+char(10)+"or"+char(10)+"linkdb [target_lib] @home -- user connect_service to access remote database (set ip, port and pw with launch params or the target command.)"+char(10)+"or"+char(10)+"pwd | linkdb [target_lib] -- user database.csv in currentPath."
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Link Database"+char(10)+"Uasage: linkdb [target_lib] [optional:path_to_database] -- link a lib in the database that matches target_lib"+char(10)+"-- eg: linkdb 1.0.1 -- prompts to link any entry that contains 1.0.1"+char(10)+"Usage: linkdb [target_lib] @home -- uses connect_service to access remote database for linking"+char(10)+"-- set ip, port and pw with launch params or the <b>target</b> command."+char(10)+"-- eg: linkdb kernel @home -- connects to machine at target ip and prompts to link any entry that matches 'kernel' "
 	link = function(f,a,y)
 		buf = f.get_content.split(char(10))
 		found_it = false
@@ -2140,7 +2140,7 @@ end if
 return file.path
 end function
 command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
-	if arg1 == "-h" or arg1 == "help" then return "Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+"(Default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords)"+char(10)+"Usage: brutus -i [/path|object] -- import dictionary (may be csv or newline separated values)"+char(10)+"-- 5hell will attempt to determine the type. Please ensure valid inputs."+char(10)+"-- accepts: path to file or folder, or piped file/folder object"+char(10)+"-- See dfit for making a.csv from newline separated dictionary file."+char(10)+"-- See cerebrum for altering onboard dict_a"+char(10)+"Advanced: brutus -s [shell_object] [ip] -- use shell_object to initiate ssh + brutus attack against ip "+char(10)+"(equal to command.ssh root@-brutus [ip] but uses the given shell instead of active shell)"
+	if arg1 == "-h" or arg1 == "help" then return colorGold+"Brutus: dictionary attack psudo brute force type tool"+char(10)+"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+"(Default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords)"+char(10)+"-- on success sends <b>shell</b> to BUFFER and password to <b>clipa</b>"+char(10)+"Usage: brutus -i [/path|object] -- import dictionary (may be csv or newline separated values)"+char(10)+"-- 5hell will attempt to determine the type. Please ensure valid inputs."+char(10)+"-- accepts: path to file or folder, or piped file/folder object"+char(10)+"-- See dfit for making a.csv from newline separated dictionary file."+char(10)+"-- See cerebrum for altering onboard dict_a"+char(10)+"Advanced: brutus -s [shell_object] [ip] -- use shell_object to initiate ssh + brutus attack against ip "+char(10)+"(equal to command.ssh root@-brutus [ip] but uses the given shell instead of active shell)"
 	dic = globals.dict_a
 	u_name = "root"
 	ip = ""
@@ -2240,7 +2240,7 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 	return 0
 end function
 command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "Magnum Cerebrum: big brain. "+char(10)+"Expand dict_a to 300k+ passwords for this runtime instance. Returns zero."+char(10)+"(Use <b>pwgen</b> instead to save passwords locally)."+char(10)+colorCyan+"Advanced: cerebrum -i [/path/to/file|file_object] -- import a custom dictionary"+char(10)+"-- may be csv or nsv: ',' or char(10) "+char(10)+"-- may be file, directory or piped object"+char(10)+"Advanced: cerebrum -i [/path/to/folder] -- import text files in folder to onboard dictionary."+char(10)+"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary."+char(10)+"Advanced: cerebrum -p -- load only common player passwords (wip)"+char(10)+"Advanced: cerebrum -i @home -- import dictionary file or folder from @home server"+char(10)+"-- searches /root/tables/tp on @home server"+char(10)+"-- see help @home for more information about the @home server."
+	if arg1 == "-h" or arg1 == "help" then return colorGold+"<u>Magnum Cerebrum: Big Brain. </u>"+CT+char(10)+"Expand dict_a to 300k+ passwords for this runtime instance. Returns zero."+char(10)+"(Use <b>pwgen</b> instead to save passwords locally)."+char(10)+colorCyan+"Advanced: cerebrum -i [/path/to/file|file_object] -- import a custom dictionary"+char(10)+"-- may be csv or nsv: ',' or char(10) "+char(10)+"-- may be file, directory or piped object"+char(10)+"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary (to save memory)."+char(10)+"Advanced: cerebrum -p -- load only common player passwords (wip)"+char(10)+"Advanced: cerebrum -i @home -- import dictionary file or folder from @home server"+char(10)+"-- searches /root/tables/tp on @home server"+char(10)+"-- see help @home for more information about the @home server."
 	if arg1 == "-i" and not arg2 then return "cerebrum: -i expects /path or file_object or @home."
 	infile = null
 	if arg1 == "--purge" then 
