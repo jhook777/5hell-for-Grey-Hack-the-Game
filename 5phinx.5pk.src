@@ -2,7 +2,7 @@
 if DEBUG then print("<size=75%>loading 5phinx.5pk...(100.906kb)</size>")
 
 //Define Globals
-sphinx_version = "2.3.5"
+sphinx_version = "2.3.6"
 malp_version = "1.2.3"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -166,6 +166,7 @@ decompiler = function(object)
     if typeof(@catch) == "number" then catch = str(catch)
     return @catch
   end if
+  if typeof(c) == "number" then return c
   if c.indexOf("__isa") >= 0 or c.hasIndex("__isa") or typeof(c) == "pshell" or typeof(c) == "pfile" or typeof(c) == "pcomputer" or typeof(c) == "shell" or typeof(c) == "file" or typeof(c) == "computer" or typeof(c) == "ftpshell" then 
     methods = c.__isa.indexes
     for ind in methods
@@ -185,8 +186,9 @@ decompiler = function(object)
     if pr.lower == "q" or pr == "" or pr == " " then return "aborting..." 
     pr = pr.to_int
     rcv = null
-    if pr >= 0 and pr <= i then rcv = globals.p_exe( c , methods[pr])
-    if rcv.hasIndex("__isa") then //typeof(rcv) == "shell" or typeof(rcv) == "computer" or typeof(rcv) == "file" or typeof(rcv) == "router" or typeof(rcv) == "port" or typeof(rcv) == "ftpshell" or typeof(rcv) == "netsession" or typeof(rcv) == "metaLib" then 
+    if pr >= 0 and pr <= i then rcv = globals.p_exe( c , methods[pr]) else return 0
+    if DEBUG then print "rcv: "+rcv
+    if rcv then //and typeof(rcv) != "number" and rcv.hasIndex("__isa") then //typeof(rcv) == "shell" or typeof(rcv) == "computer" or typeof(rcv) == "file" or typeof(rcv) == "router" or typeof(rcv) == "port" or typeof(rcv) == "ftpshell" or typeof(rcv) == "netsession" or typeof(rcv) == "metaLib" then 
       globals.BUFFER.push(rcv)
       print( typeof(rcv) + " sent to BUFFER." ) 
     end if
