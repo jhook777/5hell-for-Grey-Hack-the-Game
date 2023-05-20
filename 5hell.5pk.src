@@ -1,12 +1,13 @@
 // 5hell v 3.5.4 by Plu70
 // released v 3.4.5
 // imports .5pk files from /root/src
-ver = "3.5.4_amalgamated_horrors"
+ver = "3.5.5_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
 //
 // changes:
+// fixed another bug in decompiler and p_exe
 // updated some help documentation
 // completely rewrote gopher, commented out old version in 5phinx.5pk
 // extended partial object support to all main object types
@@ -444,12 +445,14 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	showHide = 0
 	showDetails = 0
 	a_order = 0
+	s_order = 0
 	if arg1 then 
 		if arg1.indexOf("-") == 0 then // we have flags
 			if arg2 then folderPath = arg2
 			if arg1.indexOf("a") != null then showHide = 1
 			if arg1.indexOf("l") != null then showDetails = 1
 			if arg1.indexOf("A") != null then a_order = 1
+			if arg1.indexOf("s") != null then s_order = 1
 		else 
 			folderPath = arg1
 		end if
@@ -1414,7 +1417,8 @@ command.md5 = function(arg1, arg2, arg3=0, arg4=0)
 				end if
 			end for
 			if crypto then
-				return crypto.decipher(arg2)
+				rslt = crypto.decipher(arg2)
+				if rslt then return rslt
 			end if
 			return "md5: hash not found"
 		end if
