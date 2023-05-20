@@ -438,7 +438,7 @@ command.psudo = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.shell_prompt(psl)
 end function
 command.ls = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "List Files"+char(10)+"Usage: ls [opt: -l | -a | -la] [opt: /path] -- list files in path"+char(10)+"-- opt: -l -- list file details"+char(10)+"-- opt: -a -- list all files (including hidden .files)"+char(10)+"N.B. -- files and folders listed from first created to last created"
+	if arg1 == "-h" or arg1 == "help" then return "List Files"+char(10)+"Usage: ls [opt: -l,-a,-A] [opt: /path] -- list files in path"+char(10)+"-- opt: -l -- list file details"+char(10)+"-- opt: -a -- list all files (including hidden .files)"+char(10)+"-- opt: -A -- list files alphabetically"+char(10)+"-- option flags may be combined. ie: -laA"+char(10)+"N.B. -- files and folders listed from first created to last created by default"
 	folderPath = globals.currentPath
 	if DEBUG then print("ls: "+folderPath)
 	showHide = 0
