@@ -438,20 +438,45 @@ command.psudo = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.shell_prompt(psl)
 end function
 command.ls = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "List Files"+char(10)+"Usage: ls [opt: -l | -a | -la] [opt: /path] -- list files in path"+char(10)+"-- opt: -l -- list file details"+char(10)+"-- opt: -a -- list all files (including hidden .files)"+char(10)+"N.B. -- files and folders listed from first created to last created"
 	folderPath = globals.currentPath
 	if DEBUG then print("ls: "+folderPath)
-	if arg1 == "-h" or arg1 == "help" then return command_info("ls_usage")
-	if arg1 and arg1.indexOf("-") == null then folderPath = arg1
-	if arg2 and arg1.indexOf("-") != null then folderPath = arg2
+	showHide = 0
+	showDetails = 0
+	a_order = 0
+	if arg1 then 
+		if arg1.indexOf("-") == 0 then // we have flags
+			if arg2 then folderPath = arg2
+			if arg1.indexOf("a") != null then showHide = 1
+			if arg1.indexOf("l") != null then showDetails = 1
+			if arg1.indexOf("A") != null then a_order = 1
+		else 
+			folderPath = arg1
+		end if
+	end if 
 	folder = globals.get_file(folderPath)
 	if not folder then return "ls: No such file or directory"
-	if DEBUG then print("folder: "+folder.path)
+	if DEBUG then print("folder: "+folder.path+" is a: "+typeof(folder))
 	//if not folder.has_permission("r") then return "ls: permission denied"
-	showHide = 0
-	if arg1 and arg1.indexOf("a") != null then showHide = 1
-	showDetails = 0
-	if arg1 and arg1.indexOf("l") != null then showDetails = 1
-	subFiles = folder.get_folders + folder.get_files
+	if folder.is_folder then 
+		subFiles = folder.get_folders + folder.get_files
+		if a_order then 
+			f_buf = []
+			s_buf = []
+			for sub in subFiles 
+				f_buf.push(sub.name)
+			end for
+			f_buf.sort
+			for f in f_buf 
+				for sub in subFiles
+					if sub.name == f then s_buf.push(sub)
+				end for 
+			end for 
+			subFiles = s_buf
+		end if
+	else 
+		subFiles = [folder]
+	end if
 	output = ""
 	for subFile in subFiles
 		nameFile = subFile.name
