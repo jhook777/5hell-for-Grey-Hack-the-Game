@@ -15,20 +15,30 @@ mark as importable
 Build to /root/src/dtools.5pk
 
 Copy battleship.5pk.src and blackjack.5pk.src and drugwars.5pk.src to code editor and build to
-/root/src/blackjack.5pk and /root/src/battleship.5pk and /root/src/drugwars.5pk
+/root/src/blackjack.5pk and<br>
+/root/src/battleship.5pk and <br>
+/root/src/drugwars.5pk
+
 be sure to mark as importable
 
 copy 5phinx.5pk.src to code editor and build to
-/root/src/5phinx.5pk
-remember to mark it as importable
+/root/src/5phinx.5pk<br>
+remember to mark it as importable<br>
 
 /root/src should now have the following built, importable files:
 
-dtools.5pk
-kore.5pk
+drugwars.5pk
+
 battleship.5pk
+
 blackjack.5pk
+
+dtools.5pk
+
+kore.5pk
+
 5phinx.5pk
+
 
 Now, copy 5hell.5pk.src to code editor, mark as importable and build to
 /root/src/5hell.5pk
