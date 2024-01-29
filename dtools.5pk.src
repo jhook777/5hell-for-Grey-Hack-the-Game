@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.6.9.7...(101.304kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.6.9.8...(102.042kb)</size>")
 re = {}
 re.match = function(regexp, text) // expects character arrays
 	if DEBUG then print("<b> in globals.re(gex)")
