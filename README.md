@@ -14,8 +14,8 @@ Copy dtools.5pk.src to CodeEditor.exe in game
 mark as importable
 Build to /root/src/dtools.5pk
 
-Copy battleship.5pk.src and blackjack.5pk.src to code editor and build to
-/root/src/blackjack.5pk and /root/src/battleship.5pk
+Copy battleship.5pk.src and blackjack.5pk.src and drugwars.5pk.src to code editor and build to
+/root/src/blackjack.5pk and /root/src/battleship.5pk and /root/src/drugwars.5pk
 be sure to mark as importable
 
 copy 5phinx.5pk.src to code editor and build to
