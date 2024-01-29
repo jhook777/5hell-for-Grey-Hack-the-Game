@@ -17,14 +17,14 @@ DIFFICULTY = "hard" // lol jk, still need better ai algorithm. easy or medium av
 EARLYTERM = false
 self_play = false
 //if params.len >= 1 and (params[0] == "-s" or params [1] == "-s") then self_play = true
-debug = globals.DEBUG
+//debug = globals.DEBUG
 disable_color = false
 
 /////////
 if s == "-s" then self_play = true
 ////////////////////////
-MIN = 0 // minimum X/Y values for grid size
-MAX = 9 // maximum X/Y values for grid size
+globals.MIN = 0 // minimum X/Y values for grid size
+globals.MAX = 9 // maximum X/Y values for grid size
 rng = range(MIN,MAX)
 rnd = range(MIN,MAX)
 rng.shuffle
@@ -71,10 +71,10 @@ end function
 
 /////// SANITY CHECK /////
 check_sanity = function(sobj) // ensure ships don't overlap
-	if debug then print("Checking Sanity...")
-	if debug then print(sobj.frigate)
-	if debug then print(sobj.cruiser)
-	if debug then print(sobj.battleship)
+	if globals.DEBUG then print("Checking Sanity...")
+	if globals.DEBUG then print(sobj.frigate)
+	if globals.DEBUG then print(sobj.cruiser)
+	if globals.DEBUG then print(sobj.battleship)
 
 	bshipX = sobj.battleship.X
 	bshipY = sobj.battleship.Y
@@ -83,31 +83,31 @@ check_sanity = function(sobj) // ensure ships don't overlap
 	fshipX = sobj.frigate.X
 	fshipY = sobj.frigate.Y
 
-	if debug then print( bshipX  )
+	if globals.DEBUG then print( bshipX  )
 
 	collision = 0
 	static_ship = "battleship"
 
 	for fx in fshipX
-		if fx > MAX then collision = "out_of_bounds"
+		if fx > globals.MAX then collision = "out_of_bounds"
 		if cshipX.indexOf(fx) >= 0 then
 			for fy in fshipY
 				if cshipY.indexOf(fy) >= 0 then
 					collision = "frigate"
 					static_ship = "cruiser"
-					if fy > MAX then collision = "out_of_bounds"
+					if fy > globals.MAX then collision = "out_of_bounds"
 				end if
 			end for
 		end if
 	end for
 
 	for bx in bshipX
-		if bx > MAX then collision = "out_of_bounds"
-		if debug then print("bx:"+bx)
-		if debug then print("cruiser: index of bx: "+cshipX.indexOf(bx))
+		if bx > globals.MAX then collision = "out_of_bounds"
+		if globals.DEBUG then print("bx:"+bx)
+		if globals.DEBUG then print("cruiser: index of bx: "+cshipX.indexOf(bx))
 		if cshipX.indexOf(bx) >= 0 and cshipX.hasIndex(cshipX.indexOf(bx)) then
 			for by in bshipY
-				if debug then print("by:"+by)
+				if globals.DEBUG then print("by:"+by)
 				if cshipY.indexOf(by) >= 0 and cshipY.hasIndex(cshipY.indexOf(by)) then collision = "cruiser"
 
 			end for
@@ -116,20 +116,20 @@ check_sanity = function(sobj) // ensure ships don't overlap
 		if fshipX.indexOf(bx) >= 0 then
 			for by in bshipY
 				if fshipY.indexOf(by) >= 0 then collision = "frigate"
-				if by > MAX then collision = "out_of_bounds"
+				if by > globals.MAX then collision = "out_of_bounds"
 			end for
 		end if
 
 	end for
 	for cx in cshipX
-		if cx > MAX then collision = "out_of_bounds"
+		if cx > globals.MAX then collision = "out_of_bounds"
 	end for
 	for cy in cshipY
-		if cy > MAX then collision = "out_of_bounds"
+		if cy > globals.MAX then collision = "out_of_bounds"
 	end for
-	if debug then print("coll:"+collision)
+	if globals.DEBUG then print("coll:"+collision)
 	if collision then
-		if debug then print("Handling collision between "+static_ship+" and "+collision+"...")
+		if globals.DEBUG then print("Handling collision between "+static_ship+" and "+collision+"...")
 		// this tactic is known as 'do something, even if it's wrong'
 		nX = sobj[collision]["X"]
 		nY = sobj[collision]["Y"]
@@ -140,7 +140,7 @@ check_sanity = function(sobj) // ensure ships don't overlap
 			rr = range(-1,1)
 			rr.shuffle
 			nY[0] = nY[0] + rr.pop
-			if nY[0] > MAX then collision = "out_of_bounds"
+			if nY[0] > globals.MAX then collision = "out_of_bounds"
 		else
 			if nX[0] <= 0 then nX[0] = 3
 			if nX[0] >= 9 then nX[0] = 5
@@ -148,12 +148,12 @@ check_sanity = function(sobj) // ensure ships don't overlap
 			rr = range(-1,1)
 			rr.shuffle
 			nX[0] = nX[0] + rr.pop
-			if nX[0] > MAX then collision = "out_of_bounds"
+			if nX[0] > globals.MAX then collision = "out_of_bounds"
 		end if
 	end if
 	//////
-	if debug then print("Handled. Back propagating...")
-	if debug and not collision then print("Sanity check complete.")
+	if globals.DEBUG then print("Handled. Back propagating...")
+	if globals.DEBUG and not collision then print("Sanity check complete.")
 	return collision// true for recursion or false if no collisions and sane
 end function
 //// END SANITY CHECK //////
@@ -161,11 +161,11 @@ end function
 map = {}
 map.grid = []
 map.make = function()
-	map.grid = range(MIN,MAX)
-	for e in range(MIN,MAX)
-		map.grid[e] = range(MIN,MAX)
+	map.grid = range(globals.MIN,globals.MAX)
+	for e in range(globals.MIN,globals.MAX)
+		map.grid[e] = range(globals.MIN,globals.MAX)
 		for c in map.grid[e]
-			if debug then
+			if globals.DEBUG then
 				map.grid[e][c] = e+","+c
 			else
 				map.grid[e][c] = colorLightBlue+"www"+CT
@@ -203,7 +203,7 @@ map.edit_cell = function(xy,beef,actor)
 			end if
 		end if
 	end if
-	if debug then print("X:"+x+" Y:"+y+" edit:"+edit)
+	if globals.DEBUG then print("X:"+x+" Y:"+y+" edit:"+edit)
 	if map["grid"][x][y] == (colorRed+"***"+CT) then
 		if beef then
 			edit = colorRed+"*"+CT+colorOrange+"*"+CT+colorRed+"*"+CT
@@ -219,9 +219,9 @@ map.edit_cell = function(xy,beef,actor)
 end function
 map.display_grid = function()
 	buf = ""
-	y = MAX
-	while y >= MIN
-		for x in range(MIN,MAX)
+	y = globals.MAX
+	while y >= globals.MIN
+		for x in range(globals.MIN,globals.MAX)
 			buf = buf + "." + map.get_cell(x,y) + "."
 		end for
 		buf = buf + colorGreen+"</b>.["+y+"]</color>"+ char(10)
@@ -251,7 +251,7 @@ player.fire = function(coords)
 	wait(1)
 	count = 0
 	for ship_obj in self.opponent.position
-		if debug then print(ship_obj)
+		if globals.DEBUG then print(ship_obj)
 		shipX = ship_obj.value.X
 		shipY = ship_obj.value.Y
 		count = count + 1
@@ -280,13 +280,13 @@ player.spawn_ship = function(ship)
 	if ship.hasIndex("frigate") then i = ship.frigate
 	if ship.hasIndex("cruiser") then i = ship.cruiser
 	if ship.hasIndex("battleship") then i = ship.battleship
-	if debug then print("["+colorWhite+ship.label+CT+"]")
+	if globals.DEBUG then print("["+colorWhite+ship.label+CT+"]")
 
 	transmform = function(sob)
-		if sob.X[0] == MIN then left_edge = true
-		if sob.X[-1] == MAX then right_edge = true
-		if sob.Y[0] == MIN then bottom_edge = true
-		if sob.Y[-1] == MAX then top_edge = true
+		if sob.X[0] == globals.MIN then left_edge = true
+		if sob.X[-1] == globals.MAX then right_edge = true
+		if sob.Y[0] == globals.MIN then bottom_edge = true
+		if sob.Y[-1] == globals.MAX then top_edge = true
 		if sob.X.len > 1 then
 			top_edge = true
 			bottom_edge = true
@@ -303,24 +303,24 @@ player.spawn_ship = function(ship)
 		if bottom_edge then vote_down = 0
 		if left_edge then vote_left = 0
 		if right_edge then vote_right = 0
-		rn = range(1,10) // do not set min to zero
+		rn = range(1,10) // do not set globals.MIN to zero
 		rn.shuffle
 		vote_up = (vote_up * rn.pop)
-		if debug then print(vote_up+":up")
+		if globals.DEBUG then print(vote_up+":up")
 		rn.shuffle
 		vote_down = (vote_down * rn.pop)
-		if debug then print(vote_down+":down")
+		if globals.DEBUG then print(vote_down+":down")
 		rn.shuffle
 		vote_right = (vote_right * rn.pop)
-		if debug then print(vote_right+":right")
+		if globals.DEBUG then print(vote_right+":right")
 		rn.shuffle
 		vote_left = (vote_left * rn.pop)
-		if debug then print(vote_left+":left")
+		if globals.DEBUG then print(vote_left+":left")
 		tally = [vote_up,vote_down,vote_left,vote_right]
 		tally.sort
 		tally.reverse
 		winner = tally[0]
-		if debug then print(winner)
+		if globals.DEBUG then print(winner)
 		if winner == 0 then return
 		if winner == vote_up then //up
 			sob.Y.push(sob.Y[-1]+1)
@@ -394,7 +394,7 @@ player1.confirm = function(cmd)
 		player1.BUFFER.push(cmd)
 	end if
 	aim = cmd.split(" ")
-	if aim[0].val > MAX or aim[1].val > MAX or aim[0].val < MIN or aim[1].val < MIN then
+	if aim[0].val > globals.MAX or aim[1].val > globals.MAX or aim[0].val < globals.MIN or aim[1].val < globals.MIN then
 		print(colorOrange+"</b>Target designation is out of bounds!</color>")
 		return 0
 	end if
@@ -463,11 +463,11 @@ computa.AI.update_ghosts = function(new_X, new_Y, new_T)
 end function
 computa.AI.alpha = function()
 	last_shot = summary.accuracy.Computa.hist[-2]
-	if debug then print("last shot: "+last_shot)
+	if globals.DEBUG then print("last shot: "+last_shot)
 	last_action = summary.accuracy.Computa.hist[-1]
 	if self.c_list.len < 1  or last_action == "hit" then //c_list_empty = true
 		new_C = last_shot.split(" ")
-		if debug then print(new_C)
+		if globals.DEBUG then print(new_C)
 		new_x = [new_C[0].val]
 		new_y = [new_C[1].val]
 		new_t = 0
@@ -487,7 +487,7 @@ computa.AI.alpha = function()
 			t_y.shuffle
 			t_x.shuffle
 			t_cmd = t_x[0]+" "+t_y[0]
-			if debug then print("Pushing "+t_cmd+" to c_list...")
+			if globals.DEBUG then print("Pushing "+t_cmd+" to c_list...")
 			if not self.c_list.hasIndex(t_cmd) then self.c_list.push(t_cmd)
 		end for
 	end if
@@ -499,7 +499,7 @@ computa.AI.alpha = function()
 		self.c_list.push(t_cmd)
 	end if
 	self.c_list.shuffle
-	return  self.c_list.pop // string of type "X Y" where X and Y are within MIN, MAX
+	return  self.c_list.pop // string of type "X Y" where X and Y are within outer.MIN, MAX
 end function
 computa.AI.panic_level = 4
 computa.AI.purge_ghosts = function()
@@ -513,12 +513,12 @@ end function
 computa.AI.omega = function() // when computa has found all three of Payer1's ships
 	last_shot = summary.accuracy.Computa.hist[-2]
 	hl = summary.accuracy.Computa.hit_list
-	if debug then print("hit_list: "+hl)
+	if globals.DEBUG then print("hit_list: "+hl)
 	last_action = summary.accuracy.Computa.hist[-1]
 	if self.c_list.len < 1  or last_action == "hit" then
 		hl.shuffle
 		new_C = hl[0].split(" ")
-		if debug then print(new_C)
+		if globals.DEBUG then print(new_C)
 		new_x = [new_C[0].val]
 		new_y = [new_C[1].val]
 		new_t = 0
@@ -538,7 +538,7 @@ computa.AI.omega = function() // when computa has found all three of Payer1's sh
 			t_y.shuffle
 			t_x.shuffle
 			t_cmd = t_x[0]+" "+t_y[0]
-			if debug then print("Pushing "+t_cmd+" to c_list...")
+			if globals.DEBUG then print("Pushing "+t_cmd+" to c_list...")
 			if not self.c_list.hasIndex(t_cmd) then self.c_list.push(t_cmd)
 		end for
 	end if
@@ -550,7 +550,7 @@ computa.AI.omega = function() // when computa has found all three of Payer1's sh
 		self.c_list.push(t_cmd)
 	end if
 	self.c_list.shuffle
-	return  self.c_list.pop // string of type "X Y" where X and Y are within MIN, MAX
+	return  self.c_list.pop // string of type "X Y" where X and Y are within outer.MIN, MAX
 end function
 computa.get_command = function() // obvious stub needs obvious improvement
 	ccommand = ""
@@ -570,11 +570,11 @@ computa.get_command = function() // obvious stub needs obvious improvement
 			//end if
 		end if
 	end if
-	if debug then print("sending: "+ccommand)
+	if globals.DEBUG then print("sending: "+ccommand)
 	rng.shuffle
 	rnd.shuffle
 	if self.BUFFER.hasIndex(ccommand) then
-		if debug then print("!!Repeat detected!!")
+		if globals.DEBUG then print("!!Repeat detected!!")
 		self.AI.panic_level = 8
 		ccommand = false
 		//return ccommand
@@ -588,7 +588,7 @@ end function
 //// END Computa
 
 
-if debug then print("Initializing players...")
+if globals.DEBUG then print("Initializing players...")
 rng = range(MIN,MAX)
 rnd = range(MIN,MAX)
 
@@ -601,7 +601,7 @@ computa.wake_AI
 rnd.shuffle
 rng.shuffle
 
-if debug then print("...readying player1...")
+if globals.DEBUG then print("...readying player1...")
 player1.setup(rng,rnd)
 
 player1.opponent = computa
@@ -610,8 +610,8 @@ computa.opponent = player1
 player1.score = [0,0,0] // [frigate,cruiser,battleship]
 computa.score = [0,0,0] // [2_tokill,3 tokill,5 tokill] (transorms + 1 to kill)
 check_score = function(bit,act)
-	if debug then print("Scoring...")
-	if debug then print(act+":"+bit)
+	if globals.DEBUG then print("Scoring...")
+	if globals.DEBUG then print(act+":"+bit)
 	if act == player1.label then
 		if not bit then return 1
 		player1.score[bit-1] = player1.score[bit-1] + 1
@@ -631,19 +631,19 @@ DATASET.accuracy.Computa = {}
 DATASET.accuracy.Player = {}
 summary = new DATASET
 summary.purge = function()
-	if debug then print("purging...")
+	if globals.DEBUG then print("purging...")
 	self.accuracy.Computa.hist = []
 	self.accuracy.Player.hist = []
 end function
 summary.accuracy.update = function(lbl, event, crds)
 	//summary.purge
-	if debug then print("updating..."+lbl)
-	if lbl == self.Player.label and debug then print("player found!")
+	if globals.DEBUG then print("updating..."+lbl)
+	if lbl == self.Player.label and globals.DEBUG then print("player found!")
 	summary["accuracy"][lbl]["hist"].push(crds)
-	if debug then print(crds)
+	if globals.DEBUG then print(crds)
 	if event == "hit" then // hit
 		summary["accuracy"][lbl]["Hits"] = summary["accuracy"][lbl]["Hits"] + 1
-		if debug then print("pushing "+crds+" to hit_list...")
+		if globals.DEBUG then print("pushing "+crds+" to hit_list...")
 		summary["accuracy"][lbl]["hit_list"].push(crds)
 	else // miss
 		summary["accuracy"][lbl]["Misses"] = summary["accuracy"][lbl]["Misses"] + 1
@@ -651,7 +651,7 @@ summary.accuracy.update = function(lbl, event, crds)
 	summary["accuracy"][lbl]["hist"].push(event)
 end function
 summary.accuracy.report = function()
-	if debug then print("reporting...")
+	if globals.DEBUG then print("reporting...")
 	last_computer_shot = self.Computa.hist
 	last_player_shot = self.Player.hist
 	if last_computer_shot[-1] == "hit" then
@@ -681,14 +681,14 @@ end function
 summary.accuracy.init
 
 
-if debug then print("...init complete. Starting main...")
+if globals.DEBUG then print("...init complete. Starting main...")
 ////// BEGIN MAIN /////////
 battleship = function()
 	playing = true
 	first_run = true
 	if EARLYTERM then playing = false
-	if debug and EARLYTERM then player1.display_ship_coordinates
-	if debug and EARLYTERM then computa.display_ship_coordinates
+	if globals.DEBUG and EARLYTERM then player1.display_ship_coordinates
+	if globals.DEBUG and EARLYTERM then computa.display_ship_coordinates
 	if user_input("Select a difficulty level:"+char(10)+"[EASY] - Commander Rander"+char(10)+"[MEDIUM] - Captain Chao "+char(10)+["||: "]).lower != "EASY" then
 		print("MEDIUM difficulty selected. Good luck!")
 		DIFFICULTY = "medium"
@@ -698,14 +698,14 @@ battleship = function()
 	end if
 	///// game starts here
 	while playing
-		if not debug then clear_screen
+		if not globals.DEBUG then clear_screen
 		if not first_run then print_logo
 
 		player1.display_ship_coordinates
-		if debug then computa.display_ship_coordinates
+		if globals.DEBUG then computa.display_ship_coordinates
 		if not first_run then summary.accuracy.report
-		if debug then print(player1.score)
-		if debug then print(computa.score)
+		if globals.DEBUG then print(player1.score)
+		if globals.DEBUG then print(computa.score)
 		print(colorGreen+"</b>//////////////////////////////////////////////////////</color>")
 
 		map.display_grid
@@ -718,7 +718,7 @@ battleship = function()
 			rnd.shuffle
 			command = [rng[0], rnd[0]]
 			command = command.join(" ")
-			if not debug then wait(1)
+			if not globals.DEBUG then wait(1)
 		else
 			print("q=quit")
 			command = user_input("Enter coordinates [0-9] as [x y]: ")
@@ -726,7 +726,7 @@ battleship = function()
 		end if
 		command = player1.confirm(command)
 		if command == 0 then continue // belay that order!
-		if not debug then clear_screen
+		if not globals.DEBUG then clear_screen
 		display_ship_one
 		playing = check_score(map.edit_cell(command, player1.fire(command), player1.label), player1.label)
 
@@ -735,19 +735,19 @@ battleship = function()
 		rng.shuffle // vestigial shuffle
 		rnd.shuffle // vestigial shuffle
 		wait(1)
-		if not debug then clear_screen
+		if not globals.DEBUG then clear_screen
 
 		display_ship_two
 		ai_turn = true
 		while ai_turn
 			command = computa.get_command
-			if debug then print("...recieved: "+command)
+			if globals.DEBUG then print("...recieved: "+command)
 			if command == false then continue
 			playing = check_score(map.edit_cell(command, computa.fire(command), computa.label), computa.label)
 			if not playing then return("<b>Computa sunk all of your battleships! You lose!</b>")
 			ai_turn = false
 			wait(1)
-			if not debug then clear_screen
+			if not globals.DEBUG then clear_screen
 		end while
 	end while
 end function
