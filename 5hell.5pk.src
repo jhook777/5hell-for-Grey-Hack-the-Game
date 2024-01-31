@@ -1251,7 +1251,6 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-e" then
 		return globals.enumerated
 	end if
-	if typeof(arg1) == "map" 
 	if typeof(arg1) == "list" then 
 		globals.enumerated = arg1
 		return "enum: list enumerated"
