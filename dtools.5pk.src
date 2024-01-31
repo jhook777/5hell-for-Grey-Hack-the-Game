@@ -457,7 +457,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	else
 		tem = localmachine.File("/")
 	end if
-	if not tem or not p_validate(tem) then return "tree: invalid path or file"
+	if not tem or not p_validate(tem,"size") then return "tree: invalid path or file"
 	if arg3 == "0" then arg3 = 0
 	if use_new_tree == true then return globals.newtree(tem,arg2)
 	globals.grepped_file = null
