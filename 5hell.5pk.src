@@ -335,7 +335,7 @@ globals.get_file = function(input_string)
   if file then return file else return 0
 end function
 if DEBUG then print("<size=75%>loaded get_file...</size>")
-if DEBUG then print("<size=75%>loading 5hell.5pk...(101.610kb)") ////////////////////////////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...(102.508kb)") ////////////////////////////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -484,7 +484,7 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.kill = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0  or arg1 == "-h" or arg1 == "help" then return "Usage: kill [PID] -- terminate PID. PID should be process number or ALL (see<b> ps </b>)"+char(10)+"--<b> kill ALL </b>will attempt to close all programs."+char(10)+"n.b. if<b> kill ALL </b>kills the terminal that launched the program, it may not complete its task."
-	target_machine = globals.localhost
+	target_machine = globals.localmachine
 	if typeof(arg2) == "shell" then 
 		target_machine = arg2.host_computer
 	end if
