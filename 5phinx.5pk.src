@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.6.9.8...(114.033kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.6.9.8...(114.035kb)</size>")
 
 //Define Globals
 sphinx_version = "2.4.4"
@@ -1377,23 +1377,23 @@ end function
 // end function
 
 globals.newtree = function(a_file,quiet=0)
-  if typeof(a) != "file" then return "tree: invalid type"
+  if typeof(a_file) != "file" then return "tree: invalid type"
   // system_map = {folder.path:file,file,file}
   system_map = {}
 
-  list_files = function(f)
+  listFiles = function(f)
       if f.is_folder then
           folders = f.get_folders
           files = f.get_files
           system_map[f.path] = [f]+files
           for folder in folders
               system_map[folder.path] = [folder]+folder.get_files
-              list_files(folder)
+              listFiles(folder)
           end for        
       end if
   end function
 
-  list_files(a_file)
+  listFiles(a_file)
   output = []
   outprint = []
   for i in system_map.indexes
