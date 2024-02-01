@@ -422,7 +422,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	"-- [object] - shell or computer: descends from / on object"+char(10)+
 	"-- [object] - file: descends from path of file object on said object"+char(10)+
 	"-- [grep_target] - search for target file by name"+char(10)+
-	"---- matches exact name (no regex)"
+	"---- matches exact name (no regex)"+char(10)+
 	"---- <b>returns the file as an object if found</b>"+char(10)+
 	"-- [1|0] -  1 = quiet, supress output"+char(10)+
 	"-- [1|0] -  0 = verbose, print output"+char(10)+
@@ -433,7 +433,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
 	"-- "+char(10)+
 	"<b>New: tree -f [path|object] [opt: 1|0] - tree a directory or object and enumerate all files "+char(10)+
-	"-- omitting path|object (and opt) defaults to the / path"
+	"-- omitting path|object (and opt) defaults to the / path"+char(10)+
 	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
 	"-- [opt: 0] - print output. any value other than [1] will print output"+char(10)+
 	"---- omitting this option will print output"+char(10)+
