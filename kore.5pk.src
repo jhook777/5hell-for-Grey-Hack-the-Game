@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.6.9.8...(116.538kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.7.0...(117.076kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -886,7 +886,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	print("Accessing shell [" + option + "]...")
 	ts = shells[option - 1]
 	if return_it == true then 
-		print "rsi: returning rshell ["+colorWhite+(option - 1)+CT+"]" 
+		print "rsi: returning rshell ["+colorWhite+(option)+CT+"]" 
 		return ts
 	end if
 	print
@@ -1279,10 +1279,10 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or not is_valid_ip(globals.targetIP) or (arg1 == "-f" and not arg2) then set_ip
 	if not arg2 or ( (arg1 == "-f" or arg1 == "-q") and not arg3) then globals.targetPort = "router"
 	if arg4 and arg4 == "1" then
-		who_scan(get,0,1)
+		return who_scan(get,0,1)
 		return 0
 	end if
-	who_scan(get,0,0)
+	return who_scan(get,0,0)
 	return 0
 end function
 command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -1539,9 +1539,10 @@ end function
 if DEBUG then print("<size=75%>loading ...kraken.5pk...(29.688kb)</size>")
 command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 and (arg1 == "-h" or (arg1 != "-d" and arg1 != "-n")) then
-		return "Usage: silentclean [opt:-d|-n] "+char(10)+" options:"+char(10)+" -d: log wipe + auto-self-delete rkit and/or 5hell"+char(10)+" -n: nuke system + auto-self-delete"+char(10)+" no params == local log wipe without self delete"+char(10)+"N.B. run as root as /var is usually write protected."
+		return "Usage: silentclean [opt:-d|-n] "+char(10)+" options:"+char(10)+" -d: log wipe + auto-self-delete rkit and/or 5hell"+char(10)+" -n: nuke system + auto-self-delete"+char(10)+" no params == local log wipe without self delete"+char(10)+"N.B. run as root as /var is usually write protected."+char(10)+"<b>Important: silentclean does not support piped objects"+char(10)+"-- use rclean [piped object] instead"+char(10)+"-- or run silentclean from glasspool"
 	end if
-
+	if arg1 and typeof(arg1) != "string" then print colorOrange+"silentclean: unsupported type. use rclean instead"
+	if arg2 then print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
 	cleaner = localmachine.File(program_path)
 	if cleaner and cleaner.parent.name == "rkit" then cleaner = cleaner.parent
 	syslog = localmachine.File("/var/system.log")
@@ -1857,14 +1858,18 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 		if not arg2 then arg2 = user_input("path to lib:> ").lower.trim
 		if arg2 == "" then return "liber: -i expects a path"
 		print colorWhite+"<u>liber: running command.bios -i "+arg2+CT+"</u>"
-		return command.bios(arg1,arg2)
+		catch = command.bios(arg1,arg2)
+		if catch then print
 	end if
-	if arg1 == "-l" and not arg2 then l_path = "/lib"
-	if arg1 == "-l" and arg2 then l_path = "/lib/"+arg2
-	if DEBUG then print("liber: l_path = "+l_path)
-	lib_file = localmachine.File(l_path)
-	if not lib_file then lib_file = localmachine.File(currentPath+l_path)
-	if not lib_file then lib_file = localmachine.File(currentPath+"/"+l_path)
+	//if arg1 == "-l" and not arg2 then l_path = "/lib"
+	if arg1 == "-l" then 
+		if arg2 and typeof(arg2) == "stringg" then l_path = "/lib/"+arg2
+
+
+	end if
+	if DEBUG then print("liber: l_path = "+l_path+" and is a "+typeof(l_path))
+	if typeof(l_path) == "string" then lib_file = globals.get_file(l_path)
+	if typeof(l_path) == "file" then lib_file = l_path
 	if not lib_file then return("File not found.")
 	if DEBUG then print("got: "+typeof(lib_file))
 	buf = ["liber found:"]
@@ -2143,12 +2148,12 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 				wait_for = "y"
 				if not y then wait_for = user_input("Database: found "+line+char(10)+"Link this database? [Y/n]"+char(10)+"||: ",0,1)
 				if wait_for != "n" and wait_for != "N" then
-					print(colorLightBlue+"Preparing to link database: "+CT+colorOrange+"</b>"+line+"</color>")
-					print(colorOrange+"Purging XPLOITS..."+CT)
+					print(colorLightBlue+"Preparing to link database: "+CT+char(10)+colorOrange+"</b>"+line+"</color>")
+					print("Purging XPLOITS...")
 					globals.XPLOITS = []
 					globals.MEMORY = null
 					found_it = line
-					done = "Database: link for "+found_it+" complete."
+					done = colorOrange+"Database: link for </b>"+colorWhite+found_it+"</color> complete."+CT
 					continue
 				else
 					continue
