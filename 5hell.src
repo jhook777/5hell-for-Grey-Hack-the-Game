@@ -120,7 +120,7 @@ command.shell = function(input=null)
         if e == "@b" then prompt[prompt.indexOf(e)] = @globals.clip_board_beta
         if e == "@c" then prompt[prompt.indexOf(e)] = @globals.clip_board_gamma
         if e == "@home" then prompt[prompt.indexOf(e)] = HOME_SERVER[0]
-        if e == "@tbuf" then prompt[prompt.indexOf(e)] = @globals.T_BUF
+        if e == "@tbuf" then prompt[prompt.indexOf(e)] = @globals.T_BUF.join(char(10))
       end for
       if command.hasIndex(prompt[0]) and prompt[0] != "shell" and prompt[0] != "__isa" and prompt[0] != "classID" then
         if typeof(@command[prompt[0]]) != "function" then // san check #3
