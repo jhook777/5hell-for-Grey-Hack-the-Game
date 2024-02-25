@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.7.2...(116.034kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.7.3...(116.082kb)</size>")
 
 //Define Globals
 sphinx_version = "2.4.4"
@@ -282,6 +282,7 @@ end function
 p_validate = function( object, query )
   if DEBUG then print "DEBUG: in p_validate"+char(10)+"validating: "+@object
   if typeof(@object) == "function" then return 1
+  if typeof(@object) == "number" then return 1
   test = new object 
   if test == null then return 0
   if @object.hasIndex("__isa") then
