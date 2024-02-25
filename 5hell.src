@@ -57,23 +57,23 @@ import_code("/root/src/5hell.5pk")
 //-- skipping this configuration means you can't use the transmit command. up to you.
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
-//globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)"]
-globals.HOME_SERVER = ["ip", 22, "root", "password", "ssh", "/root/pass"]
-/////// ALWAYS USE A PASSWORD (SECURITY SECTION BELLOW command.shell) WHEN USING HOME_SERVER!!!!! ////////////////////////////////
+globals.HOME_SERVER = ["ip", 22, "root", "password", "ssh or ftp", "/path/to/pass (default: /root/pass)"] // port should be int, not string!
+//////// an ftp server can be more secure than a ssh server when running a hashim -d server ///////
+/////// ALWAYS USE A PASSWORD / ACCESS CODE (see the SECURITY SECTION BELLOW command.shell) WHEN USING HOME_SERVER!!!!! ////////////////////////////////
 ////// END @HOME CONFIGURATION//////////////////////////////////////////////////
 //
 //
 ///////BEGIN MAIN ////////////////////
 // only edit this part if you know what you are doing!!!!! ////
 command.shell = function(input=null)
-  //print // an extra line before the prompt, if you want
+  //print // an extra line before the prompt, if you want ////////////////////////////////// THEME CONFIG TARGET
   running = true
   full_prompt = 0
   while running
     pipe = []  // pipe control, do not edit
     prompt = [] // prompt control, do not edit
     next = [] // pipe control, do not edit
-    bang = "|> " // YOUR PROMPT, edit to your liking /// updated to include get_name
+    bang = "|> " // YOUR PROMPT, edit to your liking /// updated to include get_name /////////////////////////////// THEME CONFIG TARGET
     if full_prompt then bang = globals.checkUser(shell)+"@"+globals.localmachine.get_name+":"+globals.currentPath+"|> " // stock FULLPROMPT, edit to your liking
     if globals.GLASSPOOL then bang = colorLightBlue+bang.trim+CT+" " // GLASSPOOL PROMPT, edit to your liking
     if input then prompt = input.split(" ") else prompt = user_input(bang).split(" ")
@@ -119,6 +119,8 @@ command.shell = function(input=null)
         if e == "@a" then prompt[prompt.indexOf(e)] = @globals.clip_board_alpha
         if e == "@b" then prompt[prompt.indexOf(e)] = @globals.clip_board_beta
         if e == "@c" then prompt[prompt.indexOf(e)] = @globals.clip_board_gamma
+        if e == "@home" then prompt[prompt.indexOf(e)] = HOME_SERVER[0]
+        if e == "@tbuf" then prompt[prompt.indexOf(e)] = @globals.T_BUF
       end for
       if command.hasIndex(prompt[0]) and prompt[0] != "shell" and prompt[0] != "__isa" and prompt[0] != "classID" then
         if typeof(@command[prompt[0]]) != "function" then // san check #3
@@ -148,12 +150,12 @@ command.shell = function(input=null)
           end if
         end if
         if DEBUG then///// begin 3.1.2 compatibility changes
-          print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
+          print("@catch: "+typeof(@catch))  // attn! catch may now be a function! ////////////////////////////////// THEME CONFIG TARGET
           //if typeof(@catch) != "function" then print("catch:  "+catch)
         end if
         if @catch then
           //if typeof(@catch) == "function" then
-            print(@catch)
+            print(@catch)//////////////////////////////////////////////////////////////////////////////////////////// THEME CONFIG TARGET
             if pipe.len then next.push(@catch) // using @reference instead of literal bc functions may now be passed
           //else
           //  print(catch)
