@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.7.0...(115.850kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.7.1...(115.9210kb)</size>")
 
 //Define Globals
 sphinx_version = "2.4.4"
@@ -1450,10 +1450,11 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
       if result.name == "passwd" or result.name == "Bank.txt" or result.name == "Mail.txt" or result.name == grep then
         if not waitFor then waitFor = "R"//user_input("Crack files? [r/y/N]||: ",0,1)
         if waitFor == "y" or waitFor == "Y" then
-          command.gopher(result.get_content)
+          if result.has_permission("r") then command.gopher(result.get_content)
         end if
         if waitFor == "r" or waitFor == "R" then
-          cont = result.get_content.split(char(10))
+          cont = result.get_content
+          if cont then cont = cont.split(char(10))
           for c in cont
             if not globals.T_BUF.indexOf(c) >= 0 then  
               globals.T_BUF.push(c)
