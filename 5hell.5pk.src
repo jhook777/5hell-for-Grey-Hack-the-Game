@@ -1,7 +1,7 @@
-// 5hell v 3.6.9 by Plu70
+// 5hell v 3.7.3 by Plu70
 // released v 3.7.2
 // imports .5pk files from /root/src
-ver = "3.7.2_amalgamated_horrors"
+ver = "3.7.3_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -21,9 +21,12 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // add chmod/perms to command.felix
 // add file name return switch to grep (grep -n)
 // kore -r needs to give /lib precedence when searching for components
-// fix crash on bad input in poke
 // add custom theme config
 // connect_service increases trace time: add something for that
+//
+// fixed crash in p_validate when validating numbers
+// fixed crash in 5phinx on port scan
+// fixed error in dig not setting permissions correctly
 //
 // IMPORTANT! 5hell.src has changed!
 // added @tbuf alias to 5hell.src
@@ -364,7 +367,7 @@ globals.get_file = function(input_string)
   if file then return file else return 0
 end function
 if DEBUG then print("<size=75%>loaded get_file...</size>")
-if DEBUG then print("<size=75%>loading 5hell.5pk...(104.051kb)") ////////////////////////////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...(104.205kb)") ////////////////////////////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -843,7 +846,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 	isRecursive = 0
 	if arg1 == "-R" or arg1 == "-r" then
 		perms = arg2
-		if arg3 and arg3 isa string then pathFile = arg3 else return "perms: invalid path"
+		if arg3 and typeof(arg3) == "string" or typeof(arg3) == "file" then pathFile = arg3 else return "perms: invalid path"
 		isRecursive = 1
 	end if
 	if typeof(pathFile) == "string" then file = globals.get_file(pathFile)
