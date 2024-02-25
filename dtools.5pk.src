@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.0...(103.120kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.3...(103.367kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -118,7 +118,7 @@ command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 
 	dest_folder = globals.get_file(destination)
-	if not dest_folder then return("poke: " + dest_path + " not found")
+	if not dest_folder then return("poke: destination path not found")
 	if not dest_folder.has_permission("w") then return("poke: permission denied")
 	try = localmachine.touch(dest_folder.path, final_name)
 	if try != 1 then
@@ -1490,8 +1490,8 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   // if shell exploit, exploit target
   mem = ""
   val = ""
-  for x in globals.XPLOITS
-      y = x.split(" ")
+  for xp in globals.XPLOITS
+      y = xp.split(" ")
       z = y[-1]
       if z == "shell" then 
           mem = y[0]
@@ -1503,21 +1503,25 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   dig_this = command.zap(mem,val,0) // get the remote shell
   if typeof(dig_this) != "shell" then return "dig: failed to obtain shell on target."
   // upload rkit (mind permissions)
-  
-  command.perms("-r","o+rwx", kit.path)
+  if DEBUG then print "dig: found a shell"
+  print command.perms("-r","o+rwx", kit.path)
+  print kit.path+ " "+kit.permissions
   globals.shell.scp(kit.path, "/home/guest", dig_this)
   // command.perms("-r","o-rwx","/root/rkit")
   pe = ""
   if not r then pe = pe + "r"
   if not w then pe = pe + "w"
   if not x then pe = pe + "x"
-  if pe != "" then command.perms("-r","o-"+pe, kit.path)
+  if pe != "" then print command.perms("-r","o-"+pe, kit.path)
+  print "restoring permissions: "+kit.path+" "+kit.permissions
   // run 5hell on target with params:
   // -- cob import | brutus
   // -- other user defined params
+  print "launching 5hell remotely..."
   dig_this.launch("/home/guest/rkit/5hell", "do 1 -f /home/guest/rkit/dig.bat")
   // rclean and exit
   // repeat if necessary
+  return "returning to original 5hell session..."
 end function
 
 // original pwgen by usespython, additions by Plu70
