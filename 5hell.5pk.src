@@ -1,7 +1,7 @@
 // 5hell v 3.6.9 by Plu70
 // released v 3.6.9
 // imports .5pk files from /root/src
-ver = "3.6.9.8_amalgamated_horrors"
+ver = "3.7.0_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -9,6 +9,7 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // changes:
 //
 // to do:
+// convince author of Medusa to port it to 5hell
 // get command.do to persist through glasspool
 // mail: add command line brutus login
 // mail: add command line login
@@ -20,6 +21,34 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // add chmod/perms to command.felix
 // add file name return switch to grep (grep -n)
 // kore -r needs to give /lib precedence when searching for components
+// fix crash on bad input in poke
+// add custom theme config
+// connect_service increases trace time: add something for that
+//
+// IMPORTANT! 5hell.src has changed!
+// added @tbuf alias to 5hell.src
+// tree should no longer duplicate entries to the tbuf
+// fixed bug in command.poke that caused writing to / on bad input
+// updated malp to properly use p_exe for functions
+// updated p_exe to handle raw functions as well as functions within maps/objects
+// updated decompiler to use p_exe for functions
+// updated dump_memory to dump the clipboards as well as t_buf
+//
+// added new_exit to 5phinx
+// -- will add the exit return value to the custom_object.return_value
+// -- added Jessa to credits
+// fixed rclean to delete the correct rkit on -d
+// fixed rclean to correctly scrub log when using -d on piped object
+// updated silentclean help info
+// adjusted output of linkdb/meta link
+// updated meta link to correctly warn about leaving a log
+// fixed typo in rsi: will print correct rshell index when using -r
+// updated dig help extra to a better script
+// -- use @home in r.bat to avoid leaving an ip
+// added @home alias to 5hell.src 
+// this means update 5hell.src as well as 5hell.5pk!!
+// -- @home as cli parameter will be replaced by HOME_SERVER[0] -- the home server ip address
+// fixed crash on bad input in liber
 //
 // added null file check to p_validate
 // -- should prevent null file crashes
@@ -335,7 +364,7 @@ globals.get_file = function(input_string)
   if file then return file else return 0
 end function
 if DEBUG then print("<size=75%>loaded get_file...</size>")
-if DEBUG then print("<size=75%>loading 5hell.5pk...(102.508kb)") ////////////////////////////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...(104.051kb)") ////////////////////////////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -1402,7 +1431,7 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		print("Function() detected...")
 		return globals.decompiler(@arg1)
 	end if
-	if arg1 == null or arg1 == "-h" or arg1 == "help" then return "<b>CODE</b> encode and decode utility"+char(10)+"Usage: code [char] -- returns ascii code for char"+char(10)+"Usage: code -c [int] -- returns ascii char(int)"+char(10)+"Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+"-- will evaluate piped functions."+char(10)+"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+"Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher</b>\n-- prompts for input if not supplied\n-- enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+"-- if input is more than one word use without params for prompt"+char(10)+"-- or use piping or an input file (see -f options)"+char(10)+"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+"-- option [-f] [path] -- prompts for enc/dec\n-- option [-fa|-af] [path] -- encode contents of path with MuninCipher\n-- option [-fb|-bf] [path] -- decode contents of path with MuninCipher"+char(10)+"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
+	if @arg1 == null or @arg1 == "-h" or @arg1 == "help" then return "<b>CODE</b> encode and decode utility"+char(10)+"Usage: code [char] -- returns ascii code for char"+char(10)+"Usage: code -c [int] -- returns ascii char(int)"+char(10)+"Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+"-- will evaluate piped functions."+char(10)+"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+"Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher</b>\n-- prompts for input if not supplied\n-- enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+"-- if input is more than one word use without params for prompt"+char(10)+"-- or use piping or an input file (see -f options)"+char(10)+"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+"-- option [-f] [path] -- prompts for enc/dec\n-- option [-fa|-af] [path] -- encode contents of path with MuninCipher\n-- option [-fb|-bf] [path] -- decode contents of path with MuninCipher"+char(10)+"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
 	Encode = function(instruction, password)
     caesar = function(type, pass)
 				if pass == "" then return char(32)
@@ -1435,17 +1464,17 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
     output = caesar(instruction, password)  // instruction should be either "enc" for encode or "dec" for decode
     return output
 	end function
-	if arg1 == 0 then return str(char(32).code)
-	if arg1 == "0" then return str("0".code)
-	if arg1 == "-a" or arg1 == "-b" then
+	if @arg1 == 0 then return str(char(32).code)
+	if @arg1 == "0" then return str("0".code)
+	if @arg1 == "-a" or @arg1 == "-b" then
 		enc_line = arg2
 		if arg2 and typeof(arg2) != "string" then return "code: -a|-b expects string input, got"+typeof(arg2)
 		if not arg2 then enc_line = user_input("MuninCipher:> ")
-		if enc_line.len > 40000 and arg1 == "-a" then return "MC: max 40k characters for encode"
+		if enc_line.len > 40000 and @arg1 == "-a" then return "MC: max 40k characters for encode"
 		cipher_input = []
 		cipher_output = []
 		enc_dec = "enc"
-		if arg1 == "-b" then enc_dec = "dec"
+		if @arg1 == "-b" then enc_dec = "dec"
 		cipher_this = ""
 		if enc_dec == "enc" then
 			cipher_input = enc_line.split(char(32))
@@ -1517,19 +1546,19 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		if enc_dec == "dec" then return cipher_output.join(" ")
 		return cipher_output
 	end if
-	if arg1 == "-c" and arg2 then return char(arg2.to_int)
-	if arg1 == "-d" then
+	if @arg1 == "-c" and arg2 then return char(arg2.to_int)
+	if @arg1 == "-d" then
 		if not arg2 then return "nothing to decode"
 		return Encode("dec", arg2)
 	end if
-	if arg1 == "-e" then
+	if @arg1 == "-e" then
 		if not arg2 then return "nothing to encode"
 		return Encode("enc", arg2)
 	end if
-	if arg1 == "-f" or arg1 == "-fa" or arg1 == "-af" or arg1 == "-bf" or arg1 == "-fb" then
+	if @arg1 == "-f" or @arg1 == "-fa" or @arg1 == "-af" or @arg1 == "-bf" or @arg1 == "-fb" then
 		act = 0
-		if arg1 == "-f" then act = (-1)
-		if arg1 == "-fa" or arg1 == "-af" then act = 1
+		if @arg1 == "-f" then act = (-1)
+		if @arg1 == "-fa" or @arg1 == "-af" then act = 1
 		cipher_file = null
 		cipher_text = ""
 		if not arg2 then return "code: -f expects a file_path or file_object"
@@ -1546,20 +1575,22 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if DEBUG then print("Checking types...")
 	buf = []
-	if typeof(arg1) == "string" then
+	if typeof(@arg1) == "string" then
 		print("<mark=yellow><size=75%>Processing string...</mark></size>")
-		if arg1 == "\n" then return str(char(10).code)
-		arg1 = arg1.values
-		for letter in arg1
+		if @arg1 == "\n" then return str(char(10).code)
+		@arg1 = @arg1.values
+		for letter in @arg1
 			buf.push(letter.code)
 		end for
 		return buf.join(", ")
 	end if
-	//if typeof(@arg1) == "function" then return globals.decompiler(@arg1)
-	if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "file" or typeof(arg1) == "computer" or typeof(arg1) == "map" or typeof(arg1) == "custom_object" or typeof(arg1) == "list" then return globals.decompiler(arg1)
-	if typeof(arg1) == "pshell" or typeof(arg1) == "pcomputer" or typeof(arg1) == "pfile" or typeof(arg1) == "prouter" then return globals.decompiler(arg1)
-	if arg1.hasIndex("__isa") then return globals.decompiler(arg1)
-	//if typeof(arg1) == "list" or "map" then return globals.decompiler(arg1)	
+	//if typeof(@@arg1) == "function" then return globals.decompiler(@@arg1)
+	if typeof(@arg1) == "shell" or typeof(@arg1) == "ftpshell" or typeof(@arg1) == "file" or typeof(@arg1) == "computer" or typeof(@arg1) == "map" or typeof(@arg1) == "custom_object" or typeof(@arg1) == "list" then return globals.decompiler(@arg1)
+	if typeof(@arg1) == "pshell" or typeof(@arg1) == "pcomputer" or typeof(@arg1) == "pfile" or typeof(@arg1) == "prouter" then return globals.decompiler(@arg1)
+	if @arg1.hasIndex("__isa") then return globals.decompiler(@arg1)
+	//if typeof(@arg1) == "list" or "map" then return globals.decompiler(@arg1)	
+	check = new @arg1 
+	if typeof(@check) == "map" then return globals.decompiler(@arg1)
 	return "code: unkown type"
 end function
 command.md5 = function(arg1, arg2, arg3=0, arg4=0)
@@ -1852,7 +1883,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, Silent, Deckard, Minidevil96, MrMember, Clover, Trashed, Bit, OmegaKawaii, Omega, Redit0, Eclipse00, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, Silent, Deckard, Minidevil96, MrMember, Clover, Trashed, Bit, OmegaKawaii, Omega, Redit0, Eclipse00, Jessa, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
