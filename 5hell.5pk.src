@@ -1,7 +1,7 @@
 // 5hell v 3.6.9 by Plu70
-// released v 3.6.9
+// released v 3.7.2
 // imports .5pk files from /root/src
-ver = "3.7.1_amalgamated_horrors"
+ver = "3.7.2_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
