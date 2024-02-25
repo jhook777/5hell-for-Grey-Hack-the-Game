@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.7.1...(115.9210kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.7.2...(116.034kb)</size>")
 
 //Define Globals
 sphinx_version = "2.4.4"
@@ -2296,7 +2296,8 @@ who_scan = function(tally=15,pause=1,quiet=false)
     // else
          t_router = get_router(ip)
     // end if
-    
+    if DEBUG then print "debug: t_router is a: "+typeof(t_router)
+    if DEBUG then print "ip is: "+ip
     if not t_router then
       if not is_lan_ip(ip) then 
         print(colorRed+"probe: ip: "+ip+" not found."+CT)
@@ -2629,7 +2630,7 @@ page_two = function()
   end while
 end function
 
-switch = function(resolve,tt)
+sphinx_switch = function(resolve,tt)
   if resolve.lower == "q" then
     return false
   end if
@@ -2915,7 +2916,7 @@ main = function()
     print(".QT.<b>A</b>..<b>IP</b>[<b>4</b>][<b>5</b>]<b>PT</b>.....")
     print("[Q][A][Z]["+char(177)+"]06<b>v</b>7<b><</b>8<b>></b>9<b>^</b>0")
     option = user_input("[0][1][2][3][4][5]||: ",0,1)
-    running = switch(option,target_type)
+    running = sphinx_switch(option,target_type)
   end while
 end function
 //main
