@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.6.9.8...(114.035kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.3 for 5hell v 3.7.0...(115.850kb)</size>")
 
 //Define Globals
 sphinx_version = "2.4.4"
@@ -23,6 +23,13 @@ update_path = function()
   globals.currentPath = current_path
   print "Updating current path to: "+globals.currentPath
   return 0
+end function
+
+_exit = @exit
+globals.exit = function(msg)
+  eob = get_custom_object
+  eob.return_value = msg
+  _exit(msg)
 end function
 
 hot_swap_libs = function()
@@ -142,6 +149,10 @@ dump_memory = function()
     if XPLOITS then buf.push(XPLOITS.join( char(10) ) + char(10) )
     if meta_scan then buf.push(meta_scan.join( char(10) ) + char(10) )
     if PORT_MAP then buf.push(display_portmap(1))
+    if @globals.clip_board_alpha.len > 0 then buf.push( @globals.clip_board_alpha )
+    if @globals.clip_board_beta.len > 0 then buf.push( @globals.clip_board_beta )
+    if @globals.clip_board_gamma.len > 0 then buf.push( @globals.clip_board_gamma )
+    buf.push(T_BUF)
     memdump.set_content( buf.join( char(10) ) )
     print("Memory dumped to: "+memdump.path)
     return 1
@@ -152,7 +163,7 @@ dump_memory = function()
 end function
 
 // warning: garbage code follows. somehow 'works'
-decompiler = function(object)
+globals.decompiler = function(object)
   act = "Decompiling"
   if typeof(@object) == "custom_object" then 
     print("<mark=yellow>Expanding custom object...")
@@ -173,16 +184,13 @@ decompiler = function(object)
     return re.join(", ")
   end if 
   if typeof(@c) == "function" then
-    args = str(@c).split( "FUNCTION" )[1].split(", ")
-    print("function takes: "+args.len+" arguments")
-    catch = c
-    print("function returns: "+typeof(@catch)+char(10))
-    if typeof(@catch) == "number" then catch = str(catch)
-    return @catch
+    return p_exe(@c)
   end if
-  if typeof(c) == "number" then return c
-  if c.indexOf("__isa") >= 0 or c.hasIndex("__isa") or typeof(c) == "pshell" or typeof(c) == "pfile" or typeof(c) == "pcomputer" or typeof(c) == "shell" or typeof(c) == "file" or typeof(c) == "computer" or typeof(c) == "ftpshell" then 
+  if typeof(@c) == "number" then return [ command.code(c,0,0,0), command.code("-c",c,0,0) ]
+  if @c.indexOf("__isa") >= 0 or @c.hasIndex("__isa") or @c.hasIndex("classID") or typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "shell" or typeof(@c) == "file" or typeof(@c) == "computer" or typeof(@c) == "ftpshell" then 
+    //if @c.hasIndex("__isa") then methods = @c.__isa.indexes else methods = @c.indexes
     methods = c.__isa.indexes
+    if DEBUG then print "debug: methods: "+methods
     for ind in methods
       print(ind+": "+c[ind])
     end for
@@ -204,7 +212,7 @@ decompiler = function(object)
     if DEBUG then print "rcv: "+rcv
     if rcv then //and typeof(rcv) != "number" and rcv.hasIndex("__isa") then //typeof(rcv) == "shell" or typeof(rcv) == "computer" or typeof(rcv) == "file" or typeof(rcv) == "router" or typeof(rcv) == "port" or typeof(rcv) == "ftpshell" or typeof(rcv) == "netsession" or typeof(rcv) == "metaLib" then 
       globals.BUFFER.push(rcv)
-      print( typeof(rcv) + " sent to BUFFER." ) 
+      print( "result: "+typeof(rcv) + " sent to BUFFER." ) 
     end if
     return rcv
   end if  
@@ -214,51 +222,66 @@ decompiler = function(object)
   return 0
 end function
 
-p_exe = function( obj, f_name )
-  if DEBUG then print("debug: In P_EXE...")
-  if p_validate(obj, f_name) then 
-    foo = @obj[f_name]
-    args = str(@foo).split( "FUNCTION" )[1].split(", ")
-    a=[]
-    i=0
-    for ar in args 
-      ar = ar.replace("\)","").replace("\(","")
-      if DEBUG then print("typeof "+ar+": "+typeof(ar))
-      if str(ar) == "self" then 
-        a.push(obj)
-        continue 
-      end if
-      inp = user_input("Use @a|@b|@c for clipboard (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
-      if inp == "q" then return "aborting..."
-      if inp == "" or inp == " " then return "aborting..."
-      if inp == "@a" or inp == "@clipa" then inp = @globals.clip_board_alpha
-      if inp == "@b" or inp == "@clipb" then inp = @globals.clip_board_beta
-      if inp == "@c" or inp == "@clipc" then inp = @globals.clip_board_gamma
-      if typeof(inp) == "string" and typeof(inp.to_int) == "number" then inp = inp.to_int // assume integers are to be cast as integers
-      if DEBUG then print "debug: p_exe_: input is "+inp+" and is a "+typeof(inp)
-      a.push(@inp)
-      i = i + 1
-    end for 
-    o = @obj[f_name]
-    catch = null
-    if DEBUG then print("debug: args: "+args.len)
-    if args.len == 1 then catch = o(a[0])
-    if args.len == 2 then catch = o(a[0], a[1])
-    if args.len == 3 then catch = o(a[0], a[1], a[2])
-    if args.len == 4 then catch = o(a[0], a[1], a[2], a[3])
-    if args.len == 5 then catch = o(a[0], a[1], a[2], a[3], a[4])
-    if args.len == 6 then catch = o(a[0], a[1], a[2], a[3], a[4], a[5])
-    if DEBUG then print "p_exe: catch: "+catch
-    return catch // if args > 6 then git rekt
-  else 
+p_exe = function( obj, f_name=null ) // obj is either game object or function
+  if DEBUG then print("debug: In P_EXE: "+@obj+": "+f_name)
+  if typeof(@obj) != "function" and not p_validate(obj, f_name) then 
     print "invalid object"
     return 0
+  end if    
+  if typeof(@obj) == "function" then 
+    foo = @obj 
+  else 
+    if f_name then foo = @obj[f_name] else return "p_exe: missing function name"
   end if
-  return 0
+  args = str(@foo).split( "FUNCTION" )[1].split(", ")
+  if not f_name then f_name = str(@foo).split( "FUNCTION" )[0]
+  a=[]
+  i=0
+  for ar in args 
+    ar = ar.replace("\)","").replace("\(","")
+    if DEBUG then print("typeof "+ar+": "+typeof(ar))
+    if str(ar) == "self" then 
+      if typeof(@obj) == "function" then 
+        self_param = user_input("Use @a|@b|@c to use an object from the clipboard. (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
+        if typeof(self_param) == "string" then 
+          print "error: expected object, got string"
+          return 0
+        end if 
+        a.push(self_param)
+        continue
+      end if
+      a.push(obj)
+      continue 
+    end if
+    inp = user_input("Use @a|@b|@c for clipboard (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
+    if inp == "q" then return "aborting..."
+    if inp == "" or inp == " " then return "aborting..."
+    if inp == "@a" or inp == "@clipa" then inp = @globals.clip_board_alpha
+    if inp == "@b" or inp == "@clipb" then inp = @globals.clip_board_beta
+    if inp == "@c" or inp == "@clipc" then inp = @globals.clip_board_gamma
+    if typeof(inp) == "string" and typeof(inp.to_int) == "number" then inp = inp.to_int // assume integers are to be cast as integers
+    if DEBUG then print "debug: p_exe_: input is "+@inp+" and is a "+typeof(@inp)
+    a.push(@inp)
+    i = i + 1
+  end for 
+  if DEBUG then print "obj is: "+@obj+" and is a: "+typeof(@obj)
+  if DEBUG then print "f_name is: "+f_name
+  if typeof(@obj) == "function" then o = @obj else o = @obj[f_name]
+  catch = null
+  if DEBUG then print("debug: args: "+args.len)
+  if args.len == 1 then catch = o(a[0])
+  if args.len == 2 then catch = o(a[0], a[1])
+  if args.len == 3 then catch = o(a[0], a[1], a[2])
+  if args.len == 4 then catch = o(a[0], a[1], a[2], a[3])
+  if args.len == 5 then catch = o(a[0], a[1], a[2], a[3], a[4])
+  if args.len == 6 then catch = o(a[0], a[1], a[2], a[3], a[4], a[5])
+  if DEBUG then print "p_exe: catch: "+catch
+  return catch // if args > 6 then git rekt
 end function
 
 p_validate = function( object, query )
   if DEBUG then print "DEBUG: in p_validate"+char(10)+"validating: "+@object
+  if typeof(@object) == "function" then return 1
   test = new object 
   if test == null then return 0
   if @object.hasIndex("__isa") then
@@ -270,6 +293,7 @@ p_validate = function( object, query )
     return 0
   end if
 end function 
+
 
 // not yet used
 globals.trythis = function(function_reference, function_name)
@@ -895,7 +919,7 @@ globals.memory_alpha = function()
         ////////////////////evaluate selection///////
         print(colorOrange+"Expanding... "+CT+"["+colorWhite+typeof(@buffer_selection)+CT+"]")
         if typeof(@buffer_selection) == "pshell" or typeof(@buffer_selection) == "pcomputer" or typeof(@buffer_selection) == "pfile" or typeof(@buffer_selection) == "prouter" then 
-          print(globals.decompiler(buffer_selection))
+          print(globals.decompiler(@buffer_selection))
           continue
         end if
         if typeof(@buffer_selection) == "string" or typeof(@buffer_selection) == "list" or typeof(@buffer_selection) == "map" or typeof(@buffer_selection) == "number" or typeof(@buffer_selection) == "function" then
@@ -903,45 +927,45 @@ globals.memory_alpha = function()
             args = str(@buffer_selection).split( "FUNCTION" )[1].split(", ")
             print("function takes: "+args.len+" arguments.")
           end if
-          print(globals.decompiler(buffer_selection))
+          print(globals.decompiler(@buffer_selection))
           continue
         end if
         if typeof(@buffer_selection) == "custom_object" then
-          print(globals.decompiler(buffer_selection))
+          print(globals.decompiler(@buffer_selection))
           continue
         end if
         if typeof(buffer_selection) == "file" then
           //decompiler(buffer_selection)
           //list_files(buffer_selection, "0")
-          print(command.file(buffer_selection))
+          print(command.file(@buffer_selection))
           print(colorGreen+"<u>==================================</u>"+CT)
           print("[f] - felix file explorer")
           if not buffer_selection.is_binary then print("[7] open_text [8] upload_txt [9] dnload_txt ")
           file_menu = user_input("[4] tag 4 scp [5] curl [6] log spoof "+char(10)+"[1] root file [2] rDelete [3] rPerms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
           if file_menu == "d" then 
-            print(globals.decompiler(buffer_selection))
+            print(globals.decompiler(@buffer_selection))
             continue
           end if
           if file_menu.lower == "f" then
-            command.felix(buffer_selection)
+            command.felix(@buffer_selection)
             continue
           end if
           if file_menu == "4" then
-            globals.tagged_for_scp = buffer_selection.path
+            globals.tagged_for_scp = @buffer_selection.path
             print("Tagged: "+globals.tagged_for_scp+" for scp.")
             continue
           end if
-          if file_menu == "9" and not buffer_selection.is_binary then
+          if file_menu == "9" and not @buffer_selection.is_binary then
             down_to = user_input("save contents to: (leave blank to abort)"+char(10)+":> ")
             if down_to == "" or down_to == " " then continue
             print(command.poke(down_to))
-            print(command.append(down_to,buffer_selection.get_content))
+            print(command.append(down_to,@buffer_selection.get_content))
             continue
           end if
-          if file_menu == "8" and not buffer_selection.is_binary then
+          if file_menu == "8" and not @buffer_selection.is_binary then
             if buffer_selection.has_permission("w") then
-              print(buffer_selection.path+" is writable.")
-              if user_input("Edit with Scribus? [Y/n] ||: ",0,1).lower != "n" then command.scribus(buffer_selection) else print("aborting...")
+              print(@buffer_selection.path+" is writable.")
+              if user_input("Edit with Scribus? [Y/n] ||: ",0,1).lower != "n" then command.scribus(@buffer_selection) else print("aborting...")
               continue
             else
               print("error: file is write protected")
@@ -1429,8 +1453,15 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
           command.gopher(result.get_content)
         end if
         if waitFor == "r" or waitFor == "R" then
-          print(colorLightBlue+"<size=75%>Sent: "+result.get_content+" to t<b>r</b>ansmission buffer (<b>@tbuf</b>).</size>")
-          T_BUF.push(result.get_content+char(10))
+          cont = result.get_content.split(char(10))
+          for c in cont
+            if not globals.T_BUF.indexOf(c) >= 0 then  
+              globals.T_BUF.push(c)
+              print(colorLightBlue+"<size=75%>Sent: "+result.get_content+" to t<b>r</b>ansmission buffer (<b>@tbuf</b>).</size>")
+            else 
+              print(colorLightBlue+"<size=75%>Skipping duplicate...")
+            end if
+          end for
         end if
         if result.name == grep then
           globals.grepped_file = result
@@ -1461,7 +1492,7 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
   //return grepped_file
 end function
 
-rclean = function(arg1, arg2=0)
+globals.rclean = function(arg1, arg2=0)
   if not arg1 or arg1 == "-h" or arg1 == "help" then return "remote clean: remote silentclean protocol."+char(10)+"Usage: rclean [ip] [port]"+char(10)+"Additional functionaly via memory alpha when working with objects."+char(10)+"Mainly used by kraken."
   t_file = null
   remote_clean = function(f,d=0) // file object, bool 0|1
@@ -1478,36 +1509,28 @@ rclean = function(arg1, arg2=0)
     end while
     log = null
     sys = null
-    list_files(f, "system.log", 1, "N")
-    if globals.grepped_file and globals.grepped_file.name == "system.log" then
-      log = globals.grepped_file
-      list_files(f, "silentclean", 1, "N")
-      if globals.grepped_file and globals.grepped_file.name == "silentclean" then
-        sys = globals.grepped_file
-      else
-        list_files(f, "config.sys", 1, "N")
-        if globals.grepped_file.name == "config.sys" then
-          sys = globals.grepped_file
-        else
-          return "Error: Config.sys missing."
-        end if
-      end if
-    end if
+    log = command.tree(f, "system.log", 1, "N")
+    sys = command.tree(f, "silentclean", 1, "N")
+    if typeof(sys) != "file" or d == "-d" then sys = command.tree(f, "config.sys", 1, "N")
+    if typeof(sys) != "file" then return "rclean: couldn't find file named silentclean or config.sys on system"
+    if not log then return "rclean: system.log not found. aborting."
+    if DEBUG then print "debug: log is a "+typeof(log)+char(10)+"debug: sys is a "+typeof(sys)
     if d == "-d" then 
       if DEBUG then print "d: "+d+" is a "+typeof(d)
       if instance and p_validate(instance,"parent") then
         if instance.parent.name == "rkit" then 
           print "deleting "+instance.parent.path
-          instance.parent.delete 
+          print instance.parent.delete 
         else 
           print "deleting "+instance.path
-          instance.delete   // auto delete rkit if present, 5hell if not
+          print instance.delete   // auto delete rkit if present, 5hell if not
         end if
       end if
     end if
-    print("<b>Scrubbing...</b>")
+    print("<b>Scrubbing log...</b>")
+    catch = "couldn't find a suitable spoof file"
     if sys then catch = sys.copy("/var", "system.log")
-    if catch == 1 then return "Scrubbed..." else return catch
+    if catch == 1 then return "Scrubbed..." else return "rclean: failed: "+catch
   end function
   if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then // arg2 is shell, not called by user
     t_shell = arg1
@@ -2060,6 +2083,7 @@ select_attack = function()
   inject = user_input("Enter ip or passwd for inject value or leave blank (press<b> return</b>)"+char(10)+":> ")
   print("Injecting address: " + mem + " with " + exploit)
   result = metaLib.overflow(mem, exploit, inject)
+  if result then  globals.BUFFER.push(result) // buffer result before handling it
   if typeof(result) == "shell" then
     print("Obtained " + result)
     remote_comp = result.host_computer
@@ -2077,7 +2101,7 @@ select_attack = function()
     print("Obtained " + result)
     list_files(result.parent)
   end if
-  if result then  globals.BUFFER.push(result)
+  //if result then  globals.BUFFER.push(result)
   return result
 end function
 
@@ -2095,6 +2119,7 @@ roil = function(inject=0)
     val = x[1]
     result = metaLib.overflow(mem, val, inject)
     print("Hooked: " + typeof(result) + " with " + mem + " " + val)
+    if result then  globals.BUFFER.push(result) // buffer the result before handling it
     if typeof(result) == "shell" then
       shell_prompt(result)
     end if
@@ -2104,7 +2129,7 @@ roil = function(inject=0)
     if typeof(result) == "computer" then
       hooked_comp(result)
     end if
-    if result then  globals.BUFFER.push(result)
+    //if result then  globals.BUFFER.push(result)
   end for
 end function
 
@@ -2122,6 +2147,7 @@ zap_it = function()
       value = value.replace("\n", "")
       result = metaLib.overflow(mem, value, inject)
       print("Hooked: " + typeof(result) + " with " + mem + " " + value)
+      if result then  globals.BUFFER.push(result) // buffer the result before handline it
       if typeof(result) == "shell" then
         shell_prompt(result)
       end if
@@ -2131,7 +2157,7 @@ zap_it = function()
       if typeof(result) == "computer" then
         hooked_comp(result)
       end if
-      if result then  globals.BUFFER.push(result)
+      //if result then  globals.BUFFER.push(result)
     end for
   end for
 end function
@@ -2364,7 +2390,7 @@ end function
 get_lib = function(waitFor=0)
   address = globals.targetIP
   port = globals.targetPort
-  if not waitFor then waitFor = user_input(colorOrange+"Establishing remote net session"+char(10)+"(this does not leave a log)"+char(10)+"Continue? [<b>Y</b>/n/l] (l=local)"+CT+char(10)+"||: ",0,1)
+  if not waitFor then waitFor = user_input(colorOrange+"Establishing remote net session"+char(10)+"(this will leave a log on servers but not routers)"+char(10)+"Continue? [<b>Y</b>/n/l] (l=local instead)"+CT+char(10)+"||: ",0,1)
   if waitFor == "n" or waitFor == "N" then
     print("Aborting connection...")
     return "Aborting connection..."
