@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.3...(103.367kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.4...(103.367kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -1437,9 +1437,11 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
     return "<b>DIG v 2.0 Netcrawler</b>"+char(10)+"Usage: dig [ip|port] [port|ip] -- auto-infiltrate a target"+char(10)+"-- scans ports on target"+char(10)+"-- infiltrates via shell"+char(10)+"-- uploads rkit and runs 5hell on the target"+char(10)+"-- gains root and wipes the log"+char(10)+"-- performs other user defined tasks"+char(10)+"Usage: dig [port] [ip] -- same as above but supports piping in an ip"+char(10)+"---- Note: edit /root/rkit/dib.bat to customize behavior"+char(10)+"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+"-- type 'y' to exit and return to the script that launched dig"+char(10)+"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+"-- you may add/remove commands to be executed by dig here"+char(10)+"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+"-- e.g. <b> rnip 1 | dig </b>"+char(10)+"Experimental: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+"-- if the lib version is in the database, will dig that router"+char(10)+"-- for best results, use a database.csv that only includes entries with shell exploits"+char(10+"---- Extra: dig [-h|help] extra -- display extra help info")
   end if
   print(colorGold+"<u>------DIG-v-2.0.0------</u>"+CT+char(10))
-  t = arg1
+  tp = arg1.split(" ")
+  t = tp[0]
+  p = tp[1]
   if t == "-s" then t = globals.sus
-  p = arg2
+  if p == "" then p = arg2 /////////////// make sure this works
   if not is_valid_ip(t) then
     t = arg2 
     p = arg1 
@@ -1491,11 +1493,11 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   mem = ""
   val = ""
   for xp in globals.XPLOITS
-      y = xp.split(" ")
-      z = y[-1]
-      if z == "shell" then 
-          mem = y[0]
-          val = y[1]
+      yp = xp.split(" ")
+      zp = yp[-1]
+      if zp == "shell" then 
+          mem = yp[0]
+          val = yp[1]
       end if
   end for
   if mem == "" then return "dig: shell exploit not found on target"
