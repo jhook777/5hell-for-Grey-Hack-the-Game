@@ -1,7 +1,7 @@
-// 5hell v 3.7.3 by Plu70
+// 5hell v 3.7.4 by Plu70
 // released v 3.7.2
 // imports .5pk files from /root/src
-ver = "3.7.3_amalgamated_horrors"
+ver = "3.7.4_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -23,6 +23,20 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // kore -r needs to give /lib precedence when searching for components
 // add custom theme config
 // connect_service increases trace time: add something for that
+//
+// updated lanpro to be MUCH faster and more accurate
+// -- lanpro now has two modes: remote and local
+// -- modes are activated automatically
+// -- a public ip will activate remote mode
+// -- a lan ip or no ip will activate local mode
+// if the public ip given matches the public ip of the local gateway:
+// ---- local mode will be activated
+// fixed missing end ifs in r_hecks >> 5hpinx.5pk
+// -- no idea how it was working without those :|
+// glasspool should now start you off in the home directory of the chosen object
+// further updated the for loop in command.dig
+// updated dig to correctly parse ip/port when both come in as arg1
+// -- e.g when piping command.target to command.dig
 //
 // fixed crash in p_validate when validating numbers
 // fixed crash in 5phinx on port scan
