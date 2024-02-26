@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.7.3...(117.076kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.7.4...(117.689kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -541,6 +541,16 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			if typeof(shell) == "ftpshell" then print(colorOrange+"Warning: only ftp and computer object commands work with ftpshells!"+CT+char(10)+"-- all other commands execute on last active scope.")
 			print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
 			// switch scope
+			uu = checkUser(shell)
+			if uu == "root" then 
+				currentPath = "/root"
+			else
+				if uu == "guest" then 
+					currentPath = "/home/guest"
+				else 
+					currentPath = "/home/"+uu
+				end if
+			end if
 			command.shell
 			// restore previous state
 			globals.shell = hold_shell
@@ -550,7 +560,9 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			globals.update_path
 			print(colorLightBlue+"GLASSPOOL: "+colorOrange+" deactivating..."+CT)
 		else
-			print(colorOrange+"...glasspool failed to initialize. Check permissions."+CT)
+			globals.shell = hold_shell
+			globals.localmachine = globals.shell.host_computer
+			print(colorOrange+"glasspool: error: failed to initialize."+CT)
 		end if
 	end if
 
@@ -566,13 +578,26 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 		if globals.localmachine and globals.shell then
 			globals.GLASSPOOL = globals.GLASSPOOL + 1
 			// switch scope
+			uu = checkUser(shell)
+			if uu == "root" then 
+				currentPath = "/root"
+			else
+				if uu == "guest" then 
+					currentPath = "/home/guest"
+				else 
+					currentPath = "/home/"+uu
+				end if
+			end if
 			command.shell
 			// restore previous state
 			globals.localmachine = tem_c
 			// update path
 			globals.update_path
 			globals.GLASSPOOL = globals.GLASSPOOL - 1
-			print(colorLightBlue+"GLASS_PUDDLEL: "+colorOrange+" deactivating..."+CT)
+			print(colorLightBlue+"GLASS_PUDDLE: "+colorOrange+" deactivating..."+CT)
+		else 
+			globals.localmachine = tem_c
+			print(colorOrange+"glasspool: error: failed to initialize."+CT)
 		end if
 	end if
 
@@ -1288,8 +1313,22 @@ end function
 command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: lanpro [ip] -- full lan scan. returns only lan addresses."+char(10)+"Does not autoset ip or portmap for 5phinx. Use<b> probe -f </b>instead."
 	if not localmachine.is_network_active then return "lanpro: no network connection."
-	if is_valid_ip(arg1) then return globals.lan_probe(get_router(arg1)).join(char(10))
-	return globals.lan_probe(get_router).join(char(10))
+	get = null
+	t = time
+	if is_valid_ip(arg1) and not is_lan_ip(arg1) then 
+		print colorLightBlue+("</b>lanpro: running remotely on "+arg1)
+		get = globals.lan_probe(get_router(arg1),"remote")
+	end if 
+	if not arg1 then 
+		print colorLightBlue+("</b>lanpro: running locally on local gateway")
+		get = globals.lan_probe(get_router)
+	end if
+	if is_lan_ip(arg1) then 
+		print colorLightBlue+("</b>lanpro: running locally on "+arg1)
+		if typeof(get_router(arg1)) == "router" then get = globals.lan_probe(get_router(arg1))
+	end if
+	print colorLightBlue+"lanpro: task complete in "+colorWhite+(time-t)+"</color> seconds"
+	if not get then return "lanpro: invalid argument or router unreachable" else return get
 end function
 command.nsl = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup</u>"+char(10)+"Usage: nsl [www.webAdress.com] -- uses nslookup on address and returns ip as a string"+char(10)+"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+"Experimental: nsl will attempt to append <b>www.</b> to a domain if it is omitted."
