@@ -1316,8 +1316,13 @@ command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
 	get = null
 	t = time
 	if is_valid_ip(arg1) and not is_lan_ip(arg1) then 
-		print colorLightBlue+("</b>lanpro: running remotely on "+arg1)
-		get = globals.lan_probe(get_router(arg1),"remote")
+		if get_router(arg1).public_ip == get_router.public_ip then 
+			print colorLightBlue+("</b>lanpro: running locally on "+arg1)
+			if typeof(get_router(arg1)) == "router" then get = globals.lan_probe(get_router(arg1))
+		else
+			print colorLightBlue+("</b>lanpro: running remotely on "+arg1)
+			get = globals.lan_probe(get_router(arg1),"remote")
+		end if
 	end if 
 	if not arg1 then 
 		print colorLightBlue+("</b>lanpro: running locally on local gateway")
