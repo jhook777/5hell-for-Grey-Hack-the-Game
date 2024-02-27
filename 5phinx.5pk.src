@@ -2345,7 +2345,7 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
     clist = null
     if not quiet then print("------------------------")
     if not quiet then print(colorGreen+"<align=center>(<|>)</align>"+CT)
-    if get_router.public_ip == get_router(ip).public_ip then clist = globals.lan_probe(get_router(ip),"local").split(char(10)) else clist = globals.lan_probe(get_router(ip),"remote")
+    if get_router.public_ip == get_router(ip).public_ip then clist = globals.lan_probe(get_router(ip),"local").split(char(10)) else clist = globals.lan_probe(get_router(ip),"remote").split(char(10))
     //clist.sort
     numComps = clist.len
     if not quiet then print("Found: " + numComps + " machines connected to: " + char(10)+ t_router.essid_name + " : " + t_router.bssid_name)
