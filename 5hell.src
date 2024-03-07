@@ -206,7 +206,11 @@ end function
 //    return 0  // or return soemthing
 // end function
 //
-
+//
+// command.medusa = function(arg1,arg2,arg3,arg4)
+//   if arg1 == "help" or arg1 == "-h" then return "Medusa rshell client manager v 1.1.1 by Yatteze "+char(10)+"Usage: medusa"
+//   import_code("/root/src/medusa.5pk")
+// end function
 /////////////////////////////////////////////////////////////////////////////////////////////
 // or
 //

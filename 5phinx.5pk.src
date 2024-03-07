@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.5 for 5hell v 3.7.4...(116.107kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.6 for 5hell v 3.7.5...(116.863kb)</size>")
 
 //Define Globals
-sphinx_version = "2.4.5"
-malp_version = "1.2.8"
+sphinx_version = "2.4.6"
+malp_version = "1.2.9"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -481,7 +481,7 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         if failed then return "scp: failed" else return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
       else
         if typeof(globals.shell) == "ftpshell" then print(shell.put(copy_from, copy_to, shl)) else return "aborting..." ///// copying
-        "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
+        return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
       end if
     end if
   end if
