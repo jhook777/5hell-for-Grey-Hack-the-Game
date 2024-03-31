@@ -1439,9 +1439,9 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   print(colorGold+"<u>------DIG-v-2.0.0------</u>"+CT+char(10))
   tp = arg1.split(" ")
   t = tp[0]
-  p = tp[1]
+  p = tp[-1]
   if t == "-s" then t = globals.sus
-  if p == "" then p = arg2 /////////////// make sure this works
+  if p == t then p = arg2 /////////////// make sure this works
   if not is_valid_ip(t) then
     t = arg2 
     p = arg1 
