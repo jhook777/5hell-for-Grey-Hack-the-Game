@@ -2558,6 +2558,6 @@ command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
 	end if
 	print colorGreen+"smtp: pulling from "+CT+colorWhite+tar_ip+colorGreen+": "+CT+tar_port+CT+"..."
 	ml = globals.mail_user_list(tar_ip,tar_port)
-	if not ml then return "smtp: mail server not found"
-	return ml.join(char(10))
+	if not ml then return "smtp: mail server not found" else return ml
+	//return ml.join(char(10))
 end function
