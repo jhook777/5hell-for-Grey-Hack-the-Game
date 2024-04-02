@@ -2543,7 +2543,7 @@ end function
   //catch = command.cob("get","get")
   //print(@catch)
 command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
-	if arg1 == "help" or arg1 = "-h" then return "SMTP || MAIL USER LIST"+char(10)+"Usage: smtp [ip] [port] -- return mail user list if ip/port is running smtp mail server"+char(10)+"-- user target ip and target port if not supplied"
+	if arg1 == "help" or arg1 == "-h" then return "SMTP || MAIL USER LIST"+char(10)+"Usage: smtp [ip] [port] -- return mail user list if ip/port is running smtp mail server"+char(10)+"-- user target ip and target port if not supplied"
 	tar_ip = 0
 	tar_port = 0
 	if not globals.crypto then return "smtp: crypto.so not found"
