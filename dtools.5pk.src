@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.5...(103.463kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.6...(103.463kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
