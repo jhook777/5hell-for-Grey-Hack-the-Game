@@ -1,8 +1,8 @@
 // Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.6 for 5hell v 3.7.5...(116.863kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.7 for 5hell v 3.7.6...(116.859kb)</size>")
 
 //Define Globals
-sphinx_version = "2.4.6"
+sphinx_version = "2.4.7"
 malp_version = "1.2.9"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -177,11 +177,11 @@ globals.decompiler = function(object)
   //print(object)
   c = @object
   if typeof(@c) == "string" then 
-    re = []
+    fe = []
     for letter in c.values 
-      re.push(letter.code)
+      fe.push(letter.code)
     end for 
-    return re.join(", ")
+    return fe.join(", ")
   end if 
   if typeof(@c) == "function" then
     return p_exe(@c)
@@ -2072,8 +2072,7 @@ secure_connect = function(shll)
 end function
 
 silentclean = function()
-  command.silentclean
-  return
+  return command.silentclean
 end function
 
 select_attack = function()
@@ -2145,7 +2144,7 @@ roil = function(inject=0)
     val = x[1]
     result = metaLib.overflow(mem, val, inject)
     print("Hooked: " + typeof(result) + " with " + mem + " " + val)
-    if result then  globals.BUFFER.push(result) // buffer the result before handling it
+    if result then globals.BUFFER.push(result) // buffer the result before handling it
     if typeof(result) == "shell" then
       shell_prompt(result)
     end if
