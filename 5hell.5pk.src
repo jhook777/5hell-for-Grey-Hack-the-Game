@@ -1,7 +1,7 @@
 // 5hell v 3.7.4 by Plu70
 // released v 3.7.2
 // imports .5pk files from /root/src
-ver = "3.7.6_amalgamated_horrors"
+ver = "3.7.7_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -23,6 +23,10 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // kore -r needs to give /lib precedence when searching for components
 // add custom theme config
 // connect_service increases trace time: add something for that
+//
+// tagged 4 spc will now work properly again
+// [9] download txt will work properly instead of going to the decompiler
+// updated usage info for jtr to reflect proper order of params (that is: set size first, then word length)
 //
 // in globals.decompiler: changed locals.re to fe to avoid namespace conflict with regex engine (globals.re)
 // added smtp command
@@ -385,7 +389,7 @@ globals.get_file = function(input_string)
   if file then return file else return 0
 end function
 if DEBUG then print("<size=75%>loaded get_file...</size>")                       ////////////////////////////////
-if DEBUG then print("<size=75%>loading 5hell.5pk...(105.192kb)")                   /////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...(105.426kb)")                   /////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")     ////////////////////////////////
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
