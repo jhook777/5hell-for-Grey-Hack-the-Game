@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.4.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.7 for 5hell v 3.7.6...(116.859kb)</size>")
+// Sphinx Hacking Interface v 2.4.8 by Plu70
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.8 for 5hell v 3.7.7...(117.075kb)</size>")
 
 //Define Globals
-sphinx_version = "2.4.7"
-malp_version = "1.2.9"
+sphinx_version = "2.4.8"
+malp_version = "1.3.0"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -408,6 +408,7 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
   print(colorWhite+"---scp---------------"+CT)
   copy_from = null
   //use_it = "n"
+  if DEBUG then print "debug: in secure_copy: tagged4scp: "+globals.tagged_for_scp
   if globals.tagged_for_scp != "" and globals.tagged_for_scp != null then copy_from = globals.tagged_for_scp
   //if copy_from then use_it = user_input("Copy from: "+copy_from+"? [Y/n]"+char(10)+"||: ",0,1).lower
   if copy_from then print "Copying from: "+copy_from+"..."  else copy_from = user_input("Full path to copy from:>  ")
@@ -952,11 +953,15 @@ globals.memory_alpha = function()
             continue
           end if
           if file_menu == "4" then
-            globals.tagged_for_scp = @buffer_selection.path
+            globals.tagged_for_scp = buffer_selection.path
             print("Tagged: "+globals.tagged_for_scp+" for scp.")
             continue
           end if
-          if file_menu == "9" and not @buffer_selection.is_binary then
+          if file_menu == "9" then
+            if buffer_selection.is_binary then 
+              print colorOrange+"malp: cannot get contents of binary file"
+              continue
+            end if
             down_to = user_input("save contents to: (leave blank to abort)"+char(10)+":> ")
             if down_to == "" or down_to == " " then continue
             print(command.poke(down_to))
