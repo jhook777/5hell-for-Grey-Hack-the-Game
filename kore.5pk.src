@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.7.6...(119.539kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.7.7...(119.763kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -958,6 +958,7 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 	direction = -1 
 	skip = 0
 	paths = []
+	if DEBUG then print "debug: in scpm top"+char(10)+"debug: tagged4scp: "+ globals.tagged_for_scp
 	while arg1 
 		if arg1 == "-d" then 
 			direction = 1 // force download, skip confirmation
@@ -987,6 +988,7 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 		target_path = paths[1]
 		//if target_path then direction = 0 // force upload, skip confirmation
 	end if
+	if DEBUG then print "debug: in scpm middle"+char(10)+"debug: tagged4scp: "+ globals.tagged_for_scp
 	if DEBUG then print "debug: dir: "+direction+ " skip: "+skip
 	if direction == 1 and skip == 1 then return "scpm: invalid inputs cannot mix -d and -u"
 	// if typeof(arg1) == "string" then
@@ -1044,7 +1046,7 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 			return "aborting..."
 		end if
 	end if
-	if DEBUG then print "debug: scpm: tar_path: "+target_path+" t_file: "+globals.tagged_for_scp
+	if DEBUG then print "debug: scpm bottom: tar_path: "+target_path+" t_file: "+globals.tagged_for_scp
 	return globals.secure_copy(target_shell, target_path, direction, skip)
 end function
 command.iwlist = function(arg1, arg2=0, arg3=0, arg4=0)
