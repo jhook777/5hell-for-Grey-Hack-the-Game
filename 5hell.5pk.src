@@ -1,7 +1,7 @@
-// 5hell v 3.7.4 by Plu70
-// released v 3.7.2
+// 5hell v 3.7.8 by Plu70
+// released v 3.7.7
 // imports .5pk files from /root/src
-ver = "3.7.7_amalgamated_horrors"
+ver = "3.7.8_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -9,7 +9,7 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // changes:
 //
 // to do:
-// convince author of Medusa to port it to 5hell
+// convince author of Medusa to port it to 5hell // can just wrap medusa into a command. it just works.
 // get command.do to persist through glasspool
 // mail: add command line brutus login
 // mail: add command line login
@@ -23,6 +23,43 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // kore -r needs to give /lib precedence when searching for components
 // add custom theme config
 // connect_service increases trace time: add something for that
+// make the initial help page better
+// add more help pages
+// meta: add lib param to -l option
+// linkdb: skip confirmation
+// meta: add database function 
+//
+// double check documentation for below!
+//done: 
+//
+// code: fixed char code return: code [char|string](returns: char code)
+// db: added -m to customize scan with metaLib and metaxploitLib of choice // needs docs
+// string: new command added: string -- for stringifying lists
+// enum: added append function
+// enum: added insert function
+// enum: added purge function
+// enum: map support soon(tm)
+// ls: show all flag (formerly -a) is now implicit (i.e. always on)
+// ls: ls -a and ls -A are now equivalent and will sort files alphabetically
+// bios: added purging custom object
+// bios: added several additional return types
+// bios: added a line at the bottom to remind user that bios has more functionality
+// cob: added purging custom object
+// dig: fixed -s option. sussing works again.
+// mail: -brutus option will save found password to custom_object
+// mail: added spool function to herme5 > read mail (dump mail to file)
+// meta: added lib param to link -l to skip menu: meta link -l [lib_name]
+// -- omit path, just use that lib name i.e. net.so, libssh.so, etc
+// meta: you can now import metaLib objects with meta link [object] // needs docs
+// meta: improved importing metaxploitLib objects
+// meta: added backing up and restoring original metaxploitLib object
+// meta: updated documentation to reflect changes
+// liber: -l option works again (dang typos)
+// kore: fixed typo that caused an incorrect completion time to be printed
+// pause: change minimum time from .1 to .001 seconds
+// cc: using cc [index] will no longer spam the screen with the entire cc buffer
+// removed legacy dictionary code
+// removed duplicate cob code
 //
 // tagged 4 spc will now work properly again
 // [9] download txt will work properly instead of going to the decompiler
@@ -277,6 +314,7 @@ globals.homePath = home_dir
 globals.enumerated = []
 globals.stack_pool = 14 // depricated
 globals.tagged_for_scp = ""
+globals.backup_meta = null
 //globals.services = {}
 
 targ = {"ip":"0.0.0.0", "pt":0} // edit this to match your server or pass ip and port when calling transmit or target ip and port
@@ -295,43 +333,12 @@ instance = localmachine.File(program_path)
 import_code("/root/src/5phinx.5pk")
 
 //
-// importing a start dictionary is largely depricated, it's safe to ignore the below dictionary stuff
+// while importing a starting dictionary is still possible it is no longer supported
+// current runtim loading of cerebrum is 20 seconds and importing from filesystem is less than 1 second
+// start dictionaries are therefore superfluous
 if DEBUG then print("<size=75%>loading dictionary...</size>")
-// Uncomment the appropriate import lines for the dictionary files you want to hard code into the compiled binary.
-// Remember each file can be up to 160kb and the max size of a script is 4MB.
-//
-// *.csv file format is as follows:
-//
-// a.csv is a text file with contents:
-// dict_a="a,word,string,seperated,by,commas,"
-// b.csv => dict_b="b,another,word,string,"
-// ...
-// z.csv => dict_z="z,no,ending,comma,here"
-//
-// There should be no spaces and the list should end with a comma except for the last .csv file.
-// This is because the strings are combined and then split by the comma.
-// You don't have to group them alphabetically, 5hell will load them all regardless of how they are sorted.
-// IMPORTANT!!
-// Remember you can decide not to use this at all and still generate passwords at runtime with Cerebrum!
-// IMPRTANT!!
-//
-//i______code("/root/src/a.csv") // dict_a | list of strings
-//i-----_code("/root/src/b.csv") // dict_b | list of strings
-// ...
-//------_code("/root/src/j.csv") // contents: dict_j="j,blaj,blah,blarg,"
-//
-//
-
-//////ADVANCED DICTIONARY SETTINGS////EDIT WITH CARE/////
-// if you are importing dictionary files, uncomment the line below
-//dict_a = "a"
-//// IF you are importing dictionary files, uncomment the line below up to the corresponding dictionary variable. The variables themselves are defined IN the .csv file. So dict_f="a,csv,string" is defined in f.csv !!!!
-//dict_a = dict_a + dict_b + dict_c + dict_d + dict_e + dict_f + dict_g + dict_h + dict_i + dict_j + dict_k + dict_l + dict_m + dict_n + dict_o + dict_p + dict_q + dict_r + dict_s + dict_t + dict_u //+ dict_v + dict_w + dict_x + dict_y + dict_z
-//
-///// Uncomment the line below if you are importing dictionary files THEN comment out the very next line after.
-//dict_a = dict_a.split(",") // if you uncomment this, comment the line below // this is if you imported dictionary files with the above lines
-//globals.dict_a = ["a"]    // comment this function out if you uncommented the line above! // uncomment this line to not bother with fancy dictionary imports
-globals.dict_a = function(import=0)  // this switches the dictionary to the custom object for use between nested launches! // comment out both above if this is uncommented
+// this function puts the dictionary in the custom object for use between nested launches without breaking legacy dictionary calls
+globals.dict_a = function(import=0)  
 	cobble = get_custom_object
 	if typeof(import) == "list" then cobble.dictionary = import // set a new dicitonary from input: list
 	if not cobble.hasIndex("dictionary") then cobble.dictionary = ["a"] // set default dictionary if it doesn't exist
@@ -371,7 +378,7 @@ colorBlack = "<color=#000000FF><b>"
 colorOrange = "<color=#FF8400FF><b>"
 colorLightBlue = "<color=#2382FFFF><b>"
 CT = "</color></b>"
-// end globals
+
 globals.get_file = function(input_string)
 	if DEBUG then print("in_get_file: "+@input_string)
 	if typeof(input_string) == "file" then return input_string.path
@@ -388,8 +395,9 @@ globals.get_file = function(input_string)
 	end if
   if file then return file else return 0
 end function
+// end globals
 if DEBUG then print("<size=75%>loaded get_file...</size>")                       ////////////////////////////////
-if DEBUG then print("<size=75%>loading 5hell.5pk...(105.426kb)")                   /////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...(111.475kb)")                   /////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")     ////////////////////////////////
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -583,17 +591,17 @@ command.psudo = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.shell_prompt(psl)
 end function
 command.ls = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "List Files"+char(10)+"Usage: ls [opt: -l,-a,-A] [opt: /path] -- list files in path"+char(10)+"-- opt: -l -- list file details"+char(10)+"-- opt: -a -- list all files (including hidden .files)"+char(10)+"-- opt: -A -- list files alphabetically"+char(10)+"-- option flags may be combined. ie: -laA"+char(10)+"N.B. -- files and folders listed from first created to last created by default"
+	if arg1 == "-h" or arg1 == "help" then return "List Files | List Folders | File Details"+char(10)+"Usage: ls [opt: -l|-a|-la] [opt: /path] -- list files in path"+char(10)+"OPT: -l -- list file details"+char(10)+"OPT: -a -- list all files (including hidden .files)"+char(10)+"-- <b>deprecated</b> shall all flag is now implicit (always on)"+char(10)+"-- -a and -A are now equivalent"+char(10)+"OPT: -A|-a -- list files alphabetically "+char(10)+"-- by default files and folders are listed from first created to last created "+char(10)+"Note: option flags may be combined. ie: -la"+char(10)
 	folderPath = globals.currentPath
 	if DEBUG then print("ls: "+folderPath)
-	showHide = 0
+	showHide = 1
 	showDetails = 0
 	a_order = 0
 	s_order = 0
 	if arg1 then 
 		if arg1.indexOf("-") == 0 then // we have flags
 			if arg2 then folderPath = arg2
-			if arg1.indexOf("a") != null then showHide = 1
+			//if arg1.indexOf("a") != null then showHide = 1
 			if arg1.indexOf("l") != null then showDetails = 1
 			if arg1.indexOf("A") != null then a_order = 1
 			if arg1.indexOf("s") != null then s_order = 1
@@ -1012,7 +1020,17 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.mail = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "mail: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+"-- name your function<b> command.mail </b> to overwrite this one."+char(10)+"-- see 5hell.src, template.5pk.src for instructions."+char(10)+"N.B. You may overwrite any command this way."+char(10)+"<b>Advanced: when prompted for a password enter:</b> -brutus"+char(10)+"-- this will invoke <b>brutus</b> and attempt to crack the email password."
+	if arg1 == "help" or arg1 == "-h" then return "Mail || metaMail || herme5 || hermes || mail client"+char(10)+
+	"mail: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+
+	"-- name your function<b> command.mail </b> to overwrite this one."+char(10)+
+	"-- see 5hell.src, template.5pk.src for instructions."+char(10)+
+	"N.B. You may overwrite any command this way."+char(10)+
+	"Usage: mail -- opens the herme5 mail menu"+char(10)+
+	"-- when prompted for a password you may enter:</b> -brutus"+char(10)+
+	"-- this will invoke <b>brutus</b> and attempt to crack the email password."+char(10)//+
+	"-- the password will be saved to the custom object as key == email_address and value == password"+char(10)+
+	"---- this will change once i work out a better storage system"+char(10)+
+	"Extra: when viewing your inbox you may type <b>spool</b> to dump all mail to a file (up to 160kb)"
         herme5 = function()
             mail = {}
             mail.meta = null  // metaMail object
@@ -1028,9 +1046,9 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
               dsize = globals.dict_a.len
               mode = user_input("[<b>0</b>] Onboard Dictionary -- [1] /root/tables/tp ")
               if mode == "0" or mode == "" then
-                reverse = user_input("[0] start at dict_a[0]  --  [1] start at dict_a[-1] "+char(10)+"(type anything else to abort) ||:",0,1 )
-                if reverse == "1" or reverse == "0" then
-                  reverse = reverse.to_int
+                reverse_it = user_input("[0] start at dict_a[0]  --  [1] start at dict_a[-1] "+char(10)+"(type anything else to abort) ||:",0,1 )
+                if reverse_it == "1" or reverse_it == "0" then
+                  reverse_it = reverse_it.to_int
                 else
                   return 0
                 end if
@@ -1042,12 +1060,13 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
                 ds = dsize - 1
                 for p in range( 0, ds )
                   dsize = dsize - 1
-                  if reverse then pa = globals.dict_a[0 - p] else pa = globals.dict_a[p]
+                  if reverse_it then pa = globals.dict_a[0 - p] else pa = globals.dict_a[p]
                   if show_count then print(colorGold+colorWhite+"["+CT+dsize+colorWhite+"]"+CT+CT)
                   if show_pass then print(colorGold+colorWhite+"["+CT+pa+colorWhite+"]"+CT+CT)
                   try = mail_login(arg, pa)
                   if typeof(try) == "MetaMail" then
                     print("brutus: <b>password found</b>: "+colorWhite+pa+CT)
+					print command.cob("set",arg.pa)
                     return try
                   end if
                 end for
@@ -1066,6 +1085,8 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
                       try = mail_login( arg, p )
                       if typeof(try) == "MetaMail" then
                         print("brutus: <b>password found</b>: "+colorWhite+p+CT)
+						print("brutus: accessing cob: saving password as key, email as value")
+						print command.cob( "set", p, arg)
                         return try
                       end if
                     end for
@@ -1115,20 +1136,45 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
               if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
               print(mail.Fetch)
               print(mail.data_stream(mail.data))
-              r = user_input("read:> ").to_int
+              r = user_input("Enter an index to read or type <b>spool</b> to dump to a file :> ").to_int
               print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
-          
-              if r >= 0 and r < mail.data.len then
-                read_this = mail.meta.read(mail.get_id(r))
-                print(read_this)
-                if read_this.split(char(10))[2] == "Subject: *" then
-                  print(colorLightBlue+"<u><mark=black>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
-                  print(command.code("-b", read_this[read_this.indexOf("Subject: *")+11:]))
-                end if
-                done = user_input("press <<b>anyKey</b>> to return")
-                return "_____"
-              end if
-              return "aborting..."
+			  if mail.data.len < 1 then return "herme5: mailbox is empty"
+			  spool_buf = []
+			  spooling = false
+			  if r == "spool" then 
+				spooling = true
+			  	r = mail.data.len - 1
+			  end if
+			  while r >= 0
+				if r >= 0 and r < mail.data.len then
+					read_this = mail.meta.read(mail.get_id(r))
+					if spooling then print "<size=80%>herme5: spooling: ["+colorWhite+r+CT+"]" else print(read_this)
+					if spooling then spool_buf.push(mail.data[(r)]+char(10)+read_this+char(10))
+					if read_this.split(char(10))[2] == "Subject: *" then
+						print(colorLightBlue+"<u><mark=#DF8600>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
+						print(command.code("-b", read_this[read_this.indexOf("Subject: *")+11:]))
+					end if
+				end if
+				if spooling then r = r - 1 else r = -1
+			  end while
+			  if spooling then 
+			  	st = time
+			  	spool_file_path = user_input( colorGold+"herme5: please enter a path for the spool file: "+char(10)+"[/path, <<b>enter</b>=home_dir/spool.txt, </b>q</b>=quit]:> " )
+				if spool_file_path.lower == "q" or spool_file_path.lower == "quit" then return "aborting..."
+				if spool_file_path == "" or spool_file_path == " " then spool_file_path = homePath+"/spool.txt"
+				spool_file = globals.get_file(spool_file_path)
+				if typeof(spool_file) != "file" then print "herme5: could not locate spool file."+char(10)+"herme5: creating: "+spool_file_path else print "herme5: spool file found; overwriting"
+				if typeof(spool_file) == "file" and spool_file.is_binary then return "herme5: cannot spool to binary file"
+				print colorWhite+"<size=80%>Saving data to spool file: <b>"+spool_file_path
+				if DEBUG then print "debug: spool_buf is: "+spool_buf+" and is a "+typeof(spool_buf)
+				spool_file = command.poke("-f",spool_file_path, current_date+char(10)+char(10)+spool_buf.join(char(10))+char(10)+current_date)
+				if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
+				globals.BUFFER.push(spool_file)
+				wait(.1) 
+				ttt = time - st
+				print colorGold+"herme5: "+CT+"spool_file object sent to "+colorOrange+"BUFFER"+CT+char(10)+colorGold+"</b>herme5: task completed in <b>"+ttt+"</b> seconds."
+			  end if
+              return "returning..."
             end function
             mail.Write = function()
               if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
@@ -1262,30 +1308,64 @@ if DEBUG then
 	if command.hasIndex("kore") then print "debug: kore loaded"
 end if 
 command.memdump = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "memdump: dump MEMORY, XPLOITS, PORT_MAP to current_path+/memdump.mx"+char(10)+"n.b. ignores glasspool. main purpose is generating reports for clients."
+	if arg1 == "help" or arg1 == "-h" then return "memdump: dump MEMORY, XPLOITS, PORT_MAP, clipboards,  to current_path+/memdump.mx"+char(10)+"n.b. ignores glasspool. main purpose is generating reports for clients."
 	return globals.dump_memory
 end function
 command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b><u>enumeration || ENUM || enum buffer"+char(10)+
 	"Use this to put things in a list."+char(10)+
 	"Usage: enum [opt|/path|file_object|array|#]"+char(10)+
-	"Usage: enum [list|map] -- enumerates a list or a map"+char(10)+
+	"Usage: enum [list|string] -- enumerates a list or a newline separated string"+char(10)+
+	"-- if the string is a single word it will be interpreted as a path"+char(10)+
+	"-- multiple words on a single line (piped) will be interpreted as a single enum entry"+char(10)+
 	"Usage: enum [path|file_object]"+char(10)+
-	"-- enumerate file contents as a list of lines indexed from 0"+char(10)+
+	"-- enumerate file contents as a list of strings"+char(10)+
 	"-- useful for 5hell scripting (see the '<b>do</b>' command)."+char(10)+
 	"-- e.g: enum file.txt | enum 1"+char(10)+
 	"---- enumerate file.txt then return index [1] from the list"+char(10)+
-	"Usage: enum -l -- return length of enum buffer."+char(10)+
-	"Usage: enum -s -- show enum buffer and return length"+char(10)+
+	"Usage: enum -l -- return the length of enum buffer."+char(10)+
+	"Usage: enum -s -- show the enum buffer and return the length"+char(10)+
 	"Usage: enum -d -- enumerate the onboard dictionary"+char(10)+
-	"Usage: enum # -- return the value at index # in the enum buffer"+char(10)+
+	"Usage: enum [#] -- return the element at index # in the enum buffer"+char(10)+
+	"Usage: enum -i [index] [element] -- insert element at index and shift everything below it down"+char(10)+
+	"Usage: enum -a [element] -- append element to end of enum buffer"+char(10)+
+	"Usage: enum -p -- purge the enum buffer"
 	"Advanced: poke files.txt | lock |  | ls | append files.txt | cat files.txt | clipb | enum"+char(10)+
 	"-- Or: ls | enum -- pipe ls output to the enum buffer"+char(10)+
 	"Advanced: lanpro | enum -- scan network and enumerate all LAN addresses found. "+char(10)+
-	"Advanced: enum -e -- return the enumerated buffer as a list object."
+	"Advanced: enum -e -- return the enumerated buffer as a list object."+char(10)+
+	"Note: map support is coming soon(tm)"
 	if arg1 == null then return 0
+	if arg1 == "-p" then 
+		globals.enumerated = []
+		return "enum: "+colorOrange+" enum buffer purged"
+	end if
 	if not arg1 or arg1 == "0" then
 		if globals.enumerated.len then return globals.enumerated[0] else return 0
+	end if
+	if arg1 == "-i" then 
+		if not arg3 then return "enum: -i [index] [element]"
+		buf_bak = globals.enumerated
+		if typeof(arg2) != "string" then return "enum: -i expects string index"
+		if typeof(arg3) != "string" and typeof(arg3) != "list" then return "enum: -i [index] [string|list]"
+		dx = arg2.to_int
+		sbb = null 
+		if typeof(arg3) == "list" then sbb = arg3 
+		if typeof(arg3) == "string" then sbb = arg3.split(char(10))
+		if typeof(dx) != "number" or dx >= buf_bak.len or dx < 0 then return "enum: invalid index"
+		sli_1 = buf_bak[0:dx]
+		sli2 = buf_bak[dx:]
+		new_buf = sli_1 + sbb + sli_2
+		return "enum: element inserted at index "+dx
+	end if
+	if arg1 == "-a" then 
+		if not arg2 then return "enum: append failed: missing input"
+		sb = ""
+		if typeof(arg2) == "list" then sb = arg2
+		if typeof(arg2) == "string" then sb = arg2.split(char(10))
+		if sb == "" then return "enum: append failed: invalid type: expects string or list"
+		globals.enumerated = globals.enumerated + sb
+		return "enum: list appended"
 	end if
 	if arg1 == "-d" then
 		globals.enumerated = globals.dict_a[0:]
@@ -1320,7 +1400,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	 	if globals.enumerated.hasIndex(arg1.to_int) then return globals.enumerated[arg1.to_int] else return "enum: error: invalid index"
 	end if
 	if typeof(arg1) == "string" then
-		if arg1.split(char(10)).len > 1 then
+		if arg1.split(char(10)).len > 1 or arg1.split(" ") > 1 then // more than one line or more than one word, otherwise it's a path
 			globals.enumerated = arg1.split(char(10))
 			for el in globals.enumerated
 				if el == "" then
@@ -1456,7 +1536,7 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		print("Function() detected...")
 		return globals.decompiler(@arg1)
 	end if
-	if @arg1 == null or @arg1 == "-h" or @arg1 == "help" then return "<b>CODE</b> encode and decode utility"+char(10)+"Usage: code [char] -- returns ascii code for char"+char(10)+"Usage: code -c [int] -- returns ascii char(int)"+char(10)+"Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+"-- will evaluate piped functions."+char(10)+"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+"Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher</b>\n-- prompts for input if not supplied\n-- enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+"-- if input is more than one word use without params for prompt"+char(10)+"-- or use piping or an input file (see -f options)"+char(10)+"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+"-- option [-f] [path] -- prompts for enc/dec\n-- option [-fa|-af] [path] -- encode contents of path with MuninCipher\n-- option [-fb|-bf] [path] -- decode contents of path with MuninCipher"+char(10)+"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
+	if @arg1 == null or @arg1 == "-h" or @arg1 == "help" then return "character code || cipher || encryption || decompiler"+char(10)+"<b>CODE</b> encode and decode utility"+char(10)+"Usage: code [char] -- returns ascii code for char"+char(10)+"Usage: code -c [int] -- returns ascii char(int)"+char(10)+"Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+"-- will evaluate piped functions."+char(10)+"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+"Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher</b>\n-- prompts for input if not supplied\n-- enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+"-- if input is more than one word use without params for prompt"+char(10)+"-- or use piping or an input file (see -f options)"+char(10)+"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+"-- option [-f] [path] -- prompts for enc/dec\n-- option [-fa|-af] [path] -- encode contents of path with MuninCipher\n-- option [-fb|-bf] [path] -- decode contents of path with MuninCipher"+char(10)+"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
 	Encode = function(instruction, password)
     caesar = function(type, pass)
 				if pass == "" then return char(32)
@@ -1602,11 +1682,13 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 	buf = []
 	if typeof(@arg1) == "string" then
 		print("<mark=yellow><size=75%>Processing string...</mark></size>")
-		if @arg1 == "\n" then return str(char(10).code)
-		@arg1 = @arg1.values
-		for letter in @arg1
+		if arg1 == "\n" then return str(char(10).code)
+		if arg1 == 0 or arg1 == " " then return str(" ".code)
+		arg1 = arg1.values
+		for letter in arg1
 			buf.push(letter.code)
 		end for
+		if DEBUG then print "debug: code: string buf: "+buf
 		return buf.join(", ")
 	end if
 	//if typeof(@@arg1) == "function" then return globals.decompiler(@@arg1)
@@ -1704,10 +1786,12 @@ command.cc = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return ": carbon copy: command buffer."+char(10)+"Usage: cc -- select command from history."+char(10)+"Usage: cc [#] -- where # is corresponds to the command you wish to run from the command buffer."+char(10)+"n.b. cc will return the output of the commands as if they were run normally."+char(10)+"This means you may use cc inside of pipe chains."
 	i = 0
 	schtick = "| return"
-	for ccom in globals.command_buffer
-		print("["+colorWhite+i+CT+"] "+char(187)+" "+ccom)
-		i = i + 1
-	end for
+	if not arg1 then 
+		for ccom in globals.command_buffer
+			print("["+colorWhite+i+CT+"] "+char(187)+" "+ccom)
+			i = i + 1
+		end for
+	end if
 	do = null
 	if arg1 then do = arg1.to_int
 	if not do then do = user_input("cc:> ",0,0).to_int
@@ -1716,6 +1800,8 @@ command.cc = function(arg1, arg2, arg3=0, arg4=0)
 		carbon = carbon +" "+ schtick
 		//carbon = carbon.split(" ")
 		return command.shell( carbon )
+	else
+		return "cc: invalid index"	
 	end if
 	return 0
 end function
@@ -1726,10 +1812,10 @@ command.time = function(arg1, arg2=0, arg3=0, arg4=0)
 	return current_date.split(" ")[2]
 end function
 command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "Usage: pause [time] -- wait(time_secodnds) time may be a decimal value. e.g. pause .5 (default=1s)"+char(10)+"This command is mainly useful for putting a delay in 'do' scripts."
+	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "Pause || Wait || Hang || Sleep"+char(10)+"Usage: pause [time_in_seconds(float)] -- wait(time_seconds) i.e. pause script execution"+char(10)+"-- this command is mainly useful for putting a delay in 'do' scripts."+char(10)+"Minumum time: .001 seconds"+char(10)+"Maximum time: 300 seconds"
 	time = 1
-	if typeof(arg1.val) == "number" then time = arg1.val
-	if time <= 300 and time >= .1 then
+	if typeof(arg1.val) == "number" then time = arg1.val else return "pause: invalid interval: expects positive float [.001 : 300]"+char(10)+"n.b. - negative values will not reverse time"
+	if time <= 300 and time >= .001 then
 		wait(time)
 	else
 		wait(1)
@@ -1737,13 +1823,45 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
-if arg1 == "help" or arg1 == "-h" then return "CERBIOS"+char(10)+"Usage: bios -- system info"+char(10)+"Advanced:<b> mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+"-- where SIZE is the max size of your hdd in bytes. "+char(10)+"-- lets bios report remaining hdd space"+char(10)+"Usage: bios -a -- return the aptclientlib object"+char(10)+"Usage: bios -m -- return the currently linked metaLib object"+char(10)+"Usage: bios -x -- return the metaxploit object"+char(10)+"Usage: bios -c -- return the crypto object"+char(10)+"Usage: bios -n -- return the netsession object"+char(10)+"Usage: bios -p -- return the port_map object"+char(10)+"Usage: bios -r [opt: ip] -- return the router object"+char(10)+"Usage: bios -i [path] -- runs <b>include_lib</b> on path and returns result"+char(10)+"-- init.so, net.so, kernel_module.so cannot be imported as they lack an API"+char(10)+"-- prompts for path if path not supplied"+char(10)+"---- e.g.|> bios -i /lib/blockchain.so | malp "+char(10)+"---- returns the blockchainLib object and pipes it to malp (to the BUFFER)"+char(10)+"---- note: cannot import net.so, init.so, kernel_module.so"+char(10)+"---- only libs with API's may usr include_lib"
+if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"+char(10)+
+"Usage: bios -- system info"+char(10)+
+"Advanced:copy the following to 5hell's command line:"+char(10)+
+"<b>mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+
+"-- replace SIZE with the maximum size of your hdd in bytes. "+char(10)+
+"-- this lets bios report the remaining hdd space"+char(10)+
+"Usage: bios -a -- return the currently loaded <color=#FFD000>aptclientlib object"+char(10)+
+"Usage: bios -m -- return the currently linked <color=#13E6CA>metaLib object"+char(10)+
+"Usage: bios -x -- return the currently loaded <color=#FF0800>metaxploitLib object"+char(10)+
+"Usage: bios -c -- return the currently loaded <color=#8C00FF>crypto object"+char(10)+
+"Usage: bios -n -- return the currently linked <color=#0011FF>netsession object"+char(10)+
+"Usage: bios -p -- return the currently loaded <color=#69E488>port_map object as a string"+char(10)+
+"Usage: bios -h -- return the currently linked <color=#E4EE58>herme5 meta.mail object"+char(10)+
+"-- returns null if not logged in to a mail account"+char(10)+
+"Usage: bios -s -- return the currently loaded <color=#8B8568>meta_scan information</color> as a string"+char(10)+
+"Usage: bios -P -- return the currently loaded <color=#00FF40>port_map object as a map"+char(10)+
+"Usage: bios -X -- return the currently loaded <color=#065F0D>XPLOITS as a list"+char(10)+
+"Usage: bios -M -- return the current <color=#FF00C8>MEMORY object or null"+char(10)+
+"Usage: bios -B -- return the global <color=#E68A13>BUFFER as a list"+char(10)+
+"Usage: bios -r [opt: ip] -- return the <b>local<b> <color=#71858D>router object</color> [opt:ip]"+char(10)+
+"Usage: bios -i [path] -- runs <b>include_lib</b> on path and returns result"+char(10)+
+"-- init.so, net.so, kernel_module.so cannot be imported as they lack an API"+char(10)+
+"-- prompts for path if path not supplied"+char(10)+
+"---- e.g.|> bios -i /lib/blockchain.so | malp "+char(10)+
+"---- returns the blockchainLib object and pipes it to malp (to the BUFFER)"+char(10)+
+"---- note: cannot import net.so, init.so, kernel_module.so"+char(10)+
+"------ only libs with API's may use include_lib"+char(10)
 if arg1 == "-a" then return globals.apt_get 
 if arg1 == "-x" then return globals.metaxploit 
 if arg1 == "-c" then return globals.crypto 
 if arg1 == "-n" then return globals.net_session
-if arg1 == "-p" then return globals.PORT_MAP
+if arg1 == "-p" then return globals.display_portmap(1)
+if arg1 == "-P" then return globals.PORT_MAP
+if arg1 == "-h" then return globals.inbox
 if arg1 == "-m" then return globals.metaLib
+if arg1 == "-s" then return globals.meta_scan
+if arg1 == "-X" then return globals.XPLOITS 
+if arg1 == "-M" then return globals.MEMORY
+if arg1 == "-B" then return globals.BUFFER
 if arg1 == "-r" then 
 	if arg2 then
 		if is_valid_ip(arg2) then return get_router(arg2)
@@ -1758,6 +1876,7 @@ if arg1 == "-i" then
 	end if
 	return include_lib(arg2)
 end if
+
 bios_info = []
 bios_info.push("<mark=red><u>=======================================================================</u></mark>")
 bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.5_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
@@ -1883,6 +2002,7 @@ end if
 bios_info.push("<size=85%>[/var/system.log: "+log_size+" bytes || is_binary: "+log_is_binary+" || perms: "+log_permissions+" ]")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
 bios_info.push("*<size=50%> (obvious stub needs obvious improvement)</size>")
+bios_info.push("*<size=50%> see <b>bios -h</b> for additional usage info.")
 bios_info.push("<mark=red><u>=======================================================================</u></mark>")
 
 return bios_info.join(char(10))
