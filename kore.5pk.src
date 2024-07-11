@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.7.7...(119.763kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.7.8...(128.719kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -338,7 +338,7 @@ command.kore = function(arg1, arg2, arg3=0, arg4=0)
 		command.cp(cpath.path, home_dir+"/rkit")
 		if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "kore: copying crypto.so: permission denied"
 		time_f = time - time_s
-		return "kore: task complete in "+time_s+" seconds."
+		return "kore: task complete in "+time_f+" seconds."
 	end if
 	return kore
 end function
@@ -1582,7 +1582,17 @@ command.rshell = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if globals.metaxploit then return metaxploit.rshell_client(arg1,arg3.to_int,arg2) else return "rshell: metaxploit.so not found"
 end function
-if DEBUG then print("<size=75%>loading ...kraken.5pk...(29.688kb)</size>")
+command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return colorRed+"<u>5phinx:</color> network penetration test tool"+char(10)+"Press F1 or ? within 5phinx for further help."+char(10)+"Usage: sphinx -- launch 5phinx"+char(10)+"Usage: <b>sphinx [ip] [port]</b>"+char(10)+"-- preset targetIp and targetPort with"+char(10)+"-- port 0 == router port"+char(10)+"-- port 8080 == router http port!!"+char(10)+"Advanced: target the LAN IP of the router first. "+char(10)+"-- then target port 8080 and exploit it"+char(10)+"-- this is done on the same network as the router"
+	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
+	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
+	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int
+	globals.main
+	return 0
+end function
+if DEBUG then 
+	if command.hasIndex("sphinx") then print "debug: sphinx loaded!"
+end if
 command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 and (arg1 == "-h" or (arg1 != "-d" and arg1 != "-n")) then
 		return "Usage: silentclean [opt:-d|-n] "+char(10)+" options:"+char(10)+" -d: log wipe + auto-self-delete rkit and/or 5hell"+char(10)+" -n: nuke system + auto-self-delete"+char(10)+" no params == local log wipe without self delete"+char(10)+"N.B. run as root as /var is usually write protected."+char(10)+"<b>Important: silentclean does not support piped objects"+char(10)+"-- use rclean [piped object] instead"+char(10)+"-- or run silentclean from glasspool"
@@ -1627,17 +1637,6 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	return 0
 end function
-command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return colorRed+"<u>5phinx:</color> network penetration test tool"+char(10)+"Press F1 or ? within 5phinx for further help."+char(10)+"Usage: sphinx -- launch 5phinx"+char(10)+"Usage: <b>sphinx [ip] [port]</b>"+char(10)+"-- preset targetIp and targetPort with"+char(10)+"-- port 0 == router port"+char(10)+"-- port 8080 == router http port!!"+char(10)+"Advanced: target the LAN IP of the router first. "+char(10)+"-- then target port 8080 and exploit it"+char(10)+"-- this is done on the same network as the router"
-	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
-	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
-	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int
-	globals.main
-	return 0
-end function
-if DEBUG then 
-	if command.hasIndex("sphinx") then print "debug: sphinx loaded!"
-end if
 command.scrub = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "scrub: wipe proxy net logs using kraken and optional silentclean"+char(10)+"Usage: scrub [optional: -s] -- force run silentclean locally on each proxy (requires silentclean installed on proxy)"
 	return command.kraken("scrub", arg1, arg2)
@@ -1647,6 +1646,7 @@ command.prox = function(arg1, arg2=0, arg3=0, arg4=0)
 	return command.kraken("connect", arg1, arg2)
 	return 0
 end function
+if DEBUG then print("<size=75%>loading ...kraken.5pk...(10.875b)</size>")
 command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	kraken_help = function()
 		return "Usage: kraken [optional: upload_path] propagate file or folder to all proxies, chlock, delete /etc/passwd using Config/Map.conf"+char(10)+"shortcuts: kraken connect == prox"+char(10)+"shortcuts: kraken scrub == scrub"+char(10)+"Usage: kraken [/path|prox|scrub|-l|buffer] -- shells will be sent to BUFFER."+char(10)+"New: kraken [command] [-s] -- run silentclean locally on each proxy after command. (if silentclean is installed on that system)"+char(10)+"Advanced: kraken [add|del|show] [opt:ip] [opt:pass] -- add|remove items to|from Map.conf or display current map."+char(10)+"Usage:<b> kraken show -p </b>-- show proxy list with passwords."+char(10)+"New:<b> kraken -l </b> -- download logs from proxies (and then scrub)"+char(10)+"Usage: kraken -- launch kraken menu"+char(10)+"NEW: kraken will no longer scrub logs by default! "+char(10)+"-- please use <b>kraken scrub</b> or the shortcut <b>scrub</b> to clean corrupt proxy logs."+char(10)+"Logs are still scrubbed by default when running:"+char(10)+"-- kraken -l, kraken connect, prox (shorcut for kraken connect)"+char(10)+"-- kraken scrub, scrub (shorcut for kraken scrub)"+char(10)+"Kraken will <b>not</b> autoscrub for:"+char(10)+"-- kraken [path] and/or  kraken buffer"
@@ -1664,7 +1664,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		if map_file then print(home_dir+"/Config/Map.conf created.") else return "kraken: write error!"
 	end if
 	//map read
-	print(colorCyan+"Initializing Kraken v 0.9.4 by Plu70..."+CT)
+	print(colorCyan+"Initializing Kraken v 0.9.5 by Plu70..."+CT)
 	time_s = time
 	MAP = {}
 	MAP.accounts = {"accounts":[{"user":"user","ip":"ip","password":"password"}]}
@@ -1905,13 +1905,12 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 		if arg2 == "" then return "liber: -i expects a path"
 		print colorWhite+"<u>liber: running command.bios -i "+arg2+CT+"</u>"
 		catch = command.bios(arg1,arg2)
-		if catch then print
+		if catch then print catch
 	end if
 	//if arg1 == "-l" and not arg2 then l_path = "/lib"
 	if arg1 == "-l" then 
-		if arg2 and typeof(arg2) == "stringg" then l_path = "/lib/"+arg2
-
-
+		if arg2 and typeof(arg2) == "string" then l_path = "/lib/"+arg2 else l_path = "/lib"
+		if arg2 and typeof(arg2) != "string" then print "liber: expects path as a string."
 	end if
 	if DEBUG then print("liber: l_path = "+l_path+" and is a "+typeof(l_path))
 	if typeof(l_path) == "string" then lib_file = globals.get_file(l_path)
@@ -1938,19 +1937,103 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	end if
 	return buf.join(char(10))
 end function
+
+
+// commented out until complete. will replace current db
+// command.new_db = function( arg1, arg2, arg3, arg4)
+
+// 	// if target param is supplied use that, otherwise use global targetIP for -r option
+// 	if arg1 == "-r" then
+// 		db_this_ip = globals.targetIP
+// 		db_this_port = globals.targetPort
+// 		if arg2 and (arg2 == "*" or is_valid_ip(arg2)) then 
+// 			if is_lan_ip(arg2) then db_this_ip = arg2  // db -r [ip]
+// 			if arg2 == "*" then 
+// 				if is_valid_ip(db_this_ip) then db_this_port = "*" else return "db: set or supply a valid ip" // db -r * 
+// 			end if
+// 		else 
+// 			return "db: invalid argument"+char(10)+"db: expects <b>*</b> or <b>ip</b>"
+// 		end if
+// 		if db_this_ip != globals.targetIP and not arg3 then db_this_port = 0 // db -r [ip]
+// 		if arg3 and typeof(arg3) == "string" and typeof(arg3.to_int) == "number" then db_this_port = arg3 // db -r [ip] [port]
+// 		if arg3 and arg3 == "*" then db_this_port = "*"   // db -r [ip] * or maybe db -r * * which is the same as db -r *
+
+// 		// now that we have ip and port, we call meta link
+
+// 		// if linkdb finds the entry in the database:
+// 		// warn it will be overwritten and then sally forth
+
+// 		// call meta scan
+
+// 		// call roil
+
+// 		// database results
+
+// 		// make some sort of something to swap metaexploitLib objects for shenanigans
+
+// 	end if
+
+// 	if arg1 == "-l" then 
+
+// 	// do local stuff
+	
+// 	end if
+
+// 	return db_usage
+
+// end function
+
+// algo to edit db:
+// islolate metax and metaLib to be used 
+// the general idea is to use two metaxploitLib's effectively
+// probably a flag like -x and then params; one param for linking/loading and one for scanning
+	// db -x [custom_object_index_of_metaxploitLib(string) | piped_metaxploitLib(object)] {opt: -m [c_o_metaLib_index(string) | piped_metaLib(object)] }
+	// db -m [c_o_metaLib_index(string) | piped_metaLib(object)] {opt: -x [custom_object_index_of_metaxploitLib(string) | piped_metaxploitLib(object) }
+// use @a | @b | @c in lieu of piping
+// usage example: you want to database net.so on a router using your attack server hardware
+// in this scenario you start on your attack server and already have a shell object (index [1]) in the BUFFER:
+// |> bios -x | cob set metx
+// // either upload and run 5hell via the BUFFER or:
+// |> clipa @B 1 | scpm -u /root/rkit /home/guest     /// lets use clipa ( @a ) for this example
+// |> echo do 1 -f pwn.bat | clipb                    //// and we'll use clipb ( @b ) for this one
+// |> run /home/guest/rkit/5hell @a @b                //// run [dir] [shell] [params]
+// or  
+// |> run /home/guest/rkit/5hell @b @a                //// run [dir] [params] [shell]
+// // enter password
+// // 5hell then executes pwn.bat and returns back to original prompt
+// // pwn.bat (or whatever you want to call it, doesn't have to be .bat or whatever) should contain:
+// 
+
+
+// better idea: edit roil instead and borrow the database part of db's code
+
 command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABASER/////////////////
+	if not globals.metaxploit then return colorRed+"</b>db: error: metaxploit is not loaded"
 	remote = false
+	pre_load = false
 	lib_path = ""
-	globals.metaLib = null
-	help_menu = function()
+	//globals.metaLib = null // this is an obstacle to using mutliple metalibs/metaxploitlibs
+	db_usage = function()
 		data = ["<u>db || dbaser || databaser</u>","Usage: db [-r|-l] [ip|lib_name.so] [opt:port] -- scan ip or lib for all exploits and add to database. (this is loud)","Usage: db [-r|-R] [remote_ip] [optional: -port] -- scans remote lib","Usage: db [-l|-L] [lib_name.so] -- scans lib_name.so in the /lib folder (local) and updates database.","<b>n.b. writes to /root/database.csv</b>","<b>n.b.b</b> use meta scan (after meta link) to scan local without involving database.","Important: It is not possible exploit libs that are not in the /lib folder."+char(10)+"<b>Easy mode:</b> If target IP and port are already set use:"+char(10)+"-- <b>db -r</b> without passing ip or port. "+char(10)+"Advanced: db -r [opt:ip|*] [opt:*]  -- wildcard, run db on all ports of target"+char(10)+"-- eg: db -r *"+char(10)+"-- eg: db -r [ip] *"+char(10)+"Advanced: db -l *  -- run db on all libs in /lib"+char(10)+"Advanced: db [-r|-l] [ip|lib_name] [1] -- allows supplying an inject value ( ip, password )"]
 		return data.join(char(10))
 	end function
 	// params: -h|-H -show help (same as run without params)
-	if (arg1 != "-l" and arg1 != "-r") or arg1 == "-h" or arg1 == "help" then return(help_menu)
+	if (arg1 != "-l" and arg1 != "-r" and arg1 != "-m") or arg1 == "-h" or arg1 == "help" then return(db_usage)
 	// params: -r|-R -remote_ip (optional -p|-P -port),
-	if not globals.metaxploit then return "metaxploit.so not found"
 	if DEBUG then print("In command.db...")
+	if arg1.lower == "-m" then 
+		pre_load = true
+		print colorLightBlue+"db: custom scan..."
+		if arg2 then 
+			if typeof(arg2) == "metaxploitLib" then print command.meta("-i",arg2) 
+			if typeof(arg3) == "metaxploitLib" then print command.meta("-i",arg3) 
+			if typeof(arg2) == "metaLib" then print command.meta("-",arg2)
+			if typeof(arg3) == "metaLib" then globals.metaLib = arg3 
+			// add some error checking here ^
+		end if
+		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"... ready."
+	end if
+	if not globals.metaxploit then return "metaxploit.so not found"
 	if arg1.lower == "-r" then
 		remote = true
 		if not arg2 then
@@ -2062,11 +2145,11 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if DEBUG then print(lib_info)
 	end function
 	if remote then
-		get_lib
+		if not pre_load then get_lib // pre_load == true means db the currently loaded metaLib (wip)
 	else
-		load_lib
+		if not pre_load then load_lib // this means we don't link or load a lib here
 	end if
-	if not globals.metaLib then return colorRed+"MetaLib: error 265. Connection failed."+CT
+	if not globals.metaLib then return colorRed+"MetaLib: error 265: unable to link/load net_session/metaLib."+CT
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
 	inject = ""
@@ -2278,40 +2361,84 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.meta = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: meta -- print metaLib name and version if any."+char(10)+"Usage: meta link -- links remote or local metaLib."+char(10)+"-- equivalent to 5phinx [+] or [=]"+char(10)+"Optional: meta link -l || meta link -r -- force local || remote and skip confirmation."+char(10)+"Usage: meta scan -- scan the linked metaLib and load vulns to memory (does not update database)"+char(10)+"-- equivalent to 5phinx [1]"+char(10)+"-- use zap or roil to exploit || 5phinx [A] or [2] after scanning."
+	if arg1 == "help" or arg1 == "-h" then return "Metaxploit || MetaxploitLib || exploits || XPLOITS || MetaLib || Hack"+char(10)+
+	"<color=yellow>Important note: A "+colorOrange+"metaxploitLib "+CT+"is the object obtained when using include_lib on "+colorOrange+"metaxploit.so"+char(10)+
+	"<color=yellow>                A "+colorGreen+"metaLib"+CT+" is the object obtained from metaxploit.load() or net_session.dump_lib"+char(10)+
+	"<color=yellow>                A "+colorGreen+"metaLib"+CT+" gets scanned, a "+colorOrange+"metaxploitLib "+CT+"does the scanning."+char(10)+
+	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
+	"The <color=yellow>meta<color> command is used for fine control over metaLib and metaxploitLib processes"
+	"Usage: meta -- print the currently linked "+colorGreen+"metaLib"+CT+" name and version if any."+char(10)+
+	"Usage: meta link [opt] -- links a remote or local "+colorGreen+"metaLib"+CT+char(10)+
+	"       -- this is equivalent to the 5phinx [+] or [=] buttons"+char(10)+
+	"Usage: meta link -l [opt:lib_name] -- link a local "+colorGreen+"metaLib"+char(10)+
+	"       -- passing a lib name will link that lib if it is in /lib"+char(10)+
+	"       -- not passing a lib name will bring up the menu"+char(10)+
+	"N.B ----- the menu will display libs in the <b>localhost</b>'s /lib folder"+char(10)+
+	"    ----- if using an imported (non local) "+colorOrange+"metaxploitLib "+CT+" the list will be wrong, however:"+char(10)+
+	"    ----- selecting a lib from the list that is present in the targets /lib folder will still link the correct lib"+char(10)+
+	"    ----- why? because it is not possible to get an ip or computer object from a "+colorOrange+"metaxploitLib "+CT+" object, directly"+char(10)+
+	"    ----- but the "+colorOrange+"metaxploitLib "+CT+" object itself looks in the paths on the machine from which metaxploit.so was included"
+	"Usage: meta link -r -- force linking a remote lib (uses the current target ip and port)"+char(10)+
+	"Usage: meta link ["+colorGreen+"metaLib"+CT+"] -- directly link a piped metaLib object"+char(10)+
+	"       -- scan the imported object with <b>meta scan</b>"+char(10)+
+	"       ---- use roil to send all attacks at once (does not database results)"+char(10)+
+	"       -- use <b><color=green>db -m</b></color> to force databasing the linked metaLib"+char(10)+
+	"Usage: meta scan -- scans the linked "+colorGreen+"</b>metaLib"+CT+" and loads vulns to memory"+char(10)+
+	"                 -- does NOT update the database"+char(10)+
+	"                 -- equivalent to 5phinx [1]"+char(10)+
+	"                 -- use db -r or db -l or db -m for databasing"+char(10)+
+	"                 -- use zap or roil or 5phinx [A] or [2] after scanning to fire the exploits"+char(10)+
+	"Advanced: meta -i [path|"+colorOrange+"metaxploitLib"+CT+"] -- import a new "+colorOrange+"metaxploitLib "+CT+" from a path or from a piped object"+char(10)+char(10)+
+	"Note: importing a "+colorOrange+"metaxploitLib "+CT+" from your server to a remote target allows using your hardware to scan the targets local libs."+char(10)+
+	"--Likewise, exporting a remote "+colorGreen+"</b>metaLib"+CT+" back to your server allows you to use your hardware to scan the remote libs."+char(10)+
+	"-- use <b>bios> along with <b>cob get</b> and <b>cob set</b> to import/export objects"
 	if not globals.metaxploit then return "metaxploit.so not found"
 	if not arg1 and globals.metaLib then return (globals.metaLib.lib_name + " v " + globals.metaLib.version)
 	if arg1 then
+		if arg1 == "restore" then 
+			if globals.backup_meta then 
+				globals.metaxploit = globals.backup_meta 
+				if typeof(globals.metaxploit) == "MetaxploitLib" then return "meta: backup metaxploit restored" else return "meta: error! backup metaxploit corrupted"+char(10)+"meta: use <b>meta -i [/path]</b> to manually restore."
+			end if
+		end if
 		if arg1 == "link" then
 			arg = 0
+			if arg2 and typeof(arg2) == "MetaLib" then 
+				globals.metaLib = arg2
+				return "meta: imported new MetaLib object. Ready to scan."
+			end if
 			if arg2 and arg2 == "-l" then
 				arg = "L"
-				return command.linkdb(get_lib(arg),"-y")
+				scan_this_lib = null
+				if arg3 and typeof(arg3) == "string" then scan_this_lib = arg3
+				return command.linkdb(get_lib(arg,scan_this_lib),"-y") // edit get_lib to take 3rd param: auto link
 			end if
 			if arg2 and arg2 == "-r" then arg = "Y"
 			if targetIP and targetPort then
 				if not localmachine.is_network_active then return "meta: no network connection!"
-				return command.linkdb(get_lib(arg),"-y")
+				return command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
 			else
 				return "Unable to establish connection."+char(10)+"Check parameters and try again."
 			end if
 		end if
 		if arg1 == "import" or arg1 == "-i" then 
-			if not arg2 then return "meta: -i expects a path to a lib.so"
-			backup_meta = globals.metaxploit
-			globals.metaxploit = arg2
+			if not arg2 then return "meta: -i expects a metaxploit.so object or a path to a metaxploit.so"
+			print "meta: backing up current metaxploit object"
+			globals.backup_meta = globals.metaxploit
+			if typeof(arg2) == "string" then globals.metaxploit = include_lib(arg2) else globals.metaxploit = arg2
 			if not globals.metaxploit or typeof(globals.metaxploit) != "MetaxploitLib" then 
-				globals.metaxploit = backup_meta
-				return "meta: metaxploit import failed!"
+				globals.metaxploit = globals.backup_meta
+				if typeof(arg2) == "string" then reason = "invalid path" else reason = "invalid input"
+				return "meta: metaxploit import failed: "+char(10)+reason+char(10)+"meta: backup metaxploit restored"
 			end if
-			print "meta: new metaxploit.so linked!"+char(10)+"meta: run meta -i on old metaxploit path to resutre"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will also restore local metaxploit.so"
+			print "meta: new metaxploit.so linked!"+char(10)+"meta: use <b>meta restore</b> to revert back to original metaxploit"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will also restore local metaxploit.so"
 		end if
 		if arg1 == "scan" then
 			if globals.metaLib then
 				//get_lib
 				globals.scan_memory
 			else
-				print("Please establish net session or load lib with:<b> meta link [-l|-r]</b> before scanning." )
+				print("Please establish net session or load lib with:<b> meta link [-l|-r|-i]</b> before scanning." )
 			end if
 		end if
 	end if
@@ -2338,10 +2465,10 @@ command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #" 
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+"Usage: purge [-o] -- purge custom object"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #" 
 	confirm = arg2
 	if arg1 == "-b" then
-		if confirm == "0" then return "purge: cannot purge launch shell."
+		if confirm == "0" then return "purge: cannot purge the launch shell."
 		if typeof(confirm) != "number" and typeof(confirm.to_int) == "number" then confirm = confirm.to_int
 		if not confirm then confirm = user_input("Clear BUFFER: are you sure? [y/N] ||: ",0,1)
 		if confirm == "y" or confirm == "Y" then
@@ -2413,6 +2540,17 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 			return "aborting..."
 		end if
 	end if	
+	if arg1 == "-o" then 
+		if not confirm then confirm = user_input("Clear custom_object: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then print "purging custom object..."
+		gco = get_custom_object
+		if DEBUG then print "debug: printing gco indexes..."
+		for index in gco.indexes
+			if DEBUG then print index
+			if index != "__isa" and index != "classID" then b.remove(index)
+		end for
+		return "custom object purged..."
+	end if
 	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r"
 end function
 // cobble, get_custom_object interface by Plu70
@@ -2420,7 +2558,31 @@ if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
 
   //command={}
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
-	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+"-- returns string on success or error"+char(10)+"Usage: cob get [key] -- get value of custom object key."+char(10)+"-- returns value at key or returns null on failure"+char(10)+"-- returns @reference (pointer) if value is a function"+char(10)+"Usage: cob return -- returns the raw custom object"+char(10)+"-- pipe to command.<b>code</b> to decompile the object."+char(10)+"-- ie:<b> cob return | code</b>"+char(10)+"Usage: cob inspect -- returns decompiled custom object (same as cob return | code)."+char(10)+"Usage: cob search [val] --  search for index of val."+char(10)+"-- returns string; key or failure message."+char(10)+"Inactive: cob sign -- future ability to sign custom object."+char(10)+"-- currently returns 0 (zero)."+char(10)+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+"-- returns string on success or failure."+char(10)+"Usage: cob install [key] [val] -- install piped function (val) to command.[key]"+char(10)+"-- i.e. install functions from custom object to command list"+char(10)+"Advanced: to export the onboard dictionary to the custom object:"+char(10)+"--<b> enum -d |  | enum -e | cob set dictionary</b>"+char(10)+"Advanced: to import from the custom object to the onboard dictionary"+char(10)+"--<b> cob get [dictionary] | cerebrum -i</b>"+char(10)+"OR just use<b> cob export and cob import"+char(10)+"Advanced: cob export -- export onboard dictionary to custom object"+char(10)+"Advanced: cob import -- import from custom object dictionary to onboard dictinary"+char(10)+"N.B. this is allows you to run cerebrum once, then export/import to nested shell.launches."
+	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
+	colorCyan+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+
+	"                               -- returns string on success or error"+char(10)+
+	colorCyan+"Usage: cob get [key] -- get value of custom object key."+char(10)+
+	"                         -- returns value at key or null"+char(10)+
+	"                         -- returns @reference (pointer) if value is a function"+char(10)+
+	"Usage: cob return -- returns the raw custom object"+char(10)+
+	"                  -- pipe to command.<b>code</b> to decompile the object."+char(10)+
+	"                  -- ie:<b> cob return | code</b>"+char(10)+
+	"Usage: <b>cob inspect</b> -- returns decompiled custom object (same as cob return | code)."+char(10)+
+	"Usage: cob search [val] --  search for index of val."+char(10)+
+	"                        -- returns string; key or failure message."+char(10)+
+	"Inactive: cob sign -- future ability to sign custom object."+char(10)+
+	"                   -- currently returns 0 (zero)."+char(10)+
+	"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+
+	"                     -- returns string on success or failure."+char(10)+
+	"Usage: cob <b>purge</b> -- purge the custom object"+char(10)+
+	"Usage: cob install [key] -- install a function residing in the custom object at [key]"+char(10)+
+	"                         -- this will add the function as a 5hell command (it will show up in help)"+char(10)+
+	"                         -- functions must still follow the standard template to avoid errors"+char(10)+
+	"                         -- the funciton will not persist after 5hell is closed"+char(10)+
+	"                         -- please compile your custom function into 5hell.src for persistant functions"+char(10)+
+	"Advanced: the "+colorGold+"cerebrum"+CT+" command loads the dictionary to the custom object"+char(10)+
+	"-- it is loaded to custom_object.dictionary and can be removed by passing the 'purge' param to cerebrum"+char(10)+
+	"-- this is allows you to use the dictionary between nested shell.launches with only a single run of cerebrum."
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
 
 	cobble = get_custom_object
@@ -2478,27 +2640,27 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob.install = function(key=0, val=0, nil=0, nul=0)
 		g = @cob.get
 		new_command = g(key)
-		if typeof(@new_command) == "string" then return key +": "+ new_command + ". Install failed."
+		if typeof(@new_command) == "string" then return "cob: "+key +":"+ new_command + ". Install failed."
 		if typeof(@new_command) == "function" then 
-		command[key] = @new_command 
-		return "Set command."+key+" to "+@new_command
+			command[key] = @new_command 
+			return "Set command."+key+" to "+@new_command
 		else 
-		return "cob: install expects a function"
+			return "cob: install expects a function"
 		end if
 	end function
 
 	if arg1 == "return" then return cobble
 	if arg1 == "install" then 
-		return cob.install(arg2)
+		if arg2 then return cob.install(arg2) else return "cob: install expects a key from the custom object"
 	end if
 	if arg1 == "set" then
 		if @arg3 then
-		//if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
-		//if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
-		//if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
-		return cob.set( @arg2, @arg3 )
+			//if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
+			//if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
+			//if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
+			return cob.set( @arg2, @arg3 )
 		else
-		return usage_info
+			return usage_info
 		end if
 	end if
 	if arg1 == "get" then
@@ -2539,11 +2701,9 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	if arg1 == "del" then
 		if @arg2 then return cob.del( @arg2 ) else return usage_info
 	end if
+	if arg1 == "purge" then return command.purge("-o","y")
 	return usage_info
 end function
-  //print(command.cob("get","get"))
-  //catch = command.cob("get","get")
-  //print(@catch)
 command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "SMTP || MAIL USER LIST"+char(10)+"Usage: smtp [ip] [port] -- return mail user list if ip/port is running smtp mail server"+char(10)+"-- user target ip and target port if not supplied"
 	tar_ip = 0
