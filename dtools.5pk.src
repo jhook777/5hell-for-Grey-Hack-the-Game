@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.7...(103.463kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.8...(100.033kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -78,7 +78,7 @@ globals.default = @_switch.default
 if DEBUG then print("<size=75%>loaded _switch engine...</size>")
 
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
+	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
 	if arg1 == "-f" then 
 		arg1 = arg2
@@ -1087,149 +1087,6 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	end if
 	return "file: unknown error"
 end function
-if DEBUG then print("<size=75%>loading herme5.5pk...(8.142kb)</size>")
-// herme5 mail menu by Plu70
-
-//mailLib = include_lib("/lib/libmail.so")
-//colorRed = "<color=red><b>"
-//colorGreen = "<color=green><b>"
-//colorWhite = "<color=white><b>"
-//colorGold = "<color=#CCCC00FF><b>"
-//colorOrange = "<color=#FF8400FF><b>"
-//colorLightBlue = "<color=#2382FFFF><b>"
-//CT = "</color></b>"
-// end globals
-/////////////////////////
-
-// cobble, get_custom_object interface by Plu70
-if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
-
-//command={}
-command.cob = function(arg1,arg2,arg3=0,arg4=0)
-  usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+"-- returns string on success or error"+char(10)+"Usage: cob get [key] -- get value of custom object key."+char(10)+"-- returns value at key or returns null on failure"+char(10)+"-- returns @reference (pointer) if value is a function"+char(10)+"Usage: cob return -- returns the raw custom object"+char(10)+"-- pipe to command.<b>code</b> to decompile the object."+char(10)+"-- ie:<b> cob return | code</b>"+char(10)+"Usage: cob inspect -- returns decompiled custom object (same as cob return | code)."+char(10)+"Usage: cob search [val] --  search for index of val."+char(10)+"-- returns string; key or failure message."+char(10)+"Inactive: cob sign -- future ability to sign custom object."+char(10)+"-- currently returns 0 (zero)."+char(10)+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+"-- returns string on success or failure."+char(10)+"Usage: cob install [key] [val] -- install piped function (val) to command.[key]"+char(10)+"-- i.e. install functions from custom object to command list"+char(10)+"Advanced: to export the onboard dictionary to the custom object:"+char(10)+"--<b> enum -d |  | enum -e | cob set dictionary</b>"+char(10)+"Advanced: to import from the custom object to the onboard dictionary"+char(10)+"--<b> cob get [dictionary] | cerebrum -i</b>"+char(10)+"OR just use<b> cob export and cob import"+char(10)+"Advanced: cob export -- export onboard dictionary to custom object"+char(10)+"Advanced: cob import -- import from custom object dictionary to onboard dictinary"+char(10)+"N.B. this is allows you to run cerebrum once, then export/import to nested shell.launches."
-  if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
-
-  cobble = get_custom_object
-  cob = {}
-  cob.set = function( key=0, val=0, nil=0, nul=0 )
-    if not @key then return null
-    if typeof(@key) == "function" then
-      if typeof(@val) == "function" then
-        cobble[@key] = @val
-      else
-        cobble[@key] = val
-      end if
-    else
-      if typeof(@val) == "function" then
-        cobble[key] = @val
-      else
-        cobble[key] = val
-      end if
-    end if
-    if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>." else return "cob: set error."
-  end function
-
-  cob.get = function( key=0, val=0, nil=0, nul=0 )
-    if cobble.hasIndex( @key ) then return cobble[@key]
-    if cobble.hasIndex( key ) then return cobble[ key ]
-    return "cob: key not found"
-  end function
-
-  cob.search = function ( val=0, key=0, nil=0, nul=0 )
-    if cobble.indexOf( @val ) != null then
-      if typeof(@val) == "function" then return cobble.indexOf( @val )
-      return cobble.indexOf( val )
-    else
-      if cobble.indexOf( val ) != null then return cobble.indexOf( val )
-      return "cob: value not found."
-    end if
-  end function
-
-  cob.inspect = function( key=0, val=0, nil=0, nul=0 )
-    return command.code(cobble,0,0,0)
-  end function
-
-  cob.del = function( key=0, val=0, nil=0, nul=0 )
-    if typeof(@key) == "function" then
-      if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>." //else return "cob: key not found."
-    else
-      if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>." else return "cob: key not found."
-    end if
-  end function
-
-  cob.sign = function( key=0, val=0, nil=0, nul=0 )
-    return cob.set( "signature" , command.code("-a", key))
-  end function
-
-  cob.install = function(key=0, val=0, nil=0, nul=0)
-    g = @cob.get
-    new_command = g(key)
-    if typeof(@new_command) == "string" then return key +": "+ new_command + ". Install failed."
-    if typeof(@new_command) == "function" then 
-      command[key] = @new_command 
-      return "Set command."+key+" to "+@new_command
-    else 
-      return "cob: install expects a function"
-    end if
-  end function
-
-  if arg1 == "return" then return cobble
-  if arg1 == "install" then 
-    return cob.install(arg2)
-  end if
-  if arg1 == "set" then
-    if @arg3 then
-      //if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
-      //if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
-      //if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
-      return cob.set( @arg2, @arg3 )
-    else
-      return usage_info
-    end if
-  end if
-  if arg1 == "get" then
-    if @arg2 then
-      g = @cob.get
-      return g( @arg2 )
-      //if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
-    else
-      return usage_info
-    end if
-  end if
-  if arg1 == "inspect" then
-    return cob.inspect
-  end if
-  if arg1 == "sign" then return cob.sign(signature)
-  if arg1 == "search" then
-    if @arg2 then return cob.search( @arg2 ) else return usage_info
-  end if
-  //if arg1 == "export" then
-  //  cob.set("dictionary",globals.dict_a)
-  //  return "Exported "+cobble.dictionary.len+" password(s) from onbaord dictionary to custom_object.dictionary"
-  //end if
-  //if arg1 == "import" then
-  //   if cobble.hasIndex("dictionary") then
-  //     globals.dict_a = cob.get("dictionary")
-  //   else
-  //     return "cob: dictionary not found in index. set with <b>cob export</b>"
-  //   end if
-  //   if typeof(globals.dict_a) == "list" and globals.dict_a.len > 0 then 
-  //     globals.BIGBRAIN = true
-  //     return "Imported "+globals.dict_a.len+" passwords from custom_object.dictionary to onboard dictionary." 
-  //   else 
-  //     return "cerebrum: invalid dictionary"+char(10)+"cob: import error"
-  //   end if
-  // end if
-  if arg1 == "del" then
-    if @arg2 then return cob.del( @arg2 ) else return usage_info
-  end if
-  return usage_info
-end function
-//print(command.cob("get","get"))
-//catch = command.cob("get","get")
-//print(@catch)
-if DEBUG then print("<size=75%>loading dig.5pk...(11.760kb)</size>")
-
 command.fakepass = function(arg1=0, arg2=0, arg3=0, arg4=0)
     if arg1 == "help" or arg1 == "-h" then return "Usage: fakepass [opt:ip] [opt:pass] -- create passwd.src in current_path. Check src and build to /bin/passwd. PW capture malware."
     ip = arg1
@@ -1434,20 +1291,45 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 		"rshell @home [some name]"+char(10)+
 		"quit rshell_placed"+char(10)+char(10)+
 		"This will dig the target like normal, then launch 5hell with the gained root shell"+char(10)+"Once launched, a reverse shell will be dropped, the log scrubbed, rkit removed, and dig will exit both 5hell instances."
-    return "<b>DIG v 2.0 Netcrawler</b>"+char(10)+"Usage: dig [ip|port] [port|ip] -- auto-infiltrate a target"+char(10)+"-- scans ports on target"+char(10)+"-- infiltrates via shell"+char(10)+"-- uploads rkit and runs 5hell on the target"+char(10)+"-- gains root and wipes the log"+char(10)+"-- performs other user defined tasks"+char(10)+"Usage: dig [port] [ip] -- same as above but supports piping in an ip"+char(10)+"---- Note: edit /root/rkit/dig.bat to customize behavior"+char(10)+"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+"-- type 'y' to exit and return to the script that launched dig"+char(10)+"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+"-- you may add/remove commands to be executed by dig here"+char(10)+"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+"-- e.g. <b> rnip 1 | dig </b>"+char(10)+"Experimental: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+"-- if the lib version is in the database, will dig that router"+char(10)+"-- for best results, use a database.csv that only includes entries with shell exploits"+char(10+"---- Extra: dig [-h|help] extra -- display extra help info")
+    return "<b>DIG v 2.0 Netcrawler || Autohacking || Automation</b>"+char(10)+
+	"Usage: dig [ip|port] [port|ip] -- auto-infiltrate a target"+char(10)+
+	"-- scans ports on target"+char(10)+
+	"-- infiltrates via shell"+char(10)+
+	"-- uploads rkit and runs 5hell on the target"+char(10)+
+	"-- gains root and wipes the log"+char(10)+
+	"-- performs other taskes as defined by the user in dig.bat"+char(10)+
+	"-- dig.bat may contain references (do # -f your.file) to diasy chain digs"+char(10)+
+	"Usage: dig [port] [ip] -- same as above but supports piping in an ip"+char(10)+
+	"---- Note: edit /root/rkit/dig.bat to customize behavior"+char(10)+
+	"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+
+	"-- type 'y' to exit and return to the script that launched dig"+char(10)+
+	"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+
+	"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+
+	"-- you may add/remove commands to be executed by dig here"+char(10)+
+	"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+
+	"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+
+	"-- e.g. <b> rnip 1 | dig </b>"+char(10)+
+	colorGold+"Experimental</b></color>: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+
+	"-- if the lib version is in the database, will dig that router"+char(10)+
+	"-- sussing specifically looks for shells on routers"+char(10)+
+	"-- for best results, use a database.csv that only includes entries with shell exploits"+char(10)+
+	"---- Extra: dig [-h|help] extra -- display extra help info"
   end if
   print(colorGold+"<u>------DIG-v-2.0.0------</u>"+CT+char(10))
-  tp = arg1.split(" ")
-  t = tp[0]
-  p = tp[-1]
-  if t == "-s" then t = globals.sus
-  if p == t then p = arg2 /////////////// make sure this works
+  tp = arg1.split(" ") // sometimes we want to pipe target ip AND a port. this will help with that.
+  t = tp[0] // target ip
+  p = tp[-1] // target port
+  if t == "-s" then 
+  	t = globals.sus // in 5phinx.5pk
+	p = 0
+  end if
+  if p == t then p = arg2 /////////////// make sure this works: if arg1 was not split, arg 2 is the port. default is 0 aka router
   if not is_valid_ip(t) then
     t = arg2 
     p = arg1 
     if not is_valid_ip(t) then return "dig: invalid ip"
   end if
-  
+  if DEBUG then print "debug: target ip: "+t+char(10)+"debug: target port: "+p
   // find the root kit     
   kit = command.tree("/","rkit",1,"N")
   if not kit then return "rkit not found"
@@ -1794,10 +1676,14 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 		if typeof(root) == "shell" then
 			print("root:"+colorGold+""+d+""+CT)
 			print("clipa: "+command.clipa(d))
+			gotcha = root.host_computer.public_ip+":"+root.host_computer.local_ip
+			print "brutus: "+colorGreen+"saving root password as index in custom object. access via <b>cob</b> command"
+			if DEBUG then print("brutus: debug: calling cob: adding "+gotcha+" to index <b>"+d)
+			print command.cob("set",d,gotcha)
 			//print("brutus: writing to dump.txt")
 			//command.poke("dump.txt",char(10)+"root:"+d+char(10))
 			globals.BUFFER.push(root)
-			print("<b>Shell sent to BUFFER. Access via Memory Alpha (<u>malp</u> command)</b>")
+			print("<b>Shell sent to "+colorOrange+"BUFFER</color>. Access via Memory Alpha (<u>malp</u> command)</b>")
 			//go = user_input("Start terminal? [y/N]"+char(10)+"||: ",0,1)
 			//if go.lower == "y" then
 			//	root.start_terminal
@@ -1809,7 +1695,7 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 	return 0
 end function
 command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return colorGold+"<u>Magnum Cerebrum: Big Brain. </u>"+CT+char(10)+"Expand dict_a to 300k+ passwords for this runtime instance. Returns zero."+char(10)+"(Use <b>pwgen</b> instead to save passwords locally)."+char(10)+"<b>Advanced: cerebrum -i [/path/to/file|file_object|list] -- import a custom dictionary"+char(10)+"-- file may be csv or nsv: ',' or char(10) "+char(10)+"-- may be file, directory, piped object, or list"+char(10)+"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary (to save memory)."+char(10)+"Advanced: cerebrum -p -- load only common player passwords (wip)"+char(10)+"Advanced: cerebrum -i @home -- import dictionary file or folder from @home server"+char(10)+"-- searches /root/tables/tp on @home server"+char(10)+"-- see help @home for more information about the @home server."+char(10+"Advanced: -- passing -d as any argument returns the onboard dictionary as a list"+char(10)+"---- importing a string of passwords directly is not supported, use brutus for that.")
+	if arg1 == "-h" or arg1 == "help" then return colorGold+"<u>Magnum Cerebrum || Big Brain || dictionary || word list || rockme</u>"+CT+char(10)+"Usage: cerebrum -- Expand dict_a to 300k+ passwords and store in custom_object.dictionary"+char(10)+"-- Use <b>pwgen</b> instead to save passwords locally to file."+char(10)+"<b>Advanced: cerebrum -i [/path/to/file|file_object|list] -- import a custom dictionary"+char(10)+"-- file may be csv or nsv: ',' or char(10) "+char(10)+"-- may be file, directory, piped object, or list"+char(10)+"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary (to save memory)."+char(10)+"Advanced: cerebrum -p -- load only common player passwords (wip)"+char(10)+"Advanced: cerebrum -i @home -- import dictionary file or folder from @home server"+char(10)+"-- searches /root/tables/tp on @home server"+char(10)+"-- see help @home for more information about the @home server."+char(10+"Advanced: -- passing -d as any argument returns the onboard dictionary as a list"+char(10)+"---- importing a string of passwords directly is not supported, use brutus for that."+char(10)+"Note: cerebrum will autodetect /root/tables and offer to import it if present")
 	if arg1 == "-i" and not arg2 then return "cerebrum: -i expects /path or file_object or @home."
 	infile = null
 	if arg1 == "--purge" then 
@@ -1998,4 +1884,41 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 		//wait(.01)
 	end while
 	return output.join(char(10)) // max string size is 1 million chars
+end function
+command.string = function(arg1,arg2,arg3,arg4)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "String | To String | List | Join"+char(10)+
+	"Usage: string [opt] [list] -- converts a list to a string and returns it"+char(10)+
+	"-- use the clipboards and @a|@b|@c or piping to supply the list"+char(10)+
+	"Advance: string [lista] [listb] -- will return lista concatenated with listb"+char(10)+
+	"-- returns a <b>LIST</b>"+char(10)+
+	"-- pipe the resulting list back into string to stringify"+char(10)+
+	"-- e.g.: <b>string @a @b | string -n | poke new.txt</b>"+char(10)+
+	"-- I justify this as 'stringing two lists together' "+char(10)+char(10)+
+	"Option: -n -- join list with <color=red>char(10)"+char(10)+
+	"Option: -c -- join list with <color=blue>commas"+char(10)+
+	"Option: -C -- join list with <color=green>colons"+char(10)+
+	"Option: -s -- join list with <color=yellow>semicolons"+char(10)+
+	"Option: -S -- join list with <color=white>spaces"+char(10)+
+	"Note: the default join delimiter is char(10)"+char(10)+
+	"-- i.e: <b>string [list]</b> is the same as <b>string [-n] [list]"+char(10)+
+	"Note: maps are not yet supported and non-option strings are ignored"+char(10)
+	delim = null
+	in_list = null
+	if typeof(arg1) == "list" and typeof(arg2) == "list" then 
+		print colorLightBlue+"Returning concatenated list..."
+		return arg1 + arg2
+	end if
+	if typeof(arg1) == "list" then in_list = arg1  
+	if typeof(arg1) == "string" then 
+		if arg1 == "-n" then delim = char(10) // "/n"
+		if arg1 == "-c" then delim = char(44) // ","
+		if arg1 == "-C" then delim = char(58)   // ":"
+		if arg1 == "-s" then delim = char(59)   // ";"
+		if arg1 == "-S" then delim = " "   // i forgot the char code for spaces " "
+		if arg2 and typeof(arg2) == "list" then in_list = arg2 else return "string: expects list" 
+		if not delim then return "string: invalid option. check usage."
+	end if
+	if not in_list then return "string: expects list"
+	if not delim then delim = char(10)
+	return in_list.join(delim)
 end function
