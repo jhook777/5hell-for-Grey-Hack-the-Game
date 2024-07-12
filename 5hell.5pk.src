@@ -1,7 +1,7 @@
-// 5hell v 3.7.8 by Plu70
-// released v 3.7.7
+// 5hell v 3.7.9 by Plu70
+// released v 3.7.8
 // imports .5pk files from /root/src
-ver = "3.7.8_amalgamated_horrors"
+ver = "3.7.8.1_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -10,7 +10,7 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 //
 // to do:
 // convince author of Medusa to port it to 5hell // can just wrap medusa into a command. it just works.
-// get command.do to persist through glasspool
+// get command.do to persist through glasspool // first i have to figure out why it doesn't in the first place
 // mail: add command line brutus login
 // mail: add command line login
 // mail: add easy button (config based) login
@@ -24,13 +24,15 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // add custom theme config
 // connect_service increases trace time: add something for that
 // make the initial help page better
-// add more help pages
-// meta: add lib param to -l option
-// linkdb: skip confirmation
-// meta: add database function 
 //
-// double check documentation for below!
-//done: 
+// document the below:
+// YOU BROKE TREE (AGAIN!)
+// expanded tree -f to take both path and object as params
+// added exporting enum entires to malp en masse
+// 5phinx: added globals.get_binaries to pull all useful binaries from a shell
+// -- added get binaries button to RSI and the shell handler in BUFFER
+// -- uses newtree and enum
+// -- CLI option soon(tm)
 //
 // code: fixed char code return: code [char|string](returns: char code)
 // db: added -m to customize scan with metaLib and metaxploitLib of choice // needs docs
@@ -1066,7 +1068,7 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
                   try = mail_login(arg, pa)
                   if typeof(try) == "MetaMail" then
                     print("brutus: <b>password found</b>: "+colorWhite+pa+CT)
-					print command.cob("set",arg.pa)
+					print command.cob("set",arg,pa)
                     return try
                   end if
                 end for
@@ -1197,11 +1199,12 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
               if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
               print(mail.Fetch)
               print(mail.data_stream(mail.data))
-              if not r then r = user_input("delete:> ").to_int
+              if not r then r = user_input("delete [*=all,<enter>=quit]:> ").to_int
 			  if r and r == "*" then
 				for m in range(0,mail.data.len - 1)
 					mail.meta.delete( mail.get_id(m) )
 			  	end for 
+				print colorOrange+"All emails deleted!"
 				return mail.Fetch
 			  end if
               if typeof(r) == "number" and mail.data.hasIndex(r) then
@@ -1336,6 +1339,12 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	"Advanced: enum -e -- return the enumerated buffer as a list object."+char(10)+
 	"Note: map support is coming soon(tm)"
 	if arg1 == null then return 0
+	if arg1 == "-b" then 
+		if globals.enumerated.len < 1 then return "enum: enumerated buffer is empty"
+		print "enum: <b>appending enumerated buffer to main BUFFER</b>"
+		globals.BUFFER = globals.BUFFER + globals.enumerated
+		return 0
+	end if 
 	if arg1 == "-p" then 
 		globals.enumerated = []
 		return "enum: "+colorOrange+" enum buffer purged"
