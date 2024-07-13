@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.7.8...(100.033kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.0...(101.701kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -347,7 +347,34 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 		a1 = a2
 		a2 = arg3
 	end if
-	if not a1 or a1 == "-h" or a1 == "help" then return "GREP || get regular expression || regex"+char(10)+"Usage: grep [opt:-f] [pattern] [opt:file/folder (default: / )] - search file or folder for pattern"+char(10)+"Usage: grep [string] [object] - search piped object (shell|file|computer) for pattern. "+char(10)+"-- piped computer and shell objects will be searched from / directory."+char(10)+"-- piping a file object searches from path of file."+char(10)+"-- n.b. supports partial matches and limited regular expressions."+char(10)+"<u>current regex tokens (more planned):</u>"+char(10)+"c   matches any literal character 'c'"+char(10)+"-- bob matches bob anywhere in the text."+char(10)+"^   match pattern from beginning of word"+char(10)+"-- ^ber matches bertha  does not match robert"+char(10)+"$   match end of line (goes at end of pattern)"+char(10)+"-- .txt$ matches file.txt does not match file.txt.src"+char(10)+"#   matches one or more of <b>preceding</b> character"+char(10)+"-- c# matches c, cc, ccc, cccc "+char(10)+"*   matches any unicode char (wildcard)"+char(10)+"-- *#:*#  matches root:password, email@domain.com:password, xyz:1234"+char(10)+"Important! Runtime depends on length of pattern and size of text to check. \nSince grep will recurse any folders in a given path, this command could result in very long run times. \nIt is up to you to limit the scope of your searches accordingly."+char(10)+"<b>Advanced: grep -f [pattern] [path|object] \n-- searches for pattern and returns first matching file object in path_tree</b>"+char(10)+"Note: grep does not (yet) support grepping piped text. "+char(10)+"-- it will search files, folders and text within files."+char(10)+"-- returns a file object if -f param is used"
+	if not a1 or a1 == "-h" or a1 == "help" then return "GREP || get regular expression || regex"+char(10)+
+		"Usage: grep [opt: -f] [pattern] [opt: file/folder (default: / )] - search file or folder for pattern"+char(10)+
+		"Usage: grep [opt: -f] [pattern] [object] - search piped object (shell|file|computer) for pattern. "+char(10)+
+		"-- piped computer and shell objects will be searched from / directory."+char(10)+
+		"-- piping a file object searches from path of file."+char(10)+
+		"-- n.b. supports partial matches and limited regular expressions."+char(10)+
+		"Usage: grep -f [pattern] [path|object] -- serches path or object for a file"+char(10)+
+		"-- searches for pattern and returns first matching file object in the file tree"+char(10)+
+		"---- NOTE: this means the filesystem as seen by the tree command"+char(10)+
+		"Usage: grep -n [pattern] [path|object] -- return file name of first matching file"+char(10)+
+		"Note: grep does not (yet) support grepping piped text. "+char(10)+
+		"-- it will search files, folders and text within files."+char(10)+
+		"-- returns a file object if -f param is used"
+		"<u>current regex tokens (more planned):</u>"+char(10)+
+		"c   matches any literal character 'c'"+char(10)+
+		"-- bob matches bob anywhere in the text."+char(10)+
+		"^   match pattern from beginning of word"+char(10)+
+		"-- ^ber matches bertha  does not match robert"+char(10)+
+		"$   match end of line (goes at end of pattern)"+char(10)+
+		"-- .txt$ matches file.txt does not match file.txt.src"+char(10)+
+		"#   matches one or more of <b>preceding</b> character"+char(10)+
+		"-- c# matches c, cc, ccc, cccc "+char(10)+
+		"*   matches any unicode char (wildcard)"+char(10)+
+		"-- *#:*#  matches root:password, email@domain.com:password, xyz:1234"+char(10)+
+		"Important! Runtime depends on length of pattern and size of text to check. "+char(10)+
+		"Since grep will recurse any folders in a given path, this command could result in very long run times. "+char(10)+
+		"It is up to you to limit the scope of your searches accordingly."+char(10)+
+			
 	gresult = []
 	gname = null
 
@@ -446,7 +473,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	gp(grep_tar, t_f, invoke_regex, find_file)///////////////////////////////fire away!
   	if DEBUG then print "debug: ggf: "+typeof(globals.grepped_file)
   	if globals.grepped_file then 
-		if return_name then return gname
+		if return_name then return globals.grepped_file.name
  	 	return globals.grepped_file
 	end if
 	if gresult != [] then output = gresult.join(char(10))
@@ -456,7 +483,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
 	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
 	"Usage: tree [path|object] -- view filesystem from path down"+char(10)+
-	"Usage: tree [opt: path|object] [opt: grep_target] [quiet: 1|0] [opt: r|y|n]"+char(10)+
+	"Usage: tree [opt: path(string)|object(object)] [opt: grep_target(string)] [quiet: 1|0] [opt: r|y|n]"+char(10)+
 	"-- [path] - path to descend"+char(10)+
 	"-- [object] - shell or computer: descends from / on object"+char(10)+
 	"-- [object] - file: descends from path of file object on said object"+char(10)+
@@ -465,18 +492,28 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	"---- <b>returns the file as an object if found</b>"+char(10)+
 	"-- [1|0] -  1 = quiet, supress output"+char(10)+
 	"-- [1|0] -  0 = verbose, print output"+char(10)+
-	"-- [r|n|y] - r = to t_buf, n = ignore, y = decipher (default is <b>r</b>)"+char(10)+
+	"-- [r|n|y] - r = send to t_buf, n = ignore, y = decipher (default is <b>r</b>)"+char(10)+
+	"---- this option determines where bank.txt, mail.txt, passwd, and others are stored when encountered"+char(10)+
 	"---- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+
 	"-- e.g:<b> tree / database.csv 1 N | file -b</b> "+char(10)+
 	"---- find database.csv on filesystem, display properties, pipe to BUFFER"+char(10)+
 	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
-	"-- "+char(10)+
-	"<b>New: tree -f [path|object] [opt: 1|0] - tree a directory or object and enumerate all files "+char(10)+
+	colorGreen+"-- -- -- -- -- --"+char(10)+
+	"<b>New: tree -f [path|object] [object|path] [opt: 1|0 ] - tree a directory or object and enumerate all files "+char(10)+
 	"-- omitting path|object (and opt) defaults to the / path"+char(10)+
 	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
-	"-- [opt: 0] - print output. any value other than [1] will print output"+char(10)+
+	"-- [opt: 0] - print output. default"+char(10)+
 	"---- omitting this option will print output"+char(10)+
-	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"
+	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"+char(10)+
+	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
+	"Usage: tree -f [path] -- tree from path, enumerate to enum, print output"+char(10)+
+	"Usage: tree -f [object] -- tree from object's <b>/</b> directory, enumerate, print output"+char(10)+
+	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"
+	"Usage: tree -f [path|object] [object|path] -- tree from object's [path] directory, enumerate, print output"+char(10)+
+	"       -- this option will return the file or folder at path as an object if it exists"+char(10)+
+	"Usage: tree -f [param] [param] [1|0] -- performs as above but does <b>not</b> print output"+char(10)+
+	"N.B. tree -f [1] is ignored because it results in absolutely nothing happening"+char(10)+
+	"n.b. tree -f returns a string except as stated above"
 	tem = null
 	use_new_tree = false
 	if arg1 == "-f" then 
@@ -484,6 +521,9 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 		arg1 = arg2 
 		arg2 = arg3 
 		arg3 = arg4 
+		// new tree stuff goes here
+		
+
 	end if 
 	if arg1 then
 		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
@@ -1025,7 +1065,17 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 
 command.file = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorGreen+"File || Properties || Inspect File"+char(10)+"Usage: file [/path|file_object] -- file properties information. "+char(10)+"-- takes path or file_object and returns string "+char(10)+"Usage: file [-l|-c] [/path|file_object] -- returns int [-l]ines | int [-c]hars for given file"+char(10)+"-- eg:<b> tree /root Config 0 N | file -l</b>"+char(10)+"Advanced: file -b [/path|file_object] -- send file to BUFFER (and display file info)"+char(10)+"-- eg: grep *.log / | file -b"+char(10)+"Usage: file [-n|-p] -- returns file [-n]ame | file [-p]ath"+"-- eg: grep ^meta / | file -n | liber -l"+char(10)+"-- same as liber -l metaxploit.so"
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorGreen+"File || File Properties || Inspect File"+char(10)+
+	"Usage: <b>file [/path|file_object]</b> -- show the properties information for the given file "+char(10)+
+		"-- takes path or file_object and returns string "+char(10)+
+		"Usage: file [-l|-c] [/path|file_object] -- returns number of lines or chars as a string"+char(10)+
+		"    -- file [-l] [path|object] -- return number of lines in the file"+char(10)+
+		"    -- file [-c] [path|object] -- return number of chars in the file"+char(10)+char(10)+
+		"    -- file [-b] [path|object] -- send file to BUFFER (and display file info)"+char(10)+
+		"    ---- eg: "+colorLightBlue+"</b>grep <b>-f</b> *#.log$ /var | file -b"+char(10)+
+		"    -- file [-n|-p] -- returns file name "+char(10)+
+		"    -- file [-p] [path|object] -- return path of file"+char(10)+
+		"    ---- eg: "+colorLightBlue+"</b>enum [#] | file -p"
   	get_lines = false
 	get_chars = false
   	to_buffer = false
@@ -1291,7 +1341,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 		"rshell @home [some name]"+char(10)+
 		"quit rshell_placed"+char(10)+char(10)+
 		"This will dig the target like normal, then launch 5hell with the gained root shell"+char(10)+"Once launched, a reverse shell will be dropped, the log scrubbed, rkit removed, and dig will exit both 5hell instances."
-    return "<b>DIG v 2.0 Netcrawler || Autohacking || Automation</b>"+char(10)+
+    return "<b>DIG v 2.1 Netcrawler || Autohacking || Automation</b>"+char(10)+
 	"Usage: dig [ip|port] [port|ip] -- auto-infiltrate a target"+char(10)+
 	"-- scans ports on target"+char(10)+
 	"-- infiltrates via shell"+char(10)+
@@ -1315,7 +1365,12 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 	"-- for best results, use a database.csv that only includes entries with shell exploits"+char(10)+
 	"---- Extra: dig [-h|help] extra -- display extra help info"
   end if
-  print(colorGold+"<u>------DIG-v-2.0.0------</u>"+CT+char(10))
+  print(colorGold+"<u>------DIG-v-2.1------</u>"+CT+char(10))
+  if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
+      print("Editing the batch file: "+bat_file.path)
+      command.scribus(bat_file)
+      if arg1 == "--edit" then return 1
+  end if
   tp = arg1.split(" ") // sometimes we want to pipe target ip AND a port. this will help with that.
   t = tp[0] // target ip
   p = tp[-1] // target port
@@ -1347,11 +1402,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
       bat_file = globals.get_file(kit.path+"/dig.bat")
       if not bat_file then return "dig: unable to find or create dig.bat, aborting."
   end if
-  if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
-      print("Editing the batch file: "+bat_file.path)
-      command.scribus(bat_file)
-      if arg1 == "--edit" then return 1
-  end if	
+  	
   // verify that we're ready to go
   print("Checking dictionary...")
   if not BIGBRAIN then 
