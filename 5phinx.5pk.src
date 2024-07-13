@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.4.9 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.9 for 5hell v 3.7.8...(117.310kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.4.9 for 5hell v 3.8.0...(121.408kb)</size>")
 
 //Define Globals
 sphinx_version = "2.4.9"
@@ -298,6 +298,57 @@ p_validate = function( object, query )
   end if
 end function 
 
+globals.fexecute = function(funciton_ref,args)
+  print "fexecute: <mark=yellow># <color=white>#</color> executing # <color=white>#</color> </mark>"
+  if typeof(@funciton_ref) == "function" then 
+    return function_ref 
+  else 
+    print "fexecute: invalid input"
+  end if
+  return 0
+end function
+
+globals.get_binaries = function(source_shell,dest_folder)
+  // verify dest_folder exists
+  if not dest_folder or typeof(dest_folder) != "file" then return "error: destination folder does not exist!"
+  // get source_shell home folder
+  s_home = source_shell.host_computer.File("/home")
+  if not s_home then return "error: target /home does not exist!"
+  // find all non-folder binaries except police/student/employees viewer and traffic viewer
+  bin_buf = []
+  tcatch = command.tree("-f","/home",source_shell) // results are sent to globals.enumerated
+  if tcatch == "tree: invalid path or file" then return tcatch
+  if DEBUG then print "debug: enum: "+char(10)+globals.enumerated
+  print colorCyan+"Fetching readable binaries..."
+  for f in globals.enumerated
+    if f.is_binary and not f.is_folder and f.has_permission("r") then bin_buf.push(f)
+    // or exclude certain files:
+    // is_blacklisted = function(name)
+    //    if name == "StudentViewer.exe" then return 1
+    //    if name == "EmployeeViewr.exe" then return 1
+    //    if name == "....." then return 1
+    // end function
+    // if not is_blacklisted(f.name) and if f.is_binary and not f.is_folder and f.has_permission("r") then bin_buf.push(f)
+  end for
+  if DEBUG then print "debug: in get_binaries: bin_buf is"+char(10)+bin_buf
+  // find system.log 
+  print colorCyan+"</b>Fetching system.log if readable..."
+  sysl = source_shell.host_computer.File("/var/system.log")
+  if not sysl then 
+    print colorOrange+"/var/system.log not found!"
+  else 
+    if sysl.has_permission("r") then bin_buf.push(sysl)
+  end if
+  // scp download all files to dest folder of active shell
+  // -- warn if glasspool is active
+  if globals.GLASSPOOL then print colorOrange+"Warning: Glasspool is active:"+char(10)+colorOrange+"Files will be written to the glasspooled machine."
+  for entry in bin_buf
+    if typeof(entry) == "file" then source_file = entry.path else continue
+    if DEBUG then print "debug: source_file is: "+source_file+":"+typeof(source_file)
+    print command.scpm("-d",source_file,dest_folder,source_shell)
+  end for
+  return colorCyan+"Binaries Fetched."+char(10)+colorGreen+"kore"+CT+": recommendation: secure yourself with:"+char(10)+"<b>lock | usr -r root / | grp -r root /</b>"
+end function
 
 // not yet used
 globals.trythis = function(function_reference, function_name)
@@ -1087,13 +1138,31 @@ globals.memory_alpha = function()
           print(colorOrange+"<mark=orange><u>= = = = = = = = = = = = = = =</u></mark>"+CT)
           print(format_columns(buffer_selection.host_computer.show_procs)+char(10)+char(10)+checkUser(buffer_selection)+"@"+buffer_selection.host_computer.local_ip+char(10)+buffer_selection.host_computer.public_ip)
           print(colorOrange+"<size=65%><mark=orange><u>= = = = = = = = = = = = = = = = = = = =</u></mark></size>"+CT)
-          if typeof(buffer_selection) == "shell" then print("[7] scp    [8] run    [9] curl" )
-          choice = user_input("[4] glassp [5] rclean [6] compit "+char(10)+"[1] felix  [2] open shell [3] upload rkit"+char(10)+"[0] abort [d] decompile (q=quit)||: ",0,1)
+          if typeof(buffer_selection) == "shell" then print "[7] scp     [8] run        [9] curl" +char(10)+
+                                                            "[4] glassp  [5] rclean     [6] compit "+char(10)+
+                                                            "[1] felix   [2] open shell [3] upload rkit"+char(10)+
+                                                            "[0] to cob  [d] decompile  [b] fetch binaries"
+          choice = user_input("(q=quit)||: ",0,1)
+          if choice == "0" then 
+            print colorOrange+"cobbling..."
+            keyword = user_input("Enter custom_object index(key) for shell [q=quit]:> ")
+            if keyword.lower == "q" then 
+              print "aborting..."
+              continue 
+            else 
+              print command.cob("set",keyword,buffer_selection)
+              continue
+            end if
+          end if 
           if choice == "d" then 
             print(globals.decompiler(buffer_selection))
             continue
           end if
-          if choice == "0" or choice == "q" then
+          if choice == "b" then 
+            print globals.get_binaries(buffer_selection,globals.get_file(user_input(colorWhite+"destination folder [q=quit]:> </b>")))
+            continue 
+          end if
+          if choice == "q" then
             buffered_filesys = buffer_selection.host_computer.File("/")
             print("Buffering filesystem..." )
             print(colorLightBlue+"<u>Buffered filesystem ready. Access with [</b>4<b>]</u>"+CT)
@@ -1151,7 +1220,7 @@ globals.memory_alpha = function()
           if choice == "3" then
             kit = null
             kit = command.tree("/","rkit","1","N")
-            if not kit then
+            if not kit or typeof(kit) != "file" then
               print(colorRed+"<b>Error: rkit not found."+CT)
               continue
             end if
@@ -1439,7 +1508,8 @@ globals.newtree = function(a_file,quiet=0)
           output.push(f)
       end for
   end for
-  globals.enumerated = output
+  //globals.enumerated = output
+  if output.len < 1 then return "tree: invalid input: expects folder" else print command.enum(output)
   if quiet != "1" then return outprint.join(char(10))
   if DEBUG then return system_map
   return 0
@@ -2402,7 +2472,7 @@ load_lib = function(lib_path)
   new_lib = metaxploit.load(lib_path)
   globals.net_session = null // clear out net_session since we are working with a local lib
   if new_lib then
-    print "metaLib: found "+colorLightBlue+new_lib.name+"<color=blue> v </color>"+new_lib.version+char(10)
+    print "metaLib: found "+colorLightBlue+new_lib.lib_name+"<color=blue> v </color>"+new_lib.version+char(10)
     // if waitFor == "n" or waitFor == "N" then
     //   print("Aborting...")
     //   return "Aborting..."
@@ -2910,10 +2980,11 @@ main = function()
       print(format_columns("[ " + tarLan +   " ] [ " + portInfo +    " ]" ))
     end if
     if metaLib then
-      print(format_columns("["+colorGreen+"MetaLib: loaded"+CT+" [" + NUM_SPLOITS + "] Exploits Found]"))
-      print(format_columns("[MetaLib: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]"))
+      print format_columns("[MetaLib linked: "+colorGreen+metaLib.lib_name+CT+"]"+char(10)+
+                          " [Exploits found: "+ NUM_SPLOITS + "]"+char(10)+
+                          "[MetaLib: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]")
     else
-      print("[MetaLib: "+colorOrange+"not loaded</b></color>] press [=] or [+] to link.")
+      print("[MetaLib: "+colorOrange+"not linked</b></color>] press [=] or [+] to link.")
     end if
     if alert then
       print(colorRed + "[/var/system.log: I/O detected " + logSize + "  bytes]\n Alert! Filesize Change!")
@@ -2921,28 +2992,28 @@ main = function()
       print("[Log I/O: " + logSize + " bytes]")
     end if
     print
-    print "[<b>F1</b>] for <b>help"
+    print "[<b>F1</b>] for <b>help [-] or [+] to link a net_session or metaLib"
     if globals.HERMES == true then
       print("000"+mail_widget(count))
     else     
       print("0001020304050607080900")
     end if
     if targetIP then
-      print("0[<b><color=white>0</color></b>]....<b><color=white>P</color>ROBE</b>.....0900")
-      print("00[<b><color=white>1</color></b>]...<b><color=white>S</color>CAN</b>..07080900")
+      print("0[<b><color=white>0</color></b>]....<b><color=white>P</color>ROBE</b>.....0900 -- "+colorWhite+"Run probe to portmap the given IP")
+      print("00[<b><color=white>1</color></b>]...<b><color=white>S</color>CAN</b>..07080900 -- "+colorWhite+"</b>Scan the linked metaLib without databasing")
     else
       print("0001020304050607080900")
       print("0001020304050607080900")
     end if
     if targetIP and targetPort then
-      print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....080900")
-      print("000..[<b><color=white>3</color></b>]<b><color=white>D</color>BASER</b>...80900")
+      print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....080900 -- "+colorWhite+"</b>Fire all exploits at once without databasing")
+      print("000..[<b><color=white>3</color></b>]<b><color=white>DB</color>ASER</b>...80900 -- "+colorWhite+"</b>Database the given IP or <b>linked</b> local lib")
     else
       print("001 SET IP WITH [<color=white>4</color>] 00")
       print("000 SET PT WITH [<color=white>5</color>] 00")
     end if
-    print(".QT.<b>A</b>..<b>IP</b>[<b>4</b>][<b>5</b>]<b>PT</b>.....")
-    print("[Q][A][Z]["+char(177)+"]06<b>v</b>7<b><</b>8<b>></b>9<b>^</b>0")
+    print(".QT.<b>A</b>..<b>IP</b>[<b>4</b>][<b>5</b>]<b>PT</b>..... -- "+colorWhite+"Z = Silentclean, A = Zap (don't ask), Q = quit to CLI")
+    print("[Q][A][Z]["+char(177)+"]06<b>v</b>7<b><</b>8<b>></b>9<b>^</b>0 -- "+colorWhite+"<-- = Malp, --> menu, up_arrow = junk, down_arrow = herme5")
     option = user_input("[0][1][2][3][4][5]||: ",0,1)
     running = sphinx_switch(option,target_type)
   end while
