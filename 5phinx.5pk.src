@@ -2992,7 +2992,7 @@ main = function()
       print("[Log I/O: " + logSize + " bytes]")
     end if
     print
-    print "[<b>F1</b>] for <b>help [-] or [+] to link a net_session or metaLib"
+    print "[<b>F1</b>] for <b>help [=] or [+] to link a net_session or metaLib"
     if globals.HERMES == true then
       print("000"+mail_widget(count))
     else     
