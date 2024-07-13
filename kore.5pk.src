@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.7.8...(128.719kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.8.0...(130.581kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -303,40 +303,53 @@ command.kore = function(arg1, arg2, arg3=0, arg4=0)
 		user_input("<::>")
 		if run_as_bridge then return(virtu_bridge)
 		if run_as_core then return(virtu_core)
+		return 0
 	end function
 	if make_rkit then
 		time_s = time
-		if globals.instance then pro_path = globals.instance.path else return "kore: 5hell instance deleted. unable to automate rkit construction."
+		if globals.instance then pro_path = globals.instance.path else return "kore: 5hell instance deleted. Unable to automate rkit construction."+char(10)+"kore: run 5hell from the latest version to build rkit"+char(10)+"kore: please do not delete the binary until kore -r is complete"
 		print("Validating "+home_dir+"/rkit...")
 		print(command.mkdir(home_dir+"/rkit"))
-		if not globals.get_file(home_dir+"/rkit") then return "kore: failed: permission denied"
-		print("Copying: "+pro_path+" to "+home_dir+"/rkit")
+		if not globals.get_file(home_dir+"/rkit") then return "kore: failed to create rkit: permission denied"
+		print("kore: copying: "+pro_path+" to "+home_dir+"/rkit")
 		print(command.cp(pro_path, home_dir+"/rkit" ))
-		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print "kore: copying 5hell: permission denied"
-		if globals.metaxploit then
-			mpath = null
-			if globals.mlib == true then
-				mpath = command.tree("/","metaxploit.so","1","N")
-				if typeof(mpath) != "file" then print "kore: metaxploit.so not found"
-			end if
-		else
-			return "kore: metaxploit.so not found"
+		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print "kore: failed to copy 5hell: permission denied"
+		//if globals.metaxploit then
+		mpath = null
+		//if globals.mlib == true then
+		mpath = command.tree("/","metaxploit.so","1","N")
+		if typeof(mpath) != "file" then 
+			print "kore: metaxploit.so not found"
+		else 
+			print("kore: copying: "+mpath.path+" to "+home_dir+"/rkit")
+			print "kore: if this is not the correct .so then"+char(10)+
+			"      -- please move the correct .so higher in the file tree"+char(10)+
+			"      -- such as in /lib"
+			command.cp(mpath.path, home_dir+"/rkit")
+			if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print "kore: failed to copy metaxploit.so: permission denied"
 		end if
-		print("Copying: "+mpath.path+" to "+home_dir+"/rkit")
-		command.cp(mpath.path, home_dir+"/rkit")
-		if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print "kore: copying metaxploit.so: permission denied"
-		if globals.crypto then
+			//end if
+		//else
+			 
+			//print "kore: metaxploit.so not found"
+		//end if
+		
+		//if globals.crypto then
 			cpath = null
-			if globals.clib == true then
+			//if globals.clib == true then
 				cpath = command.tree("/","crypto.so","1","N")
-				if typeof(cpath) != "file" then print "kore: crypto.so not found"
-			end if
-		else
-			return "kore: crypto.so not found"
-		end if
-		print("Copying: "+cpath.path+" to "+home_dir+"/rkit/"+cpath.name)
-		command.cp(cpath.path, home_dir+"/rkit")
-		if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "kore: copying crypto.so: permission denied"
+				if typeof(cpath) != "file" then 
+					print "kore: crypto.so not found"
+				else 
+					print("kore: copying: "+cpath.path+" to "+home_dir+"/rkit/"+cpath.name)
+					command.cp(cpath.path, home_dir+"/rkit")
+					if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "kore: failed to copy crypto.so: permission denied"
+				end if 
+			//end if
+		//else
+			//return "kore: crypto.so not found"
+		//end if
+		
 		time_f = time - time_s
 		return "kore: task complete in "+time_f+" seconds."
 	end if
@@ -774,9 +787,9 @@ command.tdump = function(arg1,arg2,arg3,arg4)
 	if typeof(passfile) != "file" then return "tdump: "+tpath+" not found. "+char(10)+"-- check path and glasspool status and try again."
 	tcatch = passfile.set_content( globals.T_BUF.join(char(10)) ) 
 	if DEBUG then print "debug: tcatch: "+tcatch+" is a "+ typeof(tcatch)
-	if typeof(tcatch) == "string" then return tcatch else print colorLightBlue+"tdump: task complete."
+	if typeof(tcatch) == "string" then return tcatch else print colorLightBlue+"tdump: task complete..."
 	globals.T_BUF = [(localip+"@"+pubip)]
-	if DEBUG then print "returning passfile "+passfile.path
+	print "tdump: returning file object for "+passfile.path
 	return passfile
 end function
 // command.filemon = function(arg1=0, arg2=0, arg3=0, arg4=0)
@@ -917,8 +930,10 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	print
 	print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ option +CT+ ")" +CT+char(10)+ "Public IP: " + shells[option - 1].host_computer.public_ip + char(10) + "Local IP: " + shells[option - 1].host_computer.local_ip + char(10) + colorWhite + shells[option - 1].host_computer.show_procs + CT )
 	print colorWhite+"<u>"+colorLightBlue+" = = = = = = = = = = = = = </color>"+CT
-	print("[4] buff_it [5] rclean [6] run "+char(10)+"[1] glassp [2] start_terminal [3] scp ")
-	if not st then st = user_input("[7] return_object [K] kill [0|q] abort ||: ",0,1)
+	print "[1] glasspool [2] start_terminal [3] scp "+char(10)+
+	      "[4] buffer_it [5] rclean [6] run [K] kill"+char(10)+
+		  "[7] return_object [8] fetch_binaries [0|q] abort "
+	if not st then st = user_input("||: ",0,1)
 	if st == "0" or st.lower == "q" then return 0
 	if st.lower == "k" then print(ts.host_computer.close_program(user_input("kill pid:> ").to_int ) )
 	if st == "1" then
@@ -948,6 +963,13 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if st == "7" then  
 		print "rsi: returning shell object"
 		return ts
+	end if
+	if st == "8" then 
+		destiny = user_input(colorWhite+"destination folder [q=quit]:> </b><u>")
+		if destiny.lower != "q" then 
+			fldr = globals.get_file(destiny)
+			if fldr and typeof(fldr) == "file" and fldr.is_folder and fldr.has_permission("w") then return globals.get_binaries(ts, fldr) else return "rsi: invalid destination: check path and/or permissions"
+		end if
 	end if
 	return "rsi: exiting..."
 end function
@@ -1583,7 +1605,23 @@ command.rshell = function(arg1, arg2, arg3=0, arg4=0)
 	if globals.metaxploit then return metaxploit.rshell_client(arg1,arg3.to_int,arg2) else return "rshell: metaxploit.so not found"
 end function
 command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return colorRed+"<u>5phinx:</color> network penetration test tool"+char(10)+"Press F1 or ? within 5phinx for further help."+char(10)+"Usage: sphinx -- launch 5phinx"+char(10)+"Usage: <b>sphinx [ip] [port]</b>"+char(10)+"-- preset targetIp and targetPort with"+char(10)+"-- port 0 == router port"+char(10)+"-- port 8080 == router http port!!"+char(10)+"Advanced: target the LAN IP of the router first. "+char(10)+"-- then target port 8080 and exploit it"+char(10)+"-- this is done on the same network as the router"
+	if arg1 == "help" or arg1 == "-h" then return colorRed+"<u>5phinx:</color> network penetration test tool"+char(10)+
+	"Press F1 or ? within 5phinx for further help."+char(10)+
+		"Usage: sphinx -- launch 5phinx"+char(10)+
+		"Usage: <b>sphinx [ip] [port]</b>"+char(10)+
+		"-- preset targetIp and targetPort with"+char(10)+
+		"-- port 0 == router port"+char(10)+
+		"-- port 8080 == router http port!!"+char(10)+
+		"Hint: to attack a router within the netwrok target the LAN IP of the router first. "+char(10)+
+		"-- then target port 8080 and exploit it"+char(10)+
+		"-- this is done on the same network as the router"+char(10)+
+		"Hint: Use the arrow keys to access additional windows in 5phinx"+char(10)+
+		"-- Up goes to a useless bank grabber"+char(10)+
+		"-- Right goes to a useful quick menu, right again goes to malp"+char(10)+
+		"-- Down takes you to herme5"+char(10)+
+		"-- Left takes you to malp"+char(10)+
+		"-- return to the main screen by pressing the opposite arrow key"+char(10)+
+		"Note: as usual, all results are sent to malp"
 	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
 	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
 	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int
@@ -2362,35 +2400,45 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Metaxploit || MetaxploitLib || exploits || XPLOITS || MetaLib || Hack"+char(10)+
-	"<color=yellow>Important note: A "+colorOrange+"metaxploitLib "+CT+"is the object obtained when using include_lib on "+colorOrange+"metaxploit.so"+char(10)+
-	"<color=yellow>                A "+colorGreen+"metaLib"+CT+" is the object obtained from metaxploit.load() or net_session.dump_lib"+char(10)+
-	"<color=yellow>                A "+colorGreen+"metaLib"+CT+" gets scanned, a "+colorOrange+"metaxploitLib "+CT+"does the scanning."+char(10)+
-	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
-	"The <color=yellow>meta<color> command is used for fine control over metaLib and metaxploitLib processes"
-	"Usage: meta -- print the currently linked "+colorGreen+"metaLib"+CT+" name and version if any."+char(10)+
-	"Usage: meta link [opt] -- links a remote or local "+colorGreen+"metaLib"+CT+char(10)+
-	"       -- this is equivalent to the 5phinx [+] or [=] buttons"+char(10)+
-	"Usage: meta link -l [opt:lib_name] -- link a local "+colorGreen+"metaLib"+char(10)+
-	"       -- passing a lib name will link that lib if it is in /lib"+char(10)+
-	"       -- not passing a lib name will bring up the menu"+char(10)+
-	"N.B ----- the menu will display libs in the <b>localhost</b>'s /lib folder"+char(10)+
-	"    ----- if using an imported (non local) "+colorOrange+"metaxploitLib "+CT+" the list will be wrong, however:"+char(10)+
-	"    ----- selecting a lib from the list that is present in the targets /lib folder will still link the correct lib"+char(10)+
-	"    ----- why? because it is not possible to get an ip or computer object from a "+colorOrange+"metaxploitLib "+CT+" object, directly"+char(10)+
-	"    ----- but the "+colorOrange+"metaxploitLib "+CT+" object itself looks in the paths on the machine from which metaxploit.so was included"
-	"Usage: meta link -r -- force linking a remote lib (uses the current target ip and port)"+char(10)+
-	"Usage: meta link ["+colorGreen+"metaLib"+CT+"] -- directly link a piped metaLib object"+char(10)+
-	"       -- scan the imported object with <b>meta scan</b>"+char(10)+
-	"       ---- use roil to send all attacks at once (does not database results)"+char(10)+
-	"       -- use <b><color=green>db -m</b></color> to force databasing the linked metaLib"+char(10)+
-	"Usage: meta scan -- scans the linked "+colorGreen+"</b>metaLib"+CT+" and loads vulns to memory"+char(10)+
-	"                 -- does NOT update the database"+char(10)+
-	"                 -- equivalent to 5phinx [1]"+char(10)+
-	"                 -- use db -r or db -l or db -m for databasing"+char(10)+
-	"                 -- use zap or roil or 5phinx [A] or [2] after scanning to fire the exploits"+char(10)+
-	"Advanced: meta -i [path|"+colorOrange+"metaxploitLib"+CT+"] -- import a new "+colorOrange+"metaxploitLib "+CT+" from a path or from a piped object"+char(10)+char(10)+
-	"Note: importing a "+colorOrange+"metaxploitLib "+CT+" from your server to a remote target allows using your hardware to scan the targets local libs."+char(10)+
-	"--Likewise, exporting a remote "+colorGreen+"</b>metaLib"+CT+" back to your server allows you to use your hardware to scan the remote libs."+char(10)+
+	"<color=yellow>Important note: "+char(10)+
+	"A "+colorOrange+"metaxploitLib "+CT+"is the object obtained from include_lib("+colorOrange+"metaxploit.so"+CT+")"+char(10)+
+	"<color=yellow>A "+colorLightBlue+"metaLib"+CT+" is the object obtained from metaxploit.load() or net_session.dump_lib"+char(10)+
+	"<color=yellow>A net_session object will dump a "+colorLightBlue+"metaLib"+CT+" object"
+	"<color=yellow>A "+colorLightBlue+"metaLib"+CT+" gets scanned, a "+colorOrange+"metaxploitLib "+CT+"does the scanning."+char(10)+
+	"- - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - "+char(10)+
+	"The <color=yellow>meta</color> command is used for fine control over metaLib and metaxploitLib processes"+char(10)+
+	"Usage: meta -- print the currently linked "+colorLightBlue+"metaLib"+CT+" name and version if any."+char(10)+
+	"Usage: meta link -- links a remote netsession using targetIP and TargetPort"+char(10)+
+	"<u>Usage: meta link [opt] [opt]-- links a remote or local "+colorLightBlue+"metaLib"+CT+char(10)+
+	"-- this is equivalent to the 5phinx [+] or [=] buttons"+char(10)+
+	colorCyan+"Usage: meta link ["+colorLightBlue+"metaLib"+CT+"] -- directly link a piped metaLib object"+char(10)+
+	colorCyan+"Usage: meta link -l [opt:lib_name]</color></b> -- link a local "+colorLightBlue+"metaLib"+char(10)+
+	"-- passing a lib name will link that lib if it is in /lib"+char(10)+
+	"-- not passing a lib name will bring up the menu"+char(10)+
+	"----- the menu will display libs in the <b>localhost</b>'s /lib folder"+char(10)+
+	"----- if using an imported "+colorOrange+"metaxploitLib "+CT+" the list will be wrong"+char(10)+
+	"----- selecting a lib from the list that is present on the target will still work"+char(10)+
+	"----- the "+colorOrange+"metaxploitLib "+CT+" object looks at the lib folder of it's native machine"+char(10)+
+	"----- use the ls command to get the correct contents of /lib "+char(10)+
+	"----- or run the db -m command with a glasspool shell/computer on the target"+char(10)+
+	colorCyan+"Usage: meta link -r</color></b> -- link a remote net_session using targetIP and targetPort"+char(10)+
+	"-- skips confirmation"+char(10)+
+	colorCyan+"Usage: meta scan -- scans the linked "+colorLightBlue+"</b>metaLib"+CT+" and loads vulns to memory"+char(10)+
+	"-- does NOT update the database"+char(10)+
+	"-- equivalent to 5phinx [1]"+char(10)+
+	"-- use db -r or db -l or db -m for databasing"+char(10)+
+	"-- use zap or roil or 5phinx [A] or [2] after scanning to fire the exploits"+char(10)+
+	colorCyan+"Usage: meta -i [path|"+colorOrange+"metaxploitLib"+CT+"]</color></b> -- import a new "+colorOrange+"metaxploitLib "+CT+char(10)+
+	"-- imports from a path or from a piped object"+char(10)+
+	"- - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - "+char(10)+char(10)+
+	"Next: once a metaLib or net_session is linked:"+char(10)+
+	"-- scan the imported object with <b>meta scan</b> or <b>db -m</b>"+char(10)+
+	"-- if not using db use roil to send all attacks at once (does not database results)"+char(10)+
+	"-- use <b><color=green>db -m</b></color> to force databasing the linked metaLib "+char(10)+
+	"-- n.b: running db without -m will cause db to look for a new lib to link and overwrite the linked metaLib)"+char(10)+
+	char(10)+
+	"Note: importing a "+colorOrange+"metaxploitLib"+CT+" from your server to a remote target allows using your hardware to scan the targets local libs."+char(10)+
+	"--Likewise, exporting a remote "+colorLightBlue+"</b>metaLib"+CT+" back to your server allows you to use your hardware to scan the remote libs."+char(10)+
 	"-- use <b>bios> along with <b>cob get</b> and <b>cob set</b> to import/export objects"
 	if not globals.metaxploit then return "metaxploit.so not found"
 	if not arg1 and globals.metaLib then return (globals.metaLib.lib_name + " v " + globals.metaLib.version)
@@ -2547,7 +2595,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if DEBUG then print "debug: printing gco indexes..."
 		for index in gco.indexes
 			if DEBUG then print index
-			if index != "__isa" and index != "classID" then b.remove(index)
+			if index != "__isa" and index != "classID" then gco.remove(index)
 		end for
 		return "custom object purged..."
 	end if
