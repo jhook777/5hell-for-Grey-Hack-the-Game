@@ -1,7 +1,7 @@
 // 5hell v 3.7.9 by Plu70
 // released v 3.7.8
 // imports .5pk files from /root/src
-ver = "3.7.8.1_amalgamated_horrors"
+ver = "3.8.0_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -24,15 +24,31 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // add custom theme config
 // connect_service increases trace time: add something for that
 // make the initial help page better
+// add a way to tell grep to ignore specific folders
+// expand tree -f to take both path and object as params (jk have to start over)
 //
 // document the below:
-// YOU BROKE TREE (AGAIN!)
-// expanded tree -f to take both path and object as params
-// added exporting enum entires to malp en masse
-// 5phinx: added globals.get_binaries to pull all useful binaries from a shell
+// greatly updated the usage information for the meta command
+// updated herme5 mail client documentation for spool, delete all
+// added exporting enum entries to malp en masse
+// updated 5phinx documentation
+// 5phinx/malp: added globals.get_binaries to pull all useful binaries from a shell
 // -- added get binaries button to RSI and the shell handler in BUFFER
 // -- uses newtree and enum
 // -- CLI option soon(tm)
+// mail: delete all added
+// cleaned up the usege info for command.file 
+// updated 5phinx UI
+// updated grep usage info
+// added documentation for grep -n
+// updated enum documentation for new -b option
+// hotfix:
+// fixed an issue in tree -f : it was trying to enumerate empty lists
+// fixed crash in kore -r
+// fixed typo in mail that caused crash after brute forcing an email
+// fixed syntax error causing loading local libs to crash
+// fixed typo causing a crash with purge -o
+//
 //
 // code: fixed char code return: code [char|string](returns: char code)
 // db: added -m to customize scan with metaLib and metaxploitLib of choice // needs docs
@@ -85,6 +101,7 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // updated dig to correctly parse ip/port when both come in as arg1
 // -- e.g when piping command.target to command.dig
 //
+// fixed the --edit param for dig
 // fixed crash in p_validate when validating numbers
 // fixed crash in 5phinx on port scan
 // fixed error in dig not setting permissions correctly
@@ -399,7 +416,7 @@ globals.get_file = function(input_string)
 end function
 // end globals
 if DEBUG then print("<size=75%>loaded get_file...</size>")                       ////////////////////////////////
-if DEBUG then print("<size=75%>loading 5hell.5pk...(111.475kb)")                   /////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...(113.205kb)")                   /////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")     ////////////////////////////////
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -1022,16 +1039,18 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.mail = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Mail || metaMail || herme5 || hermes || mail client"+char(10)+
-	"mail: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+
+	if arg1 == "help" or arg1 == "-h" then return colorGreen+"<u></color>"+colorGold+"Mail || metaMail || herme5 || hermes || mail client"+char(10)+
+	"herme5 mail client: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+
 	"-- name your function<b> command.mail </b> to overwrite this one."+char(10)+
 	"-- see 5hell.src, template.5pk.src for instructions."+char(10)+
-	"N.B. You may overwrite any command this way."+char(10)+
+	"Note: You may overwrite any command this way."+char(10)+char(10)+
+	colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - -"+char(10)+
 	"Usage: mail -- opens the herme5 mail menu"+char(10)+
-	"-- when prompted for a password you may enter:</b> -brutus"+char(10)+
-	"-- this will invoke <b>brutus</b> and attempt to crack the email password."+char(10)//+
-	"-- the password will be saved to the custom object as key == email_address and value == password"+char(10)+
-	"---- this will change once i work out a better storage system"+char(10)+
+	"Extra: when prompted for a password you may enter:</b> -brutus"+char(10)+
+	"-- this will invoke <b>brutus</b> and attempt to crack the email password."+char(10)+
+	"-- the password will be saved to the custom object as:"+char(10)+
+	"-- key == password and value == public_ip:local_ip"+char(10)+
+	"---- this will change once i work out a better storage system bc this is not ideal"+char(10)+
 	"Extra: when viewing your inbox you may type <b>spool</b> to dump all mail to a file (up to 160kb)"
         herme5 = function()
             mail = {}
@@ -1068,7 +1087,7 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
                   try = mail_login(arg, pa)
                   if typeof(try) == "MetaMail" then
                     print("brutus: <b>password found</b>: "+colorWhite+pa+CT)
-					print command.cob("set",arg,pa)
+					print command.cob("set",pa,arg)
                     return try
                   end if
                 end for
@@ -1320,19 +1339,22 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	"Usage: enum [opt|/path|file_object|array|#]"+char(10)+
 	"Usage: enum [list|string] -- enumerates a list or a newline separated string"+char(10)+
 	"-- if the string is a single word it will be interpreted as a path"+char(10)+
-	"-- multiple words on a single line (piped) will be interpreted as a single enum entry"+char(10)+
+	"-- multiple words on a single line (piped) will be interpreted as a single entry"+char(10)+
 	"Usage: enum [path|file_object]"+char(10)+
 	"-- enumerate file contents as a list of strings"+char(10)+
 	"-- useful for 5hell scripting (see the '<b>do</b>' command)."+char(10)+
 	"-- e.g: enum file.txt | enum 1"+char(10)+
 	"---- enumerate file.txt then return index [1] from the list"+char(10)+
-	"Usage: enum -l -- return the length of enum buffer."+char(10)+
-	"Usage: enum -s -- show the enum buffer and return the length"+char(10)+
-	"Usage: enum -d -- enumerate the onboard dictionary"+char(10)+
+	"Usage: enum -l  -- return the length of enum buffer."+char(10)+
+	"Usage: enum -s  -- show the enum buffer and return the length"+char(10)+
+	"Usage: enum -d  -- enumerate the onboard dictionary (depricated)"+char(10)+
 	"Usage: enum [#] -- return the element at index # in the enum buffer"+char(10)+
-	"Usage: enum -i [index] [element] -- insert element at index and shift everything below it down"+char(10)+
+	"Usage: enum -i [index] [element] -- insert element at index "+char(10)+
+	"-- shifts everything below it down"+char(10)+
 	"Usage: enum -a [element] -- append element to end of enum buffer"+char(10)+
-	"Usage: enum -p -- purge the enum buffer"
+	"-- unlike enum [string] you may use enum -a [string] to append a single word to the enum buffer"
+	"Usage: enum -b  -- concatonate the BUFFER and globals.enumerated (the enum buffer)"
+	"Usage: enum -p -- purge the enum buffer"+char(10)+
 	"Advanced: poke files.txt | lock |  | ls | append files.txt | cat files.txt | clipb | enum"+char(10)+
 	"-- Or: ls | enum -- pipe ls output to the enum buffer"+char(10)+
 	"Advanced: lanpro | enum -- scan network and enumerate all LAN addresses found. "+char(10)+
