@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.0...(101.701kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.1...(103.239kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -545,7 +545,23 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.makfit = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or not arg2 or arg1 == "help" or arg1 == "-h" then return "Make it fit file compression tool by Plu70"+char(10)+"Usage: makfit [/path/to/file.src] [target_size_in_bytes] [optional: -A --include uppercase]"+char(10)+"Builds to size and outputs to parent path of .src file."+char(10)+"Extra: makfit [-n] [target_size_in_bytes] [opt:-A] -- no_source file || no_source file optional: use caps."+char(10)+"-- this allows you to find a filename without supplying a source file."+char(10)+"Note: when successful makfit will return the compressed file object."
+	if not arg1 or not arg2 or arg1 == "help" or arg1 == "-h" then return "<u>File Compression || File Size || MAKFIT</u>"+char(10)+
+	"Make it fit file compression tool by Plu70"+char(10)+
+	"File sizes are (mostly) determined by name. This tool will"+char(10)+
+	"-- build files with different names until at or below the desired size."+char(10)+
+	"-- if the -n option is used, no input file is used"+char(10)+
+	"---- instead a dummy file is used and saved as the discovered name"+char(10)+char(10)+
+	"<b>Usage: makfit [/path.src] [target_size_in_bytes] [opt: -A --include uppercase]"+char(10)+
+	"-- target size in bytes determines ceiling for acceptable file size"+char(10)+
+	"---- min 120000, max unlimited however it is unlikely to see > 10MB"+char(10)+
+	"-- will change the file's name back to the name of the .src when done"+char(10)+
+	"-- builds to size and outputs to parent path of .src file."+char(10)+
+	"Extra: makfit [-n] [target_size_in_bytes] [opt:-A] -- do not use a source file "+char(10)+
+	"-- final filename may be used when compiling any script"+char(10)+
+	"-- this allows you to find a filename without supplying a source file."+char(10)+
+	"Note: when successful makfit will return the compressed file as an object."+char(10)+
+	"Usage Example:"+char(10)+
+	"|> poke my.src | scribus | makfit my.src 150000 | run"
 	no_source = false
 	source = "print(""Hellow World"")"
 	time_start = time
@@ -1342,23 +1358,32 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 		"quit rshell_placed"+char(10)+char(10)+
 		"This will dig the target like normal, then launch 5hell with the gained root shell"+char(10)+"Once launched, a reverse shell will be dropped, the log scrubbed, rkit removed, and dig will exit both 5hell instances."
     return "<b>DIG v 2.1 Netcrawler || Autohacking || Automation</b>"+char(10)+
-	"Usage: dig [ip|port] [port|ip] -- auto-infiltrate a target"+char(10)+
-	"-- scans ports on target"+char(10)+
-	"-- infiltrates via shell"+char(10)+
+	"Usage: dig [-s|ip|port] [port|ip] [opt:--edit] -- auto-infiltrate a target"+char(10)+
+	"-- runs <b>db</b> on target [ip] and [port]"+char(10)+
+	"-- infiltrates via shell if found"+char(10)+
 	"-- uploads rkit and runs 5hell on the target"+char(10)+
 	"-- gains root and wipes the log"+char(10)+
-	"-- performs other taskes as defined by the user in dig.bat"+char(10)+
-	"-- dig.bat may contain references (do # -f your.file) to diasy chain digs"+char(10)+
-	"Usage: dig [port] [ip] -- same as above but supports piping in an ip"+char(10)+
-	"---- Note: edit /root/rkit/dig.bat to customize behavior"+char(10)+
+	"-- performs other taskes as defined by the user in <u>dig.bat"+char(10)+
+	"-- dig.bat may contain <b>do</b>calls (do # -f your.file) to daisy chain digs"+char(10)+
+	"Note: dig may take port and ip in any order"+char(10)+
+	"-- not supplying a port defaults to port 0 aka the rouer"+char(10)+
+	"Usage: dig -s -- will scan the internet for a suitable target"+char(10)+
+	"-- uses database.csv to choose targets with known kernel_router versions"+char(10)+
+	"-- if the matched router has a shell exploit, dig will auto infiltrate as normal"+char(10)+
+	"-- susses out random ips until a match is found"+char(10)+
+	"-- sussing routers does not leave a log if no shell is found"+char(10)+
+	"Note: edit /root/rkit/dig.bat to customize behavior"+char(10)+
 	"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+
 	"-- type 'y' to exit and return to the script that launched dig"+char(10)+
 	"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+
-	"<b>Note:</b> supplying <b>--edit</b> as an argument will open dig.bat in scribus"+char(10)+
+	"<b>Note:</b> supplying <b>--edit</b> as argument three will open dig.bat in scribus"+char(10)+
+	"-- dig will continue as normal after editing is complete"+char(10)+
 	"-- you may add/remove commands to be executed by dig here"+char(10)+
-	"-- if <b>--edit</b> is the only argument dig will exit after editing the batch file."+char(10)+
-	"<b>Advanced</b>: Adding a call to the dig command in dig.bat allows daisy chaining."+char(10)+
-	"-- e.g. <b> rnip 1 | dig </b>"+char(10)+
+	"<b>Note:</b> supplying <b>--edit</b> as agrgument one will open dig.bat in scribus"+char(10)+
+	"-- dig will then exit after editing the batch file."+char(10)+
+	"Usage example:|> <b>rnip 1 | dig </b>"+char(10)+
+    "Usage example:|> <b>dig 1.1.1.1 22 --edit"+char(10)+
+	"Usage example:|> <b>do 20 | dig -s"
 	colorGold+"Experimental</b></color>: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+
 	"-- if the lib version is in the database, will dig that router"+char(10)+
 	"-- sussing specifically looks for shells on routers"+char(10)+
@@ -1366,23 +1391,21 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 	"---- Extra: dig [-h|help] extra -- display extra help info"
   end if
   print(colorGold+"<u>------DIG-v-2.1------</u>"+CT+char(10))
-  if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
-      print("Editing the batch file: "+bat_file.path)
-      command.scribus(bat_file)
-      if arg1 == "--edit" then return 1
-  end if
-  tp = arg1.split(" ") // sometimes we want to pipe target ip AND a port. this will help with that.
-  t = tp[0] // target ip
-  p = tp[-1] // target port
+  //tp = arg1.split(" ") // sometimes we want to pipe target ip AND a port. this will help with that.
+  tp = arg1
+  //t = tp[0] // target ip
+  //p = tp[-1] // target port
+  t = arg1 
+  p = arg2
   if t == "-s" then 
   	t = globals.sus // in 5phinx.5pk
-	p = 0
+	p = "0"
   end if
-  if p == t then p = arg2 /////////////// make sure this works: if arg1 was not split, arg 2 is the port. default is 0 aka router
-  if not is_valid_ip(t) then
+  //if p == t then p = arg2 /////////////// make sure this works: if arg1 was not split, arg 2 is the port. default is 0 aka router
+  if not is_valid_ip(t) and t != "--edit" then
     t = arg2 
     p = arg1 
-    if not is_valid_ip(t) then return "dig: invalid ip"
+    if not is_valid_ip(t) and t != "--edit" then return "dig: invalid ip"
   end if
   if DEBUG then print "debug: target ip: "+t+char(10)+"debug: target port: "+p
   // find the root kit     
@@ -1402,7 +1425,12 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
       bat_file = globals.get_file(kit.path+"/dig.bat")
       if not bat_file then return "dig: unable to find or create dig.bat, aborting."
   end if
-  	
+  if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
+	print("Editing the batch file: "+bat_file.path)
+	command.scribus(bat_file)
+  	if arg1 == "--edit" then return "dig: finished editing dig.bat"
+	if p == "--edit" then p = "0"
+  end if
   // verify that we're ready to go
   print("Checking dictionary...")
   if not BIGBRAIN then 
