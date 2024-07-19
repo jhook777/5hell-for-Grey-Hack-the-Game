@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.8.0...(130.581kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.8.1...(130.591kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -2403,7 +2403,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	"<color=yellow>Important note: "+char(10)+
 	"A "+colorOrange+"metaxploitLib "+CT+"is the object obtained from include_lib("+colorOrange+"metaxploit.so"+CT+")"+char(10)+
 	"<color=yellow>A "+colorLightBlue+"metaLib"+CT+" is the object obtained from metaxploit.load() or net_session.dump_lib"+char(10)+
-	"<color=yellow>A net_session object will dump a "+colorLightBlue+"metaLib"+CT+" object"
+	"<color=yellow>A net_session object will dump a "+colorLightBlue+"metaLib"+CT+" object"+char(10)+
 	"<color=yellow>A "+colorLightBlue+"metaLib"+CT+" gets scanned, a "+colorOrange+"metaxploitLib "+CT+"does the scanning."+char(10)+
 	"- - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - "+char(10)+
 	"The <color=yellow>meta</color> command is used for fine control over metaLib and metaxploitLib processes"+char(10)+
