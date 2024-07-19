@@ -1,8 +1,8 @@
 // Sphinx Hacking Interface v 2.4.9 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.0 for 5hell v 3.8.0...(121.381kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.0 for 5hell v 3.8.1...(121.117kb)</size>")
 
 //Define Globals
-sphinx_version = "2.5.0"
+sphinx_version = "2.5.1"
 malp_version = "1.3.1"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -193,6 +193,9 @@ globals.decompiler = function(object)
   if @c.indexOf("__isa") >= 0 or @c.hasIndex("__isa") or @c.hasIndex("classID") or typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "shell" or typeof(@c) == "file" or typeof(@c) == "computer" or typeof(@c) == "ftpshell" then 
     //if @c.hasIndex("__isa") then methods = @c.__isa.indexes else methods = @c.indexes
     methods = c.__isa.indexes
+    if typeof(c) == "MetaLib" then 
+      print colorWhite+c.lib_name+CT+" v "+colorWhite+c.version
+    end if
     if DEBUG then print "debug: methods: "+methods
     for ind in methods
       print(ind+": "+c[ind])
@@ -2463,7 +2466,7 @@ scan_memory = function()
   end for
   print(format_columns(data))
   globals.XPLOITS = scanalysis
-  waitFor = user_input("Press return to continue...")
+  waitFor = user_input("<b>Press return to continue...</b>")
   return 0
 end function
 
@@ -2489,7 +2492,10 @@ end function
 get_lib = function(waitFor=0,this_lib=null)
   address = globals.targetIP
   port = globals.targetPort
-  if not waitFor then waitFor = user_input(colorOrange+"Establishing remote net session"+char(10)+"(this will leave a log on servers but not routers)"+char(10)+"Continue? [<b>Y</b>/n/l] (l=local instead)"+CT+char(10)+"||: ",0,1)
+  if not waitFor then waitFor = user_input(colorOrange+"Establishing Net_Session..."+char(10)+
+  ColorOrange+"This will leave a log on servers but not routers. Continue?"+char(10)+
+  "[<b>Y</b> = Link Remote Lib] [<b>l</b> = Link Local Lib Instead] [n = No]"+CT+char(10)+
+  "(<b>enter<b>=Y) ||: ",0,1)
   if waitFor == "n" or waitFor == "N" then
     print("Aborting connection...")
     return "Aborting connection..."
@@ -2980,11 +2986,11 @@ main = function()
       print(format_columns("[ " + tarLan +   " ] [ " + portInfo +    " ]" ))
     end if
     if metaLib then
-      print format_columns("[MetaLib linked: "+colorGreen+metaLib.lib_name+CT+"]"+char(10)+
-                          " [Exploits found: "+ NUM_SPLOITS + "]"+char(10)+
-                          "[MetaLib: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]")
+      print "[MetaLib linked: "+colorGreen+metaLib.lib_name+CT+"]"+char(10)+
+            "[Exploits found: "+ NUM_SPLOITS + "]"+char(10)+
+            "[MetaLib: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]"
     else
-      print("[MetaLib: "+colorOrange+"not linked</b></color>] press [=] or [+] to link.")
+      print "[MetaLib: "+colorOrange+"not linked</b></color>] press [=] or [+] to link."
     end if
     if alert then
       print(colorRed + "[/var/system.log: I/O detected " + logSize + "  bytes]\n Alert! Filesize Change!")
@@ -2992,28 +2998,28 @@ main = function()
       print("[Log I/O: " + logSize + " bytes]")
     end if
     print
-    print "[<b>F1</b>] for <b>help [=] or [+] to link a net_session or metaLib"
+    print "[<b>F1</b>] for <b>help"
     if globals.HERMES == true then
       print("000"+mail_widget(count))
     else     
       print("0001020304050607080900")
     end if
     if targetIP then
-      print("0[<b><color=white>0</color></b>]....<b><color=white>P</color>ROBE</b>.....0900 -- "+colorWhite+"</b>Run probe to portmap the given IP")
-      print("00[<b><color=white>1</color></b>]...<b><color=white>S</color>CAN</b>..07080900 -- "+colorWhite+"</b>Scan the linked metaLib without databasing")
+      print("0[<b><color=white>0</color></b>]....<b><color=white>P</color>ROBE</b>.....0900")
+      print("00[<b><color=white>1</color></b>]...<b><color=white>S</color>CAN</b>..07080900")
     else
       print("0001020304050607080900")
       print("0001020304050607080900")
     end if
     if targetIP and targetPort then
-      print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....080900 -- "+colorWhite+"</b>Fire all exploits at once without databasing")
-      print("000..[<b><color=white>3</color></b>]<b><color=white>DB</color>ASER</b>...80900 -- "+colorWhite+"</b>Database the given IP or <b>linked</b> local lib")
+      print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....080900")
+      print("000..[<b><color=white>3</color></b>]<b><color=white>DB</color>ASER</b>...80900")
     else
       print("001 SET IP WITH [<color=white>4</color>] 00")
       print("000 SET PT WITH [<color=white>5</color>] 00")
     end if
-    print(".QT.<b>A</b>..<b>IP</b>[<b>4</b>][<b>5</b>]<b>PT</b>..... -- "+colorWhite+"</b>Z = Silentclean, A = Zap , Q = quit")
-    print("[Q][A][Z]["+char(177)+"]06<b>v</b>7<b><</b>8<b>></b>9<b>^</b>0 -- "+colorWhite+"</b><-- = Malp, --> = menu, down = herme5")
+    print(".QT.<b>A</b>..<b>IP</b>[<b>4</b>][<b>5</b>]<b>PT</b>.....")
+    print("[Q][A][Z]["+char(177)+"]06<b>v</b>7<b><</b>8<b>></b>9<b>^</b>0")
     option = user_input("[0][1][2][3][4][5]||: ",0,1)
     running = sphinx_switch(option,target_type)
   end while
