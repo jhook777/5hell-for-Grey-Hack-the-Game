@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.1...(103.239kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.2...(103.358kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -346,6 +346,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 		if DEBUG then print "debug: grep: findfile == true"
 		a1 = a2
 		a2 = arg3
+		if not a2 then a2 = "/"
 	end if
 	if not a1 or a1 == "-h" or a1 == "help" then return "GREP || get regular expression || regex"+char(10)+
 		"Usage: grep [opt: -f] [pattern] [opt: file/folder (default: / )] - search file or folder for pattern"+char(10)+
@@ -373,12 +374,13 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 		"-- *#:*#  matches root:password, email@domain.com:password, xyz:1234"+char(10)+
 		"Important! Runtime depends on length of pattern and size of text to check. "+char(10)+
 		"Since grep will recurse any folders in a given path, this command could result in very long run times. "+char(10)+
-		"It is up to you to limit the scope of your searches accordingly."+char(10)+
+		"It is up to you to limit the scope of your searches accordingly."+char(10)
 			
 	gresult = []
 	gname = null
 
 	gp = function(grep_tar, t_f, use_re, findfile)
+		if DEBUG then print "debug: in gp"
 		if t_f.is_folder and t_f.is_binary then
 			sub_folders = t_f.get_folders
 			sub_files = t_f.get_files
@@ -448,8 +450,8 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				end if
 			end for
 		end for
-  end function
-
+  	end function
+	
 	output = "No "+a1+" found."
 	t_f = null // target file or folder
 	grep_tar = a1.trim
@@ -458,7 +460,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	for special in special_chars
 		if grep_tar.indexOf(special) >= 0 then invoke_regex = true
 	end for
-  if not a2 then a2 = "/"
+  	if not a2 then a2 = "/"
 	tf_path = a2
 	if typeof(tf_path) == "string" then
 		t_f = globals.get_file(tf_path)
@@ -470,6 +472,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	if typeof(tf_path) == "shell" then t_f = tf_path.host_computer.File("/")
 	if typeof(t_f) != "file" then return "grep: "+a2+": unkown type."
 	// end piped object handling.
+	if DEBUG then print "debug: gresult is: "+gresult
 	gp(grep_tar, t_f, invoke_regex, find_file)///////////////////////////////fire away!
   	if DEBUG then print "debug: ggf: "+typeof(globals.grepped_file)
   	if globals.grepped_file then 
