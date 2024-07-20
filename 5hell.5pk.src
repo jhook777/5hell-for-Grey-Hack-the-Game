@@ -1,7 +1,7 @@
-// 5hell v 3.7.9 by Plu70
-// released v 3.7.8
+// 5hell v 3.8.2 by Plu70
+// released v 3.8.1
 // imports .5pk files from /root/src
-ver = "3.8.1_amalgamated_horrors"
+ver = "3.8.2_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 ///////////////////////////////////////
@@ -28,6 +28,12 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // expand tree -f to take both path and object as params (jk have to start over)
 // update 5phinx F1 help info: remove or correct outdated info
 //
+// fixed typo in grep causing irritating crash
+// -- grep and grep -f work normally again
+// fixed typo in get_lib that caused a crash when getting a lib
+// updated pause command and usage info
+// updated cc usage info
+// 
 // broke dig --edit (again)
 // fixed dig --edit (again)
 // updated usage info for dig
@@ -429,7 +435,7 @@ globals.get_file = function(input_string)
 end function
 // end globals
 if DEBUG then print("<size=75%>loaded get_file...</size>")                       ////////////////////////////////
-if DEBUG then print("<size=75%>loading 5hell.5pk...(114.021kb)")                   /////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...(115.387kb)")                   /////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")     ////////////////////////////////
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -1846,7 +1852,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	return colorCyan+"--batch complete in ["+colorOrange+(time-time_s)+colorCyan+"] seconds--"+CT
 end function
 command.cc = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return ": carbon copy: command buffer."+char(10)+"Usage: cc -- select command from history."+char(10)+"Usage: cc [#] -- where # is corresponds to the command you wish to run from the command buffer."+char(10)+"n.b. cc will return the output of the commands as if they were run normally."+char(10)+"This means you may use cc inside of pipe chains."
+	if arg1 == "help" or arg1 == "-h" then return ": carbon copy: command buffer."+char(10)+"Usage: cc -- select command from history."+char(10)+"Usage: cc [#] -- where # corresponds to the command you wish to run from the command buffer."+char(10)+"-- will <b>return</b> the output of the commands as if they were run normally."+char(10)+"-- you may use cc inside of pipe chains."+char(10)+"---- e.g: cc 22 | echo | cc 10 | poke file.txt"
 	i = 0
 	schtick = "| return"
 	if not arg1 then 
@@ -1875,15 +1881,33 @@ command.time = function(arg1, arg2=0, arg3=0, arg4=0)
 	return current_date.split(" ")[2]
 end function
 command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "Pause || Wait || Hang || Sleep"+char(10)+"Usage: pause [time_in_seconds(float)] -- wait(time_seconds) i.e. pause script execution"+char(10)+"-- this command is mainly useful for putting a delay in 'do' scripts."+char(10)+"Minumum time: .001 seconds"+char(10)+"Maximum time: 300 seconds"
-	time = 1
-	if typeof(arg1.val) == "number" then time = arg1.val else return "pause: invalid interval: expects positive float [.001 : 300]"+char(10)+"n.b. - negative values will not reverse time"
-	if time <= 300 and time >= .001 then
-		wait(time)
-	else
-		wait(1)
+	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "Pause || Wait || Hang || Sleep"+char(10)+
+	// note, this function expects time as a string, the user should form the string as a float. eg: pause .01 -- where .01 is a string
+	"Usage: pause [seconds(float)] -- pauses script execution"+char(10)+
+	"-- Minumum time: .01 seconds"+char(10)+
+	"-- Maximum time: 300 seconds"+char(10)+
+	"-- useful for putting a delay in 'do' scripts."+char(10)+
+	"-- useful for putting a delay in a chain of commands"+char(10)+
+	"-- this command uses the general function: wait(time)"
+	time_to_wait = "1" // default wait 1 second 
+	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
+	if arg1 == "-m" then 
+		manual_unpause = true 
+		arg1 = ".01"
 	end if
-	return 0
+	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
+	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
+	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused: press <"+colorGreen+"enter"+CT+"> to continue")
+	if time_to_wait <= 300 and time_to_wait >= .01 then
+		if DEBUG then print "debug: ttw is"+time_to_wait
+	else
+		time_to_wait = 1
+		print "pause: invalid wait time: changing time_to_wait to 1 second"
+	end if
+	print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
+	wait(time_to_wait)
+	return colorWhite+"pause:"+CT+" resuming script execution"
+	//return 0
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"+char(10)+
