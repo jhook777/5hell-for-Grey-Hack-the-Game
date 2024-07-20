@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.8.1...(130.591kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.8.2...(130.598kb)</size>")
 command.kore = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 	globals.CYCLES = 0
@@ -2479,7 +2479,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				if typeof(arg2) == "string" then reason = "invalid path" else reason = "invalid input"
 				return "meta: metaxploit import failed: "+char(10)+reason+char(10)+"meta: backup metaxploit restored"
 			end if
-			print "meta: new metaxploit.so linked!"+char(10)+"meta: use <b>meta restore</b> to revert back to original metaxploit"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will also restore local metaxploit.so"
+			print colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"meta: use <b>meta restore</b> to revert back to original metaxploitLib"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
 		end if
 		if arg1 == "scan" then
 			if globals.metaLib then
@@ -2688,7 +2688,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob.install = function(key=0, val=0, nil=0, nul=0)
 		g = @cob.get
 		new_command = g(key)
-		if typeof(@new_command) == "string" then return "cob: "+key +":"+ new_command + ". Install failed."
+		if typeof(@new_command) == "string" then return new_command + ": Install failed."
 		if typeof(@new_command) == "function" then 
 			command[key] = @new_command 
 			return "Set command."+key+" to "+@new_command
