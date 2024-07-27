@@ -101,6 +101,7 @@ command.shell = function(input=null)
         i = i + 1
       end for
       // begin shortcuts
+      if prompt[0] == "set" or prompt[0] == "get" then prompt = ["cob"]+prompt
       if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!!
       if prompt[0] == "exit" then prompt[0] = "quit"      // caution: too many shortcuts may slow down the script
       if prompt[0] == "sc" then prompt[0] = "silentclean"
@@ -206,7 +207,7 @@ end function
 //    return 0  // or return soemthing
 // end function
 //
-//
+
 // or
 //
 // imp*cde ( "/path/your.5pk")   // where your.5pk contains your function in the above format
