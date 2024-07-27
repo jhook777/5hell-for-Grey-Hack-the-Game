@@ -1,9 +1,10 @@
 // 5hell v 3.8.2 by Plu70
 // released v 3.8.1
 // imports .5pk files from /root/src
-ver = "3.8.2_amalgamated_horrors"
+ver = "3.8.3_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
+size_of_5hell = "125.779"
 ///////////////////////////////////////
 //
 // changes:
@@ -27,6 +28,25 @@ if params and params.indexOf("--debug") >= 0 then DEBUG = true
 // add a way to tell grep to ignore specific folders
 // expand tree -f to take both path and object as params (jk have to start over)
 // update 5phinx F1 help info: remove or correct outdated info
+//
+// scp falsely reports failure sometimes: track this down
+//
+// 5hell.src!!!! added get/set alias for cob get/cob set
+// kore overhaul:
+// -- -r == rkit , -s == secure protocol, -h == hdd size reporting
+// -- defunct code commented out
+// get_binaries: will now actually pull binaries from user home folders as well as system.log
+// rm: gives more feedback
+// cat: looks a little nicer
+// whois: added neurobox network highlight
+// fully reverted 5phinx facelift 
+// perms: updated usage info
+// added -n (nuke) option for rclean and updated usage info to include -d and -n
+	// -d and -n work the same as silentclean -d and -n (more or less...)
+// silentclean: updated usage info 
+// kill: added option to kill by process name
+// make: build path will default to currentPath if none supplied
+// make: importable boolean should work now
 //
 // fixed typo in grep causing irritating crash
 // -- grep and grep -f work normally again
@@ -414,6 +434,7 @@ colorCyan = "<color=#00FFFF><b>"
 colorGold = "<color=#CCCC00FF><b>"
 colorBlack = "<color=#000000FF><b>"
 colorOrange = "<color=#FF8400FF><b>"
+colorMagenta = "<color=#FF00C8FF><b>"
 colorLightBlue = "<color=#2382FFFF><b>"
 CT = "</color></b>"
 
@@ -435,7 +456,7 @@ globals.get_file = function(input_string)
 end function
 // end globals
 if DEBUG then print("<size=75%>loaded get_file...</size>")                       ////////////////////////////////
-if DEBUG then print("<size=75%>loading 5hell.5pk...(115.387kb)")                   /////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...("+size_of_5hell+"kb)</size>")                   /////LOADING 5HELL///////////////////////////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")     ////////////////////////////////
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -472,7 +493,7 @@ command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if typeof(get) != "number" then return "BUFFER: invalid selection."
 		if get >= 0 and get < BUFFER.len then globals.clip_board_alpha = BUFFER[get] else return "BUFFER: invalid selection."
 	end if
-	print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+	print(colorCyan+"clipa: clipped: "+typeof(@globals.clip_board_alpha))
 	if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
 end function
 command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
@@ -510,7 +531,7 @@ command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if typeof(get) != "number" then return "BUFFER: invalid selection."
 		if get >= 0 and get < BUFFER.len then globals.clip_board_beta = BUFFER[get] else return "BUFFER: invalid selection."
 	end if
-	print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+	print(colorCyan+"clipb: clipped: "+typeof(@globals.clip_board_beta))
 	if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
 end function
 command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
@@ -548,7 +569,7 @@ command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if typeof(get) != "number" then return "BUFFER: invalid selection."
 		if get >= 0 and get < BUFFER.len then globals.clip_board_gamma = BUFFER[get] else return "BUFFER: invalid selection."
 	end if
-	print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+	print(colorCyan+"clipc: clipped: "+typeof(@globals.clip_board_gamma))
 	if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
 end function
 command.passwd = function(arg1, arg2, arg3=0, arg4=0)
@@ -583,7 +604,17 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 	return format_columns(output)
 end function
 command.kill = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0  or arg1 == "-h" or arg1 == "help" then return "Usage: kill [PID] -- terminate PID. PID should be process number or ALL (see<b> ps </b>)"+char(10)+"--<b> kill ALL </b>will attempt to close all programs."+char(10)+"n.b. if<b> kill ALL </b>kills the terminal that launched the program, it may not complete its task."
+	if arg1 == 0  or arg1 == "-h" or arg1 == "help" then return "KILL || END PROCESS || TERMINATE SCRIPT"+char(10)+
+	"Usage: kill [PID] [opt: shell|computer] -- terminate PID"+char(10)+
+	"-- PID should be process number or ALL"+char(10)+
+	"-- see the <b>ps</b> command for process ID's"+char(10)+
+	"--<b> kill ALL </b>will attempt to close all programs."+char(10)+
+	"n.b. if<b> kill ALL </b>kills the terminal that launched the program,"+char(10)+
+	"---- it might not complete its task."+char(10)+char(10)+
+	"Usage: kill [process_name] [opt: shell|computer] --"+char(10)+
+	"-- kill process by process name instead of PID"+char(10)+char(10)+
+	"Note: piping a shell or computer object runs kill on the object instead of locally"+char(10)+
+	"Note: running kill while glasspool is active runs kill on the active object"
 	target_machine = globals.localmachine
 	if typeof(arg2) == "shell" then 
 		target_machine = arg2.host_computer
@@ -591,8 +622,13 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 	if typeof(arg2) == "computer" then 
 		target_machine = arg2
 	end if
-	if typeof(arg1) == "string" then PID = arg1.to_int else return "kill: invalid input."
-	if typeof(PID) == "string" and PID == "ALL" then
+	if typeof(arg1) == "string" then 
+
+		if typeof(arg1.to_int) == "number" then PID = arg1.to_int else PID = arg1
+	else 
+		return "kill: invalid input"+char(10)+"Usage: kill [pid|process_name] [opt:shell|computer]"
+	end if
+	if typeof(PID) == "string" then
 		processes = target_machine.show_procs.split(char(10))
 		for p in processes
 			if p == "USER PID CPU MEM COMMAND" then continue
@@ -601,15 +637,15 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 			process_CMD = process[4]
 			stor = globals.localmachine
 			globals.localmachine = target_machine
-			print(command.kill(process_ID))
+			if PID == "ALL" or PID == process_CMD then print(command.kill(process_ID))
 			globals.localmachine = stor
 		end for
 		return 0
 	end if
 	output = target_machine.close_program(PID)
-	if output == true then return("Terminating process: " + PID + "...");
+	if output == true then return("kill: terminating process: " + PID + "...");
 	if output then return(output)
-	return "Process " + PID + " not found"
+	return "kill: process <u>" + PID + "</u> not found"
 end function
 command.pwd = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "pwd: returns current path"
@@ -723,6 +759,7 @@ command.rm = function(arg1, arg2, arg3=0, arg4=0)
 	shell_to_use = globals.shell 
 	file = null
 	usage = "rm: usage:<b> rm [opt:-r] [path|file_object] [opt:shell|computer]</b>"
+	print "<u>"+colorRed+"- - - - - "
 	if arg1 == "-r" then 
 		recursive = true 
 		arg1 = arg2 
@@ -748,6 +785,7 @@ command.rm = function(arg1, arg2, arg3=0, arg4=0)
 	if arg2 and typeof(arg2) == "computer" then file = arg2.File(path_to_delete) 
 	if file then
 		if not file.has_permission("w") then return "rm: permission denied"
+		print "rm: "+colorWhite+"deleting: </b><u>"+file.path
 		if file.is_folder then
 			if recursive == true then return file.delete else return "rm: use<b> rm -r [path|file_object] </b>to remove a folder."
 		end if
@@ -888,10 +926,32 @@ command.grp = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.perms = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("__debug: in perms")
-	if (arg1 == "-h" or arg1 == "help") and arg2 == "extra" then return "Q: Perms lock all: what does it do?"+char(10)+"A: the following:"+char(10)+"perms -R o-rwx /"+char(10)+"perms -R g-rwx /"+char(10)+"perms -R u-rwx /"+char(10)+"if on home computer, does the following to avoid lockout:"+char(10)+"perms g+x /bin/sudo"+char(10)+"perms g+x /bin/psudo"+char(10)+"perms g+x /bin/ssh"+char(10)+"perms g+x /usr/bin/Terminal.exe"+char(10)+"perms g+x /usr/bin/Chat.exe"+char(10)+"perms g+x /usr/bin/Mail.exe"+char(10)+"To bypass this and lock down anyway use:<b> perms lock down </b> (use with caution)"+char(10)+"n.b mail and chat are on this list because bugs happen when they are fully locked."
-	if arg1 == "-h" or arg1 == "help" or arg1 == 0 or arg2 == 0 then return "perms [opt: -r -- recursive] [u|g|o+rwx] [/path/file/folder] -- adjust [user, group, other] permissions for [file] or [folder] (aka it's chmod)."+char(10)+"Optional:<b> perms lock [all|down] || perms unlock [all] </b>-- recursively lock or unlock the system."+char(10)+"N.B. option: all -- autodetect player home pc and relax permissions to avoid lockout."+char(10)+"N.B. option: down -- skip the above protection and force lockdown !danger!"+char(10)+"<b>Shortcut:</b> lock -- alias for <b>perms lock all</b>"+char(10)+"It is good practice to run:<b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b> for optimal security."+char(10)+"Extra: perms [-h|help] extra -- view extra help information about this command."
+	if (arg1 == "-h" or arg1 == "help") and arg2 == "extra" then return "Q: Perms lock all (aka the <b>lock</b> command): what does it do?"+char(10)+"A: the following:"+char(10)+"perms -R o-rwx /"+char(10)+"perms -R g-rwx /"+char(10)+"perms -R u-rwx /"+char(10)+"if on home computer, does the following to avoid lockout:"+char(10)+"perms g+x /bin/sudo"+char(10)+"perms g+x /bin/psudo"+char(10)+"perms g+x /bin/ssh"+char(10)+"perms g+x /usr/bin/Terminal.exe"+char(10)+"perms g+x /usr/bin/Chat.exe"+char(10)+"perms g+x /usr/bin/Mail.exe"+char(10)+"To bypass this and lock down anyway use:<b> perms lock down </b> (use with caution)"+char(10)+"n.b mail and chat are on this list because bugs happen when they are fully locked."
+	perms_usage = "<u>CHMOD || PERMISSIONS || PERMS || SECURITY</u>"+char(10)+
+		colorWhite+"Usage: perms [opt:-r] [userstring{+|-}permission] [path]"+char(10)+
+		"-- opt: -r -- run recursively on all files and folders under [path]"+char(10)+
+		"-- userstring -- o = other, g = group, u = user/owner"+char(10)+
+		"-- toggle -- [+] = add permission, [-] = remove permission"+char(10)+
+		"-- permission -- r = read, w = write, x = execute"+char(10)+
+		"E.G:<b> perms -r o-rwx / </b> -- remove rwx permissions from 'others' for all files"+char(10)+
+		"E.G:<b> perms -r g+x /bin</b> -- add group execute permissions to all files in /bin"+char(10)+char(10)+
+		"<color=white>Aliases:"+char(10)+
+		"Usage: perms lock all -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
+		"-- includes anti-brick technology: checks for home pc and relaxes certain permissions:"+char(10)+
+		"---- checks for user_email_address: if found, determines we are at home"+char(10)+
+		"---- if at home add g+x to: sudo, ssh, Terminal.exe, Chat.exe, Mail.exe"+char(10)+
+		"Usage: perms lock down -- force locking down, bypassing anti-brick technology"+char(10)+		
+		"Usage: perms unlock all -- add o+rwx to all files"+char(10)+
+		"<b>Shortcut:</b> lock -- alias for <b>perms lock all</b>"+char(10)+
+		"-- it is good practice to run:"+char(10)+
+		"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
+		"--for optimal security."+char(10)+
+		"-- you may type:<b> kore -s</b> to have this action performed for you"
+		"Extra: perms [-h|help] extra -- view extra help information about this command."
+	if arg1 == "-h" or arg1 == "help" or arg1 == 0 or arg2 == 0 then return perms_usage
 	if arg1 == "unlock" then return command.perms("-R", "o+rwx", "/")
 	if arg1 == "lock" then
+		if not localmachine.File("/").has_permission("w") then return "perms: lockdown failed: permission denied"
 		command.perms("-R", "o-rwx", "/")
 		command.perms("-R", "g-rwx", "/")
 		command.perms("-R", "u-rwx", "/")
@@ -907,7 +967,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 			print("<b>User permissions relaxed</b>...")
 		end if
 		if arg2 == "partial" then command.perms("-R","g+x", "/")
-		return "System locked down."
+		return "perms: lockdown complete"+char(10)+"-- unless otherwise noted above"
 	end if
 	perms = arg1
 	pathFile = arg2
@@ -941,12 +1001,14 @@ command.mkdir = function(arg1, arg2, arg3=0, arg4=0)
 	if new_dir == "" then new_dir = "/"
 	new_dir = globals.get_file(new_dir)
 	if not new_dir then return "mkdir: unable to create "+arg1+": parent folder not found."
+	print colorGold+"<b>mkdir: creating <b>"+new_name+"</b>in <b>"+new_dir.path
 	return localmachine.create_folder( new_dir.path , new_name )
 	return 0
 end function
 command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: cat [path_to_text_file] -- returns contents of text file or null if read denied."+char(10)+"Usage: cat [file_object] -- returns contents of piped file object"+char(10)+"e.g. clipc @B 3 | cat -- where BUFFER[3] contained a text file"
 	file = null
+	print "<u>"+colorGold+"- - - - - - - - - - - - - - - - - - - -"+char(10)
 	if typeof(arg1) == "file" then
 		file = arg1
 	else
@@ -1478,11 +1540,27 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 	if DEBUG then print("in rclean: got: "+typeof(@arg1))
-	if arg1 == "help" or arg1 == "-h" then return "Remote Clean || log scrubber"+char(10)+"Copy a file over the system.log to corrupt it"+char(10)+"Usage: rclean [opt: int ] -- select an object from buffer to atttempt a remote log wipe."+char(10)+"Usage: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+"-- e.g. clipb @B 1 | rclean -- where BUFFER[1] was a file|shell|computer"+char(10)+"-- rclean with no params will display a menu "+char(10)+"-- rclean is intended for remote scrubbing using BUFFER objects."+char(10)+"-- However you may use silentclean or rclean for local log scrubbing"+char(10)+"-- if rclean detects a file named <b>silentclean</b> it will use that file to scrub the log"+char(10)+"-- for this reason it is a good idea to include an empty file named silentclean in the rkit"+char(10)+"Usage: rclean -d [#|shell|file|computer] -- run rclean as above and delete rkit and/or 5hell, if present"
+	if arg1 == "help" or arg1 == "-h" then return "Remote Clean || log scrubber || system.log cleaner"+char(10)+
+	"Copy a file over the system.log to corrupt it"+char(10)+
+	"Usage: rclean [opt: int ] -- select an object from buffer to atttempt a remote log wipe."+char(10)+
+	"Usage: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+
+	"-- e.g. clipb @B 1 | rclean -- where BUFFER[1] was a file|shell|computer"+char(10)+
+	"-- rclean with no params will display a menu "+char(10)+
+	"-- rclean is intended for remote scrubbing using BUFFER objects."+char(10)+
+	"-- However you may use silentclean or rclean for local log scrubbing"+char(10)+
+	"-- if rclean detects a file named <b>silentclean</b> it will use that file to scrub the log"+char(10)+
+	"-- for this reason it is a good idea to include an empty file named silentclean in the rkit"+char(10)+
+	"Usage: rclean -d [#|shell|file|computer] -- run rclean as above and delete rkit and/or 5hell, if present"+char(10)+
+	"Usage: rclean -n [#|shell|file|computer] -- run rclean as above and delete the contents of /boot, if present"
 	if arg1 and arg1 == "-d" then 
 		arg1 = arg2
 		arg2 = "-d"
 	end if 
+	if arg1 and arg1 == "-n" then 
+		arg1 = arg2 
+		arg2 = "-n"
+	end if
+
 	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "computer" or typeof(arg1) == "file") then return globals.rclean(arg1,arg2)
 	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@B",arg1),arg2)
 	return globals.rclean(command.clipb("@B","-m"),arg2)
@@ -2126,7 +2204,7 @@ command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, 
 	exit(state)
 end function
 command.help = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "help"
+	if arg1 == "help" or arg1 == "-h" then return "helping..."
 	if arg1 == "shell" then return (colorRed+instance.name+CT+" v "+ver+" by Plu70"+char(10)+"(type<b> shell </b> for more info.)")
 	if arg1 == "-s" or arg1 == "show" or arg1 == "search" then
 		c_buf = []
@@ -2169,8 +2247,8 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		return c_buf.join(char(10))
 	end if
-	if arg1 == "@home" then
-		return "Convention: <b>@home</b> -- indicates a server you, the end user, have set up for 5hell services. Server should be of type <b>SSH</b> and it is recommended to run<b> pwgen | pwgen hash</b> on it. The @home server is used by:<b> cerebrum, brutus, linkdb, transmit</b>. The @home server may optionally run:<b> hashim, dbmon, outmon</b>. Please contact Plu70 if you have questions about setting up these resources."
+	if arg1 == "home" then
+		return "Convention: <b>@home</b> -- indicates a server you, the end user, have set up for 5hell services. Server should be of type <b>SSH</b> and it is recommended to run<b> pwgen | pwgen hash</b> on it. The @home server is used by:<b> cerebrum, brutus, linkdb, transmit</b>. The @home server may optionally run:<b> hashim, dbmon, outmon</b>. Please contact Plu70 if you have questions about setting up these resources."+char(10)+"Please edit the appropriate line in 5hell.src to setup @home."
 	end if
 	index = command.indexes
 	if index.indexOf("__isa") != null then index.remove( index.indexOf("__isa"))
@@ -2205,6 +2283,111 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		print(colorGold+"*--*"+CT)
 		return 0
 	end if
+
+	help_conventions = "<b>CONVENTIONS</b>"+char(10)+"While a great deal of 5hell is discordant, there are some conventions:"+char(10)+char(10)+
+	colorWhite+"Prompts: "+CT+"|> , :> , ||: "+char(10)+
+	"|>  --  this is the standard Command Line Interface prompt"+char(10)+
+	"-- fires CLI commands"+char(10)+
+	colorLightBlue+"|> "+CT+"  --  by default, the GLASSPOOL prompt turns blue"+char(10)+
+	"-- this means commands execute on the remote object controlled by glasspool"+char(10)+
+	"-- see glaspool -h for more"+char(10)+
+	":>  --  this is a liminal prompt, it expects a string or empty return"+char(10)+
+	"-- this is used to gather user input within a command"+char(10)+
+	"||:  --  this is an 'any key' prompt"+char(10)+
+	"-- it takes a single keypress"+char(10)+
+	"-- this is used in 'button' driven menus"+char(10)+char(10)+
+	colorWhite+"Pompts: "+"[ N/Y/X ] [n/y/x]"+char(10)+
+	"-- Multiple choice prompts have a default"+char(10)+
+	"-- the default is always Capitolized and sometimes highlighted"+char(10)+
+	"-- the default is chosen if <enter> is pressed without input"+char(10)+
+	"-- unless otherwise noted, default is chosen if input doesn't match a choice"+char(10)+
+	"E.G: |> psudo"+char(10)+
+	"Open shell? [c/y/N]"+char(10)+
+	"||:"+char(10)+
+	"-- in this example, the choices are [c], [y], and [N]"+char(10)+
+	"---- [c] -- enter credentials"+char(10)+
+	"---- [y] -- open shell"+char(10)+
+	"---- [n] or anything else -- no; return/abort"+char(10)+
+	"------ this is because N is the default"+char(10)
+
+	help_tools = "<u><b>Main tools:"+char(10)+
+	colorCyan+"probe "+colorWhite+"-- whois and portmap a target"+char(10)+
+	colorCyan+"db "+colorWhite+"-- scan target and database results"+char(10)+
+	colorCyan+"meta "+colorWhite+"-- metaLib and metaxploitLib fine control"+char(10)+
+	colorCyan+"malp "+colorWhite+"-- Memory Alpha: BUFFER management"+char(10)+
+	"-- exploit results and other objects go here"+char(10)+
+	colorCyan+"scpm "+colorWhite+"-- menu and/or cli driven scp"+char(10)+
+	colorCyan+"kraken "+colorWhite+"-- proxy management"+char(10)+
+	colorCyan+"scribus "+colorWhite+"-- simple text editor"+char(10)+
+	colorCyan+"cerebrum "+colorWhite+"-- add 325k+ passwords to custom_object.dictionary"+char(10)+
+	colorCyan+"brutus "+colorWhite+"-- use custom_object.dictionary to get root on any (unmodified) npc machine"+char(10)+
+	"See: [command] [-h|help] for more help on these and other commands"+char(10)
+
+	help_buffer = colorOrange+"The BUFFER"+char(10)+
+	colorOrange+"</b>The BUFFER stores objects. Anything may be stored in the BUFFER."+char(10)+
+	colorOrange+"</b>When an exploit is run, the result is stored in the BUFFER. You"+char(10)+
+	colorOrange+"</b>may interact with these objects in a number of ways by selecting them"+char(10)+
+	colorOrange+"</b>from the list and using their context menu (if the object has one)."+char(10)+
+	colorOrange+"</b>One way to fetch an object from the BUFFER for use elswhere is to use the clipboard:"+char(10)+
+	colorOrange+"</b>|> "+colorGreen+"clipb @B [index]</color>"+colorOrange+"</b>-- where index == BUFFER[index]"+char(10)+
+	colorOrange+"</b>-- then pipe the value to another function"+char(10)+char(10)+
+	colorGreen+"Easy Clip! You may reference the clipboards with the @ symbol:"+char(10)+
+	colorGreen+"***  clipa, clipb, and clipc are all clipboard spaces  ***"+char(10)+
+	colorGreen+"</b>You may use @a, @b, and @c to reference their values"+char(10)+
+	colorGreen+"</b>e.g. echo hello world | clipa |  | poke hello.txt @a"+char(10)+
+	colorGreen+"*** tbuf, home, do ***"+char(10)+
+	colorGreen+"</b>e.g. <b>gopher @tbuf</b>, e.g. <b>rshell @home</b>, e.g <b>scribus @do"+char(10)+char(10)+
+	colorCyan+"</b>The CUSTOM_OBJECT is a way for scripts to share information between"+char(10)+
+	colorCyan+"</b>nested launches. This means you can launch 5hell with 5hell and pass objects back and forth."+char(10)+
+	colorCyan+"</b>An example would be "+colorGold+"cerebrum</color> which loads the dictionary to the custom object:"+char(10)+
+	colorCyan+"</b>-- once loaded, you may <b>run</b> 5hell through nested launches and the dictionary will persist."+char(10)+
+	colorCyan+"This also allows you to import/export metaLib's and metaxploitLib's between machines!"
+
+	help_logs = colorWhite+"The dreaded "+colorRed+"System.log"+char(10)+
+	"Actions that generate an entry in system.log: "+char(10)+
+	"-- establishing a net_session on a server (not a router)"+char(10)+
+	"-- connecting via Browser.exe to a server"+char(10)+
+	colorWhite+"---- connection established on port ##"+char(10)+
+	"-- obtaining a shell (server/router)"+char(10)+
+	colorWhite+"---- shell obtained on port ##"+char(10)+
+	"-- deleting a file"+char(10)+
+	colorWhite+"---- file deleted [ip]"+char(10)+
+	"-- routing a connection with:"+char(10)+
+	"-- connect_service or file_explorer"+char(10)+
+	colorWhite+"---- connection routed [ip]"+char(10)+
+	"-- shell disconnect"+char(10)+
+	"-- i.e. exiting from start_terminal"+char(10)+
+	colorWhite+"---- connection closed [ip]"+char(10)+char(10)+
+	colorRed+"Active Traces"+CT+" will start when <b>shell.start_terminal</b> is used"+char(10)+
+	"on an npc machine with an active admin of sufficient knowledge and give-a-damn."+char(10)+
+	"Generally, if there is a root: dsession active, using start_terminal will trigger"+char(10)+
+	"an active trace. Active traces are stopped by disconnecting (exiting) that terminal instance."+char(10)+char(10)+
+	"When using 5hell you should NOT ever open a terminal (on a target) unless you are doing an Academic or"+char(10)+
+	"Police record mission. OR if you absolutely need to open the browser to edit firewall or port rules"+char(10)+
+	"on a target. Otherwise, use <b>glasspool</b> and <b>run</b> to leverage shell object manipulation instead."+char(10)+char(10)+
+	colorRed+"Passive Traces"+CT+" can/will start when certain actions have been left unaddressed:"+char(10)+
+	"- Deleting a file and not removing the log entry"+char(10)+
+	"- Leaving a connection closed log without a corresponding connection established log"+char(10)+
+	"- Leaving a shell connected log at all"+char(10)+
+	"- I think connection routed logs trigger traces, too. Not sure though."+char(10)+char(10)+
+	colorMagenta+"We all leave logs, sometimes. To clean them up, here are a few methods:"+char(10)+
+	colorLightBlue+"Silentclean "+CT+"-- local log corruption using a text file"+char(10)+
+	"-- creates a file used to corrupt logs"+char(10)+
+	"-- has nuke option (see: silentclean -h)"+char(10)+
+	colorCyan+"Rclean "+CT+"-- remote (or local) log corruption using objects"+char(10)+
+	"-- uses a file already on system to corrupt logs"+char(10)+
+	"-- accepts and works on piped objects (see: rclean -h)"+char(10)+
+	colorGold+"MV "+char(10)+"-- yep, just the <b>mv</b> command"+char(10)+
+	"-- poke haha | mv haha /var/system.log"+char(10)+
+	colorOrange+"Wiping the log with one of these methods using a reverse shell is best"+char(10)+
+	"but not necessary. You may run silentclean, exit 5hell, exit the terminal, and you will not leave a disconnect log."+char(10)+
+	"-- be aware that taking any log-creating action after running sc, except exiting, may regenerate the log."+char(10)
+
+	if arg1 == "-c" or arg1 == "conventions" then return help_conventions
+	if arg1 == "-t" or arg1 == "tools" then return help_tools
+	if arg1 == "-b" or arg1 == "buffer" then return help_buffer
+	if arg1 == "-l" or arg1 == "logs" then return help_logs
+
 	num_commands = index.len
 	columns = 7 // # commands per line
 	if globals.DEBUG then print("commands: "+num_commands+" columns: "+columns)
@@ -2216,21 +2399,20 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		buf.push(index[count:count+columns].join(" "))
 		count = count + columns
 	end for
-	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - -"+CT)
+	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
 	print(format_columns(buf.join(char(10))).replace("sphinx", colorRed+"sphinx"+char(8482)+CT) )
 	print
-	print("<u>Conventions:</u> "+char(10)+"||: is an 'anyKey' prompt. |> and :> prompts expect enter after a string"+char(10)+"Defaults are capitalized: [Y/n] == typing anything except 'n' results in 'Y' ")
-	print("There are many buffers: [r/y/N] --> r == <b>tbuf</b> or 'transmission buffer'"+char(10)+"-- Usage example:<b> clipb @tbuf | gopher </b>"+char(10)+"--> pipes tbuf to clipb then pipes clipb to gopher for deciphering.")
-	print("Main tools:"+char(10)+colorCyan+" probe, "+colorRed+"sphinx (5phinx)"+CT+", malp, db, meta, scpm, kraken, scribus, cerebrum, brutus"+CT)
-	print("Easy clip: "+char(10)+"Any command parameter may be @a, @b, @c to reference the contents of that clipspace.")
-	print("-- |><b> rnip 1 | clipa | probe -q @a | append @clipb @a | echo @b</b>")
-	print("<u>End Conventions.</u>"+char(10))
 	print(":><b> help guide </b>-- for a quick getting started guide")
-	print(":> help [-s|show] -- for a descriptive list.")
-	print(":> help [-s|show|search] [word|string|regex] -- search all help info for argument"+char(10)+"-- see grep -h for regex tokens")
-	print(":> help -a -- for an alphabetical list.")
-	print(":> lock -- shortcut for perms lock all.")
-	print(":> prompt -- toggle full_prompt on and off.")
+	print(":> help [-c|conventions] -- information about 5hell conventions")
+	print(":> help [-t|tools] -- a short list of the main tools")
+	print(":> help [-b|buffer] -- buffer, clipboard, and custom_object info")
+	print(":> help [-l|logs] -- information regarding system.log")
+	print(":> help [-s|show|search] -- for a full descriptive list of commands")
+	print(":> help [-s|show|search] [word|string|regex] -- search all help info for pattern"+char(10)+"-- see grep -h for regex tokens")
+	print(":> help -a -- for an alphabetical list of commands")
+	print(":> lock -- shortcut for perms lock all")
+	print(":> prompt -- toggle full_prompt on and off")
+	print(":> help home -- information about the @home system")
 	print(":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
