@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.5.2 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.2 for 5hell v 3.8.2...(121.135kb)</size>")
+// Sphinx Hacking Interface v 2.5.3 by Plu70
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.3 for 5hell v 3.8.3...(124.826kb)</size>")
 
 //Define Globals
-sphinx_version = "2.5.2"
-malp_version = "1.3.1"
+sphinx_version = "2.5.3"
+malp_version = "1.3.2"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -311,6 +311,46 @@ globals.fexecute = function(funciton_ref,args)
   return 0
 end function
 
+
+///////// BEGIN SWITCH
+// Usage:
+// switch(variable)
+// 	case( condition, @action )
+//  case( condition, ( action ) )
+//  case(...)
+// default( @action )
+
+_switch = {}
+_switch.var = ""
+_switch.set_var = function( input )
+	_switch.var = input
+end function
+_switch.case_list = []
+_switch.case = function( condition, action )
+	_switch.case_list.push( {condition:@action} )
+end function
+_switch.default = function( action )
+	// evaluate switch
+	if _switch.case_list.len > 0 then
+		for line in _switch.case_list
+			if line.hasIndex(_switch.var) then 
+				s = @line[_switch.var]
+				_switch.var = ""
+				_switch.case_list = []
+				return s
+			end if
+		end for
+		_switch.var = ""
+		_switch.case_list = []
+		return action
+	end if
+end function
+globals.switch = @_switch.set_var
+globals.case = @_switch.case
+globals.default = @_switch.default
+///////////// END SWITCH
+if DEBUG then print("<size=75%>loaded _switch engine...</size>")
+
 globals.get_binaries = function(source_shell,dest_folder)
   // verify dest_folder exists
   if not dest_folder or typeof(dest_folder) != "file" then return "error: destination folder does not exist!"
@@ -319,12 +359,12 @@ globals.get_binaries = function(source_shell,dest_folder)
   if not s_home then return "error: target /home does not exist!"
   // find all non-folder binaries except police/student/employees viewer and traffic viewer
   bin_buf = []
-  tcatch = command.tree("-f","/home",source_shell) // results are sent to globals.enumerated
+  tcatch = command.tree("-f",source_shell) // results are sent to globals.enumerated
   if tcatch == "tree: invalid path or file" then return tcatch
   if DEBUG then print "debug: enum: "+char(10)+globals.enumerated
   print colorCyan+"Fetching readable binaries..."
   for f in globals.enumerated
-    if f.is_binary and not f.is_folder and f.has_permission("r") then bin_buf.push(f)
+    if f.is_binary and not f.is_folder and f.has_permission("r") and f.parent.parent.path == "/home" then bin_buf.push(f)
     // or exclude certain files:
     // is_blacklisted = function(name)
     //    if name == "StudentViewer.exe" then return 1
@@ -1576,8 +1616,17 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
 end function
 
 globals.rclean = function(arg1, arg2=0)
-  if not arg1 or arg1 == "-h" or arg1 == "help" then return "remote clean: remote silentclean protocol."+char(10)+"Usage: rclean [ip] [port]"+char(10)+"Additional functionaly via memory alpha when working with objects."+char(10)+"Mainly used by kraken."
+  // if not arg1 or arg1 == "-h" or arg1 == "help" then return colorGreen+"<u>RCLEAN || REMOTE CLEAN || LOG SCRUBBING"+char(10)+
+  // " Remote clean is a remote log scrubbing protocol. It differs"+char(10)+
+  // "from silentclean in a couple of ways. Silentclean creates a file on the"+char(10)+
+  // "target system. Rclean does not create a file but rather uses a file present on the system."+char(10)+
+  // "This means "+colorOrange+"rclean"+CT+"is most useful in scrubbing"+colorOrange+"BUFFERED"+CT+" or piped objects. "+char(10)+
+  // colorLightBlue+"Silentclean"+CT+char(10)+"is most useful for in place log wiping or wiping through"+colorLightBlue+"GLASSPOOL"+CT+"."
+  // "Usage: rclean [ip] [port]"+char(10)+
+  // "Additional functionaly via memory alpha when working with objects."+char(10)+
+  // "Mainly used by kraken."
   t_file = null
+  detection_factor = 0
   remote_clean = function(f,d=0) // file object, bool 0|1
     if typeof(f) != "file" then return "Error. Expected file got: "+f
     if not f.has_permission("r") then return "Error: scrub failed. no read permissions."
@@ -1593,27 +1642,65 @@ globals.rclean = function(arg1, arg2=0)
     log = null
     sys = null
     log = command.tree(f, "system.log", 1, "N")
-    sys = command.tree(f, "silentclean", 1, "N")
-    if typeof(sys) != "file" or d == "-d" then sys = command.tree(f, "config.sys", 1, "N")
-    if typeof(sys) != "file" then return "rclean: couldn't find file named silentclean or config.sys on system"
+    sys = command.tree(f, "silentclean", 1, "N") 
     if not log then return "rclean: system.log not found. aborting."
+    if not log.has_permission("w") then return "rclean: cannot write to /var/system.log: permission denied"
     if DEBUG then print "debug: log is a "+typeof(log)+char(10)+"debug: sys is a "+typeof(sys)
-    if d == "-d" then 
+    if typeof(sys) != "file" or d == "-d" or d == "-n" then sys = command.tree(f, "config.sys", 1, "N")
+    if typeof(sys) != "file" then  
+      print "rclean: could not find a file named silentclean or config.sys on system" 
+      sys = command.tree(f,user_input("rclean: "+colorCyan+"please enter a filename that exists on the system"+char(10)+"-- rclean will use this file for scrubbing"+char(10)+"(q=quit) FileName:> "),1,"N")
+      if not sys then return "rclean: failed: no scrub file"
+    end if
+    if d == "-d" or d == "-n" then 
       if DEBUG then print "d: "+d+" is a "+typeof(d)
-      if instance and p_validate(instance,"parent") then
-        if instance.parent.name == "rkit" then 
-          print "deleting "+instance.parent.path
-          print instance.parent.delete 
-        else 
-          print "deleting "+instance.path
-          print instance.delete   // auto delete rkit if present, 5hell if not
+      if sys.name == "silentclean" then sys.move("/var","silentclean")
+      kit = command.tree(f,"rkit", 1,"N")
+      if not kit then kit = command.tree(f,"5hell",1,"N")
+      if not kit then print "rclean: "+colorOrange+" could not find rootkit or 5hell"
+      if kit and kit.has_permission("w") then 
+        kit.delete 
+        print "rclean: rkit/5hell deleted"+char(10)+"[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+        detection_factor = detection_factor + 1 
+      else 
+        return colorRed+"rclean: cannot delete rkit/5hell: permission denied"
+      end if
+      // if instance and p_validate(instance,"parent") then
+      //   if instance.parent.name == "rkit" then 
+      //     print "deleting "+instance.parent.path
+      //     print instance.parent.delete 
+      //   else 
+      //     print "deleting "+instance.path
+      //     print instance.delete   // auto delete rkit if present, 5hell if not
+      //   end if
+      // end if
+      if d == "-n" then 
+        print "rclean: "+colorRed+"nuking filesystem..."
+        boot = command.tree(f,"boot",1,"N")
+        if not boot then 
+          important_shit = boot.get_files
+          for shit in important_shit
+            if shit.has_permission("w") then 
+              print "deleting: "+shit.path
+              shit.delete 
+              detection_factor = detection_factor + 1
+              print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+            end if
+          end for
         end if
       end if
     end if
     print("<b>Scrubbing log...</b>")
-    catch = "couldn't find a suitable spoof file"
-    if sys then catch = sys.copy("/var", "system.log")
-    if catch == 1 then return "Scrubbed..." else return "rclean: failed: "+catch
+    catch = colorRed+"rclean: failed:</b>the scrub file was removed too early!"
+    if sys then 
+      if sys.name == "silentclean" then 
+        print "silentclean: found file named silentclean, overriding rclean"
+        catch = sys.move("/var","system.log") 
+      else 
+        catch = sys.copy("/var", "system.log")
+      end if
+    end if
+    if catch == 1 then return "rclean: "+colorGreen+"Log Scrubbed..." else return colorRed+"rclean: failed: "+catch+char(10)+colorRed+"WARNING: we left "+ detection_factor + " log entries!"
   end function
   if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then // arg2 is shell, not called by user
     t_shell = arg1
@@ -1629,7 +1716,7 @@ globals.rclean = function(arg1, arg2=0)
     end if
   end if
   if t_file then return remote_clean(t_file,arg2)
-  return "Error. Wipe failed."
+  return colorRed+"Error. Wipe failed."
 end function
 
 globals.lan_probe = function(router,mode="local") // expects router object, returns string
@@ -2420,7 +2507,7 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
       end if
     end if
     if not quiet then print(t_router.public_ip + " details:")
-    if not quiet then print(whois(t_router.public_ip))
+    if not quiet then print(whois(t_router.public_ip).replace("Neurobox Network",colorCyan+"<size=150%>Neurobox Network</size>"+CT))
     if not quiet then print("Getting all reachable computers on " + t_router.local_ip + "'s network...")
     clist = null
     if not quiet then print("------------------------")
@@ -2986,11 +3073,10 @@ main = function()
       print(format_columns("[ " + tarLan +   " ] [ " + portInfo +    " ]" ))
     end if
     if metaLib then
-      print "[MetaLib linked: "+colorGreen+metaLib.lib_name+CT+"]"+char(10)+
-            "[Exploits found: "+ NUM_SPLOITS + "]"+char(10)+
-            "[MetaLib: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]"
+      print(format_columns("["+colorGreen+"MetaLib: loaded"+CT+" [" + NUM_SPLOITS + "] Exploits Found]"))
+      print(format_columns("[MetaLib: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]"))
     else
-      print "[MetaLib: "+colorOrange+"not linked</b></color>] press [=] or [+] to link."
+      print("[MetaLib: "+colorOrange+"not loaded</b></color>] press [=] or [+] to link.")
     end if
     if alert then
       print(colorRed + "[/var/system.log: I/O detected " + logSize + "  bytes]\n Alert! Filesize Change!")
@@ -3013,7 +3099,7 @@ main = function()
     end if
     if targetIP and targetPort then
       print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....080900")
-      print("000..[<b><color=white>3</color></b>]<b><color=white>DB</color>ASER</b>...80900")
+      print("000..[<b><color=white>3</color></b>]<b><color=white>D</color>BASER</b>...80900")
     else
       print("001 SET IP WITH [<color=white>4</color>] 00")
       print("000 SET PT WITH [<color=white>5</color>] 00")
