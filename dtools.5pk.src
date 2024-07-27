@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.2...(103.358kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.3...(102.494kb)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -37,46 +37,6 @@ re.match_star = function(c, regexp, text)
   return 0
 end function
 if DEBUG then print("<size=75%>loaded regex engine...</size>")
-
-///////// BEGIN SWITCH
-// Usage:
-// switch(variable)
-// 	case( condition, @action )
-//  case( condition, ( action ) )
-//  case(...)
-// default( @action )
-
-_switch = {}
-_switch.var = ""
-_switch.set_var = function( input )
-	_switch.var = input
-end function
-_switch.case_list = []
-_switch.case = function( condition, action )
-	_switch.case_list.push( {condition:@action} )
-end function
-_switch.default = function( action )
-	// evaluate switch
-	if _switch.case_list.len > 0 then
-		for line in _switch.case_list
-			if line.hasIndex(_switch.var) then 
-				s = @line[_switch.var]
-				_switch.var = ""
-				_switch.case_list = []
-				return s
-			end if
-		end for
-		_switch.var = ""
-		_switch.case_list = []
-		return action
-	end if
-end function
-globals.switch = @_switch.set_var
-globals.case = @_switch.case
-globals.default = @_switch.default
-///////////// END SWITCH
-if DEBUG then print("<size=75%>loaded _switch engine...</size>")
-
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -668,7 +628,9 @@ command.make = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" or arg1 == 0 or arg2 == 0 then return "</u>Make || Build</u>"+char(10)+"Usage: make [/path/file.src] [/destination/folder] [bool_importable: true/false | 1/0]"+char(10)+"-- build the .src file and ouput to destination folder."+char(10)+"-- final file name will be input file name with .src stripped."+char(10)+"-- e.g.<b> make /root/src/5hell.src /bin </b>"+char(10)+"-- build 5hell.src into a binary and output to:<b> /bin/5hell</b>"+char(10)+"-- n.b. make requires the source file to have the .src extension."+char(10)+"-- importable code can be imported by other sources when building."+char(10)+"-- this allows you to build programs with more than 160 characters by importing multiple source files."
 	pathSource = arg1
 	programPath = arg2
-  if arg3 then importableCode = arg3.to_int else importableCode = arg3
+	importableCode = null
+	if not arg2 then programPath = globals.currentPath
+  	if arg3 and (arg3 == "true" or arg3 == "1") then importableCode = 1 else importableCode = 0
 	fileSource = globals.get_file(pathSource)
 	folderDest = globals.get_file(programPath)
 	if not fileSource then return("build: can't find "+ pathSource)
