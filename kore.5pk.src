@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.8.3...(135.170kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.8.4...(135.170kb)</size>")
 // command.kore = function(arg1, arg2, arg3=0, arg4=0)
 // 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 // 	globals.CYCLES = 0
@@ -1706,6 +1706,33 @@ command.rshell = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if globals.metaxploit then return metaxploit.rshell_client(arg1,arg3.to_int,arg2) else return "rshell: metaxploit.so not found"
 end function
+command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "help" or arg1 == "-h" then return colorRed+"<u>5phinx:</color> network penetration test tool"+char(10)+
+	"Press F1 or ? within 5phinx for further help."+char(10)+
+		"Usage: sphinx -- launch 5phinx"+char(10)+
+		"Usage: <b>sphinx [ip] [port]</b>"+char(10)+
+		"-- preset targetIp and targetPort with"+char(10)+
+		"-- port 0 == router port"+char(10)+
+		"-- port 8080 == router http port!!"+char(10)+
+		"Hint: to attack a router within the netwrok target the LAN IP of the router first. "+char(10)+
+		"-- then target port 8080 and exploit it"+char(10)+
+		"-- this is done on the same network as the router"+char(10)+
+		"Hint: Use the arrow keys to access additional windows in 5phinx"+char(10)+
+		"-- Up goes to a useless bank grabber"+char(10)+
+		"-- Right goes to a useful quick menu, right again goes to malp"+char(10)+
+		"-- Down takes you to herme5"+char(10)+
+		"-- Left takes you to malp"+char(10)+
+		"-- return to the main screen by pressing the opposite arrow key"+char(10)+
+		"Note: as usual, all results are sent to malp"
+	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
+	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
+	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int
+	globals.main
+	return 0
+end function
+if DEBUG then 
+	if command.hasIndex("sphinx") then print "debug: sphinx loaded!"
+end if
 command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 and (arg1 == "-h" or (arg1 != "-d" and arg1 != "-n")) then
 		return "Usage: silentclean [opt:-d|-n] -- wipe local system.log"+char(10)+
@@ -1766,33 +1793,6 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	return 0
 end function
-command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return colorRed+"<u>5phinx:</color> network penetration test tool"+char(10)+
-	"Press F1 or ? within 5phinx for further help."+char(10)+
-		"Usage: sphinx -- launch 5phinx"+char(10)+
-		"Usage: <b>sphinx [ip] [port]</b>"+char(10)+
-		"-- preset targetIp and targetPort with"+char(10)+
-		"-- port 0 == router port"+char(10)+
-		"-- port 8080 == router http port!!"+char(10)+
-		"Hint: to attack a router within the netwrok target the LAN IP of the router first. "+char(10)+
-		"-- then target port 8080 and exploit it"+char(10)+
-		"-- this is done on the same network as the router"+char(10)+
-		"Hint: Use the arrow keys to access additional windows in 5phinx"+char(10)+
-		"-- Up goes to a useless bank grabber"+char(10)+
-		"-- Right goes to a useful quick menu, right again goes to malp"+char(10)+
-		"-- Down takes you to herme5"+char(10)+
-		"-- Left takes you to malp"+char(10)+
-		"-- return to the main screen by pressing the opposite arrow key"+char(10)+
-		"Note: as usual, all results are sent to malp"
-	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
-	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
-	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int
-	globals.main
-	return 0
-end function
-if DEBUG then 
-	if command.hasIndex("sphinx") then print "debug: sphinx loaded!"
-end if
 command.scrub = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "scrub: wipe proxy net logs using kraken and optional silentclean"+char(10)+"Usage: scrub [optional: -s] -- force run silentclean locally on each proxy (requires silentclean installed on proxy)"
 	return command.kraken("scrub", arg1, arg2)
