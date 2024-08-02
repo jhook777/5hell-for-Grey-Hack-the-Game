@@ -1,10 +1,10 @@
-// 5hell v 3.8.2 by Plu70
-// released v 3.8.1
+// 5hell v 3.8.4 by Plu70
+// released v 3.8.3
 // imports .5pk files from /root/src
-ver = "3.8.3_amalgamated_horrors"
+ver = "3.8.4_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "125.779"
+size_of_5hell = "126.427"
 ///////////////////////////////////////
 //
 // changes:
@@ -30,6 +30,14 @@ size_of_5hell = "125.779"
 // update 5phinx F1 help info: remove or correct outdated info
 //
 // scp falsely reports failure sometimes: track this down
+//
+// added new command: diff [arg] [arg]
+// enum: returns string instead of int, converts int input to string
+// chop: added 4th param: outfile name
+// pause: added a line break to pause -m
+// rclean: changed cleaner file to xorg.conf (a txt file instead of binary)
+// -- this will speed up scrubs
+// do: fixed a crash when -f target is binary
 //
 // 5hell.src!!!! added get/set alias for cob get/cob set
 // kore overhaul:
@@ -1251,7 +1259,8 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
 				if r >= 0 and r < mail.data.len then
 					read_this = mail.meta.read(mail.get_id(r))
 					if spooling then print "<size=80%>herme5: spooling: ["+colorWhite+r+CT+"]" else print(read_this)
-					if spooling then spool_buf.push(mail.data[(r)]+char(10)+read_this+char(10))
+					//if spooling then spool_buf.push(mail.data[(r)]+char(10)+read_this+char(10))
+					if spooling then spool_buf.push(read_this+char(10))
 					if read_this.split(char(10))[2] == "Subject: *" then
 						print(colorLightBlue+"<u><mark=#DF8600>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
 						print(command.code("-b", read_this[read_this.indexOf("Subject: *")+11:]))
@@ -1485,7 +1494,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		print("enum: <b>onboard dictionary enumerated</b>. Num entries:")
 		return globals.enumerated.len
 	end if
-	if arg1 == "-l" then return globals.enumerated.len
+	if arg1 == "-l" then return str(globals.enumerated.len)
 	if arg1 == "-s" then
 		if not globals.enumerated.len then return 0
 		ie = 0
@@ -1509,6 +1518,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		end for
 		return "enum: map <b>enumerated.</b>"
 	end if
+	if typeof(arg1) == "number" then arg1 = str(arg1)
 	if typeof(arg1) == "string" and typeof(arg1.to_int) == "number" then
 	 	if globals.enumerated.hasIndex(arg1.to_int) then return globals.enumerated[arg1.to_int] else return "enum: error: invalid index"
 	end if
@@ -1886,7 +1896,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	else
 		iter = user_input("Number of iterations to run command:"+char(10)+":> ").to_int
 	end if
-	if not iter or typeof(iter) != "number" then return "Invalid iteration."
+	if not iter or typeof(iter) != "number" then return "do: invalid iteration."
 	if arg2 and arg2 != "" then
 		if arg2 == "-f" then
 			cmd.push(arg2)
@@ -1908,10 +1918,12 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	if cmd[0] == "-f" then
 		if arg3 then
 			cf = globals.get_file(arg3)
-			if not cf then return "Error: command file not found. Check "+arg3+" and try again."
+			if not cf then return "do: file: "+arg3+" not found"
+			if cf.is_binary then return "do: cannot open binary file"
+			if not cf.has_permission("r") then return "do: can't read "+arg3+": permission denied"
 			cmd = cf.get_content.split(char(10))
 		else
-			return "Error: -f expects a file path."
+			return "do: input error: -f expects a file path."
 		end if
 	end if
 	time_s = time
@@ -1975,7 +1987,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
 	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
-	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused: press <"+colorGreen+"enter"+CT+"> to continue")
+	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- press <"+colorGreen+"enter"+CT+"> to continue --")
 	if time_to_wait <= 300 and time_to_wait >= .01 then
 		if DEBUG then print "debug: ttw is"+time_to_wait
 	else
@@ -2000,7 +2012,7 @@ if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"
 "Usage: bios -c -- return the currently loaded <color=#8C00FF>crypto object"+char(10)+
 "Usage: bios -n -- return the currently linked <color=#0011FF>netsession object"+char(10)+
 "Usage: bios -p -- return the currently loaded <color=#69E488>port_map object as a string"+char(10)+
-"Usage: bios -h -- return the currently linked <color=#E4EE58>herme5 meta.mail object"+char(10)+
+"Usage: bios -H -- return the currently linked <color=#E4EE58>herme5 meta.mail object"+char(10)+
 "-- returns null if not logged in to a mail account"+char(10)+
 "Usage: bios -s -- return the currently loaded <color=#8B8568>meta_scan information</color> as a string"+char(10)+
 "Usage: bios -P -- return the currently loaded <color=#00FF40>port_map object as a map"+char(10)+
@@ -2021,7 +2033,7 @@ if arg1 == "-c" then return globals.crypto
 if arg1 == "-n" then return globals.net_session
 if arg1 == "-p" then return globals.display_portmap(1)
 if arg1 == "-P" then return globals.PORT_MAP
-if arg1 == "-h" then return globals.inbox
+if arg1 == "-H" then return globals.inbox
 if arg1 == "-m" then return globals.metaLib
 if arg1 == "-s" then return globals.meta_scan
 if arg1 == "-X" then return globals.XPLOITS 
@@ -2253,7 +2265,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	index = command.indexes
 	if index.indexOf("__isa") != null then index.remove( index.indexOf("__isa"))
 	if index.indexOf("classID") != null then index.remove( index.indexOf("classID"))
-	if arg1 == "-a" then
+	if arg1 != "-i" then
 		index = index.sort
 	end if
 	if arg1 == "guide" then
@@ -2402,6 +2414,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
 	print(format_columns(buf.join(char(10))).replace("sphinx", colorRed+"sphinx"+char(8482)+CT) )
 	print
+	print(":><b> help</b> -- print this page: lists commands alphabetically")
 	print(":><b> help guide </b>-- for a quick getting started guide")
 	print(":> help [-c|conventions] -- information about 5hell conventions")
 	print(":> help [-t|tools] -- a short list of the main tools")
@@ -2409,7 +2422,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(":> help [-l|logs] -- information regarding system.log")
 	print(":> help [-s|show|search] -- for a full descriptive list of commands")
 	print(":> help [-s|show|search] [word|string|regex] -- search all help info for pattern"+char(10)+"-- see grep -h for regex tokens")
-	print(":> help -a -- for an alphabetical list of commands")
+	print(":> help -i -- list commands by command map index")
 	print(":> lock -- shortcut for perms lock all")
 	print(":> prompt -- toggle full_prompt on and off")
 	print(":> help home -- information about the @home system")
