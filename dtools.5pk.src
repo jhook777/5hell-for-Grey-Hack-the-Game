@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.3...(102.494kb)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.4...(107.359)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -167,8 +167,29 @@ command.dfit = function(arg1, arg2, arg3=0, arg4=0)
 	outfile.set_content(P_LIST.join(","))
 	return (char(10)+"File "+outFileName+" saved. ")
 end function
-command.chop = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "chop [path_to_file] [index -- default 0] [delimiter -- default (char(32) aka 'a space' )] "+char(10)+"Prompts for output name. Outputs to current path with newline separated index values. "+char(10)+"e.g:<b> rnip 11 | porter 22 | poke test.txt | lock |  | clipb | append test.txt | chop test.txt 0 : | enum test.chop | enum -s </b> (assumes output file named test.chop)"+char(10)+"AdvanceD: chop @clipa/b/c [index] [delimiter] -- run chop on clip space instead of a file. Supports outputting to clip space as well."
+command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<u><b>CHOP || DELIMITER || FILE TOOLS || clipboard tools"+char(10)+
+	colorGreen+"Usage: chop [path_to_file|@clipa|b|c] [index] [delimiter] [output_filename] -- chop a file"+char(10)+
+	"<color=green>param: <color=white>path_to_file</color> -- file to chop"+char(10)+
+	"-- if path_to_file is @clipa, @clipb, or @clipc it will chop the clipboard instead"+char(10)+
+	"-- clipboard contents must be a string"+cahr(10)+
+	"<color=green>param: <color=white>index</color> -- keep column of elements at index of split"+char(10)+
+	"-- default: 0"+char(10)+
+	"<color=green>param: <color=white>delimiter</color> -- split each line at this pattern"+char(10)+
+	"-- default: char(32) aka a sapce"+char(10)+
+	"<color=green>param: <color=white>output_filename</color> -- name for outfile"
+	"-- prompts for output filename if not supplied"+char(10)+
+	"-- outputs to current path with filename: output_filename "+char(10)+
+	"-- output_filename may be @clipa, @clipb, or @clipc to output to clipboards instead"+char(10)+char(10)+
+	"Usage Example: text to chop:"+char(10)+char(10)+
+	"big bada boom"+char(10)+
+	"ding dong daddy"+char(10)+
+	"abracadabra"+char(10)+char(10)+
+	"* and: index is 1, delimiter is: 'da'"+char(10)+
+	"* the output would be:"+char(10)+char(10)+
+	"boom"+char(10)+
+	"dy"+char(10)+
+	"bra"+char(10)
 	file = null
 	clipping = false
 	if typeof(arg1) == "string" then
@@ -181,7 +202,7 @@ command.chop = function(arg1, arg2=0, arg3=0, arg4=0)
 	else
 		return "chop: arg1 must be string: /path or string: @clipa/b/c"+char(10)+"clipa/b/c contents must be string."
 	end if
-	new_name = user_input("Enter output file name or press <<b>return</b>> for: "+arg1.remove("@")+".chop "+char(10)+"Enter @clipa or @clipb or @clipc to send output to clip space."+char(10)+":> ",0,0)
+	if not new_name then new_name = user_input("Enter output file name or press <<b>return</b>> for: "+arg1.remove("@")+".chop "+char(10)+"Enter @clipa or @clipb or @clipc to send output to clip space."+char(10)+":> ",0,0)
 	if new_name == "" then new_name = arg1.remove("@")+".chop"
 	new_file = null
 	if new_name == "@clipa" or new_name == "@clipb" or new_name == "@clipc" then
@@ -1965,4 +1986,95 @@ command.string = function(arg1,arg2,arg3,arg4)
 	if not in_list then return "string: expects list"
 	if not delim then delim = char(10)
 	return in_list.join(delim)
+end function
+command.diff = function(input_1,input_2,arg3,arg4)
+
+    // the diff function
+    _diff = function(block_1, block_2)
+        if typeof(block_1) != "string" or typeof(block_2) != "string" then return "error: expected string string, got: "+typeof(block_1)+" and "+typeof(block_2)
+        
+        lines1 = block_1.split(char(10))
+        lines2 = block_2.split(char(10))
+        leng1 = lines1.len 
+        leng2 = lines2.len 
+        
+        i = 0
+        j = 0
+        print_buffer = []
+		print colorRed+"--diff--"
+        while i < leng1 or j < leng2 
+            if i < leng1 and j < leng2 then 
+                if lines1[i] == lines2[j] then 
+                    print_buffer.push(i+"<color=#00ff88ff>"+char(177)+j+" "+lines1[i])
+					i = i + 1
+					j = j + 1
+                else 
+					//print_buffer.push(colorRed+"--")
+                    print_buffer.push(colorRed+i+CT+"<color=#D9FF00ff>- "+lines1[i])
+                    print_buffer.push(colorRed+j+CT+"<color=#fc7324ff>+ "+lines2[j])
+					//print_buffer.push(colorRed+"--")
+					j = j + 1
+					if j < lines2.len then 
+						if lines1[i] != lines2[j] then i = i + 1
+					else 
+						i = i + 1
+					end if
+					//if lines2[j] != lines1[i] then j = j + 1
+					//i = i + 1
+            		
+                end if  
+            else 
+                if i < leng1 then 
+                    print_buffer.push("<color=#D9FF00ff>"+i+"- "+lines1[i])
+                else 
+                    if j < leng2 then 
+                        print_buffer.push("<color=#fc7324ff>"+j+"+ "+lines2[j])
+                    end if
+                end if
+				i = i + 1
+            	j = j + 1
+            end if
+			//i = i + 1
+            //j = j + 1
+        end while
+        return print_buffer.join(char(10))
+    end function
+
+    // usage info
+    if not input_1 or not input_2 or input_1 == "-h" or input_1 == "help" then return "<u><b>DIFF || DIFFERENCES || FILE COMPARE || TEXT COMPARE"+char(10)+char(10)+
+    "Usage: diff [input_1] [input_2] -- standard diff tool"+char(10)+
+    "Usage: diff [file_1_path|file_1_object|text_block_1] [file_2_path|file_2_object|text_block_2]"+char(10)+
+    "-- compares <b>text</b> of input_1 to input_2 and prints output"+char(10)+
+    "-- prints differences when encountered"+char(10)+
+    "-- input_1 text is prepended with the <b>-</b> character"+char(10)+
+    "-- input_2 text is prepended with the <b>+</b> character"+char(10)+char(10)+
+    "Input notes:"+char(10)+
+    ":: if input_1 or input_2 are single words they are processed as <b>paths to a file"+char(10)+
+    ":: if input_2 or input_2 are more than one word (ie piped text) they are processed as strings"+char(10)+
+    ":: does not process binary files or lists"+char(10)+
+	":: -- for lists pipe the output of <b>string [yourlist]"
+	
+    // preprocess input
+    if typeof(input_1) == "string" then 
+        if input_1.split(" ").len == 1 then input_1 = globals.get_file(input_1)
+        if not input_1 then return "diff: "+input_1+" not found"
+    end if
+    if typeof(input_2) == "string" then 
+        if input_2.split(" ").len == 1 then input_2 = globals.get_file(input_2)
+        if not input_2 then return "diff: "+input_2+" not found"
+    end if 
+    if typeof(input_1) == "file" then 
+        if input_1.is_binary then return "diff: unable to open binary file: "+input_1.path
+        if not input_1.has_permission("r") then return "diff: unable to read "+input_1.path
+        input_1 = input_1.get_content
+    end if
+    if typeof(input_2) == "file" then 
+        if input_2.is_binary then return "diff: unable to open binary file: "+input_2.path        
+        if not input_2.has_permission("r") then return "diff: unable to read "+input_2.path
+        input_2 = input_2.get_content
+    end if
+	if DEBUG then print "debug: top of diff"
+	if DEBUG then print "<b>debug: input_1 leng: "+input_1.len
+	if DEBUG then print "<b>debug: input_2 leng: "+input_2.len
+    return _diff(input_1,input_2)
 end function
