@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.5.3 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.4 for 5hell v 3.8.4...(124.824kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.4 for 5hell v 3.8.5...(124.824kb)</size>")
 
 //Define Globals
 sphinx_version = "2.5.4"
