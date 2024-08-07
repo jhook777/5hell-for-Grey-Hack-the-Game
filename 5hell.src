@@ -13,6 +13,7 @@
 // the license of use and may result in civil penalties. Alterations for personal
 // use are, of course, encouraged. Enjoy responsibly.
 //
+// 5hell is now covered by the MIT license which superscedes the above license.
 ///////////////////////// INSTRUCTIONS /////////////////////////////////////////
 
 // 5hell.src allows you to customize 5hell to your liking. You may add, remove,
@@ -21,8 +22,9 @@
 // You may delete the security section if you do not want to use a password with 5hell.
 // Add imported code lines or your own functions as per the template below the
 // command.shell function.
-// Note: as of version 3.1.2 the plugin cobble.5pk is available. It allows manipulation
-// of the new 'custom_object.' Use the 'cob' command to interact with it.
+// Note: as of version 3.1.2 the plugin cobble.5pk is available. 
+// This is accessed with the cob command. It allows manipulation
+// of the new 'custom_object' wich is a shared memory_space for programs within nested launches
 // Note: as of version 3.1.2 5hell may be loaded to the custom object.
 // see MAP OPTION below and choose one option (default has already been chosen).
 //
@@ -57,28 +59,93 @@ import_code("/root/src/5hell.5pk")
 //-- skipping this configuration means you can't use the transmit command. up to you.
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
-globals.HOME_SERVER = ["ip", 22, "root", "password", "ssh or ftp", "/path/to/pass (default: /root/pass)"] // port should be int, not string!
-//////// an ftp server can be more secure than a ssh server when running a hashim -d server ///////
-/////// ALWAYS USE A PASSWORD / ACCESS CODE (see the SECURITY SECTION BELLOW command.shell) WHEN USING HOME_SERVER!!!!! ////////////////////////////////
+//globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)"]
+globals.HOME_SERVER = ["ip", 22, "root", "password", "ssh", "/root/pass"] 
+// you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
+// for example with: rshell @home
+  // @home will be replaced with your ip, no password needed in this case
+  // password is needed for advanced functions, such as with the transmit command
+/////// ALWAYS USE A PASSWORD (SECURITY SECTION BELLOW command.shell) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
 ////// END @HOME CONFIGURATION//////////////////////////////////////////////////
 //
 //
 ///////BEGIN MAIN ////////////////////
 // only edit this part if you know what you are doing!!!!! ////
 command.shell = function(input=null)
-  //print // an extra line before the prompt, if you want ////////////////////////////////// THEME CONFIG TARGET
+  //print // an extra line before the prompt, if you want
   running = true
-  full_prompt = 0
+  full_prompt = 1
   while running
+    print // an extra line before the prompt, if you want
     pipe = []  // pipe control, do not edit
     prompt = [] // prompt control, do not edit
     next = [] // pipe control, do not edit
-    bang = "|> " // YOUR PROMPT, edit to your liking /// updated to include get_name /////////////////////////////// THEME CONFIG TARGET
-    if full_prompt then bang = globals.checkUser(shell)+"@"+globals.localmachine.get_name+":"+globals.currentPath+"|> " // stock FULLPROMPT, edit to your liking
-    if globals.GLASSPOOL then bang = colorLightBlue+bang.trim+CT+" " // GLASSPOOL PROMPT, edit to your liking
-    if input then prompt = input.split(" ") else prompt = user_input(bang).split(" ")
+
+    // ###############################################################################
+    // ################ begin customizables one ################################################
+    /////// begin prompt preparation
+    bang = "|> " // YOUR PROMPT, edit to your liking /// updated to include get_name
+    // see full_prompt section for an advanced prompt
+    // below is a simple example
+    // if full_prompt then bang = globals.checkUser(shell)+"@"+globals.localmachine.get_name+":"+globals.currentPath+"|> " // stock FULLPROMPT, edit to your liking
+    // below is a more complicated example
+    // behold the magnificent 5hell prompt! thanks to anonymous and anarchic geniuses whose contributions made this possible
+    if full_prompt then // full prompt for better prompting
+      angle = "<color=#FF0000>"+char(20057) 
+      part1 = "<b><rotate=180><voffset=.70em>"
+      if not globals.GLASSPOOL then part2 = "</rotate></voffset><voffset=1em><size=75%><color=#E2DEDE>" else part2 = "</rotate></voffset><voffset=1em><size=75%><color=#2382FFFF>"
+      user_level = globals.checkUser(localmachine) 
+      user_level_line = "<color=#00FF00><u></color>"
+      if user_level == "root" then user_level_line = "<color=#FF0000><u></color>"
+      if user_level == "guest" then user_level_line = "<color=#FFFFFF><u></color>"
+      // info works best with about 31-32 characters
+      info = "["+localmachine.public_ip+"@"+localmachine.local_ip
+      pspace = "<cspace=-"+(info.len * .75)+"em>]</u>"
+      part3 = "</size></voffset><cspace=-.25em>"
+      scadoosh = "<color=#FFFFFFFF><b>|></b>"
+      if globals.GLASSPOOL then scadoosh = "<color=#2382FFFF>|></b>"
+      bang = part1 + angle + part2 + user_level_line + info + pspace + part3 + angle + "<voffset=-.25em>"+"></b></cspace><color=#E2DEDE><size=75%>"+localmachine.get_name+":"+currentPath+"</size>"+scadoosh+" "
+    end if
+    // end full_prompt
+    // glasspool prompt, edit to your liking
+    if globals.GLASSPOOL then bang = colorLightBlue+bang.trim+"<color=#FFFFFF> " 
+    ////////// end prompt preperation
+    if input then prompt = input.split(" ") else prompt = user_input(bang).split(" ") // get user input unless command.shell was called internally (do, cc, glasspool...) // do not edit
     if prompt[0] == "|" then continue // flow control, do not edit
+    // preprocess input
+    for e in prompt // easy clip
+      if DEBUG then print("p: "+e)
+      if e == "@a" then prompt[prompt.indexOf(e)] = @globals.clip_board_alpha
+      if e == "@b" then prompt[prompt.indexOf(e)] = @globals.clip_board_beta
+      if e == "@c" then prompt[prompt.indexOf(e)] = @globals.clip_board_gamma
+      if e == "@home" then prompt[prompt.indexOf(e)] = globals.HOME_SERVER[0]
+      if e == "@tbuf" then prompt[prompt.indexOf(e)] = @globals.T_BUF.join(char(10))
+      if DEBUG then print("b: "+e)
+    end for
+    // #####################################################################
+    // ####################### end customizables one ############################
+
+    // preprocess input // maybe don't edit this
+    if DEBUG then print "pre single_quote_prompt"
+    if DEBUG then print prompt
+    while prompt.indexOf(char(34)) != null
+        s_string = prompt[:prompt.indexOf(char(34))]
+        if DEBUG then print "s_string: "+s_string
+        e_string = prompt[prompt.indexOf(char(34))+1:]
+        if DEBUG then print "e_string: "+e_string
+        if e_string.indexOf(char(34)) != null then 
+            f_string = e_string[:e_string.indexOf(char(34))]
+            if DEBUG then print "f_string: "+f_string
+            f_string = f_string.join(char(32))
+            z_string = e_string[e_string.indexOf(char(34))+1:]
+            prompt = s_string+[f_string]+z_string
+        else 
+          break
+        end if
+    end while
     globals.command_buffer.push(prompt.join(" ").remove(" | return")) // remove/comment this line if you dont want the command buffer
+    if DEBUG then print "debug: pre_pipe prompt is: "+prompt
+    // process piping
     if prompt.indexOf("|") >= 0 then  // begin pipe control, edit with extreme caution.
       prompt.push("|")
       while prompt.len
@@ -89,18 +156,23 @@ command.shell = function(input=null)
     else
       pipe.push(prompt[0:])
     end if                           // end pipe control
+    // process the pre_processed input
     while pipe.len                   // begin command parsing
-      prompt = pipe.pull
-      if next.len then prompt.push(next.pull)
+      prompt = pipe.pull // no touchy
+      if next.len then prompt.push(next.pull) // no touchy
+
       // some folks like to edit the below line to do command.cc instead of continue
       if not prompt.len or prompt[0] == "" or prompt[0] == 0 or prompt[0] == "0" or prompt[0] == null then continue
+      //
       if prompt[0] == "return" then return 0
       i = 0
-      for el in prompt
-        if @el == "" then prompt[i] = 0 // el change to @el for 3.1.2 compatibility
-        i = i + 1
+      for el in prompt // el changed to @el for 3.1.2 compatibility
+        if @el == "" then prompt[i] = 0 // you might want to edit this, i don't know and am not responsible
+        i = i + 1                        
       end for
+      // ############################### begin customizables two ###########################
       // begin shortcuts
+      if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f",prompt[1]]
       if prompt[0] == "set" or prompt[0] == "get" then prompt = ["cob"]+prompt
       if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!!
       if prompt[0] == "exit" then prompt[0] = "quit"      // caution: too many shortcuts may slow down the script
@@ -111,18 +183,25 @@ command.shell = function(input=null)
         continue
       end if
       // end shortcuts
-      while prompt.len < 5
-        prompt.push(0) // sanity check #1
-      end while
-      if prompt.len > 5 then prompt = prompt[:5] // sanity check #2
-      for e in prompt // easy clip
+      // begin easy clip
+      for e in prompt 
         if DEBUG then print("p: "+e)
         if e == "@a" then prompt[prompt.indexOf(e)] = @globals.clip_board_alpha
         if e == "@b" then prompt[prompt.indexOf(e)] = @globals.clip_board_beta
         if e == "@c" then prompt[prompt.indexOf(e)] = @globals.clip_board_gamma
-        if e == "@home" then prompt[prompt.indexOf(e)] = HOME_SERVER[0]
+        if e == "@home" then prompt[prompt.indexOf(e)] = globals.HOME_SERVER[0]
         if e == "@tbuf" then prompt[prompt.indexOf(e)] = @globals.T_BUF.join(char(10))
       end for
+      // end easy clip
+      // ############################ end customizables two ###############################
+
+      // post_pre_processing
+      while prompt.len < 5
+        prompt.push(0) // sanity check #1
+      end while
+      if prompt.len > 5 then prompt = prompt[:5] // sanity check #2
+
+      // processing
       if command.hasIndex(prompt[0]) and prompt[0] != "shell" and prompt[0] != "__isa" and prompt[0] != "classID" then
         if typeof(@command[prompt[0]]) != "function" then // san check #3
           print(colorOrange+"shell: use <b>cob get [element]</b> to retrieve element.")
@@ -151,12 +230,13 @@ command.shell = function(input=null)
           end if
         end if
         if DEBUG then///// begin 3.1.2 compatibility changes
-          print("@catch: "+typeof(@catch))  // attn! catch may now be a function! ////////////////////////////////// THEME CONFIG TARGET
+          print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
           //if typeof(@catch) != "function" then print("catch:  "+catch)
         end if
+        // post processing
         if @catch then
           //if typeof(@catch) == "function" then
-            print(@catch)//////////////////////////////////////////////////////////////////////////////////////////// THEME CONFIG TARGET
+            print(@catch)
             if pipe.len then next.push(@catch) // using @reference instead of literal bc functions may now be passed
           //else
           //  print(catch)
@@ -171,7 +251,7 @@ command.shell = function(input=null)
           gp = ""
           if globals.GLASSPOOL then gp = " active " else gp = " inactive "
           print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
-          print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+"@"+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
+          print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
         else
           print(prompt[0]+": unrecognized command (type <b>help</b> for command list)")
         end if
@@ -208,6 +288,8 @@ end function
 // end function
 //
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 // or
 //
 // imp*cde ( "/path/your.5pk")   // where your.5pk contains your function in the above format
@@ -218,7 +300,7 @@ end function
 //
 //////////////////////////////////// SECURITY GOES HERE //////////////////////
 ///// customize this line fully for the most security ////////
-access_codes = {"Alpha":"your access code here", "Beta":"your other access code here"}//////////////////////////////////////////////////////////////
+access_codes = {"Alpha":"your_access_code_here", "Beta":"your_other_access_code_here"}//////////////////////////////////////////////////////////////
 // if you rename access_codes be sure to edit the below line
 rnac = access_codes.indexes
 rnac.shuffle
