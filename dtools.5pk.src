@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.4...(107.359)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.5...(111.404)</size>")
 
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
@@ -83,11 +83,11 @@ command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	try = localmachine.touch(dest_folder.path, final_name)
 	if try != 1 then
 		print("poke: "+try)
-		if arg2 then
-			if try == "The file already exists" and skip != true and user_input("overwrite contents? [Y/n] ||: ",0,1).lower == "n" then
-				return "aborting..."
-			end if
-		end if
+		// if arg2 then
+		// 	if try == "The file already exists" and skip != true and user_input("overwrite contents? [Y/n] ||: ",0,1).lower == "n" then
+		// 		return "aborting..."
+		// 	end if
+		// end if
 	end if
   	dest_name = ""
 	if dest_folder.path != "/" then dest_name = "/"+final_name else dest_name = final_name
@@ -172,7 +172,7 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	colorGreen+"Usage: chop [path_to_file|@clipa|b|c] [index] [delimiter] [output_filename] -- chop a file"+char(10)+
 	"<color=green>param: <color=white>path_to_file</color> -- file to chop"+char(10)+
 	"-- if path_to_file is @clipa, @clipb, or @clipc it will chop the clipboard instead"+char(10)+
-	"-- clipboard contents must be a string"+cahr(10)+
+	"-- clipboard contents must be a string"+char(10)+
 	"<color=green>param: <color=white>index</color> -- keep column of elements at index of split"+char(10)+
 	"-- default: 0"+char(10)+
 	"<color=green>param: <color=white>delimiter</color> -- split each line at this pattern"+char(10)+
@@ -320,29 +320,44 @@ end function
 command.grep = function(a1, a2, arg3=0, arg4=0)
 	find_file = false
 	return_name = false
+	return_path = false
 	globals.grepped_file = null
-	if a1 and a1 == "-f" or a1 == "-n" or a1 == "-fn" then
+	if a1 and a1 == "-f" or a1 == "-n" or a1 == "-fn" or a1 == "-p" or a1 == "-fp" then
 		find_file = true 
 		if a1 == "-n" or a1 == "-fn" then return_name = true
+		if a1 == "-p" or a1 == "-fp" then return_path = true
 		if DEBUG then print "debug: grep: findfile == true"
 		a1 = a2
 		a2 = arg3
 		if not a2 then a2 = "/"
 	end if
 	if not a1 or a1 == "-h" or a1 == "help" then return "GREP || get regular expression || regex"+char(10)+
-		"Usage: grep [opt: -f] [pattern] [opt: file/folder (default: / )] - search file or folder for pattern"+char(10)+
-		"Usage: grep [opt: -f] [pattern] [object] - search piped object (shell|file|computer) for pattern. "+char(10)+
-		"-- piped computer and shell objects will be searched from / directory."+char(10)+
-		"-- piping a file object searches from path of file."+char(10)+
-		"-- n.b. supports partial matches and limited regular expressions."+char(10)+
-		"Usage: grep -f [pattern] [path|object] -- serches path or object for a file"+char(10)+
-		"-- searches for pattern and returns first matching file object in the file tree"+char(10)+
-		"---- NOTE: this means the filesystem as seen by the tree command"+char(10)+
-		"Usage: grep -n [pattern] [path|object] -- return file name of first matching file"+char(10)+
-		"Note: grep does not (yet) support grepping piped text. "+char(10)+
-		"-- it will search files, folders and text within files."+char(10)+
-		"-- returns a file object if -f param is used"
-		"<u>current regex tokens (more planned):</u>"+char(10)+
+		colorCyan+"Usage: grep [opt:-f|-n|-p] [pattern] [opt: search_path (default: / ) | object] "+char(10)+
+		"-- supports partial matches and limited regular expressions."+char(10)+char(10)+
+		"Usage: grep [pattern] [search_path|object] -- grep for text in files and folders"+char(10)+
+		"-- searches for text matching a given pattern"+char(10)+
+		"-- returns all matching text, with line numbers and positions, found in search_path"+char(10)+
+		"-- search_path may be a file, or folder, or object"+char(10)+
+		"-- descends folders and files from search_path"+char(10)+
+		"-- descends from <b>/</b> on object if search_path is a shell or computer object"+char(10)+
+		"-- descends from path of file if search_path is a file object"+char(10)+char(10)+
+		"Usage: grep [-f] [pattern] [search_path|object] -- grep for file"+char(10)+
+		"-- searches search_path or piped object for a <b>file</b> with name matching pattern "+char(10)+
+		"-- piped computer and shell objects will be searched from the <b>/</b> directory."+char(10)+
+		"-- piped file objects will be searched from the path of the file."+char(10)+
+		"-- returns a <b>file object</b> for the first match in the file tree"+char(10)+	
+		"---- what coutns as a first match is still a w.i.p...."+char(10)+char(10)+
+		"Usage: grep [-n|-fn] [pattern] [search_path|object] -- grep for file name"+char(10)+
+		"-- searches search_path for file with name matching pattern"+char(10)+
+		"-- returns the <b>file name</b> as a string"+char(10)+
+		"-- uses the same search method as -f"+char(10)+
+		"-- the -fn option is equivalent to the -n option"+char(10)+char(10)+
+		"Usage: grep [-p|-fp] [pattern] [search_path|object] -- grep for file path"+char(10)+
+		"-- searches search_path for file with name matching pattern"+char(10)+
+		"-- returns the <b>file path</b> as a string"+char(10)+
+		"-- uses same search method as -f"+char(10)+
+		"-- -fp option is equivalent to -p option"+char(10)+char(10)+
+		colorCyan+"<u>current regex tokens (more planned):</u>"+char(10)+
 		"c   matches any literal character 'c'"+char(10)+
 		"-- bob matches bob anywhere in the text."+char(10)+
 		"^   match pattern from beginning of word"+char(10)+
@@ -353,6 +368,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 		"-- c# matches c, cc, ccc, cccc "+char(10)+
 		"*   matches any unicode char (wildcard)"+char(10)+
 		"-- *#:*#  matches root:password, email@domain.com:password, xyz:1234"+char(10)+
+		"- - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
 		"Important! Runtime depends on length of pattern and size of text to check. "+char(10)+
 		"Since grep will recurse any folders in a given path, this command could result in very long run times. "+char(10)+
 		"It is up to you to limit the scope of your searches accordingly."+char(10)
@@ -458,6 +474,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
   	if DEBUG then print "debug: ggf: "+typeof(globals.grepped_file)
   	if globals.grepped_file then 
 		if return_name then return globals.grepped_file.name
+		if return_path then return globals.grepped_file.path
  	 	return globals.grepped_file
 	end if
 	if gresult != [] then output = gresult.join(char(10))
@@ -1068,34 +1085,62 @@ end function
 
 command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorGreen+"File || File Properties || Inspect File"+char(10)+
-	"Usage: <b>file [/path|file_object]</b> -- show the properties information for the given file "+char(10)+
-		"-- takes path or file_object and returns string "+char(10)+
-		"Usage: file [-l|-c] [/path|file_object] -- returns number of lines or chars as a string"+char(10)+
-		"    -- file [-l] [path|object] -- return number of lines in the file"+char(10)+
-		"    -- file [-c] [path|object] -- return number of chars in the file"+char(10)+char(10)+
-		"    -- file [-b] [path|object] -- send file to BUFFER (and display file info)"+char(10)+
-		"    ---- eg: "+colorLightBlue+"</b>grep <b>-f</b> *#.log$ /var | file -b"+char(10)+
-		"    -- file [-n|-p] -- returns file name "+char(10)+
-		"    -- file [-p] [path|object] -- return path of file"+char(10)+
-		"    ---- eg: "+colorLightBlue+"</b>enum [#] | file -p"
+	colorGreen+"<u>================================"+char(10)+
+	"Usage: <b>file [opt:-l|-c|-b|-r|-n|-p] [/path|file_object] [opt:shell|computer|file]</b>"+char(10)+
+		" File shows the properties information for the given file "+char(10)+
+		"and takes path or file_object and returns file information as a stirng"+char(10)+
+		"Usage: file [/path] -- return information about the file at /path"+char(10)+
+		"UsagE: file [/path] [object] -- search object for file at path and return info"
+		"Usage: "+char(10)+
+		"-- file [<color=white>-l</color>] [path|object] [opt:object] -- return number of lines in the file as a string"+char(10)+
+		"-- file [<color=white>-c</color>] [path|object] [opt:object] -- return number of chars in the file as a string"+char(10)+
+		"-- file [<color=white>-b</color>] [path|object] [opt:object] -- send file to BUFFER (and display file info)"+char(10)+
+		"---- also returns the file as an object"+char(10)+
+		"---- eg: "+colorLightBlue+"</b>grep <b>-f</b> *#.log$ /var | file -b"+char(10)+
+		"-- file [<color=white>-r</color>] [path|object] [opt:object] -- return the file as an object"+char(10)+
+		"-- file [<color=white>-n</color>] [path|object] [opt:object] -- return the name of file "+char(10)+
+		"-- file [<color=white>-p</color>] [path|object] [opt:object] -- return the path of file"+char(10)+
+		"- - - - - - - - - - - - - - - - - -"+char(10)+
+		"---- eg: <b></b>clipb @B [#] | file -p </b>-- return the path of the piped file object"+char(10)+
+		"---- eg: <b>file [opt] [path|file] [shell|computer]</b> -- run file on the remote object instead of locally"
   	get_lines = false
 	get_chars = false
   	to_buffer = false
 	return_name = false
 	return_path = false
+	return_file = false
 
 	if arg1.indexOf("-") >= 0 then //== "-l" or arg1 == "-c" or arg1 == "-b" then
+		if arg1 == "-r" then return_file = true
 		if arg1 == "-l" then get_lines = true
 		if arg1 == "-c" then get_chars = true
-    	if arg1 == "-b" then to_buffer = true
+    	if arg1 == "-b" then 
+			to_buffer = true
+			return_file = true 
+		end if
 		if arg1 == "-n" then return_name = true
 		if arg1 == "-p" then return_path = true
-		if arg2 then arg1 = arg2 else return "file: input error"
+		if arg2 then arg1 = arg2 else return "file: missing path or object: file [opt] [thing] [opt:thing]"
+		if arg3 then arg2 = arg3
+		if arg4 then arg3 = arg4
 	end if
 	if typeof(arg1) == "string" then
 		file = null
-		file = globals.get_file(arg1)
-		if not file then return "id: error: "+arg1+" not found."
+		// backup og computer
+		comp_stor = globals.localmachine
+		// swap em if you got em
+		if arg2 and typeof(arg2) == "shell" then globals.localmachine = arg2.host_computer
+		if arg2 and typeof(arg2) == "computer" then globals.localmachine = arg2
+		// find our file somewhere
+		if arg2 and typeof(arg2) == "file" then
+			file = command.grep("-f",arg1,arg2)
+		else
+			file = globals.get_file(arg1)
+		end if
+		// restore og computer
+		globals.localmachine = comp_stor
+		// complain if needed
+		if not file or typeof(file) != "file" then return "file: grep: "+arg1+" not found."
 		arg1 = file
 	end if
 	if typeof(arg1) == "file" then
@@ -1123,6 +1168,10 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 				file_id_info.push("lines: "+str(lines))
 				file_id_info.push("chars: "+str(chars))
 			end if
+		end if
+		if return_file then 
+			print "file: returning object for: "+arg1.path
+			return arg1
 		end if
 		if get_lines then
 			if file_id_info.indexOf("type: binary") == null then return str(lines) else return "file: "+arg1.path+" is binary"
@@ -1339,7 +1388,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 		"then, poke a new file in rkit called r.bat"+char(10)+
 		"set it to:"+char(10)+
 		"rshell [your server ip] [some name]"+char(10)+
-		"-- if you have set HOME_SERVER then use this line instead:"+cahr(10)+
+		"-- if you have set HOME_SERVER then use this line instead:"+char(10)+
 		"rshell @home [some name]"+char(10)+
 		"quit rshell_placed"+char(10)+char(10)+
 		"This will dig the target like normal, then launch 5hell with the gained root shell"+char(10)+"Once launched, a reverse shell will be dropped, the log scrubbed, rkit removed, and dig will exit both 5hell instances."
@@ -1951,10 +2000,13 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 	return output.join(char(10)) // max string size is 1 million chars
 end function
 command.string = function(arg1,arg2,arg3,arg4)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "String | To String | List | Join"+char(10)+
+	if arg1 == null or arg1 == "help" or arg1 == "-h" then return "String | To String | List | Join | replace"+char(10)+
+	colorGreen+"String and List functions (more to be added over time)."+char(10)+
+	"-- I didn't want to make a string command AND a list command so both are here."+char(10)+
+	colorWhite+"Lists: Stringifying lists:"+char(10)+
 	"Usage: string [opt] [list] -- converts a list to a string and returns it"+char(10)+
 	"-- use the clipboards and @a|@b|@c or piping to supply the list"+char(10)+
-	"Advance: string [lista] [listb] -- will return lista concatenated with listb"+char(10)+
+	"Usage: string [lista] [listb] -- will return lista concatenated with listb"+char(10)+
 	"-- returns a <b>LIST</b>"+char(10)+
 	"-- pipe the resulting list back into string to stringify"+char(10)+
 	"-- e.g.: <b>string @a @b | string -n | poke new.txt</b>"+char(10)+
@@ -1965,22 +2017,39 @@ command.string = function(arg1,arg2,arg3,arg4)
 	"Option: -s -- join list with <color=yellow>semicolons"+char(10)+
 	"Option: -S -- join list with <color=white>spaces"+char(10)+
 	"Note: the default join delimiter is char(10)"+char(10)+
-	"-- i.e: <b>string [list]</b> is the same as <b>string [-n] [list]"+char(10)+
-	"Note: maps are not yet supported and non-option strings are ignored"+char(10)
+	"-- i.e: <b>string [list]</b> is the same as <b>string [-n] [list]"+char(10)+char(10)+
+	colorWhite+"Strings: Stringify strings:"+char(10)+
+	"Usage: string [-r] [target_text] [replacement_text] [string_to_parse]"+char(10)+
+	"-- replace all instances of target_text with replacement_text within string_to_parse"+char(10)+
+	"-- use piping, easy clip, and "" text blocks "" to supply strings"+char(10)+
+	"-- all params should be strings and the function returns the modified string"+char(10)+
+	colorWhite+"Numbers: Stringify numbers"+char(10)+
+	"Usage: string [number] -- returns str(number) as a string"+char(10)+
+	"-- please note that numbers are passed as numbers, not strings, when piped"+char(10)+
+	"Note: maps are not yet supported"+char(10)
+
+	handle_replacement = function( target, replacement, in_string )
+		if not in_string isa string or not target isa string or not replacement isa string then return "replace: -r expects strings"
+		out_string = in_string.replace( target, replacement )	
+		return out_string
+	end function
+	
 	delim = null
 	in_list = null
+	if typeof(arg1) == "number" then return str(arg1)
 	if typeof(arg1) == "list" and typeof(arg2) == "list" then 
 		print colorLightBlue+"Returning concatenated list..."
 		return arg1 + arg2
 	end if
 	if typeof(arg1) == "list" then in_list = arg1  
 	if typeof(arg1) == "string" then 
+		if arg1 == "-r" then return handle_replacement(arg2,arg3,arg4)
 		if arg1 == "-n" then delim = char(10) // "/n"
 		if arg1 == "-c" then delim = char(44) // ","
 		if arg1 == "-C" then delim = char(58)   // ":"
 		if arg1 == "-s" then delim = char(59)   // ";"
 		if arg1 == "-S" then delim = " "   // i forgot the char code for spaces " "
-		if arg2 and typeof(arg2) == "list" then in_list = arg2 else return "string: expects list" 
+		if arg2 and typeof(arg2) == "list" then in_list = arg2 else return "string: arg1 should be flag or list" 
 		if not delim then return "string: invalid option. check usage."
 	end if
 	if not in_list then return "string: expects list"
