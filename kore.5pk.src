@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.8.4...(135.170kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.8.5...(138.931kb)</size>")
 // command.kore = function(arg1, arg2, arg3=0, arg4=0)
 // 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 // 	globals.CYCLES = 0
@@ -640,10 +640,10 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 	end if
 	// check result. file objects are not supported at this time
 	if typeof(obj) != "shell" and typeof(obj) != "computer" then return "glassp: expects shell or computer"
+	print(colorLightBlue+"<size=75%>Initializing sshfs glasspool protocol..."+CT)
 
 	// -- handle shell
 	if typeof(obj) == "shell" then
-		print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
 		// save current state
 		hold_shell = globals.shell
 		globals.shell = obj
@@ -651,19 +651,23 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 		if globals.localmachine and globals.shell then
 			globals.GLASSPOOL = globals.GLASSPOOL + 1
 			// display info/warning
-			print(colorLightBlue+"GLASSPOOL:"+CT+colorWhite+" initialization successful. "+CT+char(10)+colorOrange+"Type <u>return</u></b> to deactivate (exit or quit to terminate program)"+CT)
-			print(colorOrange+"Note: shell mirroring - <color=green>shell</color>, <color=green>computer</color>, and <color=green>file</color> commands will work."+char(10)+"Local commands will execute locally (not through glasspool)."+CT)
-			if typeof(shell) == "ftpshell" then print(colorOrange+"Warning: only ftp and computer object commands work with ftpshells!"+CT+char(10)+"-- all other commands execute on last active scope.")
-			print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
+			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful. "+char(10)+
+			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
+			colorOrange+"<size=75%>glasspool: shell mirroring:"+char(10)+
+			"<size=75%>-- <color=green>shell</color>, <color=green>computer</color>, and <color=green>file</color> commands"+char(10)+
+			"<size=75%>-- will execute on the machine attached to the shell object"+char(10)+
+			"<size=75%>-- local/general category commands will execute on the local machine"
+			if typeof(globals.shell) == "ftpshell" then print colorOrange+"<size=75%>Warning: ftp shells have limited functionality"
+			// print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
 			// switch scope
-			uu = checkUser(shell)
+			uu = checkUser(globals.shell)
 			if uu == "root" then 
-				currentPath = "/root"
+				globals.currentPath = "/root"
 			else
 				if uu == "guest" then 
-					currentPath = "/home/guest"
+					globals.currentPath = "/home/guest"
 				else 
-					currentPath = "/home/"+uu
+					globals.currentPath = "/home/"+uu
 				end if
 			end if
 			command.shell
@@ -673,34 +677,40 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			globals.GLASSPOOL = globals.GLASSPOOL - 1
 			// update path
 			globals.update_path
-			print(colorLightBlue+"GLASSPOOL: "+colorOrange+" deactivating..."+CT)
+			print(colorLightBlue+"<size=75%>glasspool: "+colorOrange+" deactivating..."+CT)
 		else
 			globals.shell = hold_shell
 			globals.localmachine = globals.shell.host_computer
-			print(colorOrange+"glasspool: error: failed to initialize."+CT)
+			print(colorOrange+"<size=75%>glasspool: error: failed to initialize."+CT)
 		end if
 	end if
 
 	// -- handle computer
 	if typeof(obj) == "computer" then
-		// display info/warning
-		print(colorLightBlue+"SSHFS Glass_Puddle initialized. Type 'return' to return.")+CT
-		print(colorOrange+"Note: computer and file object commands only."+CT+char(10)+"<b>Any local commands execute locally."+char(10)+"Any shell commands execute on the last active shell.")
-		print(colorOrange+"Type:<u> return </u>to return. Exit to quit completely.")
+		// display info/warning.
+
+		print(colorLightBlue+"<size=75%>glasspool: initializing glass puddle computer handler...")+CT
 		// save current state
 		tem_c = globals.localmachine
 		globals.localmachine = obj
 		if globals.localmachine and globals.shell then
 			globals.GLASSPOOL = globals.GLASSPOOL + 1
+			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful "+char(10)+
+			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
+			colorOrange+"<size=75%>glasspool: computer mirroring:"+char(10)+
+			"<size=75%>-- <color=green>computer</color>, and <color=green>file</color> commands"+char(10)+
+			"<size=75%>-- will execute on the machine connected to the computer object"+char(10)+
+			"<size=75%>-- <color=yellow>shell</color> and local/general commands will execute on the local machine"+char(10)
 			// switch scope
-			uu = checkUser(shell)
+			uu = checkUser(globals.localmachine)
+			if DEBUG then print "debug: uu: "+uu
 			if uu == "root" then 
-				currentPath = "/root"
+				globals.currentPath = "/root"
 			else
 				if uu == "guest" then 
-					currentPath = "/home/guest"
+					globals.currentPath = "/home/guest"
 				else 
-					currentPath = "/home/"+uu
+					globals.currentPath = "/home/"+uu
 				end if
 			end if
 			command.shell
@@ -1076,7 +1086,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	return "rsi: exiting..."
 end function
 command.scpm = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "SCPM: 5hell.SCP Menu"+char(10)+"Usage: scpm -- from menu select target shell (active shell is shown with an '*'). "+char(10)+"-- input source path and then destination path at prompts."+char(10)+"-- select upload or download. Note the printed trajectories."+char(10)+"-- (these can change when glasspool is involved)."+char(10)+"-- if uploading indicate if editing permissions"+char(10)+"-- if editing permissions press <b>enter</b> for defaults"+char(10)+"-- default is <b>o+rwx</b> before uploading and then o-rwx after uploading."+char(10)+"Always mind permissions! Type lock constantly to feel secure."+char(10)+"Advanced: scpm [string_path|piped_file] -- open scpm menu with path or file.path tagged for scp"+char(10)+"Advanced: scpm [piped_shell] -- skip menu and scp to/from piped shell"+char(10)+"E.G. - clipb @B 1 | scpm -- use the shell object from buffer[1] with .scp"+char(10)+char(10)+"<b>New: scpm [opt:-u|-d] [opt:copy_from|file_object_from] [opt:copy_to|file_object_to] [opt:shell_object]"+char(10)+"-- -u will force upload and skip permissions prompt"+char(10)+"-- -d will force download"+char(10)+"-- supplying path_from will skip copy_from prompt"+char(10)+"-- supplying path_to (must be after path_from) will skip destination prompt"+char(10)+"-- supply a shell will skip shell prompt"+char(10)+"-- supplying all will skip all prompts"+char(10)+"-- parameters may be in any order except path_from must precede path_to"+char(10)+"---- eg: clipb @B 1 | scpm /root/rkit /home/guest | run /home/guest/rkit/5hell "+char(10)+"---- eg: clipb @B 1 |  | scpm /root/rkit @b"+char(10)+"---- eg: zap [mem] [vuln] | scpm -d system.log /root"
+	if arg1 == "help" or arg1 == "-h" then return "SCPM: 5hell.SCP Menu"+char(10)+"Usage: scpm -- from menu select target shell (active shell is shown with an '*'). "+char(10)+"-- input source path and then destination path at prompts."+char(10)+"-- select upload or download. Note the printed trajectories."+char(10)+"-- (these can change when glasspool is involved)."+char(10)+"-- if uploading indicate if editing permissions"+char(10)+"-- if editing permissions press <b>enter</b> for defaults"+char(10)+"-- default is <b>o+rwx</b> before uploading and then o-rwx after uploading."+char(10)+"Always mind permissions! Type lock constantly to feel secure."+char(10)+"Advanced: scpm [string_path|piped_file] -- open scpm menu with path or file.path tagged for scp"+char(10)+"Advanced: scpm [piped_shell] -- skip menu and scp to/from piped shell"+char(10)+"E.G. - clipb @B 1 | scpm -- use the shell object from buffer[1] with .scp"+char(10)+char(10)+"<b>New: scpm [opt:-u|-d] [opt:copy_from|file_object_from] [opt:copy_to|file_object_to] [opt:shell_object]"+char(10)+"-- -u will force upload and skip permissions prompt"+char(10)+"-- -d will force download"+char(10)+"-- supplying path_from will skip copy_from prompt"+char(10)+"-- supplying path_to (must be after path_from) will skip destination prompt"+char(10)+"-- supply a shell will skip shell prompt"+char(10)+"-- supplying all will skip all prompts"+char(10)+"-- parameters may be in any order except path_from must precede path_to"+char(10)+"---- eg: clipb @B 1 | scpm /root/rkit /home/guest | run /home/guest/rkit/5hell "+char(10)+"---- eg: clipb @B 1 |  | scpm /root/rkit @b"+char(10)+"---- eg: zap [mem] [vuln] | scpm -d /var/system.log /root"
 	target_shell = null
 	target_path = null
 	direction = -1 
@@ -1811,16 +1821,37 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	map_path = home_dir + "/Config/Map.conf"
 	map_file = localmachine.File(map_path)
 	if not map_file then
-		print( "404: map.conf not found. " )
+		print( "kraken: map.conf not found. " )
 		mak_map = user_input("Create it? [Y/n] ||: ",0,1)
 		if mak_map.lower == "n" then return "aborting..."
-		localmachine.touch(home_dir+"/Config", "Map.conf")
+		print "kraken: writing to: "+home_dir+"/Config/Map.conf"
+		print localmachine.touch(home_dir+"/Config", "Map.conf")
 		map_path = home_dir + "/Config/Map.conf"
 		map_file = localmachine.File(map_path)
-		if map_file then print(home_dir+"/Config/Map.conf created.") else return "kraken: write error!"
+		if map_file then print("-- "+home_dir+"/Config/Map.conf created.") else return "kraken: write error! Map.conf not created"
 	end if
+
+	/////// finish me!~~~~////////
+	// if map file is binary, process that
+	if map_file.is_binary then 
+		if map_file.is_folder then return "kraken: map file cannot be a folder"
+		if not map_file.has_permission("x") then return "kraken: cannot launch Map.conf, check permissions"
+		attempt = command.run(map_file.path)
+		if attempt == 1 then 
+			ggg = get_custom_object
+			if ggg.indexOf("kraken_map") != null then 
+				map_dat = ggg.kraken-map
+			else 
+				return "kraken: binary Map.conf failed authentication"
+			end if
+		end if
+	else 
+		if map_file.has_permission("r") then map_dat = map_file.get_content else return "kraken: cannot read Map.conf"
+	end if
+	////////////////////
+
 	//map read
-	print(colorCyan+"Initializing Kraken v 0.9.5 by Plu70..."+CT)
+	print(colorCyan+"Initializing Kraken v 0.9.6 by Plu70..."+CT)
 	time_s = time
 	MAP = {}
 	MAP.accounts = {"accounts":[{"user":"user","ip":"ip","password":"password"}]}
@@ -1914,8 +1945,8 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	scrub = false
 	connect = false
 	get_logs = false
-	map_file = localmachine.File(home_dir + "/Config/Map.conf")
-	MAP.init(map_file.get_content)
+	//map_file = localmachine.File(home_dir + "/Config/Map.conf")
+	MAP.init(map_dat)
 	MAP.parse
 	time_e = (time - time_s)
 	print("...init completed in ["+colorOrange+time_e+CT+"] seconds.")
@@ -2073,14 +2104,15 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if typeof(l_path) == "file" then lib_file = l_path
 	if not lib_file then return("File not found.")
 	if DEBUG then print("got: "+typeof(lib_file))
-	buf = ["liber found:"]
+	print colorGreen+"<u>==========liber=========="
+	buf = []
 	if lib_file.is_folder then
 		for f in lib_file.get_files
 			lib = metaxploit.load(f.path)
 			if typeof(lib) != "MetaLib" then
 				buf.push("liber: "+lib_file.path+ ": unknown format")
 			else
-				buf.push( lib.lib_name + " " + lib.version )
+				buf.push( lib.lib_name + " v " + lib.version )
 			end if
 		end for
 	else
@@ -2088,10 +2120,67 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 		if typeof(lib) != "MetaLib" then
 			buf.push("liber: "+lib_file.path+ ": unknown format")
 		else
-			buf.push( lib.lib_name + " " + lib.version )
+			buf.push( lib.lib_name + " v " + lib.version )
 		end if
 	end if
-	return buf.join(char(10))
+	// check libs in buf against database
+	datbas = command.tree("/","database.csv",1,"N")
+	if DEBUG then print "debug: datbas: "+datbas
+	if DEBUG then 
+		if typeof(datbas) == "file" then print "debug: "+datbas.path 
+	end if
+	if datbas and datbas.has_permission("r") then 
+		dbase_data = datbas.get_content.split(char(10))
+		db_buf = []
+		for db_entry in dbase_data
+			if db_entry.indexOf("Hooked:") != null then continue
+			db_buf.push(db_entry)
+		end for
+		dbase_data = db_buf
+		//print "liber: database.csv found; "
+		//print "-- checking database..."
+		if DEBUG then print "debug: buf: "+char(10)+buf
+		if DEBUG then print "debug: buf size: "+buf.len
+		if DEBUG then print "debug: dat size: "+dbase_data.len
+		b_index = 0 // buf index
+		d_index = 0 // dbase_data index
+		color_known = colorCyan+"</b>"
+		color_unkwn = colorOrange+"</b>"
+		for entry in buf 
+			if DEBUG then print "debug: entry: "+entry
+			// if entry == "liber found:" then 
+			// 	if DEBUG then print "debug: skipping line 0"
+			// 	b_index = b_index + 1
+			// 	continue	
+			// end if
+			if DEBUG then 
+				print "-- B["+b_index+"] -- "
+				print "-- B["+buf[b_index]+"]"
+			end if
+			// for line in dbase_data
+			// 	if DEBUG then 
+			// 		print "-- D["+d_index+"] -- "
+			// 		print "-- D["+dbase_data[d_index]+"]"
+			// 		print "-- <b>line: "+line
+			// 	end if
+			// 	if entry == line then 
+			// 		if DEBUG then print colorGold+"debug: found a match"
+			// 		buf[b_index] = colorCyan+"</b>"+entry+CT 
+			// 	else 
+			// 		buf[b_index] = colorOrange+"</b>"+entry+CT 
+			// 	end if
+			// 	d_index = d_index + 1
+			// end for
+			if dbase_data.indexOf(entry) != null then buf[b_index] = color_known+entry+CT else buf[b_index] = color_unkwn+entry+CT 
+			b_index = b_index + 1
+			d_index = 0
+		end for
+	else 
+		print "liber: database.csv not found or read protected;"
+		print "-- skipping database check"
+	end if
+	if DEBUG then print "debug: buf: "+char(10)+buf
+	return format_columns(buf.join(char(10)))
 end function
 command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABASER/////////////////
 	if not globals.metaxploit then return colorRed+"</b>db: error: metaxploit is not loaded"
@@ -2378,6 +2467,11 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if buf_bot.len then current_data = current_data[0:]+buf_bot[0:]
 	end while
 	// write output to database.csv
+	if DEBUG then print "debug: database size before write is: "+current_data.len
+	if current_data.join(char(10)).len + DATA.join(char(10)).len > 159990 then
+		print "db: "+colorOrange+" warning: database size exceeds 160kb"+char(10)+colorOrange+"db: trimming oldest entries..."
+		current_data = current_data[DATA.len:]
+	end if
 	catch = datafile.set_content(current_data.join(char(10))+char(10)+DATA.join(char(10)))
 	if catch then return(catch)
 	return 0
