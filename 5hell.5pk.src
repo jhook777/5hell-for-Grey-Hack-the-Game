@@ -1,10 +1,10 @@
-// 5hell v 3.8.5 by Plu70
-// released v 3.8.4
+// 5hell v 3.8.6 by Plu70
+// released v 3.8.6
 // imports .5pk files from /root/src
-ver = "3.8.5_amalgamated_horrors"
+ver = "3.8.6_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "144.069"
+size_of_5hell = "147.452"
 ///////////////////////////////////////
 //
 // changes:
@@ -28,6 +28,27 @@ size_of_5hell = "144.069"
 // update 5phinx F1 help info: remove or correct outdated info
 //
 // scp falsely reports failure sometimes: track this down
+// dig barfs when database.csv is full
+// 
+// 5hell.src: added @ references to the prompt parsing added in the previous update
+// -- this will prevent piped functions from executing in transit
+// glasspool: highlighted some text in the glasspool banner
+// glasspool: will update current path to home directory of user when activated
+// make: will actually default to the current path when no output path is given
+// -- for real this time
+// tree: updated output to be in line with tree -f
+// -- updated list_files in 5phinx.5pk
+// -- i think it looks prettier now
+// rsi: purge: added ip echo to globals.rsi_purge
+// cob: added return_indexes
+// cob: updated output of cob inspect
+// -- will now truncate values for ease of inspection
+// -- updated usage info to reflect this change
+// echo: updated usage info
+// ps: updated usage info
+// meta: fixed bug preventing importing metaxploitLib when one is not already set
+// attempting to fix rsi population delay (fingers crossed)
+// passwd: updated usage info to include the word "password" (for searchability)
 //
 // cat: added cats to cat
 // string: added: string -r [old text] [new text] [text to parse]
@@ -621,20 +642,36 @@ command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
 end function
 command.passwd = function(arg1, arg2, arg3=0, arg4=0)
-  if arg1 == "help" or arg1 == "-h" then return "Usage: passwd [optional: user] [option: pass] -- change passwd. prompts if no arguments given."
+  if arg1 == "help" or arg1 == "-h" then return "<u>Password || Change Password || passwd"+char(10)+"Usage: passwd [opt: user] [opt: password] -- change password for user"+char(10)+"- will prompt for missing options"
 	user = null
 	pass = null
 	if arg1 then user = arg1
 	if arg2 then pass = arg2
-	if not user then user = user_input("user: ")
-  if not pass then pass = user_input("new password: ",1,0)
+	if not user then user = user_input("passwd: change password for which user? :> ")
+  if not pass then pass = user_input("passwd: select a new password for: "+user+":> ",1,0)
 	if pass == "" or pass == " " then return "aborting..."
   try = localmachine.change_password( user, pass)
-  if try == 1 then return pass
+  if try == 1 then return "passwd: "+colorWhite+"password updated to: "+char(10)+pass
   return try
 end function
 command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: echo [string] -- (string is max 4 words. returns string to the terminal. Useful when using 'do.'"
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "ECHO || echo || Echo || echO"+char(10)+
+	"Usage: echo [up] [to] [four] [params] -- returns concatonated params to the terminal"+char(10)+
+	char(10)+
+	"General usage is to echo text back to the terminal during batch script/macro execution."+char(10)+
+	"However, it may also be used to feed input to another command or concatonate outputs"+char(10)+
+	"of multiple commands. You may use floating quotes (single quotes not touching another"+char(10)+
+	"character) to wrap complex input parameters. Examples:"+char(10)+
+	"|> echo bob burger  --  output: bob burger"+char(10)+
+	"|> echo "" Eat at Joe's Diner. "" <color=red>Because</color> "" it's the best. "" "+char(10)+
+	"-- output: Eat at Joe's diner. <color=red>Because</color> it's the best."+char(10)+
+	"|> echo three four | echo one two -- output: one two three four"+char(10)+
+	"Here's a fairly useless example, lol:"+char(10)+
+	"|> cat file.txt | echo | poke file2.txt | cat | echo | poke file3.txt"
+	char(10)+
+	"Simple enough. You may use richtext in the echo to spruce it up."+char(10)+
+	"Resizing text and adding color allows the echo to stand out when text"+char(10)+
+	"is flying by during a complex <b>dig</b>, for example."
 	ec = arg1+" "
 	if arg2 then ec = ec + arg2+" "
 	if arg3 then ec = ec + arg3+" "
@@ -642,14 +679,28 @@ command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
 	return ec.trim
 end function
 command.clear = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "clear (clears the terminal of all data)"
+	if arg1 == "help" or arg1 == "-h" then return "Clear Screen || Terminal Wipe || clearscreen"+char(10)+"Usage: clear -- clears the terminal of all text"
 	clear_screen
 	return 0
 end function
 command.ps = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 then return(command_info("ps_usage"))
-	output = localmachine.show_procs
-	return format_columns(output)
+	ps_usage = "Show Processes || PS || show procs || not actually top or htop"+char(10)+
+	"Usage: ps -- show processess running on the active host_computer"+char(10)+
+	"-- when glasspool is active:"+char(10)+
+	"-- the active shell/computer is the active host_computer"+char(10)+
+	"Usage: ps [shell|computer] -- show processes running on the piped object"
+	if arg1 == "-h" or arg1 == "help" then return ps_usage
+	output = null
+	swapped = false
+	locals.hold_comp = globals.localmachine
+	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "computer") then 
+		if typeof(arg1) == "shell" then globals.localmachine = arg1.host_computer
+		if typeof(arg1) == "computer" then globals.localmachine = arg1 
+		swapped = true
+	end if
+	output = format_columns(localmachine.show_procs)
+	if swapped == true then globals.localmachine = locals.hold_comp
+	return output
 end function
 command.kill = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0  or arg1 == "-h" or arg1 == "help" then return "KILL || END PROCESS || TERMINATE SCRIPT"+char(10)+
@@ -660,7 +711,8 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 	"n.b. if<b> kill ALL </b>kills the terminal that launched the program,"+char(10)+
 	"---- it might not complete its task."+char(10)+char(10)+
 	"Usage: kill [process_name] [opt: shell|computer] --"+char(10)+
-	"-- kill process by process name instead of PID"+char(10)+char(10)+
+	"-- kill processes by process name instead of PID"+char(10)+
+	"-- NOTE: kills ALL processes of that name"+char(10)+char(10)+
 	"Note: piping a shell or computer object runs kill on the object instead of locally"+char(10)+
 	"Note: running kill while glasspool is active runs kill on the active object"
 	target_machine = globals.localmachine
@@ -678,6 +730,7 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if typeof(PID) == "string" then
 		processes = target_machine.show_procs.split(char(10))
+		killed = false
 		for p in processes
 			if p == "USER PID CPU MEM COMMAND" then continue
 			process = p.split(" ")
@@ -685,10 +738,13 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 			process_CMD = process[4]
 			stor = globals.localmachine
 			globals.localmachine = target_machine
-			if PID == "ALL" or PID == process_CMD then print(command.kill(process_ID))
+			if PID == "ALL" or PID == process_CMD then 
+				print(command.kill(process_ID))
+				killed = true 
+			end if
 			globals.localmachine = stor
 		end for
-		return 0
+		if killed == false then return "kill: process <u>" + PID + "</u> not found" else return 0
 	end if
 	output = target_machine.close_program(PID)
 	if output == true then return("kill: terminating process: " + PID + "...");
@@ -942,7 +998,6 @@ command.usr = function(arg1, arg2, arg3=0, arg4=0)
 			if typeof(check_u) == "file" then return check_u.owner 
 		end if
 	end if
-	
 	if arg1 == 1 then // recursive
 		if not arg3 then return "usr: invalid arguments. please supply a path."
 		t_f = globals.get_file(arg3)
