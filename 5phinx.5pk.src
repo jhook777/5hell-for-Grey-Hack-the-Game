@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.5.3 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.4 for 5hell v 3.8.5...(124.824kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.5 for 5hell v 3.8.6...(125.400kb)</size>")
 
 //Define Globals
 sphinx_version = "2.5.4"
@@ -58,7 +58,7 @@ hot_swap_libs = function()
   if globals.clib == false then globals.cryp_path = current_path+"/crypto.so"
 
   globals.metaLibVersion = "0.0.0"
-  globals.ryptoLibVersion = "0.0.0"
+  globals.cryptoLibVersion = "0.0.0"
   if globals.metaxploit then globals.metaLibVersion = globals.metaxploit.load(globals.meta_path).version
   if globals.crypto and globals.metaxploit then globals.cryptoLibVersion = globals.metaxploit.load(globals.cryp_path).version
   return 0
@@ -431,6 +431,7 @@ globals.rsi_purge = function()
   rshells = metaxploit.rshell_server
   if(typeof(rshells) == "string") then return(rshells)	
   for r in rshells
+    print colorLightBlue+"rsi: kill ALL >> "+colorWhite+r.host_computer.public_ip+ " @ "+r.host_computer.local_ip
     processes = r.host_computer.show_procs.split(char(10))
     for p in processes
       if p == "USER PID CPU MEM COMMAND" then continue
@@ -1560,14 +1561,23 @@ end function
 
 globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
   //grepped_file = "File: " + grep + " not found."
-  if not quiet then print("Expanding: " + colorLightBlue+result.path)
+  //if not quiet then print("Expanding: " + colorLightBlue+result.path)
+  if not quiet then 
+    if result.is_binary then 
+      if not result.is_folder then 
+        print "<size=80%><color=blue>|..<color=#00FFFF>"+result.permissions+" "+result.path 
+      end if 
+    else 
+      print "<size=80%><color=blue>|..</color><color=white>"+result.permissions+" "+result.path
+    end if
+  end if
   if not result.is_binary then
-    if not quiet then print(colorWhite+result.name + " " + result.permissions)
+    //if not quiet then print("<size=80%>"+colorWhite+result.name + " " + result.permissions)
     if result.name == grep or result.name == "passwd" or result.name == "Bank.txt" or result.name == "Map.conf" or result.name == "Browser.txt" or result.name == "Mail.txt" then
       if not result.is_binary  then
         if not quiet then print(result.get_content)
       else
-        if not quiet then print("Unable to open binary file. ")
+        if not quiet then print("<size=75%>Unable to open binary file. ")
       end if
       if result.name == "passwd" or result.name == "Bank.txt" or result.name == "Mail.txt" or result.name == grep then
         if not waitFor then waitFor = "R"//user_input("Crack files? [r/y/N]||: ",0,1)
@@ -1582,7 +1592,7 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
               globals.T_BUF.push(c)
               print(colorLightBlue+"<size=75%>Sent: "+result.get_content+" to t<b>r</b>ansmission buffer (<b>@tbuf</b>).</size>")
             else 
-              print(colorLightBlue+"<size=75%>Skipping duplicate...")
+              print(colorLightBlue+"<size=75%>Skipping duplicates...")
             end if
           end for
         end if
@@ -1600,7 +1610,8 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
       files = result.get_files
       //wait(.1)
       for folder in folders
-        if not quiet then print("Dir: " + folder.name + " " + folder.permissions)
+        //if not quiet then print("Dir: " + folder.name + " " + folder.permissions)
+        if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.permissions+" "+folder.path
         list_files(folder, grep, quiet, waitFor)
       end for
       for file in files
