@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.8.5...(138.931kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.8.6...(141.178kb)</size>")
 // command.kore = function(arg1, arg2, arg3=0, arg4=0)
 // 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 // 	globals.CYCLES = 0
@@ -573,7 +573,17 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.glasspool = function(arg1,arg2,arg3,arg4)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorLightBlue+"<u>Glasspool sshfs shell/computer mirroring || GP || glassp"+char(10)+"Switches scope of commands to a supplied object"+char(10)+"Usage: glasspool [object: shell|computer] -- switch scope to piped object"+char(10)+"Usage: glasspool [#] -- switch scope to the shell or computer at BUFFER index #"+char(10)+"Usage: glasspool -r [#] -- switch scope to reverse shell at rsi index #"+char(10)+"-- n.b. rshell index starts at 1 not 0 !!"+char(10)+"Usage: glasspool [-m|menu] -- display BUFFER and RSI menu and switch scope to selection"+char(10)+"Usage: <b>gp</b> [option] -- abreviation for glasspool, for qol"+char(10)+"N.B. -- glasspool is the glassp option in rsi and malp"+char(10)+"N.B. -- commands that are local only will not translate through glasspool"+char(10)+"N.B. -- the term 'glass puddle' refers to glasspool in computer object mode"
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorLightBlue+"<u>Glasspool sshfs shell/computer mirroring || GP || glassp"+char(10)+
+	"Switches scope of commands to a supplied object"+char(10)+
+	"Usage: glasspool [object: shell|computer] -- switch scope to piped object"+char(10)+
+	"Usage: glasspool [#] -- switch scope to the shell or computer at BUFFER index #"+char(10)+
+	"Usage: glasspool -r [#] -- switch scope to reverse shell at rsi index #"+char(10)+
+	"-- n.b. rshell index starts at 1 not 0 !!"+char(10)+
+	"Usage: glasspool [-m|menu] -- display BUFFER and RSI menu and switch scope to selection"+char(10)+
+	"Usage: <b>gp</b> [option] -- abreviation for glasspool, for qol"+char(10)+
+	"N.B. -- glasspool is the glassp option in rsi and malp"+char(10)+
+	"N.B. -- commands that are local only will not translate through glasspool"+char(10)+
+	"N.B. -- the term 'glass puddle' refers to glasspool in computer object mode"
 	obj = arg1 
 	// handle switches
 	// -m display menu
@@ -654,9 +664,9 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful. "+char(10)+
 			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
 			colorOrange+"<size=75%>glasspool: shell mirroring:"+char(10)+
-			"<size=75%>-- <color=green>shell</color>, <color=green>computer</color>, and <color=green>file</color> commands"+char(10)+
-			"<size=75%>-- will execute on the machine attached to the shell object"+char(10)+
-			"<size=75%>-- local/general category commands will execute on the local machine"
+			"<size=75%>-- <color=yellow>shell</color>, <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
+			"<size=75%>---- will execute on the machine attached to the shell object"+char(10)+
+			"<size=75%>-- <b>local/general</b> category commands will execute on the local machine"
 			if typeof(globals.shell) == "ftpshell" then print colorOrange+"<size=75%>Warning: ftp shells have limited functionality"
 			// print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
 			// switch scope
@@ -698,9 +708,9 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful "+char(10)+
 			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
 			colorOrange+"<size=75%>glasspool: computer mirroring:"+char(10)+
-			"<size=75%>-- <color=green>computer</color>, and <color=green>file</color> commands"+char(10)+
-			"<size=75%>-- will execute on the machine connected to the computer object"+char(10)+
-			"<size=75%>-- <color=yellow>shell</color> and local/general commands will execute on the local machine"+char(10)
+			"<size=75%>-- <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
+			"<size=75%>---- will execute on the machine connected to the computer object"+char(10)+
+			"<size=75%>-- <color=yellow>shell</color> and <b>local/general commands</b> will execute on the local machine"+char(10)
 			// switch scope
 			uu = checkUser(globals.localmachine)
 			if DEBUG then print "debug: uu: "+uu
@@ -994,12 +1004,13 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		if rc then return colorGreen+"rsi: service installed"+CT else return colorRed + "rsi: failed to install service" + CT
 	end if
 	print(colorLightBlue+"Listening for upcoming connections...")
-	shells = []
+	//locals.shells = metaxploit.rshell_server
+	locals.shells = []
 	while shells.len == 0
 		shells = metaxploit.rshell_server
 		if typeof(shells) == "string" then return shells
 		if shells.len == 0 and arg1 != "-d" then return colorOrange+"rsi: no rshells connected. use<b> rsi -d </b> to run in daemon mode."+CT
-		wait(.01)
+		//wait(.01)
 	end while
 	if arg1 == "-d" then 
 		arg1 = arg2
@@ -1022,7 +1033,8 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	st = arg2
 	rs_buf = []
 	while typeof(option) != "number" or option > shells.len or option < 0
-		print(colorLightBlue + shells.len + "</b> shell(s) connected!\n<b>Select a shell to access:"+CT)
+		print(colorLightBlue + shells.len + "</b> shell(s) connected:"+char(10)+"- if your expected shell isn't listed yet"+char(10)+"- press <<b>enter</b>> to refresh the page"+char(10)+"<b>Select a shell to access:"+CT)
+		rs_buf = []
 		for i in range(0, shells.len - 1)
 			rs_buf.push(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + shells[i].host_computer.public_ip + char(10) + "Local IP: " + shells[i].host_computer.local_ip + char(10) + colorWhite + shells[i].host_computer.show_procs + CT )
 		end for
@@ -1030,7 +1042,8 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		print(colorLightBlue+"-----------"+CT)
 		option = user_input("Select shell ([0|q] to abort) :> ").to_int
 		if option == 0 or option == "q" then return 0
-		wait(.01)
+		//wait(.01)
+		shells = metaxploit.rshell_server
 	end while
 	if option == 0 or option == "q" then return 0
 	print("Accessing shell [" + option + "]...")
@@ -2611,20 +2624,23 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	"Note: importing a "+colorOrange+"metaxploitLib"+CT+" from your server to a remote target allows using your hardware to scan the targets local libs."+char(10)+
 	"--Likewise, exporting a remote "+colorLightBlue+"</b>metaLib"+CT+" back to your server allows you to use your hardware to scan the remote libs."+char(10)+
 	"-- use <b>bios> along with <b>cob get</b> and <b>cob set</b> to import/export objects"
-	if not globals.metaxploit then return "metaxploit.so not found"
+	//if not globals.metaxploit then return "metaxploit.so not found"
 	if not arg1 and globals.metaLib then return (globals.metaLib.lib_name + " v " + globals.metaLib.version)
 	if arg1 then
 		if arg1 == "restore" then 
 			if globals.backup_meta then 
 				globals.metaxploit = globals.backup_meta 
-				if typeof(globals.metaxploit) == "MetaxploitLib" then return "meta: backup metaxploit restored" else return "meta: error! backup metaxploit corrupted"+char(10)+"meta: use <b>meta -i [/path]</b> to manually restore."
+				if typeof(globals.metaxploit) == "MetaxploitLib" then return "meta: previous metaxploitLib restored" else return colorRed+"meta: error! backup metaxploitLib corrupted!"+char(10)+"-- use <b>meta -i [/path]</b> to manually restore"
+			else 
+
 			end if
 		end if
 		if arg1 == "link" then
+			if not globals.metaxploit then return colorRed+"meta: error: metaxploitLib not found"
 			arg = 0
 			if arg2 and typeof(arg2) == "MetaLib" then 
 				globals.metaLib = arg2
-				return "meta: imported new MetaLib object. Ready to scan."
+				return "meta: imported new MetaLib object"+char(10)+"-- ready to scan"
 			end if
 			if arg2 and arg2 == "-l" then
 				arg = "L"
@@ -2637,7 +2653,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				if not localmachine.is_network_active then return "meta: no network connection!"
 				return command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
 			else
-				return "Unable to establish connection."+char(10)+"Check parameters and try again."
+				return "meta: unable to establish connection."+char(10)+"-- check parameters and try again."
 			end if
 		end if
 		if arg1 == "import" or arg1 == "-i" then 
@@ -2653,11 +2669,12 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			print colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"meta: use <b>meta restore</b> to revert back to original metaxploitLib"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
 		end if
 		if arg1 == "scan" then
+			if not globals.metaxploit then return colorRed+"meta: error: metaxploitLib not found"
 			if globals.metaLib then
 				//get_lib
 				globals.scan_memory
 			else
-				print("Please establish net session or load lib with:<b> meta link [-l|-r|-i]</b> before scanning." )
+				print("meta: please establish a net session"+char(10)+"-- or load a lib with:"+char(10)+"<b>meta link [-l|-r]</b> "+char(10)+"-- before scanning" )
 			end if
 		end if
 	end if
@@ -2783,18 +2800,23 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	colorCyan+"Usage: cob get [key] -- get value of custom object key."+char(10)+
 	"-- returns value at key or null"+char(10)+
 	"-- returns @reference (pointer) if value is a function"+char(10)+
-	"Usage: cob return -- returns the raw custom object"+char(10)+
+	colorCyan+"Usage: cob return -- returns the raw custom object"+char(10)+
 	"-- pipe to command.<b>code</b> to decompile the object."+char(10)+
 	"-- ie:<b> cob return | code</b>"+char(10)+
-	"Usage: <b>cob inspect</b> -- returns decompiled custom object (same as cob return | code)."+char(10)+
-	"Usage: cob search [val] --  search for index of val."+char(10)+
+	colorCyan+"Usage: <b>cob inspect</b> -- returns key/value pair information of custom object"+char(10)+
+	"-- returns a string pairing each key with its [trucated] value"+char(10)+
+	"-- values are truncated to make the object easier to inspect"+char(10)+
+	"-- please use <b>cob return | code</b> if you want the raw output"+char(10)+
+	colorCyan+"Usage: cob indexes -- return custom object indexes as a LIST"+char(10)+
+	"-- pipe to the <b>string</b> command to stringify"+char(10)+
+	colorCyan+"Usage: cob search [val] --  search for index of val."+char(10)+
 	"-- returns string; key or failure message."+char(10)+
 	"Inactive: cob sign -- future ability to sign custom object."+char(10)+
 	"-- currently returns 0 (zero)."+char(10)+
-	"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+
+	colorCyan+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+
 	"-- returns string on success or failure."+char(10)+
-	"Usage: cob <b>purge</b> -- purge the custom object"+char(10)+
-	"Usage: cob install [key] -- install a function residing in the custom object at [key]"+char(10)+
+	colorCyan+"Usage: cob <b>purge</b> -- purge the custom object"+char(10)+
+	colorCyan+"Usage: cob install [key] -- install a function residing in the custom object at [key]"+char(10)+
 	"-- this will add the function as a 5hell command (it will show up in help)"+char(10)+
 	"-- functions must still follow the standard template to avoid errors"+char(10)+
 	"-- the funciton will not persist after 5hell is closed"+char(10)+
@@ -2803,8 +2825,8 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	"-- it is loaded to custom_object.dictionary and can be removed by passing the 'purge' param to cerebrum"+char(10)+
 	"-- this is allows you to use the dictionary between nested shell.launches with only a single run of cerebrum."+char(10)+char(10)+
 	"<b>N.B.</b> -- since version 3.8.3 5hell.src contains aliases for cob set and cob get:"+char(10)+
-	"Usage: set [key] [value] -- same as cob set [key] [value]"+char(10)+
-	"Usage: get [key] -- same as cob get [key]"
+	colorGold+"Usage: set [key] [value] -- same as cob set [key] [value]"+char(10)+
+	colorGold+"Usage: get [key] -- same as cob get [key]"
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
 
 	cobble = get_custom_object
@@ -2812,17 +2834,17 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob.set = function( key=0, val=0, nil=0, nul=0 )
 		if not @key then return null
 		if typeof(@key) == "function" then
-		if typeof(@val) == "function" then
-			cobble[@key] = @val
+			if typeof(@val) == "function" then
+				cobble[@key] = @val
+			else
+				cobble[@key] = val
+			end if
 		else
-			cobble[@key] = val
-		end if
-		else
-		if typeof(@val) == "function" then
-			cobble[key] = @val
-		else
-			cobble[key] = val
-		end if
+			if typeof(@val) == "function" then
+				cobble[key] = @val
+			else
+				cobble[key] = val
+			end if
 		end if
 		if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>." else return "cob: set error."
 	end function
@@ -2843,8 +2865,41 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		end if
 	end function
 
+	cob.return_indexes = function(key=0,val=0,nil=0,nul=0)
+		return cobble.indexes
+	end function
+	
 	cob.inspect = function( key=0, val=0, nil=0, nul=0 )
-		return command.code(cobble,0,0,0)
+		inspect_buf = []
+		value_buf = []
+		sk = "KEY"
+		st = " : [TYPE] : "
+		sv = "VALUE"
+		inspect_buf.push(sk + st)
+		value_buf.push(sv)
+		for thing in cobble 
+			parsed_value = @thing.value
+			if typeof(@thing.value) == "string" and thing.value.len > 32 then parsed_value = thing.value[:27]+"..."
+			if typeof(@thing.value) == "list" and thing.value.len > 5 then parsed_value = thing.value[:5]+["..."]
+			if typeof(@thing.value) == "map" and thing.value.len > 0 then parsed_value = "{...}"
+			inspect_buf.push(@thing.key + " : [" + typeof(@thing.value) + "] : ")// + parsed_value)
+			value_buf.push(@parsed_value)
+		end for
+		inspect_buf.push("[end of ")
+		value_buf.push(" custom object]")
+		format_buf = format_columns(inspect_buf.join(char(10)).trim)
+		format_buf = format_buf.split(char(10))
+		fi = 0
+		if DEBUG then 
+			print "debug: f_buf: "+format_buf
+			print "debug: v_buf: "+value_buf
+		end if 
+		for line in format_buf
+			format_buf[fi] = @line + @value_buf[fi]
+			fi = fi + 1
+		end for
+		return format_buf.join(char(10))
+		//return command.code(cobble,0,0,0)
 	end function
 
 	cob.del = function( key=0, val=0, nil=0, nul=0 )
@@ -2887,12 +2942,15 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	end if
 	if arg1 == "get" then
 		if @arg2 then
-		g = @cob.get
-		return g( @arg2 )
+			g = @cob.get
+			return g( @arg2 )
 		//if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
 		else
-		return usage_info
+			return usage_info
 		end if
+	end if
+	if arg1 == "indexes" then 
+		return cob.return_indexes
 	end if
 	if arg1 == "inspect" then
 		return cob.inspect
