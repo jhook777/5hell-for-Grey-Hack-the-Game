@@ -1,10 +1,10 @@
 // 5hell v 3.8.6 by Plu70
 // released v 3.8.6
 // imports .5pk files from /root/src
-ver = "3.8.6_amalgamated_horrors"
+ver = "3.8.7_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "147.452"
+size_of_5hell = "147.796"
 ///////////////////////////////////////
 //
 // changes:
@@ -29,6 +29,9 @@ size_of_5hell = "147.452"
 //
 // scp falsely reports failure sometimes: track this down
 // dig barfs when database.csv is full
+// 
+// added new entries to the credits
+// updated readme on github
 // 
 // 5hell.src: added @ references to the prompt parsing added in the previous update
 // -- this will prevent piped functions from executing in transit
@@ -1140,6 +1143,13 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 	kittehns = ["=^._.^= S","^·-·^","^• •^","~(^._.)","(^._.^)s","(^..^)S","(^-.-^)","Z(=^.^=)"]
 	kittehns.shuffle
 	kitteh = kittehns.pop
+    no_parse = false
+    if arg1 == "-n" or arg1 == "--noparse" then 
+        no_parse = true 
+        arg1 = arg2
+        arg2 = arg3 
+        arg3 = arg4
+    end if
 	print "<u>"+colorGold+"- - - - - - - - - c a t - - - - - - - -"+char(10)+
 			    colorGold+"                 "+kitteh+"              "
 	if typeof(arg1) == "file" then
@@ -1154,7 +1164,7 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 		end if
 	end if
 	if file.is_binary then return ("Cannot open binary file: "+arg1)
-	return file.get_content
+	if no_parse then return file.get_content.noparse else return file.get_content
 end function
 import_code("/root/src/dtools.5pk")
 if DEBUG then 
@@ -2390,7 +2400,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, Silent, Deckard, Minidevil96, MrMember, Clover, Trashed, Bit, OmegaKawaii, Omega, Redit0, Eclipse00, Jessa, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, Silent, Deckard, Minidevil96, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -2708,7 +2718,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		count = count + columns
 	end for
 	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
-	print(format_columns(buf.join(char(10))).replace("sphinx", colorRed+"sphinx"+char(8482)+CT) )
+	print(format_columns(buf.join(char(10))).replace("sphinx", colorRed+"sphinx"+char(8482)+CT) ) 
 	print
 	print(":><b> help</b> -- print this page: lists commands alphabetically")
 	print(":><b> help guide</b> -- for a quick getting started guide")
@@ -2735,5 +2745,3 @@ if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
 if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
 /////////////////////BEGIN MAIN////////////////////////////////////////////////
-
-
