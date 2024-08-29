@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.7...(111.389)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.8.9...(112.287)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -655,10 +655,11 @@ command.makfit = function(arg1, arg2, arg3=0, arg4=0)
 		re_name = ""
 		if temp_path != "/" then temp_path = temp_path + "/"
 		command.mv(out_file.path,temp_path+og_name)
-		print(colorLightBlue+out_file.path)
+		print("makfit: found filename:"+colorLightBlue+" "+out_file.name)
 	end if
-	print("Securing system.")
-	command.perms("lock","all")
+	print("makfit: compiled:<u>"+colorWhite+" "+out_file.path+" "+out_file.permissions+" </u></b></color>to<b> "+out_file.size+" bytes")
+	//command.perms("lock","all") removed because this is bad
+	print "makfit: remember to secure the new file(s)"+char(10)+"makfit: returning output file object..."
 	return out_file
 end function
 command.make = function(arg1, arg2, arg3=0, arg4=0)
@@ -1087,9 +1088,14 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	colorGreen+"<u>================================"+char(10)+
 	"Usage: <b>file [opt:-l|-c|-b|-r|-n|-p] [/path|file_object] [opt:shell|computer|file]</b>"+char(10)+
 		" File shows the properties information for the given file "+char(10)+
-		"and takes path or file_object and returns file information as a stirng"+char(10)+
-		"Usage: file [/path] -- return information about the file at /path"+char(10)+
-		"UsagE: file [/path] [object] -- search object for file at path and return info"
+		"and takes path or file_object and returns file information as a stirng."+char(10)+char(10)+
+		"Usage: file [opt] [/path] -- return information about the file at /path"+char(10)+
+		"UsagE: file [opt] [object] -- return onformation about the file object"+char(10)+
+		"Usage: file [opt] [/path] [object] -- return file info for file at path on object"+char(10)+
+		"-- computer and shell objects: relative paths use present working directory"+char(10)+
+		"-- file objects: must use absolute path"+char(10)+
+		"-- file objects: will be searched from  the <b>/</b> directory"+char(10)+
+		"Advanced: file [opt] [f_object] [object] -- will still return info of f_object; object is ignored"+char(10)+
 		"Usage: "+char(10)+
 		"-- file [<color=white>-l</color>] [path|object] [opt:object] -- return number of lines in the file as a string"+char(10)+
 		"-- file [<color=white>-c</color>] [path|object] [opt:object] -- return number of chars in the file as a string"+char(10)+
@@ -1132,14 +1138,22 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		if arg2 and typeof(arg2) == "computer" then globals.localmachine = arg2
 		// find our file somewhere
 		if arg2 and typeof(arg2) == "file" then
-			file = command.grep("-f",arg1,arg2)
+			while arg2.name != "/"
+				arg2 = arg2.parent 
+			end while
+			file_list = globals.newtree(arg2,"2")
+			if file_list then
+				for f in file_list
+					if f.path == arg1 then file == f 
+				end for
+			end if			
 		else
 			file = globals.get_file(arg1)
 		end if
 		// restore og computer
 		globals.localmachine = comp_stor
 		// complain if needed
-		if not file or typeof(file) != "file" then return "file: grep: "+arg1+" not found."
+		if not file or typeof(file) != "file" then return "file: "+arg1+" not found."
 		arg1 = file
 	end if
 	if typeof(arg1) == "file" then
