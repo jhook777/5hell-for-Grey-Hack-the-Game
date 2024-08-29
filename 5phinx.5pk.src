@@ -1,8 +1,8 @@
 // Sphinx Hacking Interface v 2.5.3 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.5 for 5hell v 3.8.6...(125.400kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.5 for 5hell v 3.8.7...(125.596kb)</size>")
 
 //Define Globals
-sphinx_version = "2.5.4"
+sphinx_version = "2.5.5"
 malp_version = "1.3.2"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -163,6 +163,15 @@ dump_memory = function()
     print("Error: memory dump failed. Check write permissions.")
     return "404"
   end if
+end function
+
+string.noparse = function(self)
+  split_line = self.split(char(10))
+  buf = []
+  for line in split_line 
+    buf.push("<noparse>"+line)
+  end for 
+  return buf.join(char(10))
 end function
 
 // warning: garbage code follows. somehow 'works'
@@ -2336,7 +2345,6 @@ roil = function(inject=0)
     //if result then  globals.BUFFER.push(result)
   end for
 end function
-
 //Depricated function. Use roil.
 zap_it = function()
   if MEMORY == null then return "Run a scan first."
