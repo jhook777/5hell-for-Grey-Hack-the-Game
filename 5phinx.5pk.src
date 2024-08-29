@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.5.3 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.5 for 5hell v 3.8.7...(125.596kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.6 for 5hell v 3.8.9...(125.737kb)</size>")
 
 //Define Globals
 sphinx_version = "2.5.5"
@@ -1562,7 +1562,12 @@ globals.newtree = function(a_file,quiet=0)
       end for
   end for
   //globals.enumerated = output
-  if output.len < 1 then return "tree: invalid input: expects folder" else print command.enum(output)
+  if output.len < 1 then 
+    if quiet then return 0 else return "tree: invalid input: expects folder" 
+  else 
+    if quiet == "2" then return output
+    if quiet != "1" then print command.enum(output) else command.enum(output)
+  end if
   if quiet != "1" then return outprint.join(char(10))
   if DEBUG then return system_map
   return 0
