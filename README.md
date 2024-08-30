@@ -1,6 +1,7 @@
 # 5hell-for-Grey-Hack-the-Game
 
-
+Join us on Discord!
+https://discord.gg/AFqsGaCDfS
 
 **Shell emulator and multitool for the video game Grey Hack.**
 
@@ -1279,12 +1280,6 @@ Usage: perms [opt:-r] [userstring{+|-}permission] [path]
 -- permission -- r = read, w = write, x = execute
 E.G: perms -r o-rwx /  -- remove rwx permissions from 'others' for all files
 E.G: perms -r g+x /bin -- add group execute permissions to all files in /bin
-</pre>
-
----
-
-## Aliases:
-<pre>
 Usage: perms lock all -- remove all permissions from all files (alias: lock)
 -- includes anti-brick technology: checks for home pc and relaxes certain permissions:
 ---- checks for user_email_address: if found, determines we are at home
