@@ -231,6 +231,454 @@ on the last line to autoexit and echo completion
 
 
 
+# Additional Information and misc
+
+
+**This section explains a few things about the 5hell in a more detailed manner.**
+<pre>
+This information is also shown inside the 5hell via the help -s command, 
+but for better readability it is placed here instead on the very bottom.
+</pre>
+
+
+### The BUFFER
+
+The BUFFER stores objects. Anything may be stored in the BUFFER.
+<pre>
+You access the BUFFER with the malp command >> option [5]
+</pre>
+
+When an exploit is run, the result is stored in the BUFFER. You
+may interact with these objects in a number of ways by selecting them
+from the list and using their context menu (if the object has one).
+One way to fetch an object from the BUFFER for use elswhere is to use the clipboard:
+<pre>
+|> clipb @B [index]-- where index == BUFFER[index]
+</pre>
+
+-- then pipe the value to another function
+<pre>
+You may pipe anything into the buffer with |> [command_returning_input] | malp
+</pre>
+
+---
+
+### Easy Clip!
+ <pre>
+You may reference the clipboards with the @ symbol:
+clipa, clipb, and clipc are all clipboard spaces
+</pre>
+<pre>
+You may use @a, @b, and @c to reference their values
+e.g. echo hello world | clipa |  | poke hello.txt @a
+*** tbuf, home, do ***
+e.g. gopher @tbuf, e.g. rshell @home, e.g scribus @do
+</pre>
+
+---
+
+### Custom Object
+
+The Custom Object is a way for scripts to share information between
+nested launches. This means you can launch 5hell with 5hell and pass objects back and forth.
+You interact with the custom_object via the various cob commands
+Namely: cob get and cob set.
+
+For ease of use: cob get and cob set have been aliased to:
+<pre>
+-- get and set in 5hell.src
+-- |> cob set bob burger is equivalent to |> set bob burger
+-- |> cob get bob is quivalent to |> get bob
+</pre>
+
+An example would be cerebrum which loads the dictionary to the custom object:
+<pre>
+-- once loaded, you may run 5hell through nested launches and the dictionary will persist.
+-- This also allows you to import/export metaLib's and metaxploitLib's between machines!
+</pre>
+
+---
+
+## CONVENTIONS
+
+**While a great deal of 5hell is discordant, there are some conventions:**
+
+**You may toggle the full prompt and minimal prompt by typing:** 
+<pre>
+prompt 
+</pre>
+**at the command line**
+ 
+### Input: 
+
+arguments and quote blocks and piping oh my!
+
+***5hell uses a 4 argument system. This means all commands take at most 4 arguments***
+
+*this might sound limiting but it isn't at all in practice. Each of the 4 arguments may be overloaded.*
+
+**Some input methods are:***
+
+<pre>
+simply typing input: |> ping 1.1.1.1
+</pre>
+
+up to four typed arguments
+
+<pre>
+remember that |> is the prompt, you don't type that part
+</pre>
+
+using single quotes to wrap text: 
+<pre>
+|> echo " this is a text block "  
+</pre>
+would return: **this is a text block**
+
+note that: 
+<pre>
+|> echo "this is a text block" 
+</pre>
+would return: **""this is a text** 
+
+this allows you to overload each argument with more than one "word"
+
+easy clip and piping and objects(mostly) are preserved inside of text blocks
+
+use do to run a batch of commands from a file or from memory using an editor
+
+<pre>
+|> do -- without arguments do will prompt for number of iterations then open the editor
+</pre>
+<pre>
+|> do 1 -- would bring up an editor commands typed here will be executed in order
+</pre>
+<pre>
+|> do 1 ping 1.1.1.1 -- would result in pinging 1.1.1.1 once
+</pre>
+<pre>
+|> do 5 " rnip 1 | dig " -- would run dig on a random ip 5 times
+</pre>
+<pre>
+|> do 1 -f /foo.bar -- execute the batch of commands in the file foo.bar
+</pre>
+
+you may launch 5hell from the game's command line with do parameters
+
+the format is the same as if typing commands on the command line
+
+newlines in the script are considered to be new command line entries
+
+you may use piping, easy clip, and even calls for do to execute further scripts
+
+you may use text blocks for complex commands in place of files or the editor if you wish
+
+<pre>
+|> do 3 " rnip 1 | dig |  | cob get metx | meta -i | db -m | zap " | poke test.txt " 
+</pre>
+
+this is a bunch of text going into a file 
+
+it is possible to almost completely automate every aspect of 5hell via do and dig
+
+for ease of use do 1 -f has been aliased to bat in 5hell.src:
+<pre>
+|> bat /foo.bar is equivalent to |> do 1 -f foo.bar
+</pre>
+
+**please see do -h and dig -h for more information on automation**
+
+piping input: 
+<pre>
+|> grep -f ^syst | file -p | cp /etc/passwd
+</pre>
+would result in copying /etc/passwd over top of system.log (if permissions allowed it)
+
+piping allows you to transfer the output of one command to the [last open parameter] of another command
+
+in the above example the output of grep [args...] is the input of file -p [input]
+
+and the output of file -p [args] is the input of cp /etc/passwd [input]
+
+**please see pipe -h for more**
+
+***if malp is the backbone of 5hell, pipes are the circulatory system of 5hell***
+
+### Prompts: 
+
+**|> , :> , ||:**
+
+<pre>
+|>  --  this is the standard Command Line Interface prompt
+</pre>
+by default there will be information printed before this
+
+toggle to a minimalist prompt with: 
+<pre>
+prompt
+</pre>
+
+-- fires CLI commands
+
+<pre>
+|>   --  by default, the GLASSPOOL prompt turns the |> blue
+</pre>
+
+this means commands execute on the remote object controlled by glasspool
+
+**see glaspool -h for more**
+
+<pre>
+:>   --  this is a liminal prompt, it expects a string or empty return
+</pre>
+
+this is used to gather user input within a command
+
+<pre>
+||:  --  this is an 'any key' prompt
+</pre>
+it takes a single keypress
+
+this is used in 'button' driven menus
+
+### Decision Pompts: [ N/Y/X ] [n/y/x]
+
+-- Multiple choice prompts have a default
+
+-- the default is always Capitolized and sometimes highlighted
+
+-- the default is chosen if  is pressed without input
+
+-- unless otherwise noted, default is chosen if input doesn't match a choice
+<pre>
+E.G: |> psudo
+Open shell? [c/y/N]
+||:
+</pre>
+
+in this example, the choices are [c], [y], and [N]
+<pre>
+[c] -- enter credentials
+
+[y] -- open shell
+
+[n] or anything else -- no; return/abort
+</pre>
+this is because **N** is the default
+
+### Prompt: advanced
+
+by default the prompt will display the public and local ip of the active shell
+
+or computer if using glasspool on a computer object
+
+by default the prompt will display computer name and working directory
+
+by default the prompt indicates user privileges (root,user,guest) with:
+
+under the ip information there will be a:
+
+a red line for root, green line for user , and white line for guest
+
+please note that user permissions are determined by access level and not by 'actual' user
+
+you may customize the prompt to your liking in 5hell.src
+
+---
+
+### The dreaded System.log
+
+***Actions that generate an entry in system.log:***
+
+- establishing a net_session on a server (not a router)
+
+- connecting via Browser.exe to a server
+
+- connection established on port ##
+
+- obtaining a shell (server/router)
+
+- shell obtained on port ##
+
+- deleting a file
+
+- file deleted [ip]
+
+- routing a connection with:
+
+- connect_service or file_explorer
+
+- connection routed [ip]
+
+- shell disconnect
+
+- i.e. exiting from start_terminal
+
+- connection closed [ip]
+
+---
+Active Traces will start when shell.start_terminal is used
+on an npc machine with an active admin of sufficient knowledge and give-a-damn.
+Generally, if there is a root: dsession active, using start_terminal will trigger
+an active trace. Active traces are stopped by disconnecting (exiting) that terminal instance.
+
+When using 5hell you should NOT ever open a terminal (on a target) unless you are doing an Academic or
+Police record mission. OR if you absolutely need to open the browser to edit firewall or port rules
+on a target. Otherwise, use glasspool and run to leverage shell object manipulation instead.
+
+However! You should start_terminal on your end point attack proxy. In fact, do it twice:
+
+-- use prox to tunnel to your end point proxy then launch 5hell and type psudo and then select [y]
+
+-- this will start_terminal on top of your start_terminal, effectively looping your connection on that machine
+
+-- this will ensure your end point proxy's ip is left in logs. Without this, you risk exposing ip's behind the proxy.
+
+***note: this means you'll have to 'exit' twice from that proxy to return home
+Passive Traces can/will start when certain actions have been left unaddressed:***
+
+- ***Deleting a file and not removing the log entry***
+- ***Leaving a connection closed log without a corresponding connection established log***
+- ***Leaving a shell connected log at all***
+- ***I think connection routed logs trigger traces, too. Not sure though.***
+
+We all leave logs, sometimes. To clean them up, here are a few methods:
+<pre>
+Silentclean -- local log corruption using a text file
+</pre>
+creates a file used to corrupt logs
+
+**has nuke option (see: silentclean -h)**
+
+<pre>
+Rclean -- remote (or local) log corruption using objects
+</pre>
+uses a file already on system to corrupt logs
+
+accepts and works on piped objects see: 
+<pre>
+rclean -h
+</pre>
+
+### MV 
+
+yep, just the mv command
+
+<pre>
+poke haha | mv haha /var/system.log
+</pre>
+
+Wiping the log with one of these methods using a reverse shell is best
+but not necessary. 
+
+You may run: 
+<pre>
+silentclean, exit 5hell, exit the terminal, and you will not leave a disconnect log.
+</pre>
+***be aware that taking any log-creating action after running sc, except exiting, may regenerate the log.***
+
+
+
+## Main tools
+
+<pre>
+probe -- whois and portmap a target
+</pre>
+<pre>
+db -- scan target and database results
+</pre>
+<pre>
+meta -- metaLib and metaxploitLib fine control
+</pre>
+<pre>
+zap -- select and fire exploits one at a time (does not database)
+</pre>
+<pre>
+roil -- fire all exploits at once (does not database)
+</pre>
+<pre>
+malp -- Memory Alpha: BUFFER management
+-- exploit results and other objects go here
+-- this is arguably the backbone of 5hell
+</pre>
+<pre>
+scpm -- menu and/or cli driven scp
+</pre>
+<pre>
+kraken -- proxy management
+</pre>
+<pre>
+scribus -- simple text editor
+</pre>
+<pre>
+cerebrum -- add 325k+ passwords to custom_object.dictionary
+</pre>
+<pre>
+brutus -- use custom_object.dictionary to get root on any (unmodified) npc machine
+</pre>
+
+**See: [command] [-h|help] for more help on these and other commands**
+
+
+## Aliases
+
+**Aliases || Shortcuts || Macros || or is it Macro's ? || User Defined Behavior**
+
+5hell can be very simple to use, or very, very complicated, depending on your goals.
+It isn't necessary to learn 100% of 5hell. Nor is it necessary to suffer through some of it's
+more complex chains of commands. You can define your own behavior in a number of ways:
+
+Aliases: 
+ You may define aliases in the aliases section of 5hell.src
+the default ones supplied are all prompt replacements. There are also 'easy clip' defenitions
+that replace arguments in the user input with, for instance, the contents of a clipboard or
+your @home server ip. These hard coded aliases may be more complicated than a simple
+word or string replacement. You may, for instance, have a simple two word alias fire
+a whole series of commands. This might be considered a macro at that point, but also
+might not quite qualify.
+
+Here is a list of the currently defined default aliases in 5hell.src:
+
+<pre>
+Alias           | Definition
+bat [path]      | do 1 -f [path]
+set [key] [val] | cob set [key] [val]
+get [key]       | cob get [key]
+lock            | perms lock all
+exit            | quit
+sc [opt]        | silentclean [opt]
+gp [#]          | glasspool [#]
+prompt          | -this will toggle the full_prompt on/off-
+
+Easy Clip       | Replacement
+@a              | clipa -- globals.clip_board_alpha
+@b              | clipb -- globals.clip_board_beta
+@c              | clipc -- globals.clip_board_gamma
+@tbuf           | transmission buffer -- globals.T_BUF
+-- this is      | where hashes go when the tree command finds them
+@home           | HOME_SERVER ip address defined in 5hell.src
+</pre>
+
+***Please note: several commands have their own references for editing the clipboards***
+
+-- these commands will use @clipa, @clipb, @clipc instead of @a, @b, @c
+Further, the clipa, clipb, and clipc will use @B to reference the BUFFER:
+
+-- e.g: 
+<pre>
+|> clipa @B 1 -- copy the object at index 1 in the BUFFER to clipa
+</pre>
+-- that object may then be used by other commands that accept piped objects as input
+
+-- there are other ways to pipe objects around besides the clipboards, explore to learn more.
+
+---
+
+
+
+
+
+
 # Documentation
 <pre>
 This is the same documentation the command 'help -s' would show inside 5hell
