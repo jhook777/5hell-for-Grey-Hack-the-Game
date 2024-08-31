@@ -237,7 +237,7 @@ on the last line to autoexit and echo completion
 **This section explains a few things about the 5hell in a more detailed manner.**
 <pre>
 This information is also shown inside the 5hell via the help -s command, 
-but for better readability it is placed here instead on the very bottom.
+but for better readability it is placed here as well as the very bottom.
 </pre>
 
 
