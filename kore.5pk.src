@@ -1064,7 +1064,10 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if st == "1" then
 		command.glasspool(ts)
 	end if
-	if st == "2" then ts.start_terminal
+	if st == "2" then 
+		ts.start_terminal
+		exit colorWhite+"Starting terminal..."
+	end if
 	if st == "3" then
 		if GLASSPOOL then
 			print(colorLightBlue+"GLASSPOOL: "+colorOrange+"active"+colorLightBlue+" on: "+CT)
@@ -1197,7 +1200,10 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.secure_copy(target_shell, target_path, direction, skip)
 end function
 command.iwlist = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: iwlist -- returns wifi networks in range. (uses command.air false)"
+	if arg1 == "help" or arg1 == "-h" then return "<u>IWLIST || WIFI NETWORKS || WIFI POWER"+char(10)+
+	"Usage: iwlist -- returns a string containing all wifi networks in range"+char(10)+
+	"-- uses the command:<b> air false"+char(10)+
+	"note: use the <b>air</b> menu for iwconfig functionality"
 	return command.air("false")
 end function
 command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
@@ -1485,15 +1491,25 @@ command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not get then return "lanpro: invalid argument or router unreachable" else return get
 end function
 command.nsl = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup</u>"+char(10)+"Usage: nsl [www.webAdress.com] -- uses nslookup on address and returns ip as a string"+char(10)+"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+"Experimental: nsl will attempt to append <b>www.</b> to a domain if it is omitted."
+	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup || reverse ip lookup || domain to ip</u>"+char(10)+"Usage: nsl [www.webAdress.com] -- uses nslookup on address and returns ip as a string"+char(10)+"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+"note: nsl will append <b>www.</b> to a domain if it is omitted."+char(10)+"Usage: nsl [ip] -- returns domain linked to ip (reverse lookup)"
 	if not localmachine.is_network_active then return "nsl: no network connection."
+	print "<u>"+colorGold+"= = = = NSLOOKUP = = = ="
 	address = arg1
-	print("Address: "+address)
+	if typeof(address) != "string" then return "nsl: expects string"
+	print "Address: "+address+char(10)
+	if is_valid_ip(address) then 
+		if DEBUG then print "debug: reverse nsl lookup"
+		who_string = whois(address) 
+		if DEBUG then print "debug: who_string: "+who_string
+		domain = who_string.split(char(10))[0].split(":")[1]
+		print colorLightBlue+"<u>Domain: "
+		return domain.trim
+	end if
 	prefix = address[0:4]
 	if DEBUG then print("debug_prefix:["+prefix+"]")
 	if prefix != "www." then address = "www."+address
 	if DEBUG then print("debug_address:"+address)
-	print(colorLightBlue+"IP: ")
+	print(colorLightBlue+"<u>IP: ")
 	return nslookup(address)
 end function
 command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -1520,10 +1536,25 @@ command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.whois = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "Usage: whois [ip] --  returns whois information."+char(10)+"Usage: whois -- returns local whois information if no params."
+	if arg1 == "-h" or arg1 == "help" then return "WHOIS || whois information || network info"+char(10)+
+		"Usage: whois [ip] --  returns whois information for given ip"+char(10)+
+		"Usage: whois -- returns local netowrk whois information if no params given"+char(10)+
+		"Usage: whois [-nb|--getbox] -- run whois on a loop until a Neurobox Network is found"+char(10)+
+		"-- avg runtime is less than 20 seconds"+char(10)+
+		"-- search automatically terminates if runtime exceedes 1 minute"
 	if not arg1 then return "whois: no ip provided. Returning localhost:"+char(10)+whois(globals.pubip)
+	if arg1 == "--getbox" or arg1 == "-nb" then 
+		found = false
+		time_s = time
+		while not found 
+			string = whois(command.rnip("1"))
+			if string.indexOf("[Neurobox") != null then found = true
+			if time_s-time>60 then return "whois: search exceeded 60 seconds: terminating search"
+		end while
+		return string
+	end if 
 	if not is_valid_ip(arg1) then return "whois: invalid ip"
-	return whois(arg1).replace("Neurobox Network",colorCyan+"<size=150%>Neurobox Network</size>"+CT)
+	return whois(arg1).replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)
 end function
 command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 	ssh_help = function()
@@ -1749,7 +1780,8 @@ command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
 		"Note: as usual, all results are sent to malp"
 	if not globals.metaxploit or not globals.crypto then return "One or more required libraries was not found."
 	if arg1 and is_valid_ip(arg1) then globals.targetIP = arg1
-	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int
+	if arg2 and typeof(arg2.to_int) == "number" then globals.targetPort = arg2.to_int else globals.targetPort = "router"
+	if DEBUG then print "<b>debug: ip is "+globals.targetIP+" and port is: "+globals.targetPort+" which is a: "+typeof(globals.targetPort)
 	globals.main
 	return 0
 end function
@@ -1817,59 +1849,84 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.scrub = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "scrub: wipe proxy net logs using kraken and optional silentclean"+char(10)+"Usage: scrub [optional: -s] -- force run silentclean locally on each proxy (requires silentclean installed on proxy)"
+	if arg1 == "-h" or arg1 == "help" then return "logs || log scrubbing || proxy management || scp"+char(10)+
+	"Usage: scrub [opt:-s] -- wipe logs of all proxies using kraken "+char(10)+
+	"-- the [-s] option scrubs the logs with a file named 'silentclean' stored on the server"+char(10)+
+	"-- this requires a file named silentclean to be somewhere on the proxy"+char(10)+
+	"-- it may be an empty file"+char(10)+
+	"note: uses the command<b> kraken scrub"
 	return command.kraken("scrub", arg1, arg2)
 end function
 command.prox = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "prox: use kraken to route through proxy net and open terminal at end."
+	if arg1 == "-h" or arg1 == "help" then return "KRAKEN shortcut || proxy tunneling"+char(10)+"
+	Usage: prox -- use kraken to route through proxy net and open terminal at end"+cgar(10)+
+	"-- equivalent to<b> kraken connect"
 	return command.kraken("connect", arg1, arg2)
 	return 0
 end function
 if DEBUG then print("<size=75%>loading ...kraken.5pk...(10.875b)</size>")
+// gonna have to completely reqrite kraken, otherwise it's going to become impossible to maintain
 command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	kraken_help = function()
 		return "Usage: kraken [optional: upload_path] propagate file or folder to all proxies, chlock, delete /etc/passwd using Config/Map.conf"+char(10)+"shortcuts: kraken connect == prox"+char(10)+"shortcuts: kraken scrub == scrub"+char(10)+"Usage: kraken [/path|prox|scrub|-l|buffer] -- shells will be sent to BUFFER."+char(10)+"New: kraken [command] [-s] -- run silentclean locally on each proxy after command. (if silentclean is installed on that system)"+char(10)+"Advanced: kraken [add|del|show] [opt:ip] [opt:pass] -- add|remove items to|from Map.conf or display current map."+char(10)+"Usage:<b> kraken show -p </b>-- show proxy list with passwords."+char(10)+"New:<b> kraken -l </b> -- download logs from proxies (and then scrub)"+char(10)+"Usage: kraken -- launch kraken menu"+char(10)+"NEW: kraken will no longer scrub logs by default! "+char(10)+"-- please use <b>kraken scrub</b> or the shortcut <b>scrub</b> to clean corrupt proxy logs."+char(10)+"Logs are still scrubbed by default when running:"+char(10)+"-- kraken -l, kraken connect, prox (shorcut for kraken connect)"+char(10)+"-- kraken scrub, scrub (shorcut for kraken scrub)"+char(10)+"Kraken will <b>not</b> autoscrub for:"+char(10)+"-- kraken [path] and/or  kraken buffer"
 	end function
 	if arg1 == "-h" or arg1 == "help" then return kraken_help
+	mak_bin = false
 	map_path = home_dir + "/Config/Map.conf"
 	map_file = localmachine.File(map_path)
-	if not map_file then
-		print( "kraken: map.conf not found. " )
-		mak_map = user_input("Create it? [Y/n] ||: ",0,1)
-		if mak_map.lower == "n" then return "aborting..."
-		print "kraken: writing to: "+home_dir+"/Config/Map.conf"
-		print localmachine.touch(home_dir+"/Config", "Map.conf")
-		map_path = home_dir + "/Config/Map.conf"
-		map_file = localmachine.File(map_path)
-		if map_file then print("-- "+home_dir+"/Config/Map.conf created.") else return "kraken: write error! Map.conf not created"
+	if not map_file and not get_custom_object.hasIndex("kraken_map") then
+		print( "kraken: Map.conf not found " )
+		mak_map = user_input("- Create it as binary or text?"+char(10)+"[<b>B|b</b> - create binary Map.conf]"+char(10)+"[t] - create text Map.conf"+char(10)+"[n|q] - abort ||: ",0,1)
+
+		if mak_map.lower == "n" or mak_map.lower == "q" then return "aborting..."
+		if mak_map.lower == "t" then 
+			print "kraken: writing [text] to: "+home_dir+"/Config/Map.conf"
+			print localmachine.touch(home_dir+"/Config", "Map.conf")
+			map_path = home_dir + "/Config/Map.conf"
+			map_file = localmachine.File(map_path)
+			if map_file then print("-- "+home_dir+"/Config/Map.conf created.") else return "kraken: write error! Map.conf not created"
+		
+		else 
+			mak_bin = true 
+		end if
 	end if
 
-	/////// finish me!~~~~////////
-	// if map file is binary, process that
-	if map_file.is_binary then 
+	////////// if map file is binary, process that, otherwise process text file
+	if mak_bin != true and map_file.is_binary then 
 		if map_file.is_folder then return "kraken: map file cannot be a folder"
 		if not map_file.has_permission("x") then return "kraken: cannot launch Map.conf, check permissions"
+		// some sort of auth needs to be in place. probably just a password in the Map.conf binary
+		ggg = get_custom_object
+		if ggg.hasIndex("kraken_map") then 
+			if user_input(colorOrange+"kraken: warning, stored map info will be cleard"+char(10)+"Continue? [<b>Y</b>/n] ||: ").lower == "n" then return "kraken: aborting..."
+			print command.cob("del","kraken_map")
+		end if
 		attempt = command.run(map_file.path)
 		if attempt == 1 then 
-			ggg = get_custom_object
-			if ggg.indexOf("kraken_map") != null then 
-				map_dat = ggg.kraken-map
+			if ggg.hasIndex("kraken_map") then 
+				map_dat = ggg.kraken_map // expects STRING
 			else 
 				return "kraken: binary Map.conf failed authentication"
 			end if
+		else 
+			return "kraken: launch error: check Map.conf"
 		end if
 	else 
-		if map_file.has_permission("r") then map_dat = map_file.get_content else return "kraken: cannot read Map.conf"
+		if mak_bin != true then 
+			if map_file.has_permission("r") then map_dat = map_file.get_content else return "kraken: cannot read Map.conf" // map.conf is text
+		end if
+		if mak_bin == true then map_dat = ""
 	end if
 	////////////////////
 
 	//map read
-	print(colorCyan+"Initializing Kraken v 0.9.6 by Plu70..."+CT)
+	print(colorCyan+"Initializing Kraken v 0.9.7 by Plu70..."+CT)
 	time_s = time
 	MAP = {}
 	MAP.accounts = {"accounts":[{"user":"user","ip":"ip","password":"password"}]}
 
 	MAP.init = function(map_string)
+		if DEBUG then print "debug: in Map.init..."+char(10)+"debug: map_string: ["+typeof(map_string)+"]"+char(10)+map_string
 		if map_string == "" then //return "Kraken: empty Map.conf"
 			map_string = "{""accounts"":[],""historyConnections"":[]}"
 		end if
@@ -1893,32 +1950,58 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end function
 	proxy.add = function(ip,pass)
 	  proxy.accounts[proxy.accounts.len] = {"user":"root","ip":ip,"password":pass}
-	  return "added: root@"+pass+" "+ip
+	  return "kraken: added root@"+pass+" "+ip
 	end function
 	proxy.del = function(int)
 	  if proxy.accounts.hasIndex(int.to_int) then
 	    tar = proxy["accounts"][int.to_int]["ip"]
 	    proxy.accounts.remove(int.to_int)
-	    return "deleted: "+tar
+	    return "kraken: deleted: "+tar
 	  else
-	    return "invalid index"
+	    return "kraken: invalid index"
 	  end if
 	end function
 
 	proxy.save = function()
-	  out = {"accounts":[],"historyConnections":[]}
-	  for i in proxy.accounts
-	    out.accounts.push(i.value)
-	  end for
-	  string = "{""accounts"":["+out.accounts.join(",")+"],""historyConnections"":[]}"
-	  final = ""
-	  for char in string
-	    if char != " " then final = final + char
-	  end for
-	  //localmachine.touch(currentPath, "Map.new")
-	  new_map = localmachine.File(map_path)
-	  new_map.set_content(final)
-	  return "...saved to "+new_map.path
+		if DEBUG then print "debug: in proxy.save"
+		out = {"accounts":[],"historyConnections":[]}
+		if proxy.accounts.len > 0 then
+			for i in proxy.accounts
+				out.accounts.push(i.value)
+			end for
+		end if
+		string = "{""accounts"":["+out.accounts.join(",")+"],""historyConnections"":[]}"
+		final = ""
+		for char in string
+			if char != " " then final = final + char
+		end for
+		//localmachine.touch(currentPath, "Map.new")
+		new_map = localmachine.File(map_path)
+		//new_map_parent = new_map.parent.path
+		new_map_parent = home_dir+"/Config"
+		// new stuff for binary Map.conf
+		if mak_bin == true or new_map.is_binary then 
+			KRAKEN_PASS = "password" // temp location of this variable
+			bin_buf = "if user_input(""Authenticate: "") != ""password"" then exit ""Authentication failed"";get_custom_object.kraken_map = """+command.string("-r","""","""""",final)+""""
+			if DEBUG then print "debug: bin_buf: "
+			if DEBUG then print bin_buf
+			if DEBUG then print
+			if DEBUG then print "debug: map line: >> "
+			if DEBUG then print final
+			if DEBUG then print
+			if DEBUG then print "debug: poking source file"
+			make_file = command.poke("Map.conf.src")	
+			if DEBUG then print "debug: poked"
+			make_file.set_content(bin_buf )
+			if DEBUG then print "debug: content set"
+			if DEBUG then print "debug: building..."
+			print command.make("Map.conf.src", new_map_parent)
+			print "kraken: [binary] Map.conf built. Please secure the file's permissions."
+		else 
+			new_map.set_content(final)
+			print "kraken: write to [text] Map.conf complete"
+		end if
+		return "kraken: map saved to: <u>"+colorWhite+new_map_parent+"/Map.conf"
 	end function
 
 	MAP.parse = function()
@@ -1971,6 +2054,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	print(colorOrange+"</b>Run:<b> scrub</b> or<b> kraken scrub </b>manually to corrupt logs."+CT)
 	print(colorOrange+"</b>Logs <u>will</u> be scrubbed for: <b>kraken connect</b> and the <b>prox</b> command.")
 	last_shell = shell
+	////// START KRAKEN MENU //////
 	if not waitFor then waitFor = user_input("["+colorCyan+"/path/to_file_or_folder"+CT+"] = upload to all proxies and BUFFER shells"+char(10)+"["+colorWhite+"prox"+CT+"] route through proxies and open shell at last proxy "+char(10)+"["+colorWhite+"-l"+CT+"] download (then scrub) proxy logs and BUFFER shells"+char(10)+"["+colorWhite+"scrub"+CT+"] scrub logs on all proxies and BUFFER shells"+char(10)+"["+colorWhite+"show"+CT+"] show ips of proxies in map"+char(10)+"["+colorWhite+"add"+CT+"] add proxy to map "+char(10)+"["+colorWhite+"del"+CT+"] remove proxy from map "+char(10)+"["+colorWhite+"buffer"+CT+"] = add all proxies to BUFFER without scrubbing"+char(10)+"[help] show help"+" [q]=quit "+char(10)+"kraken:> ",0,0)
 	if waitFor == "q" or waitFor == "Q" or waitFor == "" then return "Aborting..."
 	if waitFor == "help" or waitFor == "-h" then return kraken_help
@@ -2002,8 +2086,8 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		if nip == "" then return "aborting..."
 		if not arg3 then npa = user_input("add_pass:> ",1,0)
 		if npa == "" then return "aborting..."
-		if not is_valid_ip(nip) then return "Kraken: invalid ip."
-		if npa == "" or npa == " " then return "Kraken: invalid password."
+		if not is_valid_ip(nip) then return "kraken: invalid ip."
+		if npa == "" or npa == " " then return "kraken: invalid password."
 		print("Adding: "+nip+char(10)+proxy.add(nip, npa))
 		proxy.show
 		return proxy.save
@@ -2019,6 +2103,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end if
 	buffer = false
 	if waitFor == "buffer" then buffer = true
+	////////////// END KRAKEN MENU /////////////////////////
 	if waitFor == "-l" or waitFor == "scrub" or waitFor == "connect" or waitFor == "prox" then
 		scrub = true
 		if waitFor == "connect" or waitFor == "prox" then
