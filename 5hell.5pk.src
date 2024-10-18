@@ -1,10 +1,10 @@
 // 5hell v 3.8.6 by Plu70
 // released v 3.8.6
 // imports .5pk files from /root/src
-ver = "3.8.7_amalgamated_horrors"
+ver = "3.9.0_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "147.796"
+size_of_5hell = "149.867"
 ///////////////////////////////////////
 //
 // changes:
@@ -18,7 +18,6 @@ size_of_5hell = "147.796"
 // database overhaul :(
 // tdump: wait for response feature
 // tdump: dump to local path
-// add shell and computer object param to command.file
 // add chmod/perms to command.felix
 // kore -r needs to give /lib precedence when searching for components
 // add custom theme config
@@ -29,7 +28,32 @@ size_of_5hell = "147.796"
 //
 // scp falsely reports failure sometimes: track this down
 // dig barfs when database.csv is full
-// 
+// p_exe needs to play nicer
+// absolutely must update the databasing system
+// -- a single flat file is not sufficient
+// update chop and grep to use piped strings
+//
+// fixed display issue in sphinx when port is (int: 0)
+// added reverse nsl
+// chop: help info was clipped: fixed it
+// added color to help
+// whois: added getbox option to sus out a neurobox network
+// added whoami command
+// updated iwlist help info
+// colorized output of cp and mv
+// gave kraken binary powers
+// -- needs polish
+// updated 5hell.src with whoami in prompt
+//
+// file: fixed typo preventing file usage info from printing
+// file: removed weird grep routine 
+// 5phinx: updated newtree to return a list on quiet == 2
+// makfit: removed autolockdown after compilation because wtf why
+// -- also updated output text
+// cat: added -n flag for 'no_parse' mode; returns file contents with richtext tags escaped
+// -- updated usage info for this change
+// cat: added check for newline in filename input
+//
 // added new entries to the credits
 // updated readme on github
 // 
@@ -902,6 +926,7 @@ command.rm = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
   if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return "Usage: mv [/source_path] [/destination_path] -- move file or folder to new path."+char(10)+"-- if destination is folder uses original filename, else renames."+char(10)+"Advanced: mv [/source/path] [@] -- move source to current path and use original file name."+char(10)+"n.b. this command is also used to rename a file."+char(10)+"e.g.<b> mv bob /burger -- moves bob to / dir and renames to burger."
+  print "<u>"+colorLightBlue+"= = = = ="
   file = globals.get_file(arg1)
   if not file then return("mv: can't find " + arg1)
 	destination = null
@@ -929,7 +954,7 @@ command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
 		end if
 	end if
 	if final_name == "@" then final_name = file.name
-	if destination == "/" then print "mv: "+file.path+" -> "+destination+final_name+"..." else print "mv: "+file.path+" -> "+destination+"/"+final_name+"..."
+	if destination == "/" then print "mv: "+file.path+" -> "+destination+final_name+"..." else print "mv: <u>"+colorWhite+file.path+" -> "+destination+"/"+final_name+"..."
   return file.move( destination, final_name )
 end function
 command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -946,6 +971,7 @@ command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
   "Usage Example:"+char(10)+
   "-- poke haha |  | grep -p syst / | cp haha"+char(10)+
   "---- create file haha, grep for (system.log) and return file_path, overwrite /var/system.log with haha"
+  print "u"+colorGreen+"= = = = ="
   file = globals.get_file(arg1)
   if not file then return("cp: can't find " + arg1)
   destination = null
@@ -972,7 +998,7 @@ command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
     end if
   end if
 	if final_name == "@" then final_name = file.name
-	if destination == "/" then print "cp: "+file.path+" => "+destination+final_name+"..." else print "cp: "+file.path+" => "+destination+"/"+final_name+"..."
+	if destination == "/" then print "cp: "+file.path+" => "+destination+final_name+"..." else print "cp: <u>"+colorWhite+file.path+" => "+destination+"/"+final_name+"..."
 	print colorGold+"- - - - - - - - - - - - - - - - - - - - - - -"
   return file.copy( destination, final_name )
 end function
@@ -1138,7 +1164,11 @@ command.mkdir = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: cat [path_to_text_file|file_object] -- returns contents of text file or null if read denied."+char(10)+"Usage: cat [file_object] -- returns contents of piped file object"+char(10)+"e.g. clipc @B 3 | cat -- where BUFFER[3] contained a text file"
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "File Contents || cat || what's in that file"+char(10)+
+	"Usage: cat [path_to_text_file|file_object] -- returns contents of text file or null if read denied"+char(10)+
+	"Usage: cat [file_object] -- returns contents of piped file object"+char(10)+
+	"-- e.g: grep -f passwd | cat "+char(10)+
+	"Usage: cat [-n|--noparse] [path|object] -- return contents of text with with richtext tags escaped"
 	file = null
 	kittehns = ["=^._.^= S","^·-·^","^• •^","~(^._.)","(^._.^)s","(^..^)S","(^-.-^)","Z(=^.^=)"]
 	kittehns.shuffle
@@ -1157,6 +1187,7 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 	else
 		if typeof(arg1) == "string" then
 			if arg1 == "" or arg1 == " " then return "cat: file not found."
+			if arg1.indexOf(char(10)) != null then return "cat: invalid input"
 			file = globals.get_file(arg1)
 			if not file then return ("cat: "+arg1+" not found")
 		else
@@ -1587,6 +1618,16 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	"Advanced: enum -e -- return the enumerated buffer as a list object."+char(10)+
 	"Note: map support is coming soon(tm)"
 	if arg1 == null then return 0
+	if not arg1 or arg1 == "0" then
+		if globals.enumerated.len then return globals.enumerated[0] else return 0
+	end if
+	if arg1 == "-r" then 
+		if not arg2 then return "enum: -r expects an index"
+		if typeof(arg2.to_int) != "number" then return "enum: invalid index"
+		if globals.enumerated.hasIndex(arg2.to_int) then globals.enumerated.remove(arg2.to_int)
+		return "enum: entry at index "+arg2+" removed"
+
+	end if
 	if arg1 == "-b" then 
 		if globals.enumerated.len < 1 then return "enum: enumerated buffer is empty"
 		print "enum: <b>appending enumerated buffer to main BUFFER</b>"
@@ -1596,9 +1637,6 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-p" then 
 		globals.enumerated = []
 		return "enum: "+colorOrange+" enum buffer purged"
-	end if
-	if not arg1 or arg1 == "0" then
-		if globals.enumerated.len then return globals.enumerated[0] else return 0
 	end if
 	if arg1 == "-i" then 
 		if not arg3 then return "enum: -i [index] [element]"
@@ -2172,7 +2210,8 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"-- Maximum time: 300 seconds"+char(10)+
 	"-- useful for putting a delay in 'do' scripts."+char(10)+
 	"-- useful for putting a delay in a chain of commands"+char(10)+
-	"-- this command uses the general function: wait(time)"
+	"-- this command uses the general function: wait(time)"+char(10)+
+	"Usage: pause [-m] -- pause until manually unpaused (by pressing enter)"
 	time_to_wait = "1" // default wait 1 second 
 	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
 	if arg1 == "-m" then 
@@ -2378,6 +2417,12 @@ bios_info.push("*<size=50%> see <b>bios -h</b> for additional usage info.")
 bios_info.push("<mark=red><u>=======================================================================</u></mark>")
 
 return bios_info.join(char(10))
+end function
+command.whoami = function(arg1,arg2,arg3,arg4)
+	if arg1 == "help" or arg1 == "-h" then return "WHOAMI || current user || active user || new user, who dis?"+char(10)+
+	"Usage: whoami -- returns the active_user"+char(10)+
+	"-- if GLASSPOOL is active; returns best guess at active user"
+	if GLASSPOOL then return checkUser(localmachine) else return active_user
 end function
 command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "credits"
@@ -2714,11 +2759,11 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	buf = []
 	count = 0
 	for i in range(0,rows)
-		buf.push(index[count:count+columns].join(" "))
+		buf.push("<color=#FFFFFFFF><b>"+index[count:count+columns].join(" "))
 		count = count + columns
 	end for
 	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
-	print(format_columns(buf.join(char(10))).replace("sphinx", colorRed+"sphinx"+char(8482)+CT) ) 
+	print(format_columns(buf.join(char(10))).replace("sphinx", "<color=#FF0000FF><b>sphinx"+char(8482)+CT ) ) 
 	print
 	print(":><b> help</b> -- print this page: lists commands alphabetically")
 	print(":><b> help guide</b> -- for a quick getting started guide")
