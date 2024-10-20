@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.5.7 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.7 for 5hell v 3.9.0...(125.809kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.7 for 5hell v 3.9.1...(126.072kb)</size>")
 
 //Define Globals
 sphinx_version = "2.5.7"
@@ -2330,7 +2330,10 @@ roil = function(inject=0)
     return
   end if
   print(format_columns(XPLOITS))
-  if not inject then inject = user_input("Enter ip or passwd for inject value or leave blank (press<b> return</b>)"+char(10)+":> ")
+  prompt_me = false
+  if inject == "-p" or inject == "--prompt" then prompt_me = true 
+  if prompt_me then inject = user_input("Enter lan_ip or password for inject value (<<b>enter</b>>=""pass"",q=quit):"+char(10)+":> ")
+  if not inject then inject = ""
   for X in XPLOITS
     x = X.split(" ")
     mem = x[0]
@@ -2339,17 +2342,20 @@ roil = function(inject=0)
     print("Hooked: " + typeof(result) + " with " + mem + " " + val)
     if result then globals.BUFFER.push(result) // buffer the result before handling it
     if typeof(result) == "shell" then
-      shell_prompt(result)
+      if prompt_me then shell_prompt(result)
+      print colorGold+"[BUFFERING SHELL]"
     end if
     if typeof(result) == "file" then
-      list_files(result)
+      if prompt_me then list_files(result)
+      print colorGreen+"[BUFFERING FILE]"
     end if
     if typeof(result) == "computer" then
-      hooked_comp(result)
+      if prompt_me then hooked_comp(result)
+      print colorWhite+"[BUFFERING COMPUTER]"
     end if
-    //if result then  globals.BUFFER.push(result)
   end for
 end function
+
 //Depricated function. Use roil.
 zap_it = function()
   if MEMORY == null then return "Run a scan first."
