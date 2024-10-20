@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.0...(112.287)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.1...(113.080)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -168,6 +168,7 @@ command.dfit = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<u><b>CHOP || DELIMITER || FILE TOOLS || clipboard tools"+char(10)+
+	"Usage: chop [input] [index] [delimiter] [output]"+char(10)+
 	colorGreen+"Usage: chop [path_to_file|@clipa|b|c] [index] [delimiter] [output_filename] -- chop a file"+char(10)+
 	"<color=green>param: <color=white>path_to_file</color> -- file to chop"+char(10)+
 	"-- if path_to_file is @clipa, @clipb, or @clipc it will chop the clipboard instead"+char(10)+
@@ -176,7 +177,10 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	"-- default: 0"+char(10)+
 	"<color=green>param: <color=white>delimiter</color> -- split each line at this pattern"+char(10)+
 	"-- default: char(32) aka a sapce"+char(10)+
-	"<color=green>param: <color=white>output_filename</color> -- name for outfile"
+	"-- to use char(10) as a delimiter pass ""/n"" or a piped newline for the delimiter parameter"+char(10)+
+	"-- one way to pipe a newline is: <b>code -c 10 | clipa</b> -- this will place a newline in the clipboard"+char(10)+
+	"---- then:<b> chop [path] [index] @a [outpath]"
+	"<color=green>param: <color=white>output_filename</color> -- name for outfile"+char(10)+
 	"-- prompts for output filename if not supplied"+char(10)+
 	"-- outputs to current path with filename: output_filename "+char(10)+
 	"-- output_filename may be @clipa, @clipb, or @clipc to output to clipboards instead"+char(10)+char(10)+
@@ -189,6 +193,7 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	"boom"+char(10)+
 	"dy"+char(10)+
 	"bra"+char(10)
+	if DEBUG then print "debug: in chop"
 	file = null
 	clipping = false
 	if typeof(arg1) == "string" then
@@ -224,29 +229,40 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	else
 		data = file.get_content.replace(char(160),char(32)).split(char(10))
 	end if
+	if DEBUG then print "debug: data: "+data
 	out = []
 	del = char(32)
 	if arg3 then del = arg3
+	if del == char(10) then del = "/n"
+	if DEBUG then print "debug: del: "+del
 	//print("del: "+del)
 	inde = 0
 	if arg2 then inde = arg2.to_int
 	if typeof(inde) != "number" then inde = 0
-	for line in data
-		if line == "" then continue
-		//print("Chopping "+line)
-		l_split = str(line).split(del)
-    i = 0
-    fix = []
-    for c in l_split
-      if c != "" then fix.push(l_split[i])
-      i = i + 1
-    end for
-		//print(fix)
-		if fix.hasIndex(inde) then out.push(fix[inde])
-	end for
+	if del == "/n" then
+		if DEBUG then print "debug: del is a newline"
+		if data.hasIndex(inde) then out.push( data[inde] )
+	else
+		for line in data
+			if line == "" then continue
+			//print("Chopping "+line)
+			l_split = str(line).split(del)
+			i = 0
+			fix = []
+			for c in l_split
+				if c != "" then fix.push(l_split[i])
+				i = i + 1
+			end for
+			//print(fix)
+			if fix.hasIndex(inde) then out.push(fix[inde])
+		end for
+	end if
+	if DEBUG then print "debug: writing output"
 	if typeof(new_file) == "file" then
 		//print("error: "+new_file)
-		new_file.set_content(out.join(char(10)))
+		print "chop: saving contents to "+colorWhite+new_file.path
+		print new_file.set_content(out.join(char(10)))
+		print "chop: saved:"
 		return new_file.get_content
 	else
 		if new_file == "@clipa" then return command.clipa(out.join(char(10)))
@@ -675,7 +691,7 @@ command.make = function(arg1, arg2, arg3=0, arg4=0)
 	if not folderDest then return("build: can't find " + folderDest)
 	output = shell.build(fileSource.path, folderDest.path, importableCode)
 	if output.len == 0 then
-		return("build successful.")
+		return("make: build successful")
 	else
 		return(output)
 	end if
