@@ -1,10 +1,10 @@
-// 5hell v 3.8.6 by Plu70
-// released v 3.8.6
+// 5hell v 3.9.1 by Plu70
+// released v 3.9.1
 // imports .5pk files from /root/src
-ver = "3.9.0_amalgamated_horrors"
+ver = "3.9.1_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "149.867"
+size_of_5hell = "150.187"
 ///////////////////////////////////////
 //
 // changes:
@@ -24,14 +24,20 @@ size_of_5hell = "149.867"
 // connect_service increases trace time: add something for that
 // add a way to tell grep to ignore specific folders
 // expand tree -f to take both path and object as params (jk have to start over)
+// -- kinda fixed this in the regular tree command....
 // update 5phinx F1 help info: remove or correct outdated info
-//
 // scp falsely reports failure sometimes: track this down
 // dig barfs when database.csv is full
 // p_exe needs to play nicer
 // absolutely must update the databasing system
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
+//
+// roil: removed prompts by default
+// -- added -p|--prompt param to restore prompts
+// meta: link -r accepts [ip] [port]
+// updated usage info for the above
+// added dhza to credits
 //
 // fixed display issue in sphinx when port is (int: 0)
 // added reverse nsl
@@ -2445,7 +2451,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, Silent, Deckard, Minidevil96, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Minidevil96, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -2785,6 +2791,7 @@ end function
 
 ///////////////////////////////////////////////////////////////////////////////
 if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
+//if DEBUG then print("<size=75%>size_of_5hell["+globals.SHEBIG+"]")
 //if DEBUG then print("initializing portmap...")
 //if localmachine.is_network_active then command.probe("-q",pubip,"0","1")
 if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
