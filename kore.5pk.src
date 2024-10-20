@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 39.0...(145.455kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.1...(147.080kb)</size>")
 // command.kore = function(arg1, arg2, arg3=0, arg4=0)
 // 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 // 	globals.CYCLES = 0
@@ -2641,7 +2641,7 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 				file = r_r.host_computer.File("/root/rkit/database.csv")
 				if not file then return (colorRed+"404: remote database not found"+CT)
 			else
-				return (colorRed+"222: remote server unreachable."+CT)
+				return ("linkdb: error; remote server unreachable."+CT)
 			end if
 		else
 			file = localmachine.File(arg2+"/database.csv")
@@ -2661,10 +2661,10 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 			print(catch)
 			return 0 
 		else 
-			return "Database: data not found. Scan required."
+			return "Database: entry not found; Scan required."
 		end if
 	end if
-	print( "Database: link failed. Check database path or permissions and try again." )
+	print( "Database: link failed; Check database path or permissions and try again." )
 	return 0
 end function
 command.meta = function(arg1, arg2, arg3=0, arg4=0)
@@ -2690,8 +2690,11 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	"----- the "+colorOrange+"metaxploitLib "+CT+" object looks at the lib folder of it's native machine"+char(10)+
 	"----- use the ls command to get the correct contents of /lib "+char(10)+
 	"----- or run the db -m command with a glasspool shell/computer on the target"+char(10)+
-	colorCyan+"Usage: meta link -r</color></b> -- link a remote net_session using targetIP and targetPort"+char(10)+
-	"-- skips confirmation"+char(10)+
+	colorCyan+"Usage: meta link -r [opt:ip] [opt:port]</color></b> -- link a remote net_session "+char(10)+
+	"-- uses global targetIP and targetPort if ip and port are not passed"+char(10)+
+	"-- skips confirmation "+char(10)+
+	"-- passing ip and port sets global targetIP and targetPort"+char(10)+
+	"-- if ip is passed without port; defaults to targetPort (or router if not set)"+char(10)+
 	colorCyan+"Usage: meta scan -- scans the linked "+colorLightBlue+"</b>metaLib"+CT+" and loads vulns to memory"+char(10)+
 	"-- does NOT update the database"+char(10)+
 	"-- equivalent to 5phinx [1]"+char(10)+
@@ -2733,12 +2736,20 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				if arg3 and typeof(arg3) == "string" then scan_this_lib = arg3
 				return command.linkdb(get_lib(arg,scan_this_lib),"-y") // edit get_lib to take 3rd param: auto link
 			end if
-			if arg2 and arg2 == "-r" then arg = "Y"
-			if targetIP and targetPort then
-				if not localmachine.is_network_active then return "meta: no network connection!"
-				return command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
-			else
-				return "meta: unable to establish connection."+char(10)+"-- check parameters and try again."
+			if arg2 and arg2 == "-r" then 
+				arg = "Y"
+				if arg3 and is_valid_ip(arg3) then 
+					globals.targetIP = arg3
+					if arg4 then
+						if typeof(arg4.to_int) == "number" or arg4 == "router" then globals.targetPort = arg4.to_int else print "meta: invalid port"+char(10)+"-- defaulting to: "+globals.targetPort
+					end if 
+				end if
+				if globals.targetIP then // and globals.targetPort then
+					if not localmachine.is_network_active then return "meta: no network connection!"
+					return command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
+				else
+					return "meta: unable to establish connection."+char(10)+"-- check parameters and try again."
+				end if
 			end if
 		end if
 		if arg1 == "import" or arg1 == "-i" then 
@@ -2781,7 +2792,21 @@ command.zap = function(arg1, arg2, arg3, arg4)
 	return globals.select_attack
 end function
 command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: roil [opt: inject]-- launches hail mary attack with optional inject value (lan_ip or password)."+char(10)+"Equivalent to option [2] in 5phinx"+char(10)+"returns zero. sends all objects to BUFFER."
+	if arg1 == "help" or arg1 == "-h" then return "Attack All | Spam Attack | Run all Exploits | Into the Roil"+char(10)+
+	"Usage: roil [opt: [inject] | opt: [-p|--prompt]] -- launches hail mary overflow attack "+char(10)+
+	"-- equivalent to option [2] in 5phinx"+char(10)+
+	"-- optional inject value may be a lan ip or a password, depending on the target"+char(10)+
+	"---- if attacking a router: inject should be a lan ip, to be used with a BOUNCE exploit"+char(10)+
+	"---- if attacking a server: inject should be a password, to be used with pw change exploits"+char(10)+
+	"<b>-- if inject is -p or --prompt then roil will prompt for the following:"+char(10)+
+	"---- an inject value (ip or pw)"+char(10)+
+	"---- if a <b><color=yellow>shell is found, you will get an Open Shell? prompt"+char(10)+
+	"---- if a <b><color=white>computer is found, the computer handler will open"+char(10)+
+	"---- if a <b><color=green>file is found, 5hell will run <b>tree</b> on the file object"+char(10)+
+	"Note: roil returns zero and sends all objects to the "+colorOrange+"BUFFER."+char(10)+
+	"Note: an inject value only matters for password change and bounce exploits"+char(10)+
+	"N.B.: roil does <b>not</b> database results; use <b>db</b> instead"+char(10)+
+	"-- this may change in the future"
 	globals.roil(arg1)
 	return 0
 end function
