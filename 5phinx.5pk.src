@@ -1,8 +1,8 @@
-// Sphinx Hacking Interface v 2.5.7 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.7 for 5hell v 3.9.1...(126.072kb)</size>")
+// Sphinx Hacking Interface v 2.5.8 by Plu70
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.8 for 5hell v 3.9.2...(126.117kb)</size>")
 
 //Define Globals
-sphinx_version = "2.5.7"
+sphinx_version = "2.5.8"
 malp_version = "1.3.2"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -268,9 +268,9 @@ p_exe = function( obj, f_name=null ) // obj is either game object or function
       a.push(obj)
       continue 
     end if
-    inp = user_input("Use @a|@b|@c for clipboard (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
+    inp = user_input("(Use @a|@b|@c for clipboard, ints are cast as ints, <b>enter</b>="""", q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
     if inp == "q" then return "aborting..."
-    if inp == "" or inp == " " then return "aborting..."
+    //if inp == "" or inp == " " then return "aborting..."
     if inp == "@a" or inp == "@clipa" then inp = @globals.clip_board_alpha
     if inp == "@b" or inp == "@clipb" then inp = @globals.clip_board_beta
     if inp == "@c" or inp == "@clipc" then inp = @globals.clip_board_gamma
