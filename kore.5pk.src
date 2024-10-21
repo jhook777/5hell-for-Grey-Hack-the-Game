@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.1...(147.080kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.2...(147.502kb)</size>")
 // command.kore = function(arg1, arg2, arg3=0, arg4=0)
 // 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 // 	globals.CYCLES = 0
@@ -2565,12 +2565,20 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if buf_bot.len then current_data = current_data[0:]+buf_bot[0:]
 	end while
 	// write output to database.csv
-	if DEBUG then print "debug: database size before write is: "+current_data.len
-	if current_data.join(char(10)).len + DATA.join(char(10)).len > 159990 then
+	debug_loop = 0
+	if DEBUG then print "debug: database size before write is: "+current_data.len 
+	while current_data.join(char(10)).len + DATA.join(char(10)).len > 159990 
 		print "db: "+colorOrange+" warning: database size exceeds 160kb"+char(10)+colorOrange+"db: trimming oldest entries..."
-		current_data = current_data[DATA.len:]
-	end if
+		current_data.pull 
+		while current_data[0].indexOf("Hooked: ") != null 
+			current_data.pull 
+		end while
+		debug_loop = debug_loop + 1
+		if DEBUG then print "debug: trim loop: "+debug_loop
+		if DEBUG then print "debug: database size is: "+current_data.join(char(10)).len + DATA.join(char(10)).len
+	end while
 	catch = datafile.set_content(current_data.join(char(10))+char(10)+DATA.join(char(10)))
+	if DEBUG then print command.file(datafile.path)
 	if catch then return(catch)
 	return 0
 end function///////////////END DATABASER//////////////////
@@ -2609,7 +2617,7 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 		end for
 		return done
 	end function
-	if arg1 == "no_network" then return 0
+	if arg1 == "no_network" then return 0 //// ???????wtf
 	boo = 0
 	file = null
 	if arg2 and arg2.lower == "-y" then 
@@ -2656,10 +2664,10 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 	end if
 	if file and file.has_permission("r") then 
-		catch = link(file,arg1,boo)
+		catch = link(file,arg1,boo) // catch is 0 on failure
 		if catch then
-			print(catch)
-			return 0 
+			print(catch) 
+			return 0 // return 0 on success
 		else 
 			return "Database: entry not found; Scan required."
 		end if
@@ -2756,7 +2764,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			if not arg2 then return "meta: -i expects a metaxploit.so object or a path to a metaxploit.so"
 			print "meta: backing up current metaxploit object"
 			globals.backup_meta = globals.metaxploit
-			if typeof(arg2) == "string" then globals.metaxploit = include_lib(arg2) else globals.metaxploit = arg2
+			if typeof(arg2) == "string" then globals.metaxploit = include_lib(globals.get_file(arg2).path) else globals.metaxploit = arg2
 			if not globals.metaxploit or typeof(globals.metaxploit) != "MetaxploitLib" then 
 				globals.metaxploit = globals.backup_meta
 				if typeof(arg2) == "string" then reason = "invalid path" else reason = "invalid input"
