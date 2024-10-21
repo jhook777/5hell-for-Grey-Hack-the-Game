@@ -1,10 +1,10 @@
 // 5hell v 3.9.1 by Plu70
 // released v 3.9.1
 // imports .5pk files from /root/src
-ver = "3.9.1_amalgamated_horrors"
+ver = "3.9.2_amalgamated_horrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "150.187"
+size_of_5hell = "150.805"
 ///////////////////////////////////////
 //
 // changes:
@@ -27,11 +27,19 @@ size_of_5hell = "150.187"
 // -- kinda fixed this in the regular tree command....
 // update 5phinx F1 help info: remove or correct outdated info
 // scp falsely reports failure sometimes: track this down
-// dig barfs when database.csv is full
 // p_exe needs to play nicer
 // absolutely must update the databasing system
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
+//
+// p_exe plays nicely with arbitrary function execution, finally
+// code: decompiler will no longer barf when fed integers
+// run: will accept piped file objects
+// meta: fixed pathing issue with -i import flag
+// -- will now accept relative paths
+// get_binaries: fixed pathing issue (a couple updates back, actually)
+// dig: no longer barfs when db trims the database
+// db: will be cleaner about trimming the database so dig doesn't barf
 //
 // roil: removed prompts by default
 // -- added -p|--prompt param to restore prompts
@@ -1209,7 +1217,7 @@ if DEBUG then
 end if 
 command.run = function(arg1, arg2, arg3=0, arg4=0, arg5=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run [file|path_to_file] [opt:parameters|shell] [opt:shell|parameters -- launch a script binary at path (gui's not supported)"+char(10)+"-- piped file objects are launched from the objects path"+char(10)+"-- max 14 nested launches before stack call error."+char(10)+"-- providing a shell object will launch a binary using that shell object"+char(10)+"-- you must pipe launch params if more than one word"+char(10)+"-- use echo and easy clip for best results (@a,@b,@c)"+char(10)+"---- eg: echo do 1 -f pwn.bat | clipa | clipb @B 1 | run /home/guest/rkit/5hell @b @a"+char(10)+"---- eg: echo rshell 1.1.1.1 | clipa | brutus | run /root/rkit/5hell @a"+char(10)+"Note: run supports pshells with the launch function however p_objects are not currently in game"
-	if typeof(arg1) != "string" then return "run: arg1 should be file object or path to file" 
+	if typeof(arg1) != "string" and typeof(arg1) != "file" then return "run: arg1 should be file object or path to file" 
 	if arg2 and typeof(arg2) == "shell" then
 		if arg3 and typeof(arg3) == "string" then parameters = arg3 else parameters = ""
 		if typeof(arg1) == "string" then return arg2.launch(arg1, parameters)
@@ -1225,7 +1233,8 @@ command.run = function(arg1, arg2, arg3=0, arg4=0, arg5=0)
 		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
 		return arg3.launch(run_path, parameters)
 	end if
-	file = globals.get_file(arg1)
+	file = arg1
+	if typeof(file) != "file" then file = globals.get_file(arg1)
 	if not file then return "run: "+arg1+" not found."
 	//globals.stack_pool = globals.stack_pool - 1
 	parameters = ""
@@ -1907,6 +1916,10 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 	end function
 	if @arg1 == 0 then return str(char(32).code)
 	if @arg1 == "0" then return str("0".code)
+	if typeof(@arg1) == "number" then
+		print("<mark=red><size=75%>Converting integer...</mark></size>")
+		arg1 = str(arg1)
+	end if
 	if @arg1 == "-a" or @arg1 == "-b" then
 		enc_line = arg2
 		if arg2 and typeof(arg2) != "string" then return "code: -a|-b expects string input, got"+typeof(arg2)
