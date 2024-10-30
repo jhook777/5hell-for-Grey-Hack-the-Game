@@ -60,7 +60,7 @@ import_code("/root/src/5hell.5pk")
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
 //globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)"]
-globals.HOME_SERVER = ["110.112.88.24", 22, "root", "5g35tg5fsd0FA", "ssh", "/root/pass"]
+globals.HOME_SERVER = ["your_server_ip", 22, "root", "your_server_password", "ssh", "/root/pass"]
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
   // @home will be replaced with your ip, no password needed in this case
@@ -304,7 +304,7 @@ end function
 //
 //////////////////////////////////// SECURITY GOES HERE //////////////////////
 ///// customize this line fully for the most security ////////
-access_codes = {"Alpha":"lots of drugs", "Beta":"lots of drugs"}//////////////////////////////////////////////////////////////
+access_codes = {"Alpha":"your_passcode_here", "Beta":"your_other_passcode_here"}//////////////////////////////////////////////////////////////
 // if you rename access_codes be sure to edit the below line
 rnac = access_codes.indexes
 rnac.shuffle
