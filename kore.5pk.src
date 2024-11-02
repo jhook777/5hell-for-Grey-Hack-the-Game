@@ -1859,7 +1859,7 @@ command.scrub = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 command.prox = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "KRAKEN shortcut || proxy tunneling"+char(10)+"
-	Usage: prox -- use kraken to route through proxy net and open terminal at end"+cgar(10)+
+	Usage: prox -- use kraken to route through proxy net and open terminal at end"+char(10)+
 	"-- equivalent to<b> kraken connect"
 	return command.kraken("connect", arg1, arg2)
 	return 0
