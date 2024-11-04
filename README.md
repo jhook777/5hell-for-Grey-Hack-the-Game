@@ -25,15 +25,11 @@ Copy the following .src files into the CodeEditor inside the Game:
 ***Make sure that the tickbox that says: "Importable" is ticked for each file!***
 
 <pre>
+ games.5pk.src        -->  games.5pk
+ 
  kore.5pk.src         -->  kore.5pk
 
  dtools.5pk.src       -->  dtools.5pk
-
- battleship.5pk.src   -->  battleship.5pk
-
- blackjack.5pk.src    -->  blackjack.5pk
-
- drugwars.5pk.src     -->  drugwars.5pk
 
  5phinx.5pk.src       -->  5phinx.5pk
 </pre>
@@ -45,11 +41,7 @@ Each file goes to /root/src
 **/root/src should now have the following built, importable files:**
 
 <pre>
-drugwars.5pk
-
-battleship.5pk
-
-blackjack.5pk
+games.5pk
 
 dtools.5pk
 
