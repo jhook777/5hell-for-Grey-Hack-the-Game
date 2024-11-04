@@ -1,4 +1,5 @@
 // games.5pk holds battleship, blackjack, and drugwars by Plu70
+// imported by 5hell.5pk
 
 if DEBUG then print("<size=75%>loading games.5pk for 5hell v 3.9.4...(76.677kb)</size>)")
 
