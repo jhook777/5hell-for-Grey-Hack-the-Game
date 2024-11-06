@@ -2171,7 +2171,9 @@ command.diff = function(input_1,input_2,arg3,arg4)
 		if DEBUG then print "debug: len_1_1: "+lines1.len+" len_2_2: "+lines2.len
         while i < leng1 or j < leng2 
             if i < leng1 and j < leng2 then 
+				//if DEBUG then print "top of loop"
                 if lines1[i] == lines2[j] then 
+
                     print_buffer.push((i+1)+"<color=#00ff88ff>"+char(177)+(j+1)+" "+lines1[i])
 					i = i + 1
 					j = j + 1
@@ -2184,6 +2186,7 @@ command.diff = function(input_1,input_2,arg3,arg4)
 						if lines1[i] != lines2[j] then i = i + 1 else diff_list.pop // this is a hack for compatibility with zero day stuff, make it better
 					else 
 						i = i + 1
+						if DEBUG then print "processed line "+ i
 					end if
 					//if lines2[j] != lines1[i] then j = j + 1
 					//i = i + 1
@@ -2191,12 +2194,14 @@ command.diff = function(input_1,input_2,arg3,arg4)
                 end if  
             else 
                 if i < leng1 then 
+					if DEBUG then print "file_1 is longer by "+ (i-j)
                     print_buffer.push("<color=#D9FF00ff>"+(i+1)+"- "+lines1[i])
 					if lines1[i] != "" then diff_list.push(i+1)
                 else 
                     if j < leng2 then 
+						if DEBUG then print "file_2 is longer by "+(j-i)
                         print_buffer.push("<color=#fc7324ff>"+(j+1)+"+ "+lines2[j])
-						if lines1[j] != "" then diff_list.push(j+1)
+						if lines2[j] != "" then diff_list.push(j+1)
                     end if
                end if
 				i = i + 1
@@ -2204,6 +2209,7 @@ command.diff = function(input_1,input_2,arg3,arg4)
             end if
 			//i = i + 1
             //j = j + 1
+			//if DEBUG then print "bottom of loop"
         end while
         if ret_type == "string" then 
 			return print_buffer.join(char(10))
