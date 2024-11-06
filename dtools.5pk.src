@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.4...(113.080)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.4.6...(133.808)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -524,7 +524,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
 	"Usage: tree -f [path] -- tree from path, enumerate to enum, print output"+char(10)+
 	"Usage: tree -f [object] -- tree from object's <b>/</b> directory, enumerate, print output"+char(10)+
-	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"
+	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"+char(10)+
 	"Usage: tree -f [path|object] [object|path] -- tree from object's [path] directory, enumerate, print output"+char(10)+
 	"       -- this option will return the file or folder at path as an object if it exists"+char(10)+
 	"Usage: tree -f [param] [param] [1|0] -- performs as above but does <b>not</b> print output"+char(10)+
@@ -679,11 +679,14 @@ command.makfit = function(arg1, arg2, arg3=0, arg4=0)
 	return out_file
 end function
 command.make = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" or arg1 == 0 then return "</u>Make || Build</u>"+char(10)+"Usage: make [/path/file.src] [/destination/folder] [bool_importable: true/false | 1/0]"+char(10)+"-- build the .src file and ouput to destination folder."+char(10)+"-- final file name will be input file name with .src stripped."+char(10)+"-- e.g.<b> make /root/src/5hell.src /bin </b>"+char(10)+"-- build 5hell.src into a binary and output to:<b> /bin/5hell</b>"+char(10)+"-- n.b. make requires the source file to have the .src extension."+char(10)+"-- importable code can be imported by other sources when building."+char(10)+"-- this allows you to build programs with more than 160 characters by importing multiple source files."
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "</u>Make || Build</u>"+char(10)+"Usage: make [/path/file.src] [/destination/folder] [bool_importable: true/false | 1/0]"+char(10)+"-- build the .src file and ouput to destination folder."+char(10)+"-- final file name will be input file name with .src stripped."+char(10)+"-- e.g.<b> make /root/src/5hell.src /bin </b>"+char(10)+"-- build 5hell.src into a binary and output to:<b> /bin/5hell</b>"+char(10)+"-- n.b. make requires the source file to have the .src extension."+char(10)+"-- importable code can be imported by other sources when building."+char(10)+"-- this allows you to build programs with more than 160 characters by importing multiple source files."
 	pathSource = arg1
+	if typeof(arg1) == "file" then arg1 = arg1.path
+	if typeof(arg1) != "string" then return "make: invalid source path"
 	programPath = arg2
+	if typeof(programPath) == "file" then programPath = programPath.path 
 	importableCode = null
-	if not arg2 then programPath = globals.currentPath
+	if not arg2 or typeof(arg2) != "string" then programPath = globals.currentPath
   	if arg3 and (arg3 == "true" or arg3 == "1") then importableCode = 1 else importableCode = 0
 	fileSource = globals.get_file(pathSource)
 	folderDest = globals.get_file(programPath)
@@ -1198,6 +1201,11 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 				file_id_info.push("chars: "+str(chars))
 			end if
 		end if
+		if to_buffer then
+			globals.BUFFER.push(arg1)
+			print "file: <b>"+arg1.name+"</b> sent to <b><color=orange>BUFFER</b>"
+			return format_columns(file_id_info.join(char(10)))
+		end if
 		if return_file then 
 			print "file: returning object for: "+arg1.path
 			return arg1
@@ -1209,10 +1217,6 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 			if file_id_info.indexOf("type: binary") == null then return str(chars) else return "file: "+arg1.path+" is binary"
 		end if
     	print(colorGreen+"<u>==================================</u>"+CT)
-		if to_buffer then
-			globals.BUFFER.push(arg1)
-			print("file: <b>"+arg1.name+"</b> sent to <b>BUFFER</b>")
-		end if
 		return format_columns(file_id_info.join(char(10)))
 	end if
 	return "file: unknown error"
@@ -1557,7 +1561,7 @@ command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "pwgen: generate a friggin lot of passwords with hashes."+char(10)+"Usage: pwgen -- generate tables/tp/ and files with one password per line"+char(10)+"Usage: pwgen hash -- generate tables/t5 and files with hash=pw one per line"+char(10)+"Use cerebrum to expand onboard dictionary."
 
 	// pwgen v0.4 author unkown, modifications by Plu70
-	PASSWORDSB="day,baby,mayday,today,yesterday,fifteen,abgDw32fhGu58k,sfuzzer,1111,2222,3333,00000,4444,5555,55555555,4fb426abgDw32fHG,6666,thx1138,7777,8888,9999,0000,oicu812,1337,8008,4hpu79htgbr,80085,007007,43110,69696969,t23t49k21af3,evkfdhgbv78ery,6h057,h4ck,h4ckg4m3,g01ng,p0st4l,g01ngp0st4l,81rd,7074g,35sk1m0,pr0n,n00b,nu8,suxor,hazorz,5uxzorz,owned,pwnd,0wnd,p0wn3d,w00t,woo7,woot,w007,10100111001,teh,meh,lol,brb,afk,wyd,gtfo,lmao,lmfao,gitgud,lawl,troll,bawl,epic,54321,987654321,88888888,555555,1234567890,1973,147147,151515,1515,101010,202020,21122112,12341234,74lk,dir7y,53nP4I,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0,le375p34k,420420,11111111,112233,h4f4jf53fk74,123abc,1234qwer,123321,5y4hpu79htgbrub,ncc1701e,7777777,51505150,000000,5150,222222,999999,252525,77777777,98765432,poop,polyamorous,zelda,password,6gtr43,123456,12345678,1234,qwerty,12345,dragon,baseball,football,letmein,monkey,696969,abc123,mustang,michael,shadow,master,jennifer,111111,2000,jordan,superman,harley,1234567,hunter,trustno1,ranger,buster,thomas,tigger,robert,soccer,batman,test,pass,hockey,george,charlie,andrew,michelle,love,sunshine,jessica,6969,pepper,daniel,access,123456789,654321,joshua,maggie,starwars,silver,william,dallas,yankees,123123,ashley,666666,hello,amanda,orange,biteme,freedom,computer,sexy,thunder,nicole,ginger,heather,hammer,summer,corvette,taylor,swift,austin,1111,merlin,matthew,121212,golfer,cheese,princess,martin,chelsea,patrick,richard,diamond,yellow,bigdog,secret,asdfgh,sparky,cowboy,camaro,anthony,matrix,falcon,iloveyou,bailey,guitar,jackson,purple,scooter,phoenix,aaaaaa,morgan,tigers,porsche,mickey,maverick,cookie,nascar,peanut,justin,131313,money,horny,samantha,panties,steelers,joseph,snoopy,boomer,whatever,iceman,smokey,gateway,dakota,cowboys,eagles,chicken,black,zxcvbn,please,pharoa,andrea,ferrari,knight,hardcore,porn,ass,love,sex,hooker,blow,coke,melissa,compaq,coffee,booboo,bitch,johnny,bulldog,xxxxxx,welcome,james,player,ncc1701,wizard,scooby,charles,junior,internet,mike,brandy,tennis,banana,monster,spider,lakers,miller,rabbit,enter,mercedes,brandon,steven,fender,john,yamaha,diablo,chris,boston,tiger,marine,chicago,rangers,gandalf,winter,bigtits,barney,edward,raiders,porn,badboy,blowme,spanky,bigdaddy,johnson,chester,london,midnight,blue,fishing,hannah,slayer,rachel,sexsex,redsox,asdf,marlboro,panther,zxcvbnm,arsenal,oliver,qazwsx,mother,victoria,jasper,angel,david,winner,crystal,golden,butthead,viking,jack,iwantu,shannon,murphy,angels,prince,cameron,girls,madison,wilson,carlos,hooters,willie,startrek,captain,maddog,jasmine,butter,booger,angela,golf,lauren,rocket,tiffany,theman,dennis,liverpoo,flower,forever,green,jackie,muffin,turtle,sophie,danielle,redskins,toyota,jason,sierra,winston,debbie,giants,packers,newyork,jeremy,casper,bubba,dracula,sandra,lovers,mountain,united,cooper,driver,tucker,helpme,pookie,lucky,maxwell,8675309,bear,suckit,gators,shithead,jaguar,monica,fred,happy,hotdog,tits,gemini,lover,xxxxxxxx,777777,canada,nathan,victor,florida,nicholas,rosebud,metallic,doctor,trouble,success,stupid,tomcat,warrior,peaches,apples,fish,qwertyui,magic,buddy,dolphins,rainbow,gunner,987654,freddy,alexis,braves,2112,1212,xavier,dolphin,testing,bond007,member,calvin,voodoo,7777,samson,alex,apollo,fire,tester,chess,walter,beavis,voyager,peter,porno,bonnie,rush2112,beer,apple,scorpio,jonathan,skippy,sydney,scott,red123,power,gordon,travis,beaver,star,flyers,232323,zzzzzz,steve,rebecca,scorpion,doggie,legend,ou812,yankee,blazer,bill,runner,birdie,bitches,parker,topgun,asdfasdf,heaven,viper,animal,bigboy,arthur,baby,private,godzilla,donald,williams,lifehack,phantom,dave,rock,august,sammy,cool,brian,platinum,jake,bronco,paul,mark,frank,heka6w2,copper,billy,cumshot,garfield,willow,cunt,little,carter,slut,albert,kitten,super,jordan23,eagle1,shelby,america,11111,jessie,house,free,chevy,bullshit,white,broncos,horney,surfer,nissan,saturn,airborne,elephant,marvin,shit,action,adidas,qwert,kevin,1313,explorer,walker,police,christin,december,benjamin,wolf,sweet,therock,king,online,brooklyn,teresa,cricket,sharon,dexter,racing,penis,gregory,0000,teens,redwings,dreams,michigan,hentai,magnum,87654321,nothing,donkey,trinity,digital,333333,ramsesii,stella,cartman,guinness,speedy,buffalo,kitty,pimpin,eagle,einstein,kelly,nelson,nirvana,vampire,xxxx,playboy,louise,pumpkin,snowball,test123,girl,sucker,mexico,beatles,fantasy,ford,gibson,celtic,marcus,cherry,cassie,888888,natasha,sniper,chance,genesis,hotrod,reddog,alexande,college,jester,passw0rd,smith,lasvegas,carmen,slipknot,death,kimberly,1q2w3e,eclipse,1q2w3e4r,stanley,samuel,drummer,homer,montana,music,aaaa,spencer,jimmy,carolina,colorado,creative,hello1,rocky,goober,friday,AceofSpades,bollocks,scotty,abcdef,bubbles,hawaii,asakista,fluffy,mine,stephen,horses,thumper,darkness,asdfghjk,pamela,boobies,buddha,vanessa,sandman,naughty,douglas,honda,matt,azerty,6666,shorty,money1,beach,loveme,4321,simple,poohbear,444444,badass,destiny,sarah,denise,vikings,lizard,melanie,assman,sabrina,nintendo,water,good,howard,time,123qwe,november,xxxxx,october,zxcv,shamrock,atlantis,warren,wordpass,julian,mariah,rommel,1010,harris,predator,sylvia,massive,cats,sammy1,mister,stud,marathon,rubber,ding,trunks,desire,montreal,justme,faster,kathleen,irish,1999,bertha,jessica1,alpine,sammie,diamonds,tristan,swinger,shan,stallion,pitbull,letmein2,roberto,ready,april,palmer,ming,shadow1,audrey,chong,clitoris,wang,shirley,jackoff,bluesky,sundance,renegade,hollywoo,bernard,wolfman,soldier,picture,pierre,ling,goddess,manager,nikita,76hj93DB3wsa2,sweety,titans,hang,fang,ficken,niners,bottom,bubble,hello123,ibanez,webster,sweetpea,stocking,freeman,french,mongoose,speed,dddddd,hong,henry,hungry,yang,catdog,cheng,ghost,gogogo,randy,tottenha,curious,butterfl,mission,january,singer,sherman,shark,techno,lancer,lalala,autumn,chichi,orion,trixie,clifford,delta,bobbob,bomber,holden,kang,kiss,1968,spunky,liquid,mary,beagle,granny,network,bond,kkkkkk,millie,biggie,beetle,teacher,susan,toronto,anakin,genius,dream,dang,bush,nyx".split(",")
+	PASSWORDSB="day,abcd,abc1,baby,mayday,today,yesterday,fifteen,abgDw32fhGu58k,sfuzzer,111,1111,222,2222,3333,333,00000,000,4444,444,5555,555,55555555,4fb426abgDw32fHG,666,6666,thx1138,7777,777,8888,888,9999,999,0000,oicu812,1337,8008,4hpu79htgbr,80085,007007,43110,69696969,t23t49k21af3,evkfdhgbv78ery,6h057,h4ck,h4ckg4m3,g01ng,p0st4l,g01ngp0st4l,81rd,7074g,35sk1m0,pr0n,n00b,nu8,suxor,hazorz,5uxzorz,owned,pwnd,0wnd,p0wn3d,w00t,woo7,woot,w007,10100111001,teh,meh,lol,brb,afk,wyd,gtfo,lmao,lmfao,gitgud,lawl,troll,bawl,epic,54321,987654321,88888888,555555,1234567890,1973,147147,151515,1515,101010,202020,21122112,12341234,74lk,dir7y,53nP4I,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0,le375p34k,420420,11111111,112233,h4f4jf53fk74,123abc,1234qwer,123321,5y4hpu79htgbrub,ncc1701e,7777777,51505150,000000,5150,222222,999999,252525,77777777,98765432,poop,polyamorous,zelda,password,6gtr43,123456,12345678,1234,qwerty,12345,dragon,baseball,football,letmein,monkey,696969,abc123,mustang,michael,shadow,master,jennifer,111111,2000,jordan,superman,harley,1234567,hunter,trustno1,ranger,buster,thomas,tigger,robert,soccer,batman,test,pass,hockey,george,charlie,andrew,michelle,love,sunshine,jessica,6969,pepper,daniel,access,123456789,654321,joshua,maggie,starwars,silver,william,dallas,yankees,123123,ashley,666666,hello,amanda,orange,biteme,freedom,computer,sexy,thunder,nicole,ginger,heather,hammer,summer,corvette,taylor,swift,austin,1111,merlin,matthew,121212,golfer,cheese,princess,martin,chelsea,patrick,richard,diamond,yellow,bigdog,secret,asdfgh,sparky,cowboy,camaro,anthony,matrix,falcon,iloveyou,bailey,guitar,jackson,purple,scooter,phoenix,aaaaaa,morgan,tigers,porsche,mickey,maverick,cookie,nascar,peanut,justin,131313,money,horny,samantha,panties,steelers,joseph,snoopy,boomer,whatever,iceman,smokey,gateway,dakota,cowboys,eagles,chicken,black,zxcvbn,please,pharoa,andrea,ferrari,knight,hardcore,porn,ass,love,sex,hooker,blow,coke,melissa,compaq,coffee,booboo,bitch,johnny,bulldog,xxxxxx,welcome,james,player,ncc1701,wizard,scooby,charles,junior,internet,mike,brandy,tennis,banana,monster,spider,lakers,miller,rabbit,enter,mercedes,brandon,steven,fender,john,yamaha,diablo,chris,boston,tiger,marine,chicago,rangers,gandalf,winter,bigtits,barney,edward,raiders,porn,badboy,blowme,spanky,bigdaddy,johnson,chester,london,midnight,blue,fishing,hannah,slayer,rachel,sexsex,redsox,asdf,marlboro,panther,zxcvbnm,arsenal,oliver,qazwsx,mother,victoria,jasper,angel,david,winner,crystal,golden,butthead,viking,jack,iwantu,shannon,murphy,angels,prince,cameron,girls,madison,wilson,carlos,hooters,willie,startrek,captain,maddog,jasmine,butter,booger,angela,golf,lauren,rocket,tiffany,theman,dennis,liverpoo,flower,forever,green,jackie,muffin,turtle,sophie,danielle,redskins,toyota,jason,sierra,winston,debbie,giants,packers,newyork,jeremy,casper,bubba,dracula,sandra,lovers,mountain,united,cooper,driver,tucker,helpme,pookie,lucky,maxwell,8675309,bear,suckit,gators,shithead,jaguar,monica,fred,happy,hotdog,tits,gemini,lover,xxxxxxxx,777777,canada,nathan,victor,florida,nicholas,rosebud,metallic,doctor,trouble,success,stupid,tomcat,warrior,peaches,apples,fish,qwertyui,magic,buddy,dolphins,rainbow,gunner,987654,freddy,alexis,braves,2112,1212,xavier,dolphin,testing,bond007,member,calvin,voodoo,7777,samson,alex,apollo,fire,tester,chess,walter,beavis,voyager,peter,porno,bonnie,rush2112,beer,apple,scorpio,jonathan,skippy,sydney,scott,red123,power,gordon,travis,beaver,star,flyers,232323,zzzzzz,steve,rebecca,scorpion,doggie,legend,ou812,yankee,blazer,bill,runner,birdie,bitches,parker,topgun,asdfasdf,heaven,viper,animal,bigboy,arthur,baby,private,godzilla,donald,williams,lifehack,phantom,dave,rock,august,sammy,cool,brian,platinum,jake,bronco,paul,mark,frank,heka6w2,copper,billy,cumshot,garfield,willow,cunt,little,carter,slut,albert,kitten,super,jordan23,eagle1,shelby,america,11111,jessie,house,free,chevy,bullshit,white,broncos,horney,surfer,nissan,saturn,airborne,elephant,marvin,shit,action,adidas,qwert,kevin,1313,explorer,walker,police,christin,december,benjamin,wolf,sweet,therock,king,online,brooklyn,teresa,cricket,sharon,dexter,racing,penis,gregory,0000,teens,redwings,dreams,michigan,hentai,magnum,87654321,nothing,donkey,trinity,digital,333333,ramsesii,stella,cartman,guinness,speedy,buffalo,kitty,pimpin,eagle,einstein,kelly,nelson,nirvana,vampire,xxxx,playboy,louise,pumpkin,snowball,test123,girl,sucker,mexico,beatles,fantasy,ford,gibson,celtic,marcus,cherry,cassie,888888,natasha,sniper,chance,genesis,hotrod,reddog,alexande,college,jester,passw0rd,smith,lasvegas,carmen,slipknot,death,kimberly,1q2w3e,eclipse,1q2w3e4r,stanley,samuel,drummer,homer,montana,music,aaaa,spencer,jimmy,carolina,colorado,creative,hello1,rocky,goober,friday,AceofSpades,bollocks,scotty,abcdef,bubbles,hawaii,asakista,fluffy,mine,stephen,horses,thumper,darkness,asdfghjk,pamela,boobies,buddha,vanessa,sandman,naughty,douglas,honda,matt,azerty,6666,shorty,money1,beach,loveme,4321,simple,poohbear,444444,badass,destiny,sarah,denise,vikings,lizard,melanie,assman,sabrina,nintendo,water,good,howard,time,123qwe,november,xxxxx,october,zxcv,shamrock,atlantis,warren,wordpass,julian,mariah,rommel,1010,harris,predator,sylvia,massive,cats,sammy1,mister,stud,marathon,rubber,ding,trunks,desire,montreal,justme,faster,kathleen,irish,1999,bertha,jessica1,alpine,sammie,diamonds,tristan,swinger,shan,stallion,pitbull,letmein2,roberto,ready,april,palmer,ming,shadow1,audrey,chong,clitoris,wang,shirley,jackoff,bluesky,sundance,renegade,hollywoo,bernard,wolfman,soldier,picture,pierre,ling,goddess,manager,nikita,76hj93DB3wsa2,sweety,titans,hang,fang,ficken,niners,bottom,bubble,hello123,ibanez,webster,sweetpea,stocking,freeman,french,mongoose,speed,dddddd,hong,henry,hungry,yang,catdog,cheng,ghost,gogogo,randy,tottenha,curious,butterfl,mission,january,singer,sherman,shark,techno,lancer,lalala,autumn,chichi,orion,trixie,clifford,delta,bobbob,bomber,holden,kang,kiss,1968,spunky,liquid,mary,beagle,granny,network,bond,kkkkkk,millie,biggie,beetle,teacher,susan,toronto,anakin,genius,dream,dang,bush,nyx".split(",")
 	PASSWORDSA="323232,blonde,lond,osint,msfconsole,Bd5gHie89YA,tornado,lindsey,content,bruce,buck,aragorn,griffin,chen,campbell,trojan,christop,newman,wayne,tina,rockstar,father,geronimo,pascal,crimson,brooks,hector,penny,anna,camera,chandler,fatcat,lovelove,cody,cunts,waters,stimpy,finger,cindy,wheels,viper1,latin,robin,greenday,creampie,brendan,hiphop,willy,snapper,funtime,duck,trombone,adult,cotton,cookies,kaiser,mulder,westham,latino,jeep,ravens,aurora,drizzt,madness,hermit,energy,kinky,314159,leather,bastard,young,,extreme,hard,password1,vincent,lacrosse,hotmail,spooky,amateur,alaska,badger,paradise,maryjane,soup,crazy,mozart,video,russell,vagina,spitfire,anderson,norman,otaku,eric,cherokee,cougar,barbara,long,family,horse,enigma,allison,raider,brazil,blonde,jones,55555,dude,drowssap,jeff,school,marshall,lovely,1qaz2wsx,jeffrey,caroline,franklin,booty,molly,snickers,leslie,nipples,courtney,diesel,rocks,eminem,westside,suzuki,daddy,passion,hummer,ladies,Azachary,frankie,elvis,reggie,alpha,suckme,simpson,patricia,pirate,tommy,semperfi,jupiter,redrum,freeuser,wanker,stinky,ducati,paris,natalie,babygirl,bishop,windows,spirit,tiktok,thot,pantera,monday,patches,brutus,houston,smooth,penguin,marley,forest,cream,212121,flash,maximus,nipple,bobby,bradley,vision,pokemon,champion,fireman,indian,softball,picard,system,clinton,cobra,enjoy,lucky1,claire,claudia,boogie,timothy,marines,security,dirty,admin,wildcats,pimp,dancer,hardon,veronica,abcd1234,abcdefg,ironman,wolverin,remember,great,freepass,bigred,squirt,justice,francis,hobbes,kermit,pearljam,mercury,domino,9999,denver,brooke,rascal,hitman,mistress,simon,tony,bbbbbb,friend,peekaboo,naked,budlight,electric,sluts,stargate,saints,bondage,brittany,bigman,zombie,swimming,duke,qwerty1,babes,scotland,disney,rooster,brenda,mookie,swordfis,candy,duncan,olivia,hunting,blink182,alicia,8888,samsung,bubba1,whore,virginia,general,passport,aaaaaaaa,erotic,liberty,arizona,jesus,abcd,newport,skipper,rolltide,balls,happy1,galore,christ,weasel,242424,wombat,digger,classic,bulldogs,poopoo,accord,popcorn,turkey,jenny,amber,bunny,mouse,titanic,liverpool,dreamer,everton,friends,chevelle,carrie,gabriel,psycho,nemesis,burton,pontiac,connor,eatme,lickme,roland,cumming,mitchell,ireland,lincoln,arnold,spiderma,patriots,goblue,devils,eugene,empire,asdfg,cardinal,brown,shaggy,froggy,qwer,kawasaki,kodiak,people,phpbb,light,kramer,chopper,hooker,honey,whynot,lisa,baxter,adam,snake,ncc1701d,qqqqqq,airplane,britney,avalon,sandy,sugar,sublime,stewart,wildcat,raven,scarface,elizabet,123654,trucks,wolfpack,lawrence,raymond,american,alyssa,bambam,movie,woody,shaved,snowman,tiger1,chicks,raptor,1969,stingray,shooter,france,stars,madmax,kristen,sports,jerry,789456,garcia,simpsons,lights,ryan,looking,chronic,alison,hahaha,packard,hendrix,perfect,service,spring,srinivas,spike,katie,oscar,brother,bigmac,suck,single,cannon,georgia,popeye,tattoo,texas,party,bullet,taurus,sailor,wolves,panthers,japan,strike,flowers,pussycat,chris1,loverboy,berlin,sticky,marina,tarheels,fisher,russia,connie,wolfgang,testtest,mature,bass,catch22,juice,michael1,159753,women,alpha1,trooper,hawkeye,head,freaky,dodgers,pakistan,machine,pyramid,vegeta,katana,moose,tinker,coyote,infinity,inside,letmein1,bang,control,hercules,morris,james1,tickle,outlaw,browns,billybob,pickle,test1,michele,antonio,sucks,pavilion,changeme,caesar,prelude,tanner,adrian,darkside,bowling,wutang,sunset,robbie,alabama,danger,zeppelin,juan,rusty,pppppp,nick,2001,ping,darkstar,madonna,qwe123,bigone,casino,cheryl,charlie1,mmmmmm,lakota,akota,integra,wrangler,apache,tweety,qwerty12,bobafett,simone,none,business,sterling,trevor,transam,dustin,harvey,england,2323,seattle,ssssss,rose,harry,openup,pandora,trucker,wallace,indigo,storm,malibu,weed,review,babydoll,doggy,dilbert,pegasus,joker,catfish,flipper,valerie,herman,detroit,kenneth,cheyenne,bruins,stacey,smoke,joey,seven,marino,fetish,xfiles,wonder,stinger,pizza,babe,pretty,stealth,manutd,gracie,gundam,cessna,longhorn,presario,mnbvcxz,wicked,mustang1,victory,shelly,awesome,athena,q1w2e3r4,help,holiday,knicks,street,redneck,casey,gizmo,scully,dragon1,devildog,triumph,eddie,bluebird,shotgun,peewee,hubris,ronnie,angel1,daisy,special,metallica,madman,country,impala,lennon,roscoe,omega,access14,enterpri,miranda,search,smitty,blizzard,unicorn,tight,rick,ronald,asdf1234,harrison,trigger,truck,danny,home,winnie,beauty,thailand,cadillac,castle,tyler,bobcat,buddy1,sunny,stones,asian,freddie,chuck,butt,loveyou,norton,hellfire,hotsex,indiana,short,panzer,lonewolf,trumpet,colors,blaster,12121212,fireball,logan,precious,aaron,elaine,jungle,masamune,atlanta,gold,corona,curtis,nikki,polaris,timber,theone,baller,chipper,orlando,island,skyline,dragons,dogs,benson,licker,goldie,engineer,kong,pencil,basketba,open,hornet,world,linda,barbie,chan,farmer,valentin,indians,larry,redman,foobar,travel,morpheus,bernie,target,141414,hotstuff,photos,laura,savage,holly,rocky1,dollar,turbo,design,newton,hottie,moon,blondes,4128,lestat,avatar,future,goforit,random,abgrtyu,jjjjjj,q1w2e3,smiley,goldberg,express,zipper,wrinkle1,stone,andy,babylon,dong,powers,consumer,dudley,Aster,monkey1,serenity,samurai,99999999,skeeter,lindsay,joejoe,master1,aaaaa,chocolat,christia,birthday,stephani,tang,alfred,ball,maria,sexual,maxima,sampson,buckeye,highland,kristin,seminole,reaper,bassman,nugget,lucifer,airforce,nasty,watson,warlock,2121,philip,always,dodge,chrissy,burger,bird,snatch,missy,pink,gang,maddie,holmes,huskers,piglet,photo,joanne,hamilton,dodger,paladin,christy,chubby,buckeyes,hamlet,abcdefgh,bigfoot,sunday,manson,goldfish,garden,deftones,icecream,blondie,spartan,julie,harold,charger,brandi,stormy,sherry,pleasure,juventus,rodney,galaxy,holland,escort,zxcvb,planet,jerome,wesley,blues,song,peace,david1,1966,cavalier,gambit,karen,sidney,ripper,jamie,sister,marie,martha,nylons,aardvark,nadine,minnie,whiskey,bing,plastic,anal,babylon5,chang,savannah,loser,racecar,insane,yankees1,mememe,hansolo,chiefs,fredfred,freak,frog,salmon,concrete,yvonne,sophia,stefan,8a1n80w,slick,rocker,opensesame,onessnap".split(",")
 	PASSWORDSC="123456789098765,012345678909876,abgDw32fhGu58k,Bd5gHie89YA,HG54h49lklj4G53,Bd5gHie89YA,59038qyghq340fg,tgby2hnr4fv9ujm,abcplm123098tg6,3dsvi2psdfn34,a03nf93nf8,3edv45gb8ub202n,afdiounwrnnfsa,234086531230324,111111111111111,222222222222222,333333333333333,444444444444444,55555555555555,666666666666666,777777777777777,888888888888888,999999999999999,000000000000000,efh368jhr08712,asdfghjkl102938,ghfjdkslatywoec,bogu2847mshd02,1357924680aoejd,g35gk5k63l10,d0emgh4m43la,ae51wc3g7d9c,GHEITHEKA102938,HHHHHHHHHHHHH,AAAAAAAAAAAAAAAA,RRRRRRRRRRRRRRRR,sssssssssssssss,ttttttttttttttt,llllllllllllll,eeeeeeeeeeeee,uuuuuuuuuuuu,oooooooooo,aaaaaaaa,1234,123,987,567,654,56432,12345,55555,99999,34567,jhgfd,uiopl,mnbvc,ytrewq,iuhhfd,sadregh,01010101010101,1010101010101010,000111000111000,einagearghaaer,235gdfa5yhgea,aletgadfgraerga,0k9j8h7g6f5f4ed2,afdsawe4togfido,butyrhdncbuh,39n8nf93fk59,adfsafawefgaag,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0".split(",")
 	PASSWORDS = PASSWORDSA + PASSWORDSB
@@ -1585,15 +1589,16 @@ command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 	self.c={}
 	for s in samples
 		s=s.trim.upper
-		if s.len>3 then self.s.push(s)
+		if s.len>3 then self.s.push(s) // length limiter here
 	end for
+	if DEBUG then print "pwgen: debug: self.s.len: "+self.s.len
 	for s in self.s
 		for i in range(0,s.len-4)
-		k=s[i:i+3]
+		k=s[i:i+3] // limiter
 		if self.c.hasIndex(k) then
-			if self.c[k].indexOf(s[i+3])==null then self.c[k].push(s[i+3])
+			if self.c[k].indexOf(s[i+3])==null then self.c[k].push(s[i+3]) // limiter
 		else
-			self.c[k]=[s[i+3]]
+			self.c[k]=[s[i+3]] // limiter
 		end if
 		end for
 		//wait(.1)
@@ -1603,7 +1608,7 @@ command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 	r={}
 	for s in self.s
 		for i in range(0,s.len-4)
-		self.r(s.len,s[i:i+3],r)
+		self.r(s.len,s[i:i+3],r) // limiter
 		//wait(.01)
 		end for
 	end for
@@ -2033,9 +2038,9 @@ command.string = function(arg1,arg2,arg3,arg4)
 	colorGreen+"String and List functions (more to be added over time)."+char(10)+
 	"-- I didn't want to make a string command AND a list command so both are here."+char(10)+
 	colorWhite+"Lists: Stringifying lists:"+char(10)+
-	"Usage: string [opt] [list] -- converts a list to a string and returns it"+char(10)+
+	colorCyan+"Usage: string [opt] [list] -- converts a list to a string and returns it"+char(10)+
 	"-- use the clipboards and @a|@b|@c or piping to supply the list"+char(10)+
-	"Usage: string [lista] [listb] -- will return lista concatenated with listb"+char(10)+
+	colorCyan+"Usage: string [lista] [listb] -- will return lista concatenated with listb"+char(10)+
 	"-- returns a <b>LIST</b>"+char(10)+
 	"-- pipe the resulting list back into string to stringify"+char(10)+
 	"-- e.g.: <b>string @a @b | string -n | poke new.txt</b>"+char(10)+
@@ -2048,24 +2053,29 @@ command.string = function(arg1,arg2,arg3,arg4)
 	"Note: the default join delimiter is char(10)"+char(10)+
 	"-- i.e: <b>string [list]</b> is the same as <b>string [-n] [list]"+char(10)+char(10)+
 	colorWhite+"Strings: Stringify strings:"+char(10)+
-	"Usage: string [-r] [target_text] [replacement_text] [string_to_parse]"+char(10)+
+	colorCyan+"Usage: string [-t] [target_text] -- returns trimmed text"+char(10)+
+	"-- ie: it removes whitespace"+char(10)+
+	colorCyan+"Usage: string [-r] [target_text] [replacement_text] [string_to_parse]"+char(10)+
 	"-- replace all instances of target_text with replacement_text within string_to_parse"+char(10)+
 	"-- use piping, easy clip, and "" text blocks "" to supply strings"+char(10)+
 	"-- all params should be strings and the function returns the modified string"+char(10)+
 	colorWhite+"Numbers: Stringify numbers"+char(10)+
-	"Usage: string [number] -- returns str(number) as a string"+char(10)+
+	colorCyan+"Usage: string [number] -- returns str(number) as a string"+char(10)+
 	"-- please note that numbers are passed as numbers, not strings, when piped"+char(10)+
-	colorWhite+"Listify and numberify strings"+char(10)+
-	"Usage: string [-l] [delim] [string] -- turn a string split at [delim] into a list"+char(10)+
+	colorWhite+"Numberify strings:"+char(10)+
+	colorCyan+"Usage: string [-i] [string] -- converts a string to an integer and returns an integer"+char(10)+
+	"--eg:<b> string -i 100"+char(10)+
+	colorCyan+"Usage: string [-v] [string] -- converts a string to a floating point value and returns it"+char(10)+
+	"--eg:<b> string -v 3.12159"+char(10)+
+	colorWhite+"Listify strings"+char(10)+
+	colorCyan+"Usage: string [-l] [delim] [string] -- turn a string split at [delim] into a list"+char(10)+
 	"-- use floating quotes or piping to supply complex input strings"+char(10)+
 	"--eg:<b> string -l , one,two,three"+char(10)+
 	"--eg:<b> string -l , "" one, two, three, four "" "+char(10)+
-	"Usage: string [-L] [delim] [string] -- as above but applys .to_int to each element"+char(10)+
+	colorCyan+"Usage: string [-L] [delim] [string] -- as above but applys .to_int to each element"+char(10)+
 	"-- ie: returns a list of integers"+char(10)+
-	"--eg:<b> string -L , 1,2,3,4"
-	"Usage: string [-i] [string] -- converts a string to an integer and returns an integer"+char(10)+
-	"--eg:<b> string [i] 100"
-	"Note: maps are not yet supported"+char(10)
+	"--eg:<b> string -L , 1,2,3,4"+char(10)+
+	"Note: maps are not yet supported"
 
 	_handle_replacement = function( target, replacement, in_string )
 		if not in_string isa string or not target isa string or not replacement isa string then return "replace: -r expects strings"
@@ -2076,6 +2086,10 @@ command.string = function(arg1,arg2,arg3,arg4)
 		if typeof(in_string) != "string" then return "string: expected string, got "+typeof(in_string)
 		return in_string.to_int
 	end function 
+	_to_val = function( in_string )
+		if typeof(in_string) != "string" then return "string: expected string, got "+typeof(in_string)
+		return in_string.val 
+	end function
 	_to_list = function( delim, in_string )
 		if not delim or typeof(delim) != "string" then return "string: delimiter must be a string"
 		if not in_string or typeof(in_string) != "string" then return "string: input string not supplied"
@@ -2091,6 +2105,15 @@ command.string = function(arg1,arg2,arg3,arg4)
 		end for
 		return s_b
 	end function
+	_trim_input = function( instring )
+		if typeof( instring ) != "string" then return "string: expects [-t] [string_input]"
+		sp_str = instring.split(char(10))
+		output = []
+		for line in sp_str 
+			output.push(line.trim)
+		end for
+		return output.join(char(10)).trim
+	end function
 
 	delim = null
 	in_list = null
@@ -2101,9 +2124,11 @@ command.string = function(arg1,arg2,arg3,arg4)
 	end if
 	if typeof(arg1) == "list" then in_list = arg1  
 	if typeof(arg1) == "string" then 
+		if arg1 == "-t" then return _trim_input( arg2 )
 		if arg1 == "-L" then return _to_int_list(arg2,arg3)
 		if arg1 == "-l" then return _to_list(arg2,arg3)
 		if arg1 == "-i" then return _to_int(arg2)
+		if arg1 == "-v" then return _to_val(arg2)
 		if arg1 == "-r" then return _handle_replacement(arg2,arg3,arg4)
 		if arg1 == "-n" then delim = char(10) // "/n"
 		if arg1 == "-c" then delim = char(44) // ","
@@ -2120,32 +2145,43 @@ end function
 command.diff = function(input_1,input_2,arg3,arg4)
 
     // the diff function
-    _diff = function(block_1, block_2)
+    _diff = function(block_1, block_2,ret_type="string")
+		print colorRed+"--diff--"
         if typeof(block_1) != "string" or typeof(block_2) != "string" then return "error: expected string string, got: "+typeof(block_1)+" and "+typeof(block_2)
-        
-        lines1 = block_1.split(char(10))
-        lines2 = block_2.split(char(10))
-        leng1 = lines1.len 
-        leng2 = lines2.len 
-        
+        diff_list = []
+		print_buffer = []
         i = 0
         j = 0
-        print_buffer = []
-		print colorRed+"--diff--"
+        lines1 = block_1.split(char(10))
+        lines2 = block_2.split(char(10))
+		// if DEBUG then print "debug: len_1: "+lines1.len+" len_2: "+lines2.len
+		// if DEBUG then print "debug: in diff: trimming input"
+		// buf = []
+		// for line in lines1 
+		// 	if line != "" then buf.push(line.trim)
+		// end for
+		// lines1 = buf
+		// buf = []
+		// for line in lines2 
+		// 	if line != "" then buf.push(line.trim)
+		// end for
+		// lines2 = buf
+		leng1 = lines1.len 
+        leng2 = lines2.len 
+		if DEBUG then print "debug: len_1_1: "+lines1.len+" len_2_2: "+lines2.len
         while i < leng1 or j < leng2 
             if i < leng1 and j < leng2 then 
                 if lines1[i] == lines2[j] then 
-                    print_buffer.push(i+"<color=#00ff88ff>"+char(177)+j+" "+lines1[i])
+                    print_buffer.push((i+1)+"<color=#00ff88ff>"+char(177)+(j+1)+" "+lines1[i])
 					i = i + 1
 					j = j + 1
                 else 
-					//print_buffer.push(colorRed+"--")
-                    print_buffer.push(colorRed+i+CT+"<color=#D9FF00ff>- "+lines1[i])
-                    print_buffer.push(colorRed+j+CT+"<color=#fc7324ff>+ "+lines2[j])
-					//print_buffer.push(colorRed+"--")
+					print_buffer.push(colorRed+(i+1)+CT+"<color=#D9FF00ff>- "+lines1[i])
+                    print_buffer.push(colorRed+(j+1)+CT+"<color=#fc7324ff>+ "+lines2[j])
+					diff_list.push(i+1)
 					j = j + 1
 					if j < lines2.len then 
-						if lines1[i] != lines2[j] then i = i + 1
+						if lines1[i] != lines2[j] then i = i + 1 else diff_list.pop // this is a hack for compatibility with zero day stuff, make it better
 					else 
 						i = i + 1
 					end if
@@ -2155,21 +2191,36 @@ command.diff = function(input_1,input_2,arg3,arg4)
                 end if  
             else 
                 if i < leng1 then 
-                    print_buffer.push("<color=#D9FF00ff>"+i+"- "+lines1[i])
+                    print_buffer.push("<color=#D9FF00ff>"+(i+1)+"- "+lines1[i])
+					if lines1[i] != "" then diff_list.push(i+1)
                 else 
                     if j < leng2 then 
-                        print_buffer.push("<color=#fc7324ff>"+j+"+ "+lines2[j])
+                        print_buffer.push("<color=#fc7324ff>"+(j+1)+"+ "+lines2[j])
+						if lines1[j] != "" then diff_list.push(j+1)
                     end if
-                end if
+               end if
 				i = i + 1
             	j = j + 1
             end if
 			//i = i + 1
             //j = j + 1
         end while
-        return print_buffer.join(char(10))
+        if ret_type == "string" then 
+			return print_buffer.join(char(10))
+		else 
+			print print_buffer.join(char(10))
+			return diff_list
+		end if
     end function
-
+/////////////////////////////////////////START HERE///////////////////////////////////////////////////
+	// preprocess input
+	return_type = "string"
+	if input_1 == "-l" then 
+		return_type = "list"
+		input_1 = input_2 
+		input_2 = arg3 
+		arg3 = arg4
+	end if
     // usage info
     if not input_1 or not input_2 or input_1 == "-h" or input_1 == "help" then return "<u><b>DIFF || DIFFERENCES || FILE COMPARE || TEXT COMPARE"+char(10)+char(10)+
     "Usage: diff [input_1] [input_2] -- standard diff tool"+char(10)+
@@ -2182,9 +2233,10 @@ command.diff = function(input_1,input_2,arg3,arg4)
     ":: if input_1 or input_2 are single words they are processed as <b>paths to a file"+char(10)+
     ":: if input_2 or input_2 are more than one word (ie piped text) they are processed as strings"+char(10)+
     ":: does not process binary files or lists"+char(10)+
-	":: -- for lists pipe the output of <b>string [yourlist]"
-	
-    // preprocess input
+	":: -- for lists pipe the output of <b>string [yourlist]"+char(10)+
+	"Advanced: diff [-l] [input1] [input2] -- returns a list of ints corresponding to line numbers with differences"+char(10)+
+	"-- useful for <b>unit_testing</b> a debugLibrary"
+    // postprocess input
     if typeof(input_1) == "string" then 
         if input_1.split(" ").len == 1 then input_1 = globals.get_file(input_1)
         if not input_1 then return "diff: "+input_1+" not found"
@@ -2204,7 +2256,327 @@ command.diff = function(input_1,input_2,arg3,arg4)
         input_2 = input_2.get_content
     end if
 	if DEBUG then print "debug: top of diff"
+	if DEBUG then print "debug: input_1: "+input_1
 	if DEBUG then print "<b>debug: input_1 leng: "+input_1.len
+	if DEBUG then print "debug: input_2: "+input_2 
 	if DEBUG then print "<b>debug: input_2 leng: "+input_2.len
-    return _diff(input_1,input_2)
+    return _diff(input_1,input_2,return_type)
 end function
+command.iff = function(arg1,arg2,arg3,arg4)
+	if arg1 == "help" or arg1 == "-h" then return "IF || if statement || conditionals"+char(10)+
+	"Usage: iff [positive_return] [negative_return] [condition_1] [condition_2] -- a binary if statement"+char(10)+
+	"-- compares condition_1 to condition_2"+char(10)+
+	"-- returns positive_return if equal"+char(10)+
+	"-- returns negative_return if not-equal"+char(10)+
+	"-- conditions and returns may be any data type"+char(10)+
+	"NOTE: functions as returns are returned by function reference"+char(10)+
+	"-- pipe to code for execution"+char(10)+
+	"-- functions as conditions are executed in place"+char(10)+
+	"---- it is not currently possible to pass parameters to these functions"
+	if arg3 == arg4 then return @arg1 else return @arg2
+end function
+command.sl = function(arg1,arg2,arg3,arg4)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Symlink || symbolic link || file path"+char(10)+
+	"Usage: sl [path] -- returns true if path is a symlink, returns false otherwise"+char(10)+
+	"Usage: sl [path] [/new_path/new_name] -- create a symbolic link at path"+char(10)+
+	"-- returns 1 on success, string on fail"
+	if typeof(arg1) == "file" then arg1 = arg1.path
+	if typeof(arg1) != "string" then return "sl: invalid path"
+	source_file = globals.get_file(arg1)
+	if not source_file then return "sl: source file not found"
+	if not arg2 then 
+		print colorCyan+"sl:"+colorLightBlue+" checking for symlink..."
+		if source_file.is_symlink then return "true" else return "false" 
+	end if
+	sym_name = null
+	sym_parent_path = null 
+	first = globals.get_file(arg2)
+	if first then 
+		if first.is_symlink then 
+			print "sl: destination symlink exists; overwriting"
+			sym_name = first.name 
+			sym_parent_path = first.parent.path 
+		else 
+			print "sl: destination exists and is not a symlink;"+char(10)+"-- aborting..."
+			return 0
+		end if
+	else
+		sym_path = arg2.split("/")
+		sym_name = sym_path.pop
+		if sym_path.len < 1 then sym_path = sym_path + currentPath.split("/")
+		sym_path = sym_path.join("/")
+		second = globals.get_file(sym_path)
+		if second and second.is_folder then sym_parent_path = second.path else return "sl: [original_file] [/parent_path/new_name]"
+	end if
+	print colorLightBlue+"<u>sl: "+colorCyan+"creating symlink:</b> "+source_file.path+" ~> "+sym_parent_path+"/"+sym_name
+	return source_file.symlink(sym_parent_path, sym_name)
+end function
+command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
+
+    if neurobox_user == "h" or neurobox_user == "help" then return "Zer0Chill || Zeroday || zero day || autopatcher || autosolver"+char(10)+
+    colorWhite+"Usage: zc [user] [password] [MetaLib_object|MetaLib_name]</color> -- autosolve debugLibrary unit_testing and produce patch"+char(10)+
+    "-- [user] - should be a neurobox engineer username gleened from investigating a<b> zero day rumor"+char(10)+
+    "-- [pass] - should be the debugging password for the above engineer, gained the same way"+char(10)+
+    "-- [MetaLib] - should be either an object or the <u>name</u> of a lib.so in /lib"+char(10)+
+    "--eg: zc foo bar net.so "+char(10)+
+    "NOTE: zc foo bar /lib/net.so is not valid: libs must be in /lib to be exploited in the first place"+char(10)+char(10)+
+    "Output:"+char(10)+
+    "Zer0Chill will store all objects (MetaLib and debugLibrary) and strings recovered in the BUFFER."+char(10)+
+    "Additionally, the original code will be trimmed of whitespace and line numbers and stored in /currentPath/orig, if possible."+char(10)+
+    "   ""  ""   , the generated, corrected code will be stored in /currentPath/patch.zd, if possible."+char(10)+
+    "   ""  ""   , both original and corrected code will be stored in the custom object under keys: original, corrected."+char(10)+
+    "   ""  ""   , both original and corrected code will be stored in the BUFFER."+char(10)+
+    "Any combination of these may be piped to <b>diff -l</b> to obtain a list of line numbers to use with debugLibrary unit testing."+char(10)+
+    "Finally, the original code will be compared with the new code using <b>diff</b> with the resulting list placed in the BUFFER."+char(10)+
+    "NOTE: this option will <b>not</b> automatically patch the debugLibrary! Use -p or -a for that."+char(10)+
+    colorLightBlue+"- - - - - -"+char(10)+
+    "Usage: zc [-s|--scan] [debugLibrary] -- run a scan on a debugLibrary and return the scan string"+char(10)+
+    "Usage: zc [-s|--scan] [user] [pass] [MetaLib] -- obtain a debugLibrary, scan it, and return the scan string"+char(10)+
+    "Usage: zc [-u|--unit-test] [list:line_nums|string:line_nums] [debugLibrary] -- run unit testing on the debug lib"+char(10)+
+    "-- line_nums should be a list or string of line numbers containing mistakes in the original code snippet"+char(10)+
+    "---- if a string is supplied it should be comma separated: 1,2,3,4"+char(10)+
+    "-- returns the resulting zero-day string"+char(10)+
+    "Usage: zc [-p|--patch] [/path|string] [debugLibrary] --  patch a debug lib using the code in the given string or file at path"+char(10)+
+    colorGold+"Usage: zc [-a|--auto-patch] [MetaLib|string:lib.so] -- automatically patch a MetaLib object or the named lib in /lib"+char(10)+
+    "--eg: zc -a net.so"
+    if not neurobox_user or not neurobox_pass then return "zer0Chill: invalid parameters: expects [user] [pass] [metaLib]"
+    if typeof(metalib) != "MetaLib" then 
+        if typeof(metalib) == "string" then 
+            if not globals.metaxploit then return "zer0Chill: metaxploit is required in order to load from path"
+            //file_path = metalib.trim
+            //if DEBUG then print "debug: file path: "+file_path
+            //metalib_file = globals.get_file(metalib)
+            //if not metalib_file then return "zer0Chill: "+metalib+" not found in /lib"+char(10)+"-- supply an object of type MetaLib or"+char(10)+"-- the name of a metalib.so in /lib. eg: net.so"+char(10)+"-- libs must be in /lib to be exploited"
+            print command.meta("link","-l",metalib)        
+            metalib = command.bios("-m")
+            if typeof(metalib) != "MetaLib" then return "zer0Chill: error: that wasn't a MetaLib!" else globals.BUFFER.push(metalib)
+        else 
+			if not metalib then 
+				if globals.metaLib then 
+					metalib = globals.metaLib
+					globals.BUFFER.push(metalib)
+				else 
+					return "zer0Chill: please supply or link a metaLib name or object"
+				end if
+			else 
+				return "zer0chill: please supply or link a metaLib name or metaLib object"
+			end if
+        end if
+    else 
+        command.meta("link",metalib)    
+        globals.BUFFER.push(command.bios("-m"))
+    end if
+
+
+
+    handle = {}
+    handle.output = []
+    handle.some_var = ""
+    handle.scan_string = ""
+    handle.orig_code = ""
+    handle.corr_code = ""
+    handle.zeroday = ""
+    handle.objects = [] // metaLib, debugLibrary, list_of_line_numbers
+    handle.test = function( list, debuglib )
+        zero_day = debuglib.unit_test(list)
+        print colorGold+"Processing..."
+        if zero_day == null then return "zer0Chill: unit_test failed: invalid input"
+        if zero_day == "Test failed: No errors have been found in one or more of the provided lines, or not all lines with errors have been provided." then return zero_day
+        print colorWhite+"Success. Sending result to BUFFER"
+        globals.BUFFER.push(zero_day)
+        print "zer0Cill: task complete, returning result:"
+        return zero_day
+    end function
+    handle.patch = function( debugLibrary, patch_path )
+        act = debugLibrary.apply_patch( patch_path )
+		print act
+    end function
+    handle.The = function( f, v ) // create a new function, create it's first line, determine it's param from that line
+        handle.output.push(f+" = function("+v+")")
+    end function
+    handle.If = function( string ) // [If] the value of var_pkPc3t is greater than or equal to 5,...
+        valu = string.split("value of")[1].split("is")[0].trim // var_pkPc3t
+        statement = string.split(", ")[0].split("is")[1].trim // greater than or equal to 5
+        if DEBUG then print "processing statement: "+statement
+        line = "if "+valu+" "+handle._maths(statement)+" then" // if var_pkPc3t >= 5 then
+        handle.output.push(line)
+        // ...then updates var_pkPc3t by calculating var_pkPc3t plus 6
+        next_line = string.split(", ")[1].split("calculating ")[1].split(" ") // var_pkPc3t plus 6
+        var = next_line.pull 
+        const = next_line.pop 
+        op = next_line.join(" ")
+        if op == "plus" then op = "+"
+        if op == "minus" then op = "-"
+        if op == "divided by" then op = "/"
+        if op == "multiplied by" then op = "*"
+        line = var+" = "+var+" "+op+" "+const // var_pkPc3t = var_pkPc3t + 6
+        handle.output.push(line)
+        handle.output.push("end if")
+    end function
+    handle.For = function( string ) // [For] each i from 0 to 2, updates var_pkPc3t by multiplying it by i
+        lines = string.split(", ")
+        line1 = lines[0]
+        line2 = lines[1]
+
+        range_min = line1.split("from ")[1].split(" to ")[0] // 0
+        range_max = line1.split("from ")[1].split(" to ")[1] // 2
+        var = line2.split(" by ")[0].split(" ")[1] // var_pkPc3t
+        op = var+" = i * "+var
+
+        // for i in range(range_min, range_max)
+        //  var = i op var
+        // end for
+        handle.output.push("for i in range("+range_min+", "+range_max+")")
+        handle.output.push(op)
+        handle.output.push("end for")
+    end function
+    handle.calculates = function( string ) // [calculates] var_pkPc3t minus 1
+        input = string.split(" ")
+        v = input.pull
+        const = input.pop 
+        op = input.join(" ").trim
+        if op == "plus" then op = "+"
+        if op == "minus" then op = "-"
+        if op == "divided by" then op = "/"
+        if op == "multiplied by" then op = "*"
+        handle.output.push(v+" = "+v+" "+op+" "+const)
+    end function
+    handle.calls = function( string ) // calls the function func_oEHEM4 with var_pkPc3t.
+        line = string.split("function ")[1].split(" ")
+        func = line[0]
+        var = line[-1]
+        handle.output.push(var+" = "+func+"("+var+")")
+    end function
+    handle.creates = function( string ) // creates a list var_nDHyNB, adds var_Znm6qW to var_nDHyNB, and assigns var_Znm6qW to the first element of var_nDHyNB.
+        line1 = string.split(", ")[0]
+        list = line1.split("list ")[1]
+        line2 = string.split(", ")[1]
+        v = line2.split(" ")[1]
+        handle.output.push(list+" = []")
+        handle.output.push( list+".push("+v+")")
+        handle.output.push(v+" = "+list+"[0]")
+    end function
+    handle.Finally = function( string ) // [returns] something
+        ret_v = string.split(" ")[-1]
+        line = "return "+ret_v 
+        handle.output.push(line)
+        handle.output.push("end function")
+        handle.output.push("")
+    end function
+    handle._maths = function( string )
+        st = string.split(" ")
+        v = st.pop
+        st = st.join(" ").trim
+        op = ""
+        if DEBUG then print "in _maths: st is:"+st
+        if st == "greater than or equal to" then return ">= "+v
+        if st == "greater than" then return "> "+v
+        if st == "less than" then return "< "+v
+        if st == "less than or equal to" then return "<= "+v
+        if st == "equal to" then return "== "+v
+        if st == "not equal to" then return "!= "+v
+        if op == "" then return "<b>unknown operation!</b> "+v
+        //return op+" "+v
+    end function
+    handle.write_patch = function( list, file )
+        out = list.join(char(10))
+        return file.set_content(out)
+    end function
+    handle._parse = function( string )
+        sl = string.split(" ")
+        first_word = sl.pull.replace(",","")
+        if first_word == "The" then 
+            if DEBUG then print "creating new function..."
+            sl.pull 
+            f_name = sl.pull 
+            if DEBUG then print f_name
+            handle.The(f_name,handle.some_var)
+            first_word = sl.pull.replace(",","")
+        end if
+        ins = sl.join(" ")
+        yadda = ""
+        if DEBUG then print "looking for index: "+first_word
+        if handle.hasIndex(first_word) then yadda = @handle[first_word] else return 0 // fix this
+        yadda(sl.join(" "))
+        return 1
+    end function
+    handle.export = function( string )
+        //command.cob("set","orig",string)
+        print "zer0Chill: sending code snippet to BUFFER"
+        globals.BUFFER.push(string)
+        file = globals.get_file(currentPath+"/orig")
+        if not file then print command.poke(currentPath+"/orig")
+        file = globals.get_file(currentPath+"/orig")
+        if not file then print "zer0Chill: unable to locate or create "+currentPath+"/orig"
+        print "zer0Chill: writing original code snippet to "+file.path
+        if file.has_permission("w") then file.set_content(string) else print "write failed: permission denied"
+    end function 
+    handle._refactor = function( string )
+        //print string
+        arr = string.split(char(10))
+        //print arr
+        out_b = []
+        for line in arr
+            sl = line.split(":")
+            if sl.len > 1 then out_b.push(sl[1].trim)
+        end for
+        handle.export( out_b.join(char(10)) )
+    end function
+    handle._split_strings = function( string )
+        if DEBUG then print "debug: string to split:"+char(10)+string
+        instructions = string[:string.indexOf("01:")].trim.remove("Potential problems have been found in the following code:")
+        original_code = string[string.indexOf("01:"):]
+        return [ instructions, original_code ]
+    end function
+    handle._heuristics = function()
+        success = 0
+        debug_lib = metalib.debug_tools(neurobox_user,neurobox_pass)
+        if typeof(debug_lib) != "debugLibrary" or debug_lib == "Incorrect password" then return [ success, debug_lib ]
+        output = ""
+        output = debug_lib.scan 
+
+
+        success = 1    
+        return [ success, output, debug_lib ]
+    end function
+    ///////////////////////////////////////////////////////////////////////////////////    
+    handle.zero_pwn = function( string ) 
+        handle.some_var = string.split("returns")[-1].replace("\.","").trim
+        chunk = string.replace(char(10),"").split("\.")
+        
+        if DEBUG then print "Found some var: "+handle.some_var
+        for line in chunk
+            if DEBUG then print "processing line: "+line
+            handle._parse(line.trim)
+        end for
+
+        output_file = globals.get_file(currentPath+"/patch.zd")
+        if not output_file then print command.poke(currentPath+"/patch.zd")
+        output_file = globals.get_file(currentPath+"/patch.zd")
+        if not output_file then print "zer0Chill: could not find or create patch.zd in current path"+char(10)+"-- patch not written to file"
+        if output_file then 
+            if not output_file.has_permission("w") then 
+                print "zer0Chill: patch.zd is write protected"+char(10)+"-- patch not written to file"
+            else
+                print "zer0Chill: writing patch file to: "+output_file.path+char(10)+"-- status: ["+handle.write_patch(handle.output, output_file)+"]"
+            end if
+        end if
+        print "zer0Chill: returning output..."
+        return handle.output.join(char(10))
+    end function
+    ///////////////////////////////////////////////////////////////////////////////
+    print "Launching Zer0Chill v 0.3..."
+    hl = handle._heuristics // returns list
+    h=""
+    if not hl[0] then return hl[1] else h = hl[1]
+    if DEBUG then print "debug: big string is:"+char(10)+h+char(10)
+    print colorOrange+"zer0Chill: sending debugLibrary to BUFFER"
+    globals.BUFFER.push(hl[2])
+    print colorOrange+"-- sending debug string to BUFFER"
+    globals.BUFFER.push(h)
+    s = handle._split_strings(h) // returns list
+    handle._refactor(s[1])
+    return handle.zero_pwn(s[0])
+end function
+	
+	
