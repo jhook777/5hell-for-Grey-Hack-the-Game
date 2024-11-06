@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.5.8 for 5hell v 3.9.2...(126.117kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.0 for 5hell v 3.9.4.6...(126.117kb)</size>")
 
 //Define Globals
-sphinx_version = "2.5.8"
-malp_version = "1.3.2"
+sphinx_version = "2.6.1"
+malp_version = "1.3.5"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -185,9 +185,10 @@ globals.decompiler = function(object)
     return object
   end if
   if typeof(@object) == "function" then act = "Evaluating"
-  print("<mark=yellow>"+act+": "+@object+"</mark>")
+  print("<mark=yellow>"+act+": "+typeof(@object)+"</mark>")
   //print(object)
   c = @object
+  if typeof(@c)=="number" then return c
   if typeof(@c) == "string" then 
     fe = []
     for letter in c.values 
@@ -198,7 +199,6 @@ globals.decompiler = function(object)
   if typeof(@c) == "function" then
     return p_exe(@c)
   end if
-  if typeof(@c) == "number" then return [ command.code(c,0,0,0), command.code("-c",c,0,0) ]
   if @c.indexOf("__isa") >= 0 or @c.hasIndex("__isa") or @c.hasIndex("classID") or typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "shell" or typeof(@c) == "file" or typeof(@c) == "computer" or typeof(@c) == "ftpshell" then 
     //if @c.hasIndex("__isa") then methods = @c.__isa.indexes else methods = @c.indexes
     methods = c.__isa.indexes
@@ -231,6 +231,35 @@ globals.decompiler = function(object)
     end if
     return rcv
   end if  
+
+  if typeof(@c) == "list" then 
+    for d in c
+      print "<u>"+colorWhite+"ndx"+colorLightBlue+":"+colorWhite+"element"
+      print "["+colorWhite+c.indexOf(d)+CT+"]"+colorWhite+":"+CT+"["+d+"]"
+    end for
+    print colorLightBlue+"["+colorWhite+"1</color>]</b> enumerate "+colorLightBlue+"["+colorWhite+"2</color>]</b> to custom_object "+colorLightBlue+"["+colorWhite+"3</color>]</b> buffer selection"
+    print colorLightBlue+"["+colorWhite+"a</color>]</b> to clipa "+colorLightBlue+"["+colorWhite+"b</color>]</b> to clipb "+colorLightBlue+"["+colorWhite+"c</color>]</b> to clipc"
+    choice = user_input("||: ",0,1)
+    if choice == "1" then print command.enum(c)
+    if choice == "2" then 
+      set_key = user_input("set_key (<b>enter</b>=quit):> ")
+      if set_key == "" then print "aborting..."
+      print command.cob("set", set_key, c)
+    end if
+    if choice == "3" then 
+      getthis = user_input("select an index:> ").to_int
+      if getthis < c.len and getthis >= 0 then  
+        print "sending element to "+colorOrange+"BUFFER..."
+        globals.BUFFER.push(c[getthis])
+      else
+        print "invalid index. aborting..."
+      end if
+    end if
+    if choice == "a" then command.clipa(c)
+    if choice == "b" then command.clipb(c)
+    if choice == "c" then command.clipc(c)
+    return 0
+  end if
   for d in @c
     print(d+char(10))
   end for
@@ -300,7 +329,7 @@ p_validate = function( object, query )
   if typeof(@object) == "number" then return 1
   test = new object 
   if test == null then return 0
-  if @object.hasIndex("__isa") then
+  if @object.hasIndex("__isa") and typeof(@object) != "string" then
     if DEBUG then print "__isa index found..."
     locals.catch = @object.__isa.hasIndex(query)
     if DEBUG then print "result: "+locals.catch
@@ -642,6 +671,7 @@ scribus = function(f_obj)
   if typeof(array) == "string" then array = array.split(char(10))
   if typeof(array) != "list" then return "Scribus: invalid type: "+typeof(array)
   i = 0
+  if array == [""] or array == 0 then array = []
   for l in array
     print(i+": "+l)
     i = i + 1
@@ -1035,6 +1065,29 @@ globals.memory_alpha = function()
           if typeof(@buffer_selection) == "function" then
             args = str(@buffer_selection).split( "FUNCTION" )[1].split(", ")
             print("function takes: "+args.len+" arguments.")
+          end if
+          if typeof(@buffer_selection) == "string" then 
+            print buffer_selection
+            print colorGreen+"["+colorWhite+"1<color=green>|</color>d</color>]"+CT+" - Get Character Codes (decompiler)"+char(10)+
+            colorGreen+"["+colorWhite+"2<color=green>|</color>s</color>]"+CT+" - save to file"+char(10)+
+            colorGreen+"["+colorWhite+"3<color=green>|</color>e</color>]"+CT+" - edit with scribus"+char(10)+
+            colorGreen+"["+colorWhite+"4<color=green>|</color>a</color>"+CT+colorGreen+"]"+CT+" - to clipa "+colorGreen+"["+colorWhite+"5<color=green>|</color>b</color>"+CT+colorGreen+"]"+CT+" - to clipb "+colorGreen+"["+colorWhite+"6<color=green>|</color>c</color>"+CT+colorGreen+"]"+CT+" - to clipc"
+            do_this = user_input("(<b>enter</b>=quit)||: ",0,1)
+            if do_this == "a" or do_this == "4" then print command.clipa(buffer_selection)
+            if do_this == "b" or do_this == "5" then print command.clipb(buffer_selection)
+            if do_this == "c" or do_this == "6" then print command.clipc(buffer_selection)
+            if do_this == "3" or do_this == "e" then globals.BUFFER.push(globals.scribus(buffer_selection.split(char(10))))
+            if do_this == "2" or do_this == "s" then  
+              to_path = user_input("save_to_path (<b>enter</b>=abort):> ")
+              if to_path == "" then continue
+              print command.poke(to_path,buffer_selection)
+              continue
+            end if
+            if do_this != "1" or do_this != "d" then continue
+            chars = command.code(buffer_selection)
+            print chars 
+            globals.BUFFER.push(chars)
+            continue 
           end if
           print(globals.decompiler(@buffer_selection))
           continue
@@ -2588,18 +2641,19 @@ scan_memory = function()
 end function
 
 load_lib = function(lib_path)
+  if DEBUG then print "load_lib_path: "+lib_path
   if lib_path.len < 1 then return
   new_lib = metaxploit.load(lib_path)
   globals.net_session = null // clear out net_session since we are working with a local lib
   if new_lib then
-    print "metaLib: found "+colorLightBlue+new_lib.lib_name+"<color=blue> v </color>"+new_lib.version+char(10)
+    print "metaLib: linking "+colorLightBlue+new_lib.lib_name+"<color=blue> v </color>"+new_lib.version+char(10)
     // if waitFor == "n" or waitFor == "N" then
     //   print("Aborting...")
     //   return "Aborting..."
     // end if
     globals.metaLib = new_lib
   else
-    print("File not found. ")
+    print("load_lib: File not found. ")
     return 0
   end if
   print metaLib.lib_name + " v " + metaLib.version
