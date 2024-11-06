@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.4.6...(150.173kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.4.6...(150.248)</size>")
 // command.kore = function(arg1, arg2, arg3=0, arg4=0)
 // 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 // 	globals.CYCLES = 0
@@ -926,7 +926,9 @@ command.tdump = function(arg1,arg2,arg3,arg4)
 	if arg1 == "-h" or arg1 == "help" then return "Transmission Buffer Dump"+char(10)+"Usage: tdump [opt: path] -- dump tbuf (transmission buffer) to file"+char(10)+"-- writes to specified path or default path of home_directory+/pass"
 	if globals.T_BUF.len <= 1 then return "Transmission buffer is empty."
 	tpath = arg1 
-	if not tpath then tpath = home_dir + "/pass"
+	if not tpath then 
+		if currentPath != "/" then tpath = currentPath + "/pass" else tpath = currentPath+"pass"
+	end if
 	print colorLightBlue+"dumping t_buf to: "+colorWhite+tpath
 	passfile = globals.get_file(tpath)
 	if not passfile then 
