@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.2...(147.502kb)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.4.6...(150.173kb)</size>")
 // command.kore = function(arg1, arg2, arg3=0, arg4=0)
 // 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
 // 	globals.CYCLES = 0
@@ -381,6 +381,16 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		mpath = null
 		//if globals.mlib == true then
 		mpath = command.tree("/","metaxploit.so","1","N")
+		if mpath and mpath.parent.name == "rkit" then
+			mpath.move(mpath.parent.path,mpath.name+".bku")
+			c_path_2 = command.tree("/","metaxploit.so","1","N")
+			if m_path_2 then 
+				mpath.delete	
+				mpath = m_path_2
+			else 	
+				mpath.move(mpath.parent.path,mpath.name.remove(".bku"))
+			end if
+		end if
 		if typeof(mpath) != "file" then 
 			print "kore: metaxploit.so not found"
 		else 
@@ -400,7 +410,18 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		//if globals.crypto then
 			cpath = null
 			//if globals.clib == true then
+				
 				cpath = command.tree("/","crypto.so","1","N")
+				if cpath and cpath.parent.name == "rkit" then
+					cpath.move(cpath.parent.path,cpath.name+".bku")
+					c_path_2 = command.tree("/","crypto.so","1","N")
+					if c_path_2 then 
+					cpath.delete	
+					cpath = c_path_2
+					else 
+						cpath.move(cpath.parent.path,cpath.name.remove(".bku"))
+					end if
+				end if
 				if typeof(cpath) != "file" then 
 					print "kore: crypto.so not found"
 				else 
@@ -428,6 +449,8 @@ command.kore = function(arg1,arg2,arg3,arg4)
         print command.rm(command.grep("-f","Bank.txt"))
 		print "kore: removing *Mail.txt..."
         print command.rm(command.grep("-f","Mail.txt"))
+		print "kore: remove guest folder..."
+		print command.rm("-r","/home/guest")
 		print "kore: locking system..."
         print command.perms("lock","all")
         return 0
@@ -905,8 +928,16 @@ command.tdump = function(arg1,arg2,arg3,arg4)
 	tpath = arg1 
 	if not tpath then tpath = home_dir + "/pass"
 	print colorLightBlue+"dumping t_buf to: "+colorWhite+tpath
-	passfile = localmachine.File(tpath)
+	passfile = globals.get_file(tpath)
+	if not passfile then 
+		print "tdump: "+tpath+" not found"
+		print "poke: creating "+tpath
+		print command.poke(tpath)
+		passfile = globals.get_file(tpath)
+		if not passfile then return "tdump: write permission denied"
+	end if
 	if typeof(passfile) != "file" then return "tdump: "+tpath+" not found. "+char(10)+"-- check path and glasspool status and try again."
+	if not passfile.has_permission("w") then return "tdump: write permission denied"
 	tcatch = passfile.set_content( globals.T_BUF.join(char(10)) ) 
 	if DEBUG then print "debug: tcatch: "+tcatch+" is a "+ typeof(tcatch)
 	if typeof(tcatch) == "string" then return tcatch else print colorLightBlue+"tdump: task complete..."
@@ -2183,17 +2214,44 @@ end function
 command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if not metaxploit then return "Error: metaxploit.so not found"
 	//if GLASSPOOL then return "liber: local use only."
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Usage: liber [/path/lib_file] -- returns library name and version"+char(10)+"--e.g: liber /usr/cache/libhttp.so -- get name and version "+char(10)+"Usage: liber -l [libname] -- returns above for libname located in /lib/"+char(10)+"--e.g: liber -l libssh.so -- get info for /lib/libssh.so"+char(10)+"Usage: liber -l -- print version info for all shell objects in /lib"+char(10)+"Usage: liber [/folder] -- print version info for all shell objects in folder"+char(10)+"Usage: liber -i [/path/lib_file] -- returns an imported lib object from path"+char(10)+"--e.g: liber -i [/lib/blockchain.so] | malp -- imports lib and pipes to malp (BUFFER)"+char(10)+"-----: liber is limited to the scope of the metaxploit object in use."+char(10)+"-----: This means it is meant for local use. Not suitable for remote or glasspool use."
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "library version info || LIBER || metaLib version || liber te"+char(10)+
+	"<b>Usage: liber [/path/lib_file|MetaLib] -- returns library name and version"+char(10)+
+	"--e.g: liber /usr/cache/libhttp.so -- get name and version "+char(10)+
+	"--e.g: bios -m | liber"
+	"<b><color=white>Usage: liber [-l] [libname] -- returns version info for libname located in /lib/"+char(10)+
+	"--e.g: liber [-l] libssh.so -- get info for /lib/libssh.so"+char(10)+
+	"<b>Usage: liber [-l] -- print version info for all libraries in /lib"+char(10)+
+	"<b>Usage: liber [/folder] -- print version info for all libraries in folder"+char(10)+
+	"--e.g: liber /usr/libcache"
+	"<b>Usage: liber [-i] [/path/lib_file] -- returns an imported lib object from path"+char(10)+
+	"---- equivalent to <b>bios -i /path</b>"+char(10)+
+	"--e.g: liber [-i] [/lib/blockchain.so] | malp -- imports lib and pipes to malp (BUFFER)"+char(10)+
+	"NOTE : [-i] is for API objects such as metaxploit, crypto, blockchain, aptclient, etc"
+	"NOTE : liber is limited to the scope of the <b>metaxploit</b> object currently in use."+char(10)+
+	"NOTE : liber will color code results if database.csv exists"+char(10)+
+	"---- "+colorOrange+"orange means the library is unkown"+char(10)+
+	"---- "+colorCyan+"cyan means the library is known"+char(10)+
+	colorWhite+"Usage: liber [-r|-lr] [path|libname] -- run as above but return raw output"
+	color_on = true
+	if arg1 == "-r" then 
+		color_on = false 
+		arg1 = arg2
+		arg2 = arg3 
+		arg3 = arg4
+	end if
 	l_path = arg1
+	if typeof(l_path) == "MetaLib" then return arg1.lib_name+" v "+arg1.version
+	if typeof(l_path) != "string" and typeof(l_path) != "file" then return "liber: invalid type: expects file, string, or metalib"
 	if arg1 == "-i" then 
 		if not arg2 then arg2 = user_input("path to lib:> ").lower.trim
 		if arg2 == "" then return "liber: -i expects a path"
 		print colorWhite+"<u>liber: running command.bios -i "+arg2+CT+"</u>"
-		catch = command.bios(arg1,arg2)
-		if catch then print catch
+		return command.bios(arg1,arg2)
 	end if
 	//if arg1 == "-l" and not arg2 then l_path = "/lib"
-	if arg1 == "-l" then 
+	if arg1 == "-l" or arg1 == "-lr" then 
+		if arg1 == "-lr" then color_on = false 
+		if arg1 == "-lr" then arg1 = "-l"
 		if arg2 and typeof(arg2) == "string" then l_path = "/lib/"+arg2 else l_path = "/lib"
 		if arg2 and typeof(arg2) != "string" then print "liber: expects path as a string."
 	end if
@@ -2269,7 +2327,9 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 			// 	end if
 			// 	d_index = d_index + 1
 			// end for
-			if dbase_data.indexOf(entry) != null then buf[b_index] = color_known+entry+CT else buf[b_index] = color_unkwn+entry+CT 
+			if color_on then 
+				if dbase_data.indexOf(entry) != null then buf[b_index] = color_known+entry+CT else buf[b_index] = color_unkwn+entry+CT 
+			end if
 			b_index = b_index + 1
 			d_index = 0
 		end for
@@ -2480,6 +2540,20 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	globals.MEMORY = memory
 	if not memory then print("no exploits detected.")
     globals.meta_scan = []
+	_user_color = function( string )
+		cc = colorGreen
+		if string == "???" then cc = colorWhite
+		if string == "guest" then cc = colorWhite 
+		if string == "root" then cc = colorRed
+		return cc+string+CT
+	end function
+	_object_color = function( string )
+		cc = colorWhite
+		if string == "file" then cc = colorGreen
+		if string == "computer" then cc = colorCyan
+		if string == "shell" then cc = colorGold
+		return cc+string+CT
+	end function
 	for mem in memory
 		address = metaxploit.scan_address(globals.metaLib, mem).split("Unsafe check:")
         globals.meta_scan.push(address)
@@ -2502,7 +2576,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			end if
 			DATA.push("Hooked: " + globals.checkUser(result) + " " + typeof(result) + " with " + mem + " " + value)
 			//print(DATA[-1])
-			print("Hooked: " + globals.checkUser(result) + " " + typeof(result) + " with " + mem + " " + value)
+			print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(typeof(result)) + " with " + mem + " " + value)
 			globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result))
 			if result then globals.BUFFER.push(result)
 		end for
@@ -2741,8 +2815,9 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			if arg2 and arg2 == "-l" then
 				arg = "L"
 				scan_this_lib = null
-				if arg3 and typeof(arg3) == "string" then scan_this_lib = arg3
-				return command.linkdb(get_lib(arg,scan_this_lib),"-y") // edit get_lib to take 3rd param: auto link
+				//if arg3 and typeof(arg3) == "string" then scan_this_lib = arg3 
+				scan_this_lib = arg3
+				return command.linkdb(get_lib(arg,scan_this_lib),"-y") //else return "meta: invalid metaLib"// edit get_lib to take 3rd param: auto link
 			end if
 			if arg2 and arg2 == "-r" then 
 				arg = "Y"
@@ -2762,6 +2837,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		if arg1 == "import" or arg1 == "-i" then 
 			if not arg2 then return "meta: -i expects a metaxploit.so object or a path to a metaxploit.so"
+			if typeof(arg2) != "MetaxploitLib" then return "meta: invalid metaxploitLib"
 			print "meta: backing up current metaxploit object"
 			globals.backup_meta = globals.metaxploit
 			if typeof(arg2) == "string" then globals.metaxploit = include_lib(globals.get_file(arg2).path) else globals.metaxploit = arg2
