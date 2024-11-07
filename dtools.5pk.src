@@ -1963,7 +1963,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 end function
 if DEBUG then print("<size=75%>loading jtr.5pk...(3.397kb)</size>")
 command.jtr = function(arg1,arg2,arg3,arg4=0)
-	if arg1 == "help" or arg1 == "-h" or not arg3 then return "John The Ripper password generator"+char(10)+"Usage: jtr [word_length(1-15)] [set_size] [opt:aAns] [opt:1]" + char(10) + "a - lowercase alpha" +char(10)+ "A - uppercase alpha"+char(10)+"n - numbers"+char(10)+"s - special characters"+char(10)+"note: at least ONE option must be selected"+char(10)+"1 -- optional only first letter is upper case (any value here is considered 1/true), leave blank for false."
+	if arg1 == "help" or arg1 == "-h" or not arg3 then return "John The Ripper password generator"+char(10)+"Usage: jtr [set_size] [word_length(1-15)] [opt:aAns] [opt:1]" + char(10) + "a - lowercase alpha" +char(10)+ "A - uppercase alpha"+char(10)+"n - numbers"+char(10)+"s - special characters"+char(10)+"note: at least ONE option must be selected"+char(10)+"1 -- optional only first letter is upper case (any value here is considered 1/true), leave blank for false."
 	if arg1.to_int <= 0 then return "size error: greater than zero expected"
 	if arg2.to_int <= 0 or arg2.to_int > 15 then return "length error: expected between 1 and 15"
 
@@ -1996,6 +1996,8 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 	if arg4 then first_cap = 1
 	//print("arg4 is "+arg4+" and first_cap is "+ first_cap)
 	output = []
+	dupe_count = 0
+	time_out_limit = "1000000"
 
 	line = []
 	if PARAMS[0] then line = line + alpha_l
@@ -2006,6 +2008,9 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 	if typeof(line) != "list" then return "PARAMS error"
 	print("<b>Generating wordlist...</b>")
 	loops = SET_SIZE
+	s1 = 10
+	s5 = 50
+	s7 = 75
 	while loops
 		i = 0
 		array = range( 0 , SET_RANGE - 1 )
@@ -2025,10 +2030,33 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 		end while
 		if output.indexOf(array.join("")) == null then // ouput
 			output.push(array.join(""))
-			loops = loops - 1
+			//loops = loops - 1
+		else 
+			array.shuffle
+			if output.indexOf(array.join("")) == null then 
+				output.push(array.join(""))
+			else 
+				dupe_count = dupe_count + 1
+				if dupe_count == time_out_limit.to_int then 
+					print "jtr: timeout limit reached: too many duplicates"+char(10)+"-- we managed to make: "+output.len+" passwords"
+					return output.join(char(10))
+				end if
+			end if
 		end if
-		if SET_SIZE / loops == 4 then print("loading... 75% complete")
-		if SET_SIZE / loops == 2 then print("loading... 50% complete")
+		loops = loops - 1
+		if DEBUG then print colorOrange+"output length: "+output.len
+		if SET_SIZE / loops == 10 then 
+			print("loading..."+(s1)+"% complete")
+			s1 = s1 + 1 
+		end if
+		if SET_SIZE / loops == 4 then 
+			print("loading... "+(s7)+"% complete")
+			s7 = s7 + 1
+		end if
+		if SET_SIZE / loops == 2 then 
+			print("loading... "+(s5)+"% complete")
+			s5 = s5 + 5
+		end if
 		//wait(.01)
 	end while
 	return output.join(char(10)) // max string size is 1 million chars
@@ -2268,9 +2296,9 @@ command.diff = function(input_1,input_2,arg3,arg4)
 	if DEBUG then print "<b>debug: input_2 leng: "+input_2.len
     return _diff(input_1,input_2,return_type)
 end function
-command.iff = function(arg1,arg2,arg3,arg4)
+command["if"] = function(arg1,arg2,arg3,arg4)
 	if arg1 == "help" or arg1 == "-h" then return "IF || if statement || conditionals"+char(10)+
-	"Usage: iff [positive_return] [negative_return] [condition_1] [condition_2] -- a binary if statement"+char(10)+
+	"Usage: if [positive_return] [negative_return] [condition_1] [condition_2] -- a binary if statement"+char(10)+
 	"-- compares condition_1 to condition_2"+char(10)+
 	"-- returns positive_return if equal"+char(10)+
 	"-- returns negative_return if not-equal"+char(10)+
