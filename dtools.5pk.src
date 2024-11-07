@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.4.6...(133.808)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.5...(135.152)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -318,16 +318,18 @@ command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
     end if 
     if data.len != 32 then return "gopher: skipping invalid hash string"
     pass = command.md5("-d",data) // decipher here
-    output = user + ":" + pass
-    print("["+colorGold+output+CT+"]")
+    output = user + ":" + pass + ":"+data
+    print("["+colorGold+user+":"+colorGold+pass+CT+":"+data+"]")
     dump = command.tree("/","dump.txt","1","n")
     if not dump then 
       command.poke("dump.txt")
       dump = globals.get_file("dump.txt")
     end if
-    if dump and typeof(dump) == "file" and dump.has_permission("w") and dump.has_permission("r") then 
-      print("Saving to "+dump.path)
-      command.append(dump,output)
+    if dump and typeof(dump) == "file" and dump.has_permission("w") then //and dump.has_permission("r") then 
+      print("gopher: saving data to "+dump.path)
+      print command.append(dump,output)
+	else 
+		print "gopher: failed to write to dump.txt; check permissions"
     end if
   end if 
   return 0
@@ -1642,9 +1644,22 @@ command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 		//wait(.01)
 	end for
 	r={}
-		print(colorGold+"75%"+CT+" -- loading hash_table...")
-		print("<align=center>"+char(171)+char(187)+"</align>")
-		if arg1 == "false" then return o.indexes
+	print(colorGold+"75%"+CT+" -- loading hash_table...")
+	print("<align=center>"+char(171)+char(187)+"</align>")
+	for p in o.indexes
+		if p.len > 3 then 
+			o[p[:4]] = 1
+			o[p[-3:]] = 1
+		end if
+		if p.len > 4 then
+			o[p[:5]] = 1
+			o[p[-4:]] = 1
+		end if
+	end for
+	for w in PASSWORDS
+		o[w] = 1
+	end for
+	if arg1 == "false" then return o.indexes
 	for i in o.indexes
 		r[md5(i)]=i
 	end for
@@ -2006,6 +2021,7 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 	if PARAMS[3] then line = line + special
 	//print(line)
 	if typeof(line) != "list" then return "PARAMS error"
+	
 	print("<b>Generating wordlist...</b>")
 	loops = SET_SIZE
 	s1 = 10
@@ -2046,15 +2062,15 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 		loops = loops - 1
 		if DEBUG then print colorOrange+"output length: "+output.len
 		if SET_SIZE / loops == 10 then 
-			print("loading..."+(s1)+"% complete")
+			print(colorGold+"loading..."+(s1)+"% complete")
 			s1 = s1 + 1 
 		end if
 		if SET_SIZE / loops == 4 then 
-			print("loading... "+(s7)+"% complete")
+			print(colorGold+"loading... "+(s7)+"% complete")
 			s7 = s7 + 1
 		end if
 		if SET_SIZE / loops == 2 then 
-			print("loading... "+(s5)+"% complete")
+			print(colorGold+"loading... "+(s5)+"% complete")
 			s5 = s5 + 5
 		end if
 		//wait(.01)
