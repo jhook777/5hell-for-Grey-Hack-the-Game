@@ -1,10 +1,10 @@
 // 5hell v 3.9.1 by Plu70
 // released v 3.9.1
 // imports .5pk files from /root/src
-ver = "3.9.4.7_nightly_terrors"
+ver = "3.9.5_nightly_terrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "152.386"
+size_of_5hell = "152.962"
 ///////////////////////////////////////
 //
 // changes:
@@ -31,6 +31,10 @@ size_of_5hell = "152.386"
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
 //
+// pwgen: added length 3 and 4 password support
+// -- rudimentary: approx 20k+ additional passwords
+// md5: adjusted output
+// gopher: adjusted output
 // enum: fixed missing sli_2
 // jtr: corrected parameter order in usage info
 // jtr: improved generation speed and duplicate handling
@@ -2083,13 +2087,16 @@ command.md5 = function(arg1, arg2, arg3=0, arg4=0)
 		else
 			for d in dict_a
 				if md5(d) == arg2 then
-					print("md5: found: ["+colorWhite+arg2+"]")
-					return d+":"+arg2
+					print("md5: found: ["+colorWhite+" "+d+CT+" : "+colorGold+arg2+CT+" ]")
+					return d
 				end if
 			end for
+			print "gopher: hash not in dictionary"+char(10)+"-- defaulting to crypto.so"
 			if crypto then
 				rslt = crypto.decipher(arg2)
 				if rslt then return rslt
+			else 
+				print "md5: cryto.so library is not loaded"
 			end if
 			return "md5: hash not found"
 		end if
