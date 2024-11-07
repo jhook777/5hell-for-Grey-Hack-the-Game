@@ -1,7 +1,7 @@
 // 5hell v 3.9.1 by Plu70
 // released v 3.9.1
 // imports .5pk files from /root/src
-ver = "3.9.4.6_nightly_terrors"
+ver = "3.9.4.7_nightly_terrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 size_of_5hell = "152.386"
@@ -30,7 +30,12 @@ size_of_5hell = "152.386"
 // absolutely must update the databasing system
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
-// add autotrim, ignore whitespace options to diff
+//
+// enum: fixed missing sli_2
+// jtr: corrected parameter order in usage info
+// jtr: improved generation speed and duplicate handling
+// diff: added autotrim, ignore whitespace options
+// -- and fixed associated crashes
 //
 // iff: added 'iff' command to evaluate simple if statements
 // -- compiler complains if i try to do command.if so i'ts command.iff, deal wit' it
@@ -163,6 +168,8 @@ size_of_5hell = "152.386"
 // liber: now checks against database and colorizes output
 // db: database now trims itself from the top when it's too big
 // -- still working on a (simple) multi file db solution
+// 
+// tdump will dump to current path
 //
 // added new command: diff [arg] [arg]
 // enum: returns string instead of int, converts int input to string
@@ -522,7 +529,9 @@ if params and params.len > 0 then targ.ip = params[0]
 if params and params.len > 1 then targ.pt = params[1].to_int
 globals.localip = localmachine.local_ip
 globals.pubip = localmachine.public_ip
-globals.clip_board_alpha = ""
+globals.neurobox_user = ""
+globals.neurobox_pass = ""
+globals.clip_board_alpha = "" 
 globals.clip_board_beta = ""
 globals.clip_board_gamma = ""
 globals.clip_board_delta = "" // for do
@@ -1631,7 +1640,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	"---- enumerate file.txt then return index [1] from the list"+char(10)+
 	"Usage: enum -l  -- return the length of enum buffer."+char(10)+
 	"Usage: enum -s  -- show the enum buffer and return the length"+char(10)+
-	"Usage: enum -d  -- enumerate the onboard dictionary (depricated)"+char(10)+
+	"Usage: enum -d  -- enumerate the onboard dictionary"+char(10)+
 	"Usage: enum [#] -- return the element at index # in the enum buffer"+char(10)+
 	"UsagE: enum -r [index] -- remove the element at index"+char(10)+
 	"Usage: enum -i [index] [element] -- insert element at index "+char(10)+
@@ -1681,7 +1690,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		if typeof(arg3) == "string" then sbb = arg3.split(char(10))
 		if typeof(dx) != "number" or dx >= buf_bak.len or dx < 0 then return "enum: invalid index"
 		sli_1 = buf_bak[0:dx]
-		sli2 = buf_bak[dx:]
+		sli_2 = buf_bak[dx:]
 		new_buf = sli_1 + sbb + sli_2
 		return "enum: element inserted at index "+dx
 	end if
