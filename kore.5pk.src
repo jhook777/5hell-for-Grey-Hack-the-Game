@@ -1,360 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.5...(150.246)</size>")
-// command.kore = function(arg1, arg2, arg3=0, arg4=0)
-// 	if arg1 == "help" or arg1 == "-h" then return "kore: hypothetical threading. Contact Plu70/Jhook777 for support"+char(10)+"<b>Currently Deprecated. Please use only the -r option.</b>"+char(10)+"Usage:<b> kore -- initialize virtual filesystem for<u> kore, hashim and dbmon </u>(/virt dir and subfiles, /root/rkit/database.csv)</b>"+char(10)+"<u><b> Usage: kore -r -- copy 5hell, metaxploit.so, crypto.so to /root/rkit </b></u>"+char(10)+"Usage: kore -b -- run in bridge mode"+char(10)+"kore -c run in virtu_core mode"+char(10)+"Please contact Plu70/jhook for a tutorial before running in bridge or core mode."+char(10)+"Currently just use kore without params to set up the virtual filesys for hashim and dbmon (which can be run as without kore active once the filesys is created)"+char(10)+"N.B. - kore.5pk library also contains all network functions as it's intent is to be a botnet backend. This is the only function that comes close to 'phoning home' but <b>you</b> the user define 'home' in thread.cfg for all virtu_cores. Bridge mode recieves virtu_core connections. Kore does not spy on you. Kore does log all activity in /var/kore.log and this log may contain sensitive information. Please secure this log as you would any other."
-// 	globals.CYCLES = 0
-// 	if arg1 == "-r" then make_rkit = true else make_rkit = false
-// 	kore = function()
-// 		kore_version = "0.7"
-// 		print("KORE: Hypothetical Threading v "+ kore_version + ", by Plu70")
-// 		print("////////////////////////////////////////////////////////////")
-// 		// globals
-// 		TICK = 1 // seconds to wait between updates
-// 		config_path = "/virt/thread.cfg" // Setup ip for bridge here
-// 		config = localmachine.File(config_path)
-// 		bridge_address = ""
-// 		if arg1 == "-r" then config = 1
-// 		if not config then
-// 			print(colorOrange+"[404] "+config_path+" not found."+CT)
-// 			create = user_input("Create /virt/thread.cfg ? [Y/n]")
-// 			if create == "n" or create == "N" then return("Aborting...")
-// 			v_path = localmachine.File("/virt")
-// 			if not v_path then localmachine.create_folder("/virt")
-// 			localmachine.touch("/virt", "thread.cfg")
-// 			config = localmachine.File(config_path)
-// 			if not config then return(colorRed+"[401] check write permissions."+CT)
-// 			if arg1 == "-b" then
-// 				bridge_address = localmachine.public_ip
-// 			else
-// 				bridge_address = user_input("Bridge address (leave blank to skip): ")
-// 			end if
-// 			config.set_content("Bridge:"+char(10)+bridge_address)
-// 		end if
-// 		cfg = config.get_content.split(char(10))
-
-// 		// vritu_files
-// 		virt_path = "/virt"
-// 		swap_path = "swap.spc"
-// 		cache1_path = "cache1.spc"
-// 		share_path = "share.spc"
-
-// 		// addresses
-// 		bridge_address = cfg[cfg.indexOf("Bridge:")+1]
-// 		print("Locating bridge at "+bridge_address)
-
-// 		BRIDGE = "" // buffer space
-// 		// BRIDGE files
-// 		localmachine.touch(virt_path, swap_path)
-// 		SWAP = localmachine.File(virt_path+"/"+swap_path)
-// 		localmachine.touch(virt_path, cache1_path)
-// 		CACHE1 = localmachine.File(virt_path+"/"+cache1_path)
-// 		CACHE2 = ""
-// 		CACHE3 = ["--END--"]
-// 		localmachine.touch(virt_path, share_path)
-// 		SHARE = localmachine.File(virt_path+"/"+share_path)
-// 		if not SWAP or not CACHE1 or not SHARE then return(colorRed+"[111] Write error."+CT)
-// 		// out files
-// 		localmachine.touch("/var","kore.log")
-// 		LOG = localmachine.File("/var/kore.log")
-// 		out_path = "/virt/out.spc"
-// 		localmachine.touch("/virt", "out.spc")
-// 		OUT = localmachine.File(out_path)
-// 		if not LOG or not OUT then return(colorRed+"[215] Write error."+CT)
-// 		rkp = localmachine.File("/root/rkit")
-// 		if not rkp then localmachine.create_folder("/root/rkit")
-// 		DBF = localmachine.File("/root/rkit/database.csv")
-// 		if not DBF then localmachine.touch("/root/rkit", "database.csv")
-// 		DBF = localmachine.File("/root/rkit/database.csv")
-// 		if not DBF then return(colorRed+"[217] Write error."+CT)
-// 		//print("Folders created. Securing system with <b>perms lock all</b>.")
-// 		//command.perms("lock","all")
-// 		// end globals
-// 		print(colorLightBlue+"Memtest complete...."+CT+char(10)+colorWhite+"Kore is configured correctly."+CT)
-
-// 		globals.IGNORE = 0
-// 		globals.DECRYPT = 0
-// 		globals.DBASE = 0
-// 		globals.PURGE = 0
-
-// 		binval = function( s="1,0,0,0" )
-// 			print(s)
-// 			b = s.split(",")
-// 			if b.len != 4 then b = [1,0,0,0]
-// 			globals.IGNORE = b[0]
-// 			globals.DECRYPT = b[1]
-// 			globals.DBASE = b[2]
-// 			globals.PURGE = b[3]
-// 		end function
-
-// 		run_as_bridge = false
-// 		run_as_core = false
-// 		make_rkit = false
-// 		if arg1 == "-b" then run_as_bridge = true
-// 		if arg1 == "-c" then run_as_core = true
-// 		if arg1 == "-r" then make_rkit = true
-
-// 		SWAP.set_content("")
-// 		CACHE1.set_content("")
-// 		SHARE.set_content("")
-// 		globals.CYCLES = 0
-// 		connection_true=function()
-// 			return true // make sure cores are up and running
-// 		end function
-// 		cycle = function(timeout=1)
-// 			max_wait = 10
-// 			//clear_screen
-// 			while timeout < max_wait
-// 				print("<voffset=0em>["+"_"*timeout+"_]</voffset>")
-// 				for i in range(0,timeout) // progress bar by Rasputin
-// 					print(colorRed+"<voffset="+(3+(2.85*i))+"em>"+"#"*(i+1)+"#</voffset>"+CT)
-// 					wait(TICK)
-// 				end for
-// 				globals.CYCLES = globals.CYCLES + 1
-// 				if globals.CYCLES >= 5 then
-// 					globals.CYCLES = 0
-// 					clear_screen
-// 				end if
-// 				if connection_true then return //"Connection reestablished."
-// 				timeout = timeout + timeout
-// 			end while
-// 			return("Connection timed out. Exiting...")
-// 		end function
-
-// 		///////////////////
-
-// 		MAX_CYCLES = 161
-// 		BRIDGE = SHARE.get_content
-// 		virtu_bridge = function()
-// 			icon = "0"
-// 			if arg2 then icon = arg2
-// 			cycles = 0
-// 			running = true
-// 			while running
-// 				if BRIDGE == SHARE.get_content then
-// 					//update stuff
-// 					act = false
-// 					if SWAP.get_content != CACHE1.get_content then
-// 						act = true
-// 						OUT.set_content(SWAP.get_content)
-// 						LOG.set_content(LOG.get_content+char(10)+CACHE1.get_content+char(10)+SWAP.get_content)
-// 						SWAP.set_content("")
-// 						CACHE1.set_content("")
-// 						BRIDGE = ""
-// 					else
-// 						cycles = cycles + 1
-// 						if cycles >= MAX_CYCLES then
-// 							cycles = 0
-// 							SWAP.set_content("")
-// 							BRIDGE = ""
-// 						end if
-// 					end if
-// 					if CACHE2 != "" and CACHE1.get_content == "" then
-// 						act = true
-// 						SHARE.set_content(CACHE2)
-// 						CACHE2 = ""
-// 						BRIDGE = ""
-// 					end if
-// 					if CACHE3.len > 1 and CACHE3[-1] != "--END--" and CACHE2 == "" then
-// 						CACHE2 = CACHE3.pop
-// 						BRIDGE = ""
-// 						act = true
-// 					end if
-// 				else
-// 					act = true
-// 					cycles = 0
-// 					BRIDGE = SHARE.get_content
-// 					if SWAP.get_content == "" then
-// 						SWAP.set_content(BRIDGE)
-// 						CACHE1.set_content(BRIDGE)
-// 						SHARE.set_content("")
-// 						BRIDGE = ""
-// 					else
-// 						if CACHE2 == "" then
-// 							CACHE2 = BRIDGE
-// 							SHARE.set_content("")
-// 							BRIDGE = ""
-// 						else
-// 							CACHE3.push(BRIDGE)
-// 							SHARE.set_content("")
-// 							BRIDGE = ""
-// 						end if
-// 					end if
-// 				end if
-// 				o_f = ""
-// 				if SWAP.get_content == "" then o_f = colorGreen else o_f = colorOrange
-// 				if CACHE3.len > 2 then o_f = colorRed
-// 				w_w = colorLightBlue
-// 				if act then w_w = colorWhite
-// 				print(w_w+"<"+CT+o_f+icon+CT+w_w+">"+CT)
-// 				cycle
-// 			end while
-// 			return time
-// 		end function
-
-// 		virtu_core = function()
-// 			myip = localmachine.public_ip
-// 			icon = "@"
-// 			if arg2 then icon = arg2
-// 			pt = 22 // default, change this for dedicated port
-// 			user = "root"
-// 			pass = user_input("Core Init requires root pass of bridge machine :> ", 1)
-// 			remote = get_shell.connect_service(bridge_address, pt, user, pass)
-// 			IO = remote.host_computer.File("/virt/swap.spc")
-// 			BRIDGE_DB = remote.host_computer.File("/root/rkit/database.csv")
-// 			localmachine.touch("/virt", "proc.st")
-// 			proc_state = localmachine.File("/virt/proc.st")
-// 			if not proc_state then return(colorRed+"[369]: Write error."+CT)
-// 			running = true
-// 			while running
-// 				if BRIDGE == IO.get_content or IO.get_content == "x5gF43purge9R2mGuP41s" then
-// 					act = false
-// 					w = false
-// 					PURGE = false
-// 				else
-// 					act = true
-// 					BRIDGE = IO.get_content
-// 					T_T = BRIDGE.split(char(10))
-// 					for t in T_T
-// 						if t.indexOf("Learn:") >= 0 then
-// 							DECRYPT = false
-// 							DBASE = true
-// 						end if
-// 						if t.indexOf("Decrypt:") >= 0 then
-// 							DECRYPT = true
-// 							DBASE = false
-// 						end if
-
-// 					end for
-// 					if not DECRYPT and not DBASE then PURGE = true
-// 				end if
-// 				if DECRYPT then
-// 					w = true
-// 					DECRYPT = false
-// 					temp = []
-// 					for t in T_T
-// 						if t.indexOf(":") > 0 then
-// 							spl = t.split(":")
-// 							ts = spl[1]
-// 							if ts.len == 32 then temp.push(t)
-// 						end if
-// 					end for
-// 					SWAP.set_content(temp.join(char(10))) // decrypt script listens on /virt/swap.spc
-// 					CACHE1.set_content(temp.join(char(10))) // compare to detect change
-// 					proc_state.set_content(localmachine.public_ip+": BUSY ")
-// 				end if
-// 				if DBASE then
-// 					w=true
-// 					DBASE = false
-// 					temp = []
-// 					for t in T_T
-// 						if t.indexOf("Learn:") >= 0 then temp.push(t)
-// 					end for
-// 					CACHE2 = temp.join(char(10))
-// 					SHARE.set_content(CACHE2)
-// 					proc_state.set_content(localmachine.public_ip+": BUSY ")
-// 				end if
-// 				if SHARE.get_content != CACHE2 and SHARE.get_content != "" then
-// 					w = true
-// 					act = true
-// 					BRIDGE = SHARE.get_content
-// 					T_T = ""
-// 					LOG.set_content(LOG.get_content+char(10)+T_T.join(char(10))+char(10)+BRIDGE)
-// 					OUT.set_content(BRIDGE)
-// 					SHARE.set_content("")
-// 					CACHE2 = ""
-// 					BRIDGE_DB.set_content(BRIDGE)
-// 					IO.set_content(BRIDGE)
-// 					BRIDGE = ""
-// 					proc_state.set_content(localmachine.public_ip+": READY ")
-// 				end if
-// 				if SWAP.get_content != CACHE1.get_content and SWAP.get_content != "" then
-// 					w = true
-// 					act = true
-// 					BRIDGE = T_T.join(char(10))+char(10)+SWAP.get_content
-// 					T_T = ""
-// 					LOG.set_content(LOG.get_content+char(10)+BRIDGE)
-// 					OUT.set_content(BRIDGE)
-// 					SWAP.set_content("")
-// 					CACHE1.set_content("")
-// 					proc_state.set_content(localmachine.public_ip+": READY ")
-// 					IO.set_content(BRIDGE)
-// 					BRIDGE = ""
-// 				end if
-// 				if PURGE then
-// 					BRIDGE = "x5gF43purge9R2mGuP41s"
-// 					SHARE.set_content("")
-// 					CACHE1.set_content("")
-// 					CACHE2 = ""
-// 					SWAP.set_content("")
-// 					if IO.get_content != "x5gF43purge9R2mGuP41s" then IO.set_content(BRIDGE)
-// 					proc_state.set_content(localmachine.public_ip+": READY ")
-// 					PURGE = false
-// 					w = true
-// 				end if
-// 				o_f = colorGreen
-// 				if act then o_f = colorOrange
-// 				w_w = colorLightBlue
-// 				if w then w_w = colorWhite
-// 				print(w_w+"<"+CT+o_f+icon+CT+w_w+">"+CT)
-// 				cycle
-// 			end while
-// 			return
-// 		end function
-// 		print(colorLightBlue+"Status: Ready. Press enter to continue.")
-// 		user_input("<::>")
-// 		if run_as_bridge then return(virtu_bridge)
-// 		if run_as_core then return(virtu_core)
-// 		return 0
-// 	end function
-// 	if make_rkit then
-// 		time_s = time
-// 		if globals.instance then pro_path = globals.instance.path else return "kore: 5hell instance deleted. Unable to automate rkit construction."+char(10)+"kore: run 5hell from the latest version to build rkit"+char(10)+"kore: please do not delete the binary until kore -r is complete"
-// 		print("Validating "+home_dir+"/rkit...")
-// 		print(command.mkdir(home_dir+"/rkit"))
-// 		if not globals.get_file(home_dir+"/rkit") then return "kore: failed to create rkit: permission denied"
-// 		print("kore: copying: "+pro_path+" to "+home_dir+"/rkit")
-// 		print(command.cp(pro_path, home_dir+"/rkit" ))
-// 		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print "kore: failed to copy 5hell: permission denied"
-// 		//if globals.metaxploit then
-// 		mpath = null
-// 		//if globals.mlib == true then
-// 		mpath = command.tree("/","metaxploit.so","1","N")
-// 		if typeof(mpath) != "file" then 
-// 			print "kore: metaxploit.so not found"
-// 		else 
-// 			print("kore: copying: "+mpath.path+" to "+home_dir+"/rkit")
-// 			print "kore: if this is not the correct .so then"+char(10)+
-// 			"      -- please move the correct .so higher in the file tree"+char(10)+
-// 			"      -- such as in /lib"
-// 			command.cp(mpath.path, home_dir+"/rkit")
-// 			if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print "kore: failed to copy metaxploit.so: permission denied"
-// 		end if
-// 			//end if
-// 		//else
-			 
-// 			//print "kore: metaxploit.so not found"
-// 		//end if
-		
-// 		//if globals.crypto then
-// 			cpath = null
-// 			//if globals.clib == true then
-// 				cpath = command.tree("/","crypto.so","1","N")
-// 				if typeof(cpath) != "file" then 
-// 					print "kore: crypto.so not found"
-// 				else 
-// 					print("kore: copying: "+cpath.path+" to "+home_dir+"/rkit/"+cpath.name)
-// 					command.cp(cpath.path, home_dir+"/rkit")
-// 					if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "kore: failed to copy crypto.so: permission denied"
-// 				end if 
-// 			//end if
-// 		//else
-// 			//return "kore: crypto.so not found"
-// 		//end if
-		
-// 		time_f = time - time_s
-// 		return "kore: task complete in "+time_f+" seconds."
-// 	end if
-// 	return kore
-// end function
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.6...(143.779)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -2372,8 +2016,10 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	"-- supplying [1] for inject boolean results in a prompt"+char(10)+
 	"---- enter a lan_ip or password for the inject value at the prompt"+char(10)+
 	"Usage: db -l <color=yellow>*</color> -- db all local libs"+char(10)+char(10)+
-	colorWhite+"</b>Usage: db ["+colorMagenta+"-m"+CT+"] -- scan currently linked metaLib"+char(10)+
+	colorWhite+"</b>Usage: db ["+colorMagenta+"-m"+CT+"] [metaLib|metaxploitLib] [metaxploitLib|metaLib] "+char(10)+
+	"-- scan currently linked metaLib or piped metaLib with currently linked metaxploitLib or piped metaxploitLib"+char(10)+
 	"-- unlike other modes, this mode will not link a new metaLib"+char(10)+
+	"---- unless a metalib is piped to it"+char(10)+
 	"-- instead, it scans the already linked metaLib"+char(10)+
 	"---- use <b>meta link [piped_metaLib]</b> to choose a metaLib to scan"+char(10)+
 	"---- use <b>meta -i [pipe_metaxploitLib]</b> to choose the scanning metaxploitLib"+char(10)+
@@ -2797,7 +2443,6 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	"--Likewise, exporting a remote "+colorLightBlue+"</b>metaLib"+CT+" back to your server allows you to use your hardware to scan the remote libs."+char(10)+
 	"-- use <b>bios> along with <b>cob get</b> and <b>cob set</b> to import/export objects"
 	//if not globals.metaxploit then return "metaxploit.so not found"
-	if not arg1 and globals.metaLib then return (globals.metaLib.lib_name + " v " + globals.metaLib.version)
 	if arg1 then
 		if arg1 == "restore" then 
 			if globals.backup_meta then 
@@ -2813,6 +2458,12 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			if arg2 and typeof(arg2) == "MetaLib" then 
 				globals.metaLib = arg2
 				return "meta: imported new MetaLib object"+char(10)+"-- ready to scan"
+			end if
+			if not arg2 then 
+				link_me = user_input("[l]ocal or [<b>R</b>]emote (q=quit) ||: ")
+				if link_me.lower == "l" then arg2 = "-l"
+				if link_me.lower == "q" then return "meta: link aborted"
+				arg2 = "-r" 
 			end if
 			if arg2 and arg2 == "-l" then
 				arg = "L"
@@ -2838,8 +2489,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			end if
 		end if
 		if arg1 == "import" or arg1 == "-i" then 
-			if not arg2 then return "meta: -i expects a metaxploit.so object or a path to a metaxploit.so"
-			if typeof(arg2) != "MetaxploitLib" then return "meta: invalid metaxploitLib"
+			if not arg2 or (typeof(arg2) != "string" and typeof(arg2) != "MetaxploitLib") then return "meta: -i expects a metaxploitLib object or a path to a metaxploit.so"
 			print "meta: backing up current metaxploit object"
 			globals.backup_meta = globals.metaxploit
 			if typeof(arg2) == "string" then globals.metaxploit = include_lib(globals.get_file(arg2).path) else globals.metaxploit = arg2
@@ -2848,7 +2498,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				if typeof(arg2) == "string" then reason = "invalid path" else reason = "invalid input"
 				return "meta: metaxploit import failed: "+char(10)+reason+char(10)+"meta: backup metaxploit restored"
 			end if
-			print colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"meta: use <b>meta restore</b> to revert back to original metaxploitLib"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
+			print colorWhite+"<size=75%><u>meta: a new metaxploitLib has been imported!"+char(10)+"meta: use <b>meta restore</b> to revert back to the last metaxploitLib"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
 		end if
 		if arg1 == "scan" then
 			if not globals.metaxploit then return colorRed+"meta: error: metaxploitLib not found"
@@ -3022,7 +2672,10 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	"-- this is allows you to use the dictionary between nested shell.launches with only a single run of cerebrum."+char(10)+char(10)+
 	"<b>N.B.</b> -- since version 3.8.3 5hell.src contains aliases for cob set and cob get:"+char(10)+
 	colorGold+"Usage: set [key] [value] -- same as cob set [key] [value]"+char(10)+
-	colorGold+"Usage: get [key] -- same as cob get [key]"
+	colorGold+"Usage: get [key] -- same as cob get [key]"+char(10)+char(10)+
+	colorGold+"EZclip: you may use "+colorWhite+"@o </color>[<color=white>key</color>]</b>"+char(10)+
+	"-- to reference a key in the custom object"+char(10)+
+	"-- the <b>@o [key]</b> will be replaced by the key's value, much like using @a, @b, @c for the clipboard"
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
 
 	cobble = get_custom_object
@@ -3198,4 +2851,134 @@ command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
 	ml = globals.mail_user_list(tar_ip,tar_port)
 	if not ml then return "smtp: mail server not found" else return ml
 	//return ml.join(char(10))
+end function
+command.osint = function(option_flags, octet_rules, user_name, spool)
+    if not option_flags or option_flags == "help" or option_flags == "-h" then return " osint || open source information || OSINT || fuzzer"+char(10)+
+    colorWhite+"Usage: osint [option] [ip_octet_rules] [user_name] [bool:spool]"+char(10)+
+	"-- scour domains for valid emails using: user_name@domain"+char(10)+
+    colorGold+"</b>Options:"+char(10)+
+	"  "" ""  [-l|list] -- return output as a list of domain strings"+char(10)+
+    "  "" ""  [-s|space] -- return output as a string of single spaced domains"+char(10)+
+    "  "" ""  [-n|newline] -- return output as a string of domains; one per line"+char(10)+
+    "  "" ""  [-c|comma] -- return output as a comma separated value "+char(10)+
+    colorGold+"</b>Octet Rules:"+char(10)+
+    "Input method:"+colorWhite+"list"+CT+" -- supply a list with 8 indexes containing ints or string:ints corresponding-"+char(10)+
+    "to the minimum and maximum values for each octet, in order. This means if our octets are:"+char(10)+
+    "<b>k.j.i.h</b> and the ip range we want is 1.1.1.1 to 115.1.1.255, the list would be:"+char(10)+
+    "<b>[1,115,1,1,1,1,1,255]</b><color=white>"+char(10)+
+	"-- where [0] is k_min, [1] is k_max, [2] is j_min, [3] is j_max, and so on."+char(10)+
+    "-- incomplete octet rules or out-of-bounds entries will return an error. "+char(10)+
+    "Input method:"+colorWhite+"string"+CT+" -- supply a string, without spaces, formed as follows:"+char(10)+
+    colorCyan+" oc1_min-oct1_max"+CT+"."+colorCyan+"oct2_min-oct2_max"+CT+"."+colorCyan+"oct3_min-oct3_max"+CT+"."+colorCyan+"oct4_min-oct4_max "+char(10)+
+    "--eg: 1-200.1-1.0-234.1-255"+char(10)+
+    colorGold+"</b>User name:"+char(10)+
+    "Input: any npc user name "+char(10)+
+    colorGold+"Output:"+char(10)+
+	"--  osint will perform a whois lookup on each ip"+char(10)+
+    "---- parse the string for the ip's domain"+char(10)+
+    "---- attempt to login to username@domain to determine if it exists"+char(10)+
+    "---- on positive hit, push domain to output buffer"+char(10)+
+    "---- return results based on options"+char(10)+
+    colorGold+"Spool:"+char(10)+
+	"-- bool:[1|0] pass a positive value for the 'spool' parameter to write results to disk"+char(10)+
+    "-- writes to current_path/spool.osint"
+	// banner
+	print colorLightBlue+"<u><size=125%>OS"+colorWhite+"int npc finder v0.8 by Plu</color>70"
+	// handle error checking and input validation
+	if not octet_rules or (typeof(octet_rules) != "string" and typeof(octet_rules) != "list") then return "osint: invalid octet rules: expects list or string"
+	if not user_name or typeof(user_name) != "string" then return "osint: invalid user name: expects string "
+	// prepare octet rules
+	if typeof(octet_rules) == "string" then 
+		octet_buff = octet_rules.split("\.")
+		octet_rules = []
+		for pair in octet_buff
+			p = pair.split("-")
+			if p.len != 2 then return "osint: malformed octet rules: expects list or string:"+char(10)+"[k_s,k_e,j_s,j_e,i_s,i_e,h_s,h_e]"+char(10)+"k_s-ke.j_s-j_e.i_s-i_e.h_s-h_e"
+			if p[0] > p[1] then return "osint: octet max must be less than or equal to octet min"
+			octet_rules.push(p[0])
+			octet_rules.push(p[1])
+		end for
+	end if 
+	l = 0
+	for o in octet_rules
+		if typeof(o) != "number" and typeof(o) == "string" then o = o.to_int
+		if typeof(o) != "number" then return "osint: malformed octet rules: expects list:[int|string] or string:"+char(10)+"[k_s,k_e,j_s,j_e,i_s,i_e,h_s,h_e]"+char(10)+"k_s-ke.j_s-j_e.i_s-i_e.h_s-h_e"
+		octet_rules[l] = o
+		l = l + 1
+	end for
+	if octet_rules.len != 8 then return "osint: malformed octet rules: expects list or string:"+char(10)+"[k_s,k_e,j_s,j_e,i_s,i_e,h_s,h_e]"+char(10)+"k_s-ke.j_s-j_e.i_s-i_e.h_s-h_e"
+    if octet_rules[1] == 0 then return "osint: octet_1_max must be greater than 0"
+		// handle option flags to set delimiter
+    delim = ""
+	verbose = false
+    if option_flags == "-cv" or option_flags == "-c" then
+        delim = ","
+		if option_flags == "-cv" then verbose = true
+    end if 
+	if option_flags == "-nv" or option_flags == "-n" then
+        	delim = char(10)
+			if option_flags == "-nv" then verbose = true
+    end if 
+	if option_flags == "-lv" or option_flags == "-l" then
+        delim = "list"
+		if option_flags == "-lv" then verbose = true
+    end if 
+	if option_flags == "-sv" or option_flags == "-s" then 
+        delim = char(32)
+		if option_flags == "-sv" then verbose = true
+    end if
+    // check for the output file if spool flag is set
+    spool_file = null
+    if spool then
+        spool_file = command.poke("spool.osint")
+        if not spool_file or typeof(spool_file) != "file" then
+            return "error: please create spool.osint before continuing"
+        end if
+    end if
+	// prepare the output buffer list
+    d_list = []
+	cycle = 0
+    // generate the output by iterating through IP octet ranges
+	print "osint: scanning... "+char(10)+colorWhite+"<size=125%><align=center>>.>"
+    for k in range(octet_rules[0], octet_rules[1])  // assuming [start, end] for each octet
+        for j in range(octet_rules[2], octet_rules[3])
+            for i in range(octet_rules[4], octet_rules[5])
+                for h in range(octet_rules[6], octet_rules[7])
+                    ip = str(k) + "." + str(j) + "." + str(i) + "." + str(h)
+                    // Validate IP format and check if it’s a LAN IP
+                    if not is_valid_ip(ip) or is_lan_ip(ip) then continue
+                    // Perform WHOIS lookup and parse the result
+                    who_string = whois(ip).split(char(10))
+                    if who_string[0].indexOf(": ") == null then continue
+                    domain = who_string[0].split(": ")[1].remove("www.")
+                    //if DEBUG then print "debug: in osint loop: domain: "+domain
+                    // Attempt to log in to mail and check if user exists
+                    targ = user_name + "@" + domain
+                    if verbose or DEBUG then print "osint: attempting: "+ip+" : "+targ
+					inbox = mail_login(targ, "a")
+                    if inbox != targ + " user not found" then
+						print colorLightBlue+"Positive Hit: "+colorWhite+targ
+                        d_list.push(domain)
+                    end if
+					if cycle % 1000 == 0 then wait(.1)
+					if DEBUG then print "scanning..."
+					cycle = cycle + 1
+                end for
+            end for
+        end for
+    end for
+    // Write the output to spool file if spool is true
+    if spool then
+        print("osint: writing results to:" + spool_file.path)
+        result = spool_file.set_content(d_list.join(char(10)))
+        if result != 1 then
+            return "error: unable to write to spool file"
+        end if
+    end if
+    // Return the output as per the specified delimiter
+    if delim == "list" then
+        return d_list
+    else
+        return d_list.join(delim)
+    end if
 end function
