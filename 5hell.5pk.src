@@ -1,10 +1,10 @@
-// 5hell v 3.9.1 by Plu70
-// released v 3.9.1
+// 5hell v 3.9.6 by Plu70
+// released v 3.9.6
 // imports .5pk files from /root/src
-ver = "3.9.5_nightly_terrors"
+ver = "3.9.6_nightly_terrors"
 DEBUG = false
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "152.962"
+size_of_5hell = "158.909"
 ///////////////////////////////////////
 //
 // changes:
@@ -30,6 +30,32 @@ size_of_5hell = "152.962"
 // absolutely must update the databasing system
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
+//
+// ezclip: moved from 5hell.src to 5phinx.5pk
+// -- is now a function that is processed for each piped command
+// -- this means variables may be assigned -and- used in the same inline pipe chain
+// if: substantial improvements: all params may now execute 5hell commands
+// -- use quotes to input complex strings
+// ls: output will no longer have a leading empty line
+// ls: colorized output (matches tree command)
+// ps: colorized output
+// updated help for @o and @B in easy clip
+// 5hell.src: added @o [key] and @B [#] as prompt tokens
+// -- @o will insert the value of get_custom_object[key]
+// -- @B will insert the value of globals.BUFFER[#]
+// -- these operations take place during the FIRST easy clip pass before the single quote pass
+// meta: meta -i will now correctly accept a path
+// -- meta link without params will now prompt for local/remote
+// malp: added actual usage info to the usage info
+// malp: added [-b] option to open the buffer as soon as malp opens
+// malp: updated the visual appearance of some handlers
+// malp: updated and added to functions of multiple handlers
+// -- shell, computer, file, list, and string handlers
+// -- also fixed a bunch of random bugs and what not, can't remember them all
+// osint: added new command for locating npc's by username
+// forgot to mention adding zerochill last update
+// -- this is currently a (working) stub, it will be expanded
+// misc tidbits that i forgot
 //
 // pwgen: added length 3 and 4 password support
 // -- rudimentary: approx 20k+ additional passwords
@@ -618,13 +644,13 @@ if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")   
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
 		globals.clip_board_alpha = @arg1
-		print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_alpha))
 		return @globals.clip_board_alpha
 	end if
 	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard alpha || clipa || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipa: pipe outputs to clipa with: command | clipa"+char(10)+" clipa [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipa"+char(10)+"clipa -- <b>Returns</b> contents of clipa if no arguments."+char(10)+"scribus @clipa -- edit clipa directly with the text editor."
 	if arg1 == "0" then
 		globals.clip_board_alpha = "0"
-		print(colorCyan+"clipped: "+typeof(@globals.clip_board_alpha))
+		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_alpha))
 		return globals.clip_board_alpha
 	end if
 	if arg1 == 0 then
@@ -636,7 +662,7 @@ command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		globals.clip_board_alpha = globals.T_BUF.join(char(10))
 		globals.T_BUF = [(localip+"@"+pubip)]
 	end if
-	if arg1 == "@cc" then	globals.clip_board_alpha = globals.command_buffer.join(char(10))
+	if arg1 == "@cc" then globals.clip_board_alpha = globals.command_buffer.join(char(10))
 	if arg1 == "@B" then
 		if globals.BUFFER.len < 1 then return "BUFFER is empty."
 		i = 0
@@ -648,21 +674,21 @@ command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
     if get and get != "-m" then get = arg2.to_int
     if get == "-m" then get = user_input("clipa:> ").to_int
 		if typeof(get) != "number" then return "BUFFER: invalid selection."
-		if get >= 0 and get < BUFFER.len then globals.clip_board_alpha = BUFFER[get] else return "BUFFER: invalid selection."
+		if get >= 0 and get < BUFFER.len then globals.clip_board_alpha = globals.BUFFER[get] else return "BUFFER: invalid selection."
 	end if
-	print(colorCyan+"clipa: clipped: "+typeof(@globals.clip_board_alpha))
+	print(colorCyan+"</b>clipa: clipped: "+typeof(@globals.clip_board_alpha))
 	if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
 end function
 command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
 		globals.clip_board_beta = @arg1
-		print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_beta))
 		return @globals.clip_board_beta
 	end if
 	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard beta || clipb || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipb: pipe outputs to clipb with: command | clipb"+char(10)+" clipb [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}|function]"+char(10)+"-- add any of the above to clipb"+char(10)+"clipb -- <b>Returns</b> contents of clipb if no arguments."+char(10)+"scribus @clipb -- edit clipb directly with the text editor."+char(10)+"N.B. please be awake that command.<b>append</b> works a bit differently with clipb than with clipa or clipc."+char(10)+"-- see append -h for more info."
 	if arg1 == "0" then
 		globals.clip_board_beta = "0"
-		print(colorCyan+"clipped: "+typeof(@globals.clip_board_beta))
+		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_beta))
 		return globals.clip_board_beta
 	end if
 	if arg1 == 0 then
@@ -688,19 +714,19 @@ command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if typeof(get) != "number" then return "BUFFER: invalid selection."
 		if get >= 0 and get < BUFFER.len then globals.clip_board_beta = BUFFER[get] else return "BUFFER: invalid selection."
 	end if
-	print(colorCyan+"clipb: clipped: "+typeof(@globals.clip_board_beta))
+	print(colorCyan+"</b>clipb: clipped: "+typeof(@globals.clip_board_beta))
 	if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
 end function
 command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
 		globals.clip_board_gamma = @arg1
-		print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_gamma))
 		return @globals.clip_board_gamma
 	end if
 	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard gamma || clipc || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipc: pipe outputs to clipc with: command | clipc"+char(10)+" clipc [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipc"+char(10)+"clipc -- <b>Returns</b> contents of clipc if no arguments."+char(10)+"scribus @clipc -- edit clipc directly with the text editor."
 	if arg1 == "0" then
 		globals.clip_board_gamma = "0"
-		print(colorCyan+"clipped: "+typeof(@globals.clip_board_gamma))
+		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_gamma))
 		return globals.clip_board_gamma
 	end if
 	if arg1 == 0 then
@@ -726,7 +752,7 @@ command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if typeof(get) != "number" then return "BUFFER: invalid selection."
 		if get >= 0 and get < BUFFER.len then globals.clip_board_gamma = BUFFER[get] else return "BUFFER: invalid selection."
 	end if
-	print(colorCyan+"clipc: clipped: "+typeof(@globals.clip_board_gamma))
+	print(colorCyan+"</b>clipc: clipped: "+typeof(@globals.clip_board_gamma))
 	if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
 end function
 command.passwd = function(arg1, arg2, arg3=0, arg4=0)
@@ -773,21 +799,47 @@ command.clear = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.ps = function(arg1, arg2, arg3=0, arg4=0)
 	ps_usage = "Show Processes || PS || show procs || not actually top or htop"+char(10)+
-	"Usage: ps -- show processess running on the active host_computer"+char(10)+
+	"<b>Usage: ps [opt:-r] -- show processess running on the active host_computer"+char(10)+
 	"-- when glasspool is active:"+char(10)+
 	"-- the active shell/computer is the active host_computer"+char(10)+
-	"Usage: ps [shell|computer] -- show processes running on the piped object"
+	"-- optional [-r] parameter returns raw, uncolorized output"+char(10)+
+	"--eg: ps -r"
+	"<b>Usage: ps [opt:-r] [shell|computer] -- show processes running on the piped object"+char(10)+
+	"-- optional [-r] parameter returns raw, uncolorized output"+char(10)+
+	"--eg: clipb @B 1 | ps"
 	if arg1 == "-h" or arg1 == "help" then return ps_usage
 	output = null
-	swapped = false
+	raw = false
 	locals.hold_comp = globals.localmachine
-	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "computer") then 
-		if typeof(arg1) == "shell" then globals.localmachine = arg1.host_computer
-		if typeof(arg1) == "computer" then globals.localmachine = arg1 
-		swapped = true
+	if arg1 == "-r" then
+		raw = true 
+		arg1 = arg2 
+		arg2 = arg3
+		arg4 = arg4 
 	end if
-	output = format_columns(localmachine.show_procs)
-	if swapped == true then globals.localmachine = locals.hold_comp
+	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "computer") then 
+		if typeof(arg1) == "shell" then locals.hold_comp = arg1.host_computer
+		if typeof(arg1) == "computer" then locals.hold_comp = arg1 
+		//swapped = true
+	end if
+	print("<size=75%>Showing processes...")
+	if raw == true then return format_columns(locals.hold_comp.show_procs)
+	p_buf = hold_comp.show_procs.split(char(10))
+	i = 0
+	if DEBUG then print "debug: "+p_buf
+	for line in p_buf 
+		if i == 0 then 
+			line = colorWhite+"</b>"+line+"</color>".replace("USER","<color=#F5F5F5></b>USER</color>")
+			p_buf[i] = line
+			i = i + 1
+			continue 
+		end if
+		line = colorCyan+"</b>"+line
+		line = line.replace("dsession",colorRed+"</b>dsession").replace("Xorg",colorLightBlue+"</b>Xorg").replace("kernel_task",colorLightBlue+"</b>kernel_task").replace("ps",colorRed+"</b>ps(suspicious!)")//.replace("root",colorOrange+"<b>root</color>").replace("guest",colorWhite+"<b>guest</color>")
+		p_buf[i] = line
+		i = i + 1
+	end for
+	output = format_columns(p_buf.join(char(10)))
 	return output
 end function
 command.kill = function(arg1, arg2, arg3=0, arg4=0)
@@ -900,21 +952,37 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	output = ""
 	for subFile in subFiles
+		line_color = colorWhite+"</b>"
 		nameFile = subFile.name
 		permission = subFile.permissions
 		owner = subFile.owner
 		size = subFile.size
 		group = subFile.group
 		is_bin = subFile.is_binary
-		if showHide or nameFile.indexOf(".") != 0 then
-			if showDetails then
-				output = output + char(10) + permission + " " + owner + " " + group + " "+ size + " bin["+is_bin+"] " + nameFile
-			else
-				output = output + char(10) + nameFile
-			end if
+		if is_bin then line_color = colorCyan + "</b>"
+		if subFile.is_folder then line_color = colorLightBlue + "</b>"
+		if subFile.is_symlink then nameFile = nameFile+"(sym_link)"
+		//if showHide or nameFile.indexOf(".") != 0 then
+		if showDetails then
+			output = output + char(10) + line_color + permission + " " + owner + " " + group + " "+ size + " bin["+is_bin+"] " + nameFile
+		else
+			output = output + char(10) + line_color + nameFile
 		end if
+		//end if
 	end for
-	return format_columns(output)
+	output = output.trim
+	output = output.split(char(10))
+	i = 0
+	// for line in output
+	// 	if line.values[0] == "d" then 
+	// 		output[i] = colorLightBlue+"</b>"+line
+	// 	else
+	// 		output[i] = colorWhite+"</b>"+line
+	// 		if line.indexOf("bin[1]") != 0 then output[i] = colorCyan+"</b>"+line
+	// 	end if
+	// 	i = i + 1
+	// end for
+	return format_columns(output.join(char(10)).trim)
 end function
 command.cd = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: cd [path] -- change current working directory to path."+char(10)+"Usage: cd .. -- go back to parent directory."+char(10)+"Usage: cd -- return to home directory."+char(10)+"Returns: 0 on success or string on failure."
@@ -1032,7 +1100,7 @@ command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
   "Usage Example:"+char(10)+
   "-- poke haha |  | grep -p syst / | cp haha"+char(10)+
   "---- create file haha, grep for (system.log) and return file_path, overwrite /var/system.log with haha"
-  print "u"+colorGreen+"= = = = ="
+  print "<u>"+colorGreen+"= = = = ="
   file = globals.get_file(arg1)
   if not file then return("cp: can't find " + arg1)
   destination = null
@@ -1592,20 +1660,51 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
 	return herme5
 end function
 command.malp = function(arg1, arg2, arg3=0, arg4=0)
-	if @arg1 == "-h" or @arg1 == "help" then return "malp: Memory Alpha - buffer, object and database management menu. "+char(10)+"Usage: malp -- Access all<b> BUFFER </b>objects from here."+char(10)+"Advanced: malp [piped_object] -- adds ANY piped object to the BUFFER."+char(10)+"-- May be of any type: string, list, map, shell, file, computer, et al."
+	if @arg1 == "-h" or @arg1 == "help" then return "malp: Memory Alpha - buffer, object and database management menu. "+char(10)+
+	"Usage: malp -- Access all<b> BUFFER </b>objects from here."+char(10)+
+	"Usage: malp [piped_object] -- adds ANY piped objec to the BUFFER."+char(10)+
+	"-- May be of any type: string, list, map, shell, file, computer, etc, et al."+char(10)+
+	colorOrange+"Usage: malp [-b] [opt: piped_object] -- open the BUFFER immediately on opening malp"+char(10)+
+	"Functions: "+char(10)+
+	"[0] -- display portmap, if available"+char(10)+
+	"[1] -- display loaded exploits and requirements if known"+char(10)+
+	"[2] -- display raw scan output from met scan"+char(10)+
+	"-- performs scan if not already scanned"+char(10)+
+	"[3] -- dump memory; runs the memdump command"+char(10)+
+	"-- this will dump session info such as portmap, exploits-"+char(10)+
+	"-- and others to a file named memdump[random number].mx"+char(10)+
+	"-- feel free to request additional info dumped by this command"+char(10)+
+	"[4] -- access felix file explorer or run tree (locally or on buffered filesystem)"+char(10)+
+	colorOrange+"[5] -- the main BUFFER where objects are stored"+char(10)+
+	"-- contains contextual object handlers"+char(10)+
+	"[6] -- Air menu for cracking wifi"+char(10)+
+	"[7|q] -- exit"+char(10)+
+	"[8] -- show running processes"+char(10)+
+	"[9] -- kill process(s)"+char(10)+
+	"[0] exit"+char(10)+
+	"[/] -- open cer bios"+char(10)+
+	"[-] -- open reverse shell interface"+char(10)+
+	"[.] -- linkdb database entry"
 	if DEBUG then print("@arg1: "+typeof(@arg1))
+	open_buffer = false
 	if @arg1 then
+		if typeof(@arg1) == "string" then 
+			if arg1 == "-b" then 
+				open_buffer = true 
+				arg1 = arg2 
+				arg2 = arg3 
+				arg3 = arg4 
+			end if
+		end if
 		if typeof(@arg1) == "function" then
 			if DEBUG then print("function detected...")
 			globals.BUFFER.push(@arg1)
 		else
-			globals.BUFFER.push(arg1)
+			if arg1 then globals.BUFFER.push(arg1)
 		end if
-	else
-		if arg1 then globals.BUFFER.push(arg1)
 	end if
 	if DEBUG then print("starting malp...")
-	globals.memory_alpha
+	globals.memory_alpha(open_buffer)
 	return 0
 end function
 command.fwr = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
@@ -2637,8 +2736,11 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorOrange+"</b>may interact with these objects in a number of ways by selecting them"+char(10)+
 	colorOrange+"</b>from the list and using their context menu (if the object has one)."+char(10)+
 	colorOrange+"</b>One way to fetch an object from the BUFFER for use elswhere is to use the clipboard:"+char(10)+
-	colorOrange+"</b>|> "+colorGreen+"clipb @B [index]</color>"+colorOrange+"</b>-- where index == BUFFER[index]"+char(10)+
+	colorOrange+"</b>|> "+colorGreen+"clipb @B [index|-m]</color>"+colorOrange+"</b>-- where index == BUFFER[index]"+char(10)+
 	colorOrange+"</b>-- then pipe the value to another function"+char(10)+
+	colorOrange+"</b>Easy Clip! As of version 3.9.6 any command may take <b>@B [index|-m] as one or more parameters!"+char(10)+
+	colorOrange+"</b>-- if -m is passed instead of an index, a menu is displayed"+char(10)+
+	colorOrange+"</b>|> roil | scpm /root/rkit @B -m"+char(10)+
 	colorOrange+"You may pipe anything into the buffer with |><b> [command_returning_input] | malp</b>"+char(10)+char(10)+
 	colorGreen+"Easy Clip! You may reference the clipboards with the @ symbol:"+char(10)+
 	colorGreen+"***  clipa, clipb, and clipc are all clipboard spaces  ***"+char(10)+
@@ -2648,16 +2750,19 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorGreen+"</b>e.g. <b>gopher @tbuf</b>, e.g. <b>rshell @home</b>, e.g <b>scribus @do"+char(10)+char(10)+
 	colorCyan+"</b>The CUSTOM_OBJECT is a way for scripts to share information between"+char(10)+
 	colorCyan+"</b>nested launches. This means you can launch 5hell with 5hell and pass objects back and forth."+char(10)+
-	colorCyan+"You interact with the custom_object via the various <b>cob</b> commands"+char(10)+
-	colorCyan+"Namely: cob get and cob set."+char(10)+
+	colorCyan+"</b>You interact with the custom_object via the various <b>cob</b> commands"+char(10)+
+	colorCyan+"</b>Namely: cob get and cob set."+char(10)+
 	colorCyan+"For ease of use: <color=white>cob get</color> and <color=white>cob set</color> have been aliased to:"+char(10)+
-	colorCyan+"-- <color=white>get</color> and <color=white>set</color> in 5hell.src"+char(10)+
-	colorCyan+"-- |> </b>cob set bob burger <b>is equivalent to |></b> set bob burger"+char(10)+
-	colorCyan+"-- |> </b>cob get bob<b> is quivalent to |></b> get bob"+char(10)+
-	colorCyan+"</b>An example would be "+colorGold+"cerebrum</color> which loads the dictionary to the custom object:"+char(10)+
-	colorCyan+"</b>-- once loaded, you may <b>run</b> 5hell through nested launches and the dictionary will persist."+char(10)+
-	colorCyan+"-- This also allows you to import/export metaLib's and metaxploitLib's between machines!"+char(10)
-	colorCyan+"-- Please see cob -h for more informaiton"
+	colorCyan+"</b>-- <color=white>get</color> and <color=white>set</color> in 5hell.src"+char(10)+
+	colorCyan+"</b>-- |> <b>cob set bob burger </b>is equivalent to |><b> set bob burger"+char(10)+
+	colorCyan+"</b>-- |> <b>cob get bob</b> is quivalent to |><b> get bob"+char(10)+
+	colorCyan+"</b>An example would be "+colorGold+"cerebrum</color> which loads the dictionary to the custom object."+char(10)+
+	colorCyan+"</b>-- When generated, the dictionary is loaded to the custom object under the key: <b>dictionary</b>."
+	colorCyan+"</b>-- Once loaded, you may <b>run</b> 5hell through nested launches and the dictionary will persist."+char(10)+
+	colorCyan+"</b>-- This also allows you to import/export metaLib's and metaxploitLib's between machines!"+char(10)
+	colorCyan+"</b>-- Easy Clip! You may reference a value in the custom object by it's key with: <b>@o [key]</b>"+char(10)+
+	colorGold+"</b>--eg:<b> set foo "" look out for that tree, "" | echo @o foo george </b>// look out for that tree, george"+char(10)+
+	colorCyan+"</b>-- Please see cob -h for more informaiton"
 
 	help_logs = colorWhite+"The dreaded "+colorRed+"System.log"+char(10)+
 	"Actions that generate an entry in system.log: "+char(10)+
@@ -2733,11 +2838,14 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	 colorGold+"@tbuf           |</b> transmission buffer -- globals.T_BUF"+char(10)+
 	 "-- this is                |</b> where hashes go when the tree command finds them"+char(10)+
 	 colorGold+"@home           |</b> HOME_SERVER ip address defined in 5hell.src"+char(10)+char(10)+
+	 colorGold+"@B [index|-m]   |</b> directly reference a value in the"+colorOrange+"BUFFER"+CT+"by [index] or menu: [-m]"+char(10)+
+	 colorGold+"@o [key]        |</b> directly reference a value in the custom object by key"+char(10)+
 	 "Please note: several commands have their own references for editing the clipboards"+char(10)+
 	 "-- these commands will use @clipa, @clipb, @clipc instead of @a, @b, @c"+char(10)+
 	 "Further, the clipa, clipb, and clipc will use @B to reference the BUFFER:"+char(10)+
 	 "-- e.g: |> <b>clipa @B 1</b> -- copy the object at index 1 in the BUFFER to clipa"+char(10)+
-	 "-- that object may then be used by other commands that accept piped objects as input"+char(10)+
+	 "---- that object may then be used by other commands that accept piped objects as input"+char(10)+
+	 "-- as of 3.9.6 any command may use @B [index] as any parameter(s)"
 	 "-- there are other ways to pipe objects around besides the clipboards, explore to learn more."
 
 	if arg1 == "-s" or arg1 == "show" or arg1 == "search" then
@@ -2784,7 +2892,14 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		return c_buf.join(char(10))
 	end if
 	if arg1 == "home" then
-		return "Convention: <b>@home</b> -- indicates a server you, the end user, have set up for 5hell services. Server should be of type <b>SSH</b> and it is recommended to run<b> pwgen | pwgen hash</b> on it. The @home server is used by:<b> cerebrum, brutus, linkdb, transmit</b>. The @home server may optionally run:<b> hashim, dbmon, outmon</b>. Please contact Plu70 if you have questions about setting up these resources."+char(10)+"Please edit the appropriate line in 5hell.src to setup @home."
+		return "  Convention: <b>@home</b> -- indicates a server you, the end user, have set up for 5hell"+char(10)+
+		"services. Servers should be of type <b>SSH</b> and/or <b>RSHELL</b> and it is recommended to run<b> pwgen | pwgen hash</b>"+char(10)+
+		"on ssh servers running the <b>hashim daemon</b>. The @home server is used by:<b> cerebrum, brutus, linkdb, transmit, rshell</b>."+char(10)+
+		"For example: <b>rshell @home notAvirus</b> would create an rshell with ip set as your @home server."
+		"  The @home server may optionally run:<b> hashim, dbmon, and outmon</b>. Please contact Plu70 if you have questions about setting"+char(10)+
+		"up these resources."+char(10)+"Please edit the appropriate line in 5hell.src to setup @home by providing an ip address, port, password,"+char(10)+
+		"and directory for the pass file. It is important that you secure 5hell with login authentication, either stock or your own, to prevent"+char(10)+
+		"exposure of this information! "
 	end if
 	
 	if arg1 == "alias" then return help_alias
@@ -2826,7 +2941,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorOrange+":> help [-b|buffer] -- buffer, clipboard, and custom_object info")
 	print(":> help [-l|logs] -- information regarding system.log")
 	print(":> help [-s|show|search] -- for a full descriptive list of commands")
-	print(":> help [-s|show|search] [word|string|regex] -- search all help info for pattern"+char(10)+"-- see grep -h for regex tokens")
+	print(colorCyan+":> help [-s|show|search] [word|string|regex] -- search all help info for pattern"+char(10)+"-- see grep -h for regex tokens")
 	print(":> help [-i] -- list commands by command map index")
 	print(":> help [alias] -- a list of the current default aliases in 5hell.src")
 	print(":> help [home] -- information about the @home system")
