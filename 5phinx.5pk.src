@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.1 for 5hell v 3.9.5...(129.284kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.5 for 5hell v 3.9.6...(137.925kb)</size>")
 
 //Define Globals
-sphinx_version = "2.6.1"
-malp_version = "1.3.5"
+sphinx_version = "2.6.4"
+malp_version = "1.3.8"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -62,6 +62,103 @@ hot_swap_libs = function()
   if globals.metaxploit then globals.metaLibVersion = globals.metaxploit.load(globals.meta_path).version
   if globals.crypto and globals.metaxploit then globals.cryptoLibVersion = globals.metaxploit.load(globals.cryp_path).version
   return 0
+end function
+
+globals._ez_clip = function( in_prompt )
+  for e in in_prompt 
+    if DEBUG then print("z: "+@e)
+      // reprocess: unpack single quote chunk, process, repackage
+    if typeof(@e) != "string" then continue
+    if e.split(" ").len > 1 then 
+        in_prompt[in_prompt.indexOf(@e)] = _ez_clip(@e.split(" ")).join(" ")
+        continue
+    end if
+    // done reprocessing
+    if DEBUG then print("p: "+@e)
+    e_indx = in_prompt.indexOf(@e) 
+    if @e == "@a" then in_prompt[e_indx] = @globals.clip_board_alpha
+    if @e == "@b" then in_prompt[e_indx] = @globals.clip_board_beta
+    if @e == "@c" then in_prompt[e_indx] = @globals.clip_board_gamma
+    if @e == "@home" then in_prompt[e_indx] = globals.HOME_SERVER[0]
+    if @e == "@tbuf" then in_prompt[e_indx] = @globals.T_BUF.join(char(10))
+    if @e == "@o" then // this is getting out of hand...
+      if in_prompt.hasIndex(e_indx+1) and typeof(in_prompt[e_indx+1]) == "string" and get_custom_object.hasIndex(in_prompt[e_indx+1]) then 
+          in_prompt[e_indx+1] = command.cob("get",in_prompt[e_indx+1])
+          in_prompt.remove(e_indx)
+      else 
+          if DEBUG then print "@objects: key not found"
+      end if
+    end if
+    if @e == "@B" then 
+      if in_prompt.hasIndex(e_indx+1) then 
+        if DEBUG then print "e_indx: "+e_indx
+        if in_prompt[e_indx+1] == "-m" then 
+                // if globals.BUFFER.len < 1 then 
+                //   print colorRed+"@BUFFER: BUFFER is empty!"
+                //   continue
+                // elseS
+                  //i = 0
+                  // for b in globals.BUFFER
+                  //     if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+                  //     i = i + 1
+                  // end for
+          if BUFFER.len == 0 then
+            print(colorOrange+"\nBuffer empty. ")
+            continue
+          end if
+          print("\nExpanding... ")
+          print(colorWhite+"__________________________________")
+          i = 0
+          //b_list = globals.BUFFER[0:]
+          if DEBUG then print("checking buffer integrity...")
+          for b in globals.BUFFER //b_list
+            //if DEBUG then print p_validate(@b,"name")
+            //if DEBUG then print "b: "+@b
+            if typeof(@b) == "file" and not p_exe(@b,"name") then
+              globals.BUFFER.remove(globals.BUFFER.indexOf(b))
+              print("[<size=65%>malp: null file removed. skipping...</size>]")
+              continue
+            end if
+            /////////////////// BEGIN_BUFFER //////////////////////////////////////////////////
+            //print(colorOrange+"["+i+"]</b>BUFFERED: " + "["+checkUser(b) +":"+ typeof(b)+"]")
+            if typeof(@b) == "function" then
+              print(colorOrange+"["+i+"]</b>BUFFERED: " + "["+checkUser(@b) +":"+ typeof(@b)+"]")
+            else
+              print(colorOrange+"["+i+"]</b>BUFFERED: " + "["+checkUser(b) +":"+ typeof(b)+"]")
+            end if
+            if typeof(@b) == "file" then print(b.path+char(10)+b.permissions+" "+b.owner+" "+b.group+" "+b.size+" b["+b.is_binary+"] "+b.name)
+            if typeof(@b) == "computer" then print(format_columns(b.show_procs+char(10)+b.public_ip+char(10)+b.local_ip))
+            if typeof(@b) == "shell" or typeof(@b) == "ftpshell" then print(format_columns(b.host_computer.show_procs+char(10)+b.host_computer.public_ip+char(10)+b.host_computer.local_ip))
+            if typeof(@b) == "string" or typeof(@b) == "list" or typeof(@b) == "map" then print( "elements: "+b.len )
+            i = i + 1
+          end for
+          print(colorWhite+"__________________________________")
+          get = user_input("select an object:> ").to_int
+          if typeof(get) != "number" then print "@BUFFER: invalid selection."
+          if get >= 0 and get < globals.BUFFER.len then 
+              in_prompt[e_indx+1] = @globals.BUFFER[get]
+              in_prompt.remove(e_indx) 
+              if DEBUG then print "post menu in_prompt "+in_prompt   
+          else    
+              print "@BUFFER: invalid selection."
+          end if
+        else
+          if typeof(in_prompt[e_indx+1]) == "string" then 
+            if globals.BUFFER.hasIndex(in_prompt[e_indx+1].to_int) then 
+                in_prompt[e_indx+1] = @globals.BUFFER[in_prompt[e_indx+1].to_int]
+                in_prompt.remove(e_indx)
+                if DEBUG then print "post non menu in_prompt"
+            else 
+                if DEBUG then print "@BUFFER: invalid selection."
+            end if
+          end if
+        end if
+      end if
+    end if
+    if DEBUG then print("b: "+@e)
+  end for
+  if DEBUG then print "returning: "+in_prompt
+  return in_prompt
 end function
 
 // checkUser function by Corvus, additions by Plu70
@@ -832,7 +929,7 @@ end function
 /////////////////////////////////////// END Scribus ///////////////////////////////
 
 ////////////// BEGIN_MEMORY_ALPHA //////////////////////////////
-globals.memory_alpha = function()
+globals.memory_alpha = function(go_to_buffer=null)
   buffered_filesys = null
   viewing = true
   print(colorWhite + "5phinx"+char(8482)+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"  + CT )
@@ -857,11 +954,17 @@ globals.memory_alpha = function()
     print(colorLightBlue+"[4] File manager. ")
     if BUFFER.len > 0 then print(colorOrange+"</b>+[5] [Storing: "+BUFFER.len+" buffer objects]"+CT)
     print("[6] Air [/] cBios [-] RSI [.] dBase" )
-    waitFor = user_input("[7] Go Back  [8] Procs [9] Kill (q=quit)||: ",0,1)
+    print("[7] Go Back   [8] Procs   [9] Kill  ")
+    if DEBUG then print("prompt ready: ")
+    if go_to_buffer then
+      waitFor = "5"
+      go_to_buffer = false
+    else 
+      waitFor = user_input("(q=quit)||: ",0,1)
+    end if
     print(colorWhite + "5phinx"+char(8482)+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"  + CT )
     print("<b>/////////////////////////////////////////////</b>")
     if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
-    if DEBUG then print("prompt ready: ")
     print
     if waitFor == "." then
       globals.grepped_file = null
@@ -886,7 +989,7 @@ globals.memory_alpha = function()
       end for
       print(format_columns(print_list.join(char(10))))
       if dBase_contents.len > 1 then
-        link = user_input("link_db (q=quit):> ",0,0).to_int
+        link = user_input("link_db (q=quit):> ",0,0).to_int   // add db editing functions
         if link == "q" then continue
         if typeof(link) == "number" and link >= 0 and link < dbi then
           command.linkdb(link_list[link])
@@ -972,7 +1075,7 @@ globals.memory_alpha = function()
           //   print(n)
           // end for
         //end for
-        print command.code(meta_scan,0,0,0)
+        print "<noparse>"+command.code(meta_scan,0,0,0)
       else
         if globals.metaLib then conf = user_input("Scan metaLib for vuln requirements? [Y/n] ||: ",0,1) else continue
         if conf.lower != "n" then 
@@ -1018,7 +1121,7 @@ globals.memory_alpha = function()
         continue
       end if
     end if // end option 4
-    /////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////THE BIG BAD BUFFER PUFFER STUFFER//////////////////////////////////////////
     if waitFor == "5" then
       if BUFFER.len == 0 then
         print(colorOrange+"\nBuffer empty. ")
@@ -1101,9 +1204,30 @@ globals.memory_alpha = function()
           //list_files(buffer_selection, "0")
           print(command.file(@buffer_selection))
           print(colorGreen+"<u>==================================</u>"+CT)
-          print("[f] - felix file explorer")
-          if not buffer_selection.is_binary then print("[7] open_text [8] upload_txt [9] dnload_txt ")
-          file_menu = user_input("[4] tag 4 scp [5] curl [6] log spoof "+char(10)+"[1] root file [2] rDelete [3] rPerms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
+          print("[a] to clipa|b|c...")
+          print("[f] - felix file explorer [w] website.html (curl)")
+          print("[r] rename [m] move [c] copy")
+          if not buffer_selection.is_binary then print("[7] open text [8] edit text [9] save text ")
+          file_menu = user_input("[4] tag 4 scp [5] curl [6] rclean "+char(10)+"[1] root file [2] remove [3] perms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
+          if file_menu == "w" then 
+            print globals.curl(buffer_selection)
+            continue 
+          end if
+          if file_menu == "m" then 
+            new_path = user_input("move_to_path (<<b>enter></b>=quit):> "+colorWhite)
+            if new_path == "" then 
+              print "aborting..."
+              continue
+            else 
+              print command.mv(buffer_selection.path,new_path)
+              continue
+            end if 
+          end if
+          if file_menu == "c" then 
+            copy_to_path = user_input("copy_to_path (<<b>enter></b>=quit):> "+colorWhite)
+            print command.copy(from_path,copy_to_path)
+            continue
+          end if
           if file_menu == "d" then 
             print(globals.decompiler(@buffer_selection))
             continue
@@ -1140,48 +1264,7 @@ globals.memory_alpha = function()
           end if
           if file_menu == "6" then
             spoof = buffer_selection
-            if spoof.path != "/var/system.log" then
-              while spoof.name != "/" 
-                spoof = spoof.parent
-              end while 
-              root = spoof
-              sf = spoof.get_folders 
-              for f in sf 
-                if f.name == "/var" then 
-                  for file in f 
-                    if file.name == "system.log" then spoof = file 
-                  end for
-                end if
-              end for
-            end if 
-            if spoof.name != "system.log" then 
-              print "system.log not found!"
-              continue
-            end if 
-            if spoof.has_permission("w") then
-              print(colorWhite+"</b>"+buffer_selection.name + " is spoofable!")
-              //action = user_input("Spoof log? [Y/n] ")
-              //if action.lower == "n" then continue
-              root_folders = root.get_folders
-              for rf in root_folders
-                if rf.name == "etc" then
-                  etc = rf
-                  ff = etc.get_files
-                  for ef in ff
-                    if ef.name == "xorg.conf" then
-                      print ef.copy("/var","system.log")
-                      continue
-                    end if
-                  end for
-                end if
-              end for
-            else
-              print(spoof.name+" is write protected.")
-              continue
-            end if
-            //spf = user_input("Use this file to corrupt the log? (requires write access to /var/system.log)"+char(10)+"[Y/n] ||: ",0,1)
-            //if spf.lower != "n" then print(buffer_selection.copy("/var", "system.log"))
-            print spoof.copy("/var/","system.log")
+            print command.rclean(spoof)
             continue
           end if
           if file_menu == "5" then
@@ -1197,6 +1280,7 @@ globals.memory_alpha = function()
             continue
           end if
           if file_menu == "3" then
+            print "<b>Modify permissions for this file?"
             p = user_input("[0] back [1] unlock [2] lock "+char(10)+"(q=quit)||: ",0,1)
             if p == "0" or p == "q" then continue
             if p == "1" then
@@ -1240,18 +1324,26 @@ globals.memory_alpha = function()
           //print("Buffered filesystem ready. Access with [<b>4</b>] ")
           continue
         end if
+        ///////////////////// SHELL HANDLER ///////////////////////////
         if typeof(buffer_selection) == "shell" or typeof(buffer_selection) == "ftpshell" then
           print(colorOrange+"<mark=orange><u>= = = = = = = = = = = = = = =</u></mark>"+CT)
           print(format_columns(buffer_selection.host_computer.show_procs)+char(10)+char(10)+checkUser(buffer_selection)+"@"+buffer_selection.host_computer.local_ip+char(10)+buffer_selection.host_computer.public_ip)
           print(colorOrange+"<size=65%><mark=orange><u>= = = = = = = = = = = = = = = = = = = =</u></mark></size>"+CT)
-          if typeof(buffer_selection) == "shell" then print "[7] scp     [8] run        [9] curl" +char(10)+
-                                                            "[4] glassp  [5] rclean     [6] compit "+char(10)+
-                                                            "[1] felix   [2] open shell [3] upload rkit"+char(10)+
+          if typeof(buffer_selection) == "shell" then print "[f] felix   [c] curl       [p] purge from buffer"+char(10)+
+                                                            "[7] scp     [8] run        [9] fetch meta" +char(10)+
+                                                            "[4] glassp  [5] rclean     [6] get computer "+char(10)+
+                                                            "[1] open    [2] redirect   [3] upload rkit"+char(10)+
                                                             "[0] to cob  [d] decompile  [b] fetch binaries"
-          choice = user_input("(q=quit)||: ",0,1)
+          if typeof(buffer_selection) == "ftpshell" then 
+            print "[g] get [p] put [c] host computer"
+            fselect = user_input("[s] start (ftp) terminal ||:",0,1)
+// stubby
+            continue
+          end if
+          choice = user_input("(<<b>enter</b>>|q=quit)||: ",0,1)
           if choice == "0" then 
             print colorOrange+"cobbling..."
-            keyword = user_input("Enter custom_object index(key) for shell [q=quit]:> ")
+            keyword = user_input("Enter custom_object key  for shell [q=quit]:> ")
             if keyword.lower == "q" then 
               print "aborting..."
               continue 
@@ -1260,28 +1352,57 @@ globals.memory_alpha = function()
               continue
             end if
           end if 
+          if choice == "9" then 
+            print colorGold+"</b>spot: fetching MetaxploitLib from "+colorWhite+"</b>"+buffer_selection.host_computer.lan_ip+ " <b>:</b> "+buffer_selection.host_computer.local_ip
+            print "spot: changing permissions of 5hell and metaxploit.so..."
+// stubby
+          end if 
+          if choice == "f" then  
+            print("Buffering filesystem..." )
+            buffered_filesys = buffer_selection.host_computer.File("/")
+            print("<u>Buffered filesystem ready. Accessing with <b>felix</b>.</u>")
+            command.felix(buffered_filesys)
+            continue
+          end if
+          if choice == "p" then 
+            print command.purge("-b",str(selection))
+            print colorOrange+"Shell object purged from BUFFER"
+            continue 
+          end if
           if choice == "d" then 
-            print(globals.decompiler(buffer_selection))
+            d=(globals.decompiler(buffer_selection))
+            print colorOrange+"BUFFERING..."+char(10)+d 
+            globals.BUFFER.push(buffer_selection)
             continue
           end if
           if choice == "b" then 
-            print globals.get_binaries(buffer_selection,globals.get_file(user_input(colorWhite+"destination folder [q=quit]:> </b>")))
+            dest_folder = user_input(colorCyan+"Destination folder (currentPath=default,q=quit)"+char(10)+":> <u>"+colorWhite)
+              if dest_folder == "q" then continue 
+              if dest_folder == "" then dest_folder = currentPath
+              print globals.get_binaries(buffer_selection,globals.get_file(dest_folder))
             continue 
           end if
           if choice == "q" then
             buffered_filesys = buffer_selection.host_computer.File("/")
-            print("Buffering filesystem..." )
+            print("Buffering filesystem of computer object..." )
             print(colorLightBlue+"<u>Buffered filesystem ready. Access with [</b>4<b>]</u>"+CT)
             continue
           end if
-          if choice == "9" then
+          if choice == "c" then
             print( globals.curl(buffer_selection) )
             continue
           end if
           if choice == "8" and typeof(buffer_selection) == "shell" then
-            l_path = user_input("launch_path (leave blank to abort):> ")
-            if l_path == "" then return
-            l_para = user_input("launch_params (optional):> ")
+            l_path = user_input(colorLightBlue+"Enter launch_path</color></b> (<b>enter</b>=abort, 5hell=launch_first_5hell_found)"+char(10)+colorCyan+":> </b><size=75%><u>"+colorWhite)
+            if l_path == "" then continue
+            if l_path == "5hell" then 
+              l_path = command.grep("-p","5hell",buffer_selection)
+              if l_path == "No 5hell found, aborting..." then continue else print colorCyan+"located 5hell in "+l_path
+            end if
+            l_para = user_input(colorWhite+"Optional launch parameters: "+char(10)+"@a=clipa, @b=clipb, @c=clipc "+"<b><enter></b>=skip):> "+colorWhite)
+            if l_para == "@a" then l_para = globals.clipboard_alpha
+            if l_para == "@b" then l_para = globals.clipboard_beta
+            if l_para == "@c" then l_para = globals.clipboard_gamma
             print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
             print(colorWhite+"<size=75%><u>Injecting process "+l_path+" into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
             print(buffer_selection.launch( l_path, l_para ) )
@@ -1289,7 +1410,7 @@ globals.memory_alpha = function()
             continue
           end if
           if choice == "6" then
-            print("Buffering computer from shell_object..."+char(10)+"...computer_object sent to BUFFER access with [5] ")
+            print("Buffering computer from shell_object..."+char(10)+"...computer_object sent to BUFFER")
             BUFFER.push(buffer_selection.host_computer)
             continue
           end if
@@ -1322,7 +1443,10 @@ globals.memory_alpha = function()
             //   continue
             // end if
           end if
-          if choice == "7" then secure_copy(buffer_selection)
+          if choice == "7" then 
+            secure_copy(buffer_selection)
+            continue 
+          end if
           if choice == "3" then
             kit = null
             kit = command.tree("/","rkit","1","N")
@@ -1355,7 +1479,7 @@ globals.memory_alpha = function()
             if go.lower == "n" then
               continue
             else
-              par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 cerebrum | brutus"+char(10)+":> ").trim
+              par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 "" cerebrum | brutus """+char(10)+":> ").trim // add preset options
               print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
               print(colorWhite+"<size=75%><u>Injecting process /home/guest/rkit/5hell into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
               catch = buffer_selection.launch("/home/guest/rkit/5hell",par)
@@ -1365,28 +1489,25 @@ globals.memory_alpha = function()
             end if
           end if
           if choice == "1" then
-            buffered_filesys = buffer_selection.host_computer.File("/")
-            print("Buffering filesystem..." )
-            print("<u>Buffered filesystem ready. Accessing with <b>felix</b>.</u>")
-            command.felix(buffered_filesys)
-            continue
-          end if
-          if choice != "2" then continue
-          print("Opening a shell will exit "+CT+colorRed+"5hell"+CT+". Continue? ")
-          if user_input("[Y/n] :>").lower == "n" then continue
-          if user_input("Bounce shell to internal ssh/ftp? [y/N] :> ").lower == "y" then
-            secure_connect(buffer_selection)
-          else
+            print("Opening a terminal will exit "+CT+colorRed+"5hell"+CT+". Continue? ")
+            if user_input("[<b>Y</b>/n] :>").lower == "n" then continue
             if typeof(buffer_selection) == "shell" then
               print(colorWhite+"-ssh---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
             else
               print(colorWhite+"-ftp---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
             end if
-            buffer_selection.start_terminal
+            command.quite(exit(buffer_selection.start_terminal))
+            continue
           end if
+          if choice == "2" then 
+            if user_input("Redirect shell to internal ssh/ftp? [<b>Y</b>/n] :> ").lower != "n" then secure_connect(buffer_selection)
+            continue
+          end if
+          continue
         end if // end shell handler
         if buffer_selection.hasIndex("__isa") then print(globals.decompiler(buffer_selection))
       end if
+      continue
     end if  // end option 5
     if waitFor == "6" then
       air_menu
@@ -1396,17 +1517,35 @@ globals.memory_alpha = function()
       return
     end if
     if waitFor == "8" then
-      print(colorWhite+format_columns(localmachine.show_procs)+CT)
+      print("<size=75%>Showing processes...")
+      p_buf = localmachine.show_procs.split(char(10))
+      i = 0
+      if DEBUG then print "debug: "+p_buf
+      for line in p_buf 
+        if i == 0 then line = colorWhite+"</b>"+line else line = colorCyan+"</b>"+line
+        if line.split(" ").indexOf("dession") != null then line = line.replace("dsession",colorRed+"</b>dsession")
+        p_buf[i] = line
+        i = i + 1
+      end for
+      print format_columns(p_buf.join(char(10)))
+      continue
     end if
     if waitFor == "9" then
-      procs = localmachine.show_procs
-      print
-      print(format_columns(procs))
-      print("Hunting dsessions...")
-      k_tar = user_input("Enter target process ID or name to rip:> ")
+      print("<size=75%>Showing processes... (dessions cannot be killed)")
+      p_buf = localmachine.show_procs.split(char(10))
+      if DEBUG then print "debug: "+p_buf
+      i = 0
+      for line in p_buf 
+        if i == 0 then line = colorWhite+"</b>"+line else line = colorCyan+"</b>"+line
+        if line.split(" ").indexOf("dession") != null then line = line.replace("dsession",colorRed+"</b>dsession")
+        p_buf[i] = line
+        i = i + 1
+      end for
+      print format_columns(p_buf.join(char(10)))
+      k_tar = user_input("Enter target process ID or name to kill (<<b>enter</b>>=abort)"+char(10)+":> ")
       processes = []
       //print(procs)
-      processes = procs.split(char(10))
+      processes = p_buf
       for p in processes
         process = p.split(" ")
         process_ID = process[1]
@@ -2230,18 +2369,23 @@ end function
 
 secure_connect = function(shll)
   secure_port = targetPort
-  waitFor = user_input("Connect on port "+ secure_port + "? [Y/n]: ")
-  if waitFor == "n" or waitFor == "N" then secure_port = user_input("enter port: ").val
-  if secure_port < 1 then
+  waitFor = user_input("Connect on port 22? [Y/n]||: ",0,1)
+  if waitFor.lower == "n" then secure_port = user_input("enter port:> ").to_int else secure_port = 22
+  if secure_port < 1 or typeof(secure_port) != "number" then
     print("Error: invalid port for secure connect.")
-    return
+    return 0
   end if
   print(targetIP)
-  secure_ip = user_input("enter ip or null: ")
+  if targetIP.is_lan_ip then 
+    secure_ip = user_input("enter lan ip (<<b>enter</b>>="+targetIP+", non-int=abort"+char(10)+":> ")
+  else
+    secure_ip = user_input("enter lan ip (<<b>enter</b>>=abort):> ")
+  end if
   if secure_ip == "" then secure_ip = targetIP
-  userName = user_input("Enter remote user name: ")
+  userName = user_input("Enter remote user name (<<b>enter</b>>=root, -q=quit):> ")
   if userName == "" then userName = "root"
-  passWd = user_input("Enter remote user password: ")
+  passWd = user_input("Enter remote user password (-brutus=dictinary attack, <<b>enter</b>>=quit):> ")
+  if passwd == "" then return 0
   print(colorWhite+"--ssh------------------------"+CT)
   remote = null
   if passWd == "-brutus" then
@@ -2254,20 +2398,21 @@ secure_connect = function(shll)
   end if
   print("<b>Connecting</b>... ")
   if typeof(remote) == "shell" or typeof(remote) == "ftpshell" then
-    print("[4] link filesys [5] maelstrom (experimental)")
-    todo = user_input("[0] toBuffer [1] run [2] start terminal [3] scp ||: ",0,1)
+    globals.BUFFER.push(remote)
+    print "sending new shell to BUFFER..."+char(10)+"make a selection:"
+    print(            "[4] glasspool ")
+    todo = user_input("[1] run [2] start terminal [3] scp"+char(10)+"[0|q] quit ||: ",0,1)
     if todo == "2" then
       remote.start_terminal
     end if
     if todo == "0" then
-      BUFFER.push(remote)
-      BUFFER.push(remote.host_computer)
-      return
+      print "aborting..."
+      return 0
     end if
     if todo == "1" then
-      a = user_input("command path: ")
-      b = user_input("parameters: ")
-      remote.launch(a, b)
+      a = user_input("command path:> ")
+      b = user_input("parameters:> ")
+      print remote.launch(a, b)
       globals.stack_pool = globals.stack_pool - 1
     end if
     if todo == "3" then
@@ -2292,26 +2437,26 @@ secure_connect = function(shll)
       end if
       return colorOrange+"...glasspool failed to initialize. Check permissions. And current path."+CT
     end if
-    if todo == "5" then
-      new_ip = user_input("Secondary ip: ")
-      new_port = user_input("Second port: ")
-      new_user = user_input("Second user: ")
-      new_pass = user_input("Second pass: ")
-      buf_shell = remote
-      new_shell = remote.connect_service(new_ip, new_port.to_int, new_user, new_pass)
-      if new_shell then
-        i = 0
-        BUFFER.push(new_shell)
-        max_bounce = user_input("First bounce successful. How many times should we repeat? ")
-        while i < max_bounce
-          remote = new_shell.connect_service(secure_ip, secure_port, userName, passWd)
-          new_shell = remote(new_ip, new_port.to_int, new_user, new_pass)
-          i = i + 1
-        end while
-      else
-        print("Bounce failed.")
-      end if
-    end if
+    // if todo == "5" then
+    //   new_ip = user_input("Secondary ip: ")
+    //   new_port = user_input("Second port: ")
+    //   new_user = user_input("Second user: ")
+    //   new_pass = user_input("Second pass: ")
+    //   buf_shell = remote
+    //   new_shell = remote.connect_service(new_ip, new_port.to_int, new_user, new_pass)
+    //   if new_shell then
+    //     i = 0
+    //     BUFFER.push(new_shell)
+    //     max_bounce = user_input("First bounce successful. How many times should we repeat? ")
+    //     while i < max_bounce
+    //       remote = new_shell.connect_service(secure_ip, secure_port, userName, passWd)
+    //       new_shell = remote(new_ip, new_port.to_int, new_user, new_pass)
+    //       i = i + 1
+    //     end while
+    //   else
+    //     print("Bounce failed.")
+    //   end if
+    // end if
   else
     print("Unable to establish connection.")
   end if
@@ -2518,28 +2663,42 @@ make_portmap = function(router, comps, q_bool)
   ports = router.used_ports
   r_lib_v = "router " + router.kernel_version
   services["router"] = [ router.public_ip,  "gateway", r_lib_v, router.local_ip ]
+  if DEBUG then print "debug: obtained port object and router version"
   for p in ports
     state = "open"
     if p.is_closed then state = "closed"
     //services.push(p.port_number + " " + state + " " + router.port_info(p) + " " + p.get_lan_ip + "\n")
     services[p.port_number] = [p.port_number, state , router.port_info(p) , p.get_lan_ip]
   end for
+  if DEBUG then print "debug: services mapped"
   cpl = null
   services["-"] = ["-","-","-","-"]
   for cip in comps
+    if DEBUG then print "debug: top of loop"+char(10)+"-- attempting router.device_ports("+cip+")"
     cpl = router.device_ports(cip)
+    if DEBUG then print "debug: got: "
+    if DEBUG then print "--: "+cpl
     if typeof(cpl) == "string" then
-      //print(cpl) // debug
+      if DEBUG then print "debug: computer port list is a string: firewall detected"
       services[cip] = ["Firewall", "Detected", "@ addr:", cip]
     else
+      if DEBUG then print "debug: computer port list is a list:"+cpl
       for cp in cpl
         i = 0
-        services[cp.get_lan_ip+":"+cp.port_number] = [cp.port_number, "internal", router.port_info(cp), cp.get_lan_ip]
+        lip = cp.get_lan_ip
+        if DEBUG then print "debug: port.get_lan_ip: "+lip 
+        pn = cp.port_number
+        if DEBUG then print "debug: port.port_number: "+pn
+        rpi = router.port_info(cp)        
+        if DEBUG then print "debug: router.port_info(port): "+rpi
+        //services[cp.get_lan_ip+":"+cp.port_number] = [cp.port_number, "internal", router.port_info(cp), cp.get_lan_ip]
+        services[lip+":"+pn] = [pn, "internal", rpi, lip]
         i = i + 1
       end for
     end if
   end for
   globals.PORT_MAP = services
+  if DEBUG then print "debug: portmap complete, displaying..."
   display_portmap(q_bool)
   return 0
 end function
