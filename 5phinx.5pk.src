@@ -1,8 +1,8 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.5 for 5hell v 3.9.6...(137.925kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.6 for 5hell v 3.9.8...(138.306kb)</size>")
 
 //Define Globals
-sphinx_version = "2.6.4"
+sphinx_version = "2.6.6"
 malp_version = "1.3.8"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -363,7 +363,7 @@ globals.decompiler = function(object)
   return 0
 end function
 
-p_exe = function( obj, f_name=null ) // obj is either game object or function
+globals.p_exe = function( obj, f_name=null ) // obj is either game object or function
   if DEBUG then print("debug: In P_EXE: "+@obj+": "+f_name)
   if typeof(@obj) != "function" and not p_validate(obj, f_name) then 
     print "invalid object"
@@ -375,11 +375,18 @@ p_exe = function( obj, f_name=null ) // obj is either game object or function
     if f_name then foo = @obj[f_name] else return "p_exe: missing function name"
   end if
   args = str(@foo).split( "FUNCTION" )[1].split(", ")
+  if DEBUG then print "debug: args input: "+args
+  if args.len == 1 then 
+    if args == ["()"] then args[0] = []
+  end if
   if not f_name then f_name = str(@foo).split( "FUNCTION" )[0]
   a=[]
   i=0
   for ar in args 
+    if ar == null or ar == [] then continue
     ar = ar.replace("\)","").replace("\(","")
+    if DEBUG then print "debug: ar: "+ar
+    if ar == "" then continue
     if DEBUG then print("typeof "+ar+": "+typeof(ar))
     if str(ar) == "self" then 
       if typeof(@obj) == "function" then 
@@ -409,7 +416,9 @@ p_exe = function( obj, f_name=null ) // obj is either game object or function
   if DEBUG then print "f_name is: "+f_name
   if typeof(@obj) == "function" then o = @obj else o = @obj[f_name]
   catch = null
-  if DEBUG then print("debug: args: "+args.len)
+  if args == [[]] then args = []
+  if DEBUG then print("debug: args to run: "+args.len+": "+args)
+  if args.len == 0 then catch = o
   if args.len == 1 then catch = o(a[0])
   if args.len == 2 then catch = o(a[0], a[1])
   if args.len == 3 then catch = o(a[0], a[1], a[2])
@@ -1353,7 +1362,7 @@ globals.memory_alpha = function(go_to_buffer=null)
             end if
           end if 
           if choice == "9" then 
-            print colorGold+"</b>spot: fetching MetaxploitLib from "+colorWhite+"</b>"+buffer_selection.host_computer.lan_ip+ " <b>:</b> "+buffer_selection.host_computer.local_ip
+            print colorGold+"</b>spot: fetching MetaxploitLib from "+colorWhite+"</b>"+buffer_selection.host_computer.public_ip+ " <b>:</b> "+buffer_selection.host_computer.local_ip
             print "spot: changing permissions of 5hell and metaxploit.so..."
 // stubby
           end if 
@@ -3332,25 +3341,25 @@ main = function()
     if globals.HERMES == true then
       print("000"+mail_widget(count))
     else     
-      print("0001020304050607080900")
+      print("000102030405060708090<b>.")
     end if
     if targetIP then
-      print("0[<b><color=white>0</color></b>]....<b><color=white>P</color>ROBE</b>.....0900")
-      print("00[<b><color=white>1</color></b>]...<b><color=white>S</color>CAN</b>..07080900")
+      print("0[<b><color=white>0</color></b>]....<b><color=white>P</color>ROBE</b>.....09<b>.")
+      print("00[<b><color=white>1</color></b>]...<b><color=white>S</color>CAN</b>..070809<b>.")
     else
-      print("0001020304050607080900")
-      print("0001020304050607080900")
+      print("000102030405060708090<b>.")
+      print("000102030405060708090<b>.")
     end if
     if targetIP and targetPort then
-      print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....080900")
-      print("000..[<b><color=white>3</color></b>]<b><color=white>D</color>BASER</b>...80900")
+      print("000.[<b><color=white>2</color></b>].<b><color=white>R</color>OIL</b>....0809<b>.")
+      print("000..[<b><color=white>3</color></b>]<b><color=white>D</color>BASER</b>...809<b>.")
     else
-      print("001 SET IP WITH [<color=white>4</color>] 00")
-      print("000 SET PT WITH [<color=white>5</color>] 00")
+      print("001 SET IP WITH [<color=white>4</color>] 0<b>.")
+      print("000 SET PT WITH [<color=white>5</color>] 0<b>.")
     end if
-    print(".QT.<b>A</b>..<b>IP</b>[<b>4</b>][<b>5</b>]<b>PT</b>.....")
-    print("[Q][A][Z]["+char(177)+"]06<b>v</b>7<b><</b>8<b>></b>9<b>^</b>0")
-    option = user_input("[0][1][2][3][4][5]||: ",0,1)
+    print("[<b>.</b>]DIG.["+colorWhite+"4"+CT+"]<b>IP</b>.[<b>5</b>]<b>PORT</b>.")
+    print("[Q][A][Z]["+char(177)+"].6<b>v</b>7<b><</b>8<b>></b>9<b>^</b>.")
+    option = user_input("[0][1][2][3][4][5].<b>||: ",0,1)
     running = sphinx_switch(option,target_type)
   end while
 end function
