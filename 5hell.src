@@ -60,7 +60,7 @@ import_code("/root/src/5hell.5pk")
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
 //globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)"]
-globals.HOME_SERVER = ["ip.add.r.ess", 22, "root", "password", "ssh", "/root/pass"]
+globals.HOME_SERVER = ["ip.add.re.ss", 22, "root", "password", "ssh", "/root/pass"]
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
   // @home will be replaced with your ip, no password needed in this case
@@ -245,12 +245,21 @@ command.shell = function(input=null)
           //if typeof(@catch) == "function" then return @catch
             if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
             if pipe.len > 0 and pipe[0] == "return" then return @catch
-            //print(@catch)
+            print(@catch)
             if pipe.len then 
+              //if typeof(@catch) == "string" then 
+                //temp_string = catch.split(char(10))
+                // i = 0
+                // for line in temp_string
+                //   temp_string[i] = line.replace("<noparse>","")
+                //   i = i + 1
+                // end for
+                //catch = temp_string.join(char(10))
+              //end if
               next.push(@catch) // using @reference instead of literal bc functions may now be passed
               //if @pipe[0] == ["return"] then return @catch
             end if
-            print @catch
+            //print @catch
           //else
           //  print(catch)
           //  if pipe.len then next.push(catch)
@@ -258,6 +267,17 @@ command.shell = function(input=null)
         end if/// end 3.1.2 compatibility changes
       else
         if prompt[0] == "shell" then // if you'd like the 'shell' command to return additional info, do that here
+          if prompt[1] == "--debug" then 
+            if globals.DEBUG != true then 
+              globals.DEBUG = true 
+              print "shell: activating DEBUG mode"
+              continue 
+            else 
+              globals.DEBUG = false 
+              print "shell: deactivating DEBUG mode"
+              continue 
+            end if
+          end if
           print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
           print("["+colorCyan+command.indexes.len+CT+"] commands and")
           print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
@@ -315,7 +335,7 @@ end function
 //
 //////////////////////////////////// SECURITY GOES HERE //////////////////////
 ///// customize this line fully for the most security ////////
-  access_codes = {"Alpha":"your access code here ", "Beta":"your other optional access code here"}//////////////////////////////////////////////////////////////
+  access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
   // if you rename access_codes be sure to edit the below line
   rnac = access_codes.indexes
   rnac.shuffle
