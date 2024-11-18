@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.7...(144.261)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8...(144.594)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -405,7 +405,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				if use_re == true then
 					if re.match(grep_tar.values, sub.name.values) then 
 						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-					if sub.is_symlink then 
+					if NIGHTLY == true and sub.is_symlink then 
 						gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
 					else
 						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
@@ -421,7 +421,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				else
 					if sub.name == grep_tar or sub.name.indexOf(grep_tar) then 
 						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-					if sub.is_symlink then 
+					if NIGHTLY == true and sub.is_symlink then 
 						gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
 					else 
 						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path+CT)
@@ -440,7 +440,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				if use_re == true then
 					if re.match(grep_tar.values, f.name.values) then 
             			//gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
-						if f.is_symlink then 
+						if NIGHTLY == true and f.is_symlink then 
 							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+f.name+CT+colorLightBlue+" linked to file in: "+ f.parent.path + CT+char(10)+colorGold+"               |<u>"+f.path)
 						else 
 							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
@@ -455,7 +455,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				else
 					if f.name == grep_tar or f.name.indexOf(grep_tar) >= 0 then 
 						//gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
-						if f.is_symlink then 
+						if NIGHTLY == true and f.is_symlink then 
 							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+f.name+CT+colorLightBlue+" linked to file in: "+ f.parent.path + CT+char(10)+colorGold+"               |<u>"+f.path)
 						else 
 							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
@@ -1274,7 +1274,8 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		if return_name then return arg1.name
     	imp_stat = null
 		if DEBUG then print "checking for symlink"
-		sym_stat = arg1.is_symlink
+		sym_stat = null 
+		if NIGHTLY == true then sym_stat = arg1.is_symlink
 		if sym_stat then 
 			sym_stat = "yes" 
 			imp_stat = "symlink"
@@ -2493,7 +2494,10 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Symlink || symbolic link || file path"+char(10)+
 	"Usage: sl [path] -- returns true if path is a symlink, returns false otherwise"+char(10)+
 	"Usage: sl [path] [/new_path/new_name] -- create a symbolic link at path"+char(10)+
-	"-- returns 1 on success, string on fail"
+	"-- returns 1 on success, string on fail"+char(10)+
+	"Note: command is disabled by default"+char(10)+
+	"-- if playing nightly, to activate the command: change the global NIGHTLY variable to true"
+	if not NIGHTLY then return "sl: function disabled"
 	if typeof(arg1) == "file" then arg1 = arg1.path
 	if typeof(arg1) != "string" then return "sl: invalid path"
 	source_file = globals.get_file(arg1)
