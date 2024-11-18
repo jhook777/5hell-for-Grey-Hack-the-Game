@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.6...(143.779)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.7...(146.772)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -126,20 +126,49 @@ command.kore = function(arg1,arg2,arg3,arg4)
 end function
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
-	if not arg1 then return globals.targetIP+" "+globals.targetPort
-	if arg1 == "ip" then return globals.targetIP
-	if arg1 == "pt" then return globals.targetPort
-	if arg1 == "-p" then 
-		if arg2 and arg2.to_int >= 0 then 	
-			globals.targetPort = arg2.to_int
-		else 
-			if arg2 == "*" then globals.targetPort = "*" else globals.targetPort = "router"
+	print char(10)+colorCyan+"</b><u><size=75%>"+CT+colorWhite+"</b>target: processing targetIP and targetPort..."
+	if not arg1 then  
+		print "<size=75%>target: returning targetIP and targetPort:"
+		return globals.targetIP+" "+globals.targetPort
+	end if
+	if arg1 == "ip" or arg1 == "-i" then 
+		if not arg2 or (typeof(arg2) != "string" and typeof(arg2) != "number") then 
+			print "<size=75%>target: returning targetIP:"	
+			return globals.targetIP
 		end if
+		if is_valid_ip(arg2) then 
+			globals.targetIP = arg2 
+			print "<size=75%>target: targetIP set to: "
+			return targetIP
+		else 
+			return "target: invalid target ip"
+		end if
+	end if
+	if arg1 == "-p" or arg1 == "port" or arg1 == "pt" then 
+		if arg2 and arg2.to_int >= 0 then 	
+			if arg2 then globals.targetPort = arg2.to_int
+		else 
+			if arg2 == "*" then 
+				globals.targetPort = "*" 
+			else 
+				print "<size=75%>target: returning targetPort:"
+				return globals.targetPort
+			end if
+		end if
+		print "<size=75%>target: set targetPort to:"
 		return globals.targetPort
 	end if
-	if is_valid_ip(arg1) then globals.targetIP = arg1 
-	if arg2 and arg2.to_int >= 0 then globals.targetPort = arg2.to_int else globals.targetPort = "router"
-	if arg2 and arg2 == "*" then globals.targetPort = "*"
+	if is_valid_ip(arg1) then globals.targetIP = arg1 else return "target: invalid ip"
+	if arg2 and arg2.to_int >= 0 then 
+		globals.targetPort = arg2.to_int 
+	else 
+		if arg2 == "*" then
+			globals.targetPort = "*"
+		else
+			globals.targetPort = "router"
+		end if 
+	end if
+	print "<size=75%>target: returning targetIP and targetPort:"
 	return globals.targetIP+" "+globals.targetPort
 end function
 command.transmit = function(arg1, arg2, arg3=0, arg4=0)
@@ -650,10 +679,27 @@ end function
 // 	return 0
 // end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "<b><u>Reverse Shell Interface || RSI Daemon || Install rshell server"+char(10)+"Usage: rsi [opt: -d|-i|install|start|stop] [opt: -r|# ] [opt: #]"+char(10)+"Usage: <b>rsi</b> -- open rshell_interface: listen for connections on port 1222"+char(10)+"-- Runs once then exits"+char(10)+"Usage: rsi -d -- daemon mode, continues to listen for connections until an rshell connects."+char(10)+"<b>Advanced</b>: rsi [-i|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10) +"Advanced: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"+char(10)+"Usage: rsi -r [#] -- return the shell object at rshell index #"+char(10)+"Usage: rsi [#1] [#2] -- access the rshell at index #1 and auto select option [#2]"+char(10)+"Usage: rsi -p [opt:y] -- purge all rshells. supplying 'y' will skip confirmation"+char(10)+"-- please note, rshell indexes start at 1 not 0"+char(10)+"---- eg: rsi -r #  -- returns the rshell at index # as an object"+char(10)+"---- eg: rsi #  -- auto-selects the rshell at index and opens context menu"+char(10)+"---- eg: rsi -d -r 1 -- wait in daemon mode on an empty rshell buffer and return the first connection as an object"
+	if arg1 == "help" or arg1 == "-h" then return "<b><u>Reverse Shell Interface || RSI Daemon || Install rshell server"+char(10)+
+	"Usage: rsi [opt: -d|-i|install|start|stop] [opt: -r|# ] [opt: #]"+char(10)+
+	colorLightBlue+"</b>Usage: <b>rsi</b> -- open rshell_interface: listen for connections on port 1222"+char(10)+
+	"-- Runs once then exits"+char(10)+
+	"Usage: rsi [<b>-d</b>] -- daemon mode, continues to listen for connections until an rshell connects."+char(10)+
+	colorCyan+"Usage: rsi [<b>-r</b>] [#] -- return the shell object at rshell index #"+char(10)+
+	"-- eg: rsi [<b>-r</b>] #  -- returns the rshell at index # as an object"+char(10)+
+	"-- eg: rsi [<b>-d</b>] [-r</b>] [1</b>] -- wait in daemon mode on an empty rshell buffer and return the first connection as an object"+char(10)+
+	"Usage: rsi [<b>#</b>]  -- auto-selects the rshell at index [#] and opens the context menu"+char(10)+
+	"Usage: rsi [<b>#1</b>] [<b>#2</b>] -- access the rshell at index #1 and auto select option [#2]"+char(10)+
+	"-- please note, rshell indexes start at 1 not 0"+char(10)+
+	"-- eg: rsi 1 7 | gp"+char(10)+
+	"Usage: rsi [<b>-p</b>] [opt:y] -- purge all rshells; supplying 'y' will skip confirmation"+char(10)+
+	"Usage: rsi [<b>-s</b>] -- scrub logs of all rshells (if possible)"+char(10)+
+	"Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10)+
+	"Usage: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"+char(10)
+
 	if not metaxploit then return "Error: Can't find metaxploit library in the /lib path or the current folder"
 	if not localmachine.is_network_active then return "nsl: no network connection."
 	if arg1 == "-p" then return command.purge("-r",arg2,arg3,arg4)
+	 
 	if arg1 == "stop" then 
 		rserver = null
 		rserver = include_lib("/lib/librshell.so")
@@ -683,11 +729,16 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorLightBlue+"Listening for upcoming connections...")
 	//locals.shells = metaxploit.rshell_server
 	locals.shells = []
+	one_loop = true
 	while shells.len == 0
+		wait(.01)
 		shells = metaxploit.rshell_server
 		if typeof(shells) == "string" then return shells
-		if shells.len == 0 and arg1 != "-d" then return colorOrange+"rsi: no rshells connected. use<b> rsi -d </b> to run in daemon mode."+CT
-		//wait(.01)
+		if shells.len == 0 and arg1 != "-d" then 
+			if one_loop == false then return colorOrange+"rsi: no rshells connected. use<b> rsi -d </b> to run in daemon mode."+CT 
+		else 
+			one_loop = false
+		end if
 	end while
 	if arg1 == "-d" then 
 		arg1 = arg2
@@ -713,9 +764,9 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		print(colorLightBlue + shells.len + "</b> shell(s) connected:"+char(10)+"- if your expected shell isn't listed yet"+char(10)+"- press <<b>enter</b>> to refresh the page"+char(10)+"<b>Select a shell to access:"+CT)
 		rs_buf = []
 		for i in range(0, shells.len - 1)
-			rs_buf.push(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + shells[i].host_computer.public_ip + char(10) + "Local IP: " + shells[i].host_computer.local_ip + char(10) + colorWhite + shells[i].host_computer.show_procs + CT )
+			rs_buf.push(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + shells[i].host_computer.public_ip + char(10) + "Local  IP: " + shells[i].host_computer.local_ip + char(10) + colorWhite + command.ps(shells[i]) )
 		end for
-		print rs_buf.join(char(10))
+		print(rs_buf.join(char(10)).trim)
 		print(colorLightBlue+"-----------"+CT)
 		option = user_input("Select shell ([0|q] to abort) :> ").to_int
 		if option == 0 or option == "q" then return 0
@@ -730,7 +781,8 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		return ts
 	end if
 	print
-	print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ option +CT+ ")" +CT+char(10)+ "Public IP: " + shells[option - 1].host_computer.public_ip + char(10) + "Local IP: " + shells[option - 1].host_computer.local_ip + char(10) + colorWhite + shells[option - 1].host_computer.show_procs + CT )
+	print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ option +CT+ ")" +CT+char(10)+ "Public IP: " + shells[option - 1].host_computer.public_ip + char(10) + "Local IP: " + shells[option - 1].host_computer.local_ip + char(10))// + colorWhite + command.ps(shells[option - 1]))
+	print command.ps(shells[option - 1])
 	print colorWhite+"<u>"+colorLightBlue+" = = = = = = = = = = = = = </color>"+CT
 	print "[1] glasspool [2] start_terminal [3] scp "+char(10)+
 	      "[4] buffer_it [5] rclean [6] run [K] kill"+char(10)+
@@ -1168,26 +1220,48 @@ command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not get then return "lanpro: invalid argument or router unreachable" else return get
 end function
 command.nsl = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup || reverse ip lookup || domain to ip</u>"+char(10)+"Usage: nsl [www.webAdress.com] -- uses nslookup on address and returns ip as a string"+char(10)+"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+"note: nsl will append <b>www.</b> to a domain if it is omitted."+char(10)+"Usage: nsl [ip] -- returns domain linked to ip (reverse lookup)"
+	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup || reverse ip lookup || domain to ip</u>"+char(10)+
+	"Usage: nsl [opt:-t] [ip|domain] -- uses nslookup on ip|domain and returns domain|ip as a string"+char(10)+
+	"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+
+	"NOTE: nsl will append <b>www.</b> to a domain if it is omitted."+char(10)+
+	"Usage: nsl [ip] -- returns domain linked to ip (reverse lookup)"+char(10)+
+	"Usage: nsl [domain] -- returns ip linked to domain (normal lookup)"+char(10)+
+	"Ope: [-t] -- passing -t as first param will set global targetIP to ip"
 	if not localmachine.is_network_active then return "nsl: no network connection."
 	print "<u>"+colorGold+"= = = = NSLOOKUP = = = ="
+	set_targ = false
+	if arg1 == "-t" then 
+		set_targ = true 
+		arg1 = arg2 
+		arg2 = arg3 
+		arg3 = arg4 
+	end if
 	address = arg1
 	if typeof(address) != "string" then return "nsl: expects string"
-	print "Address: "+address+char(10)
+	print "Address: "+address//+char(10)
 	if is_valid_ip(address) then 
+		//if set_targ == true then print command.target("ip",address,"router")
 		if DEBUG then print "debug: reverse nsl lookup"
 		who_string = whois(address) 
 		if DEBUG then print "debug: who_string: "+who_string
 		domain = who_string.split(char(10))[0].split(":")[1]
 		print colorLightBlue+"<u>Domain: "
-		return domain.trim
+		if set_targ == true then 
+			print domain.trim
+			return command.target("ip",address,"router") 
+		else 
+			return domain.trim
+		end if
 	end if
 	prefix = address[0:4]
 	if DEBUG then print("debug_prefix:["+prefix+"]")
 	if prefix != "www." then address = "www."+address
 	if DEBUG then print("debug_address:"+address)
 	print(colorLightBlue+"<u>IP: ")
-	return nslookup(address)
+	addy = nslookup(address)
+	if DEBUG then print "addy: "+addy
+	if set_targ == true then return command.target("ip",addy,"router")
+	return addy.trim
 end function
 command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not arg1 or arg1 == "-h" or arg1 == "help" then return command_info("ping_usage")+char(10)+"Note: returns a string."
@@ -1214,23 +1288,50 @@ command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 command.whois = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "WHOIS || whois information || network info"+char(10)+
-		"Usage: whois [ip] --  returns whois information for given ip"+char(10)+
-		"Usage: whois -- returns local netowrk whois information if no params given"+char(10)+
-		"Usage: whois [-nb|--getbox] -- run whois on a loop until a Neurobox Network is found"+char(10)+
+		"Usage: whois [opt:-t] -- returns local netowrk whois information if no params given"+char(10)+
+		"Usage: whois [opt:-t] [ip] --  returns whois information for given ip"+char(10)+
+		"--eg: whois 1.1.1.1"+char(10)+
+		"Usage: whois [opt:-t] [-nb|--getbox] -- run whois on a loop until a Neurobox Network is found"+char(10)+
 		"-- avg runtime is less than 20 seconds"+char(10)+
-		"-- search automatically terminates if runtime exceedes 1 minute"
-	if not arg1 then return "whois: no ip provided. Returning localhost:"+char(10)+whois(globals.pubip)
+		"-- search automatically terminates if runtime exceedes 1 minute"+char(10)+
+		"Opt: [-t] - passing -t as first argument sets global targetIP to ip"+char(10)+
+		"--eg: whois -t 1.2.34"+char(10)+
+		"--eg: whois -t -nb"+char(10)+
+		"--eg: whois -t"+char(10)+
+		"Note: flag order matters: -t must come first if it is used"
+		"Note: [-t] option sets targetPort to ""router"" "
+	
+	set_targ = false
+	if arg1 == "-t" then 
+		set_targ = true 
+		arg1 = arg2 
+		arg2 = arg3 
+		arg3 = arg4
+	end if
+	if not arg1 then 
+		if set_targ then print command.target("ip", localmachine.public_ip, "router" )
+		return "<size=75%>whois: returning localhost whois information:"+char(10)+whois(globals.pubip).replace("Neurobox Network",colorCyan+"<size=125%>_Neurobox_Network_</size>"+CT)
+	end if
 	if arg1 == "--getbox" or arg1 == "-nb" then 
 		found = false
 		time_s = time
 		while not found 
-			string = whois(command.rnip("1"))
-			if string.indexOf("[Neurobox") != null then found = true
 			if time_s-time>60 then return "whois: search exceeded 60 seconds: terminating search"
+			ip = command.rnip("1")
+			string = whois(ip)
+			if string.indexOf("[Neurobox") != null then 
+				found = true
+				if set_targ then print command.target("ip",ip,"router")
+			end if
 		end while
-		return string
+		return string.replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)
 	end if 
-	if not is_valid_ip(arg1) then return "whois: invalid ip"
+	if not is_valid_ip(arg1) then 
+		arg1 = command.nsl(arg1) 
+		if not is_valid_ip(arg1) then return "whois: invalid ip or domain" else print arg1
+	end if
+	if set_targ then print command.target("ip", arg1, "rotuer")
+	print char(10)+"<size=75%>whois: returning info:"
 	return whois(arg1).replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)
 end function
 command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
@@ -2339,6 +2440,7 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 		end for
 		return done
 	end function
+	
 	if arg1 == "no_network" then return 0 //// ???????wtf
 	boo = 0
 	file = null
@@ -2460,10 +2562,9 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				return "meta: imported new MetaLib object"+char(10)+"-- ready to scan"
 			end if
 			if not arg2 then 
-				link_me = user_input("[l]ocal or [<b>R</b>]emote (q=quit) ||: ")
-				if link_me.lower == "l" then arg2 = "-l"
+				link_me = user_input("[l]ocal or [<b>R</b>]emote (q=quit) ||: ",0,1)
+				if link_me.lower == "l" then arg2 = "-l" else arg2 = "-r"
 				if link_me.lower == "q" then return "meta: link aborted"
-				arg2 = "-r" 
 			end if
 			if arg2 and arg2 == "-l" then
 				arg = "L"
@@ -2949,17 +3050,21 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
                     if not is_valid_ip(ip) or is_lan_ip(ip) then continue
                     // Perform WHOIS lookup and parse the result
                     who_string = whois(ip).split(char(10))
-                    if who_string[0].indexOf(": ") == null then continue
-                    domain = who_string[0].split(": ")[1].remove("www.")
+                    
+
+					// the following got nerfed, can't check if an email exists this way any more
                     //if DEBUG then print "debug: in osint loop: domain: "+domain
-                    // Attempt to log in to mail and check if user exists
-                    targ = user_name + "@" + domain
-                    if verbose or DEBUG then print "osint: attempting: "+ip+" : "+targ
-					inbox = mail_login(targ, "a")
-                    if inbox != targ + " user not found" then
-						print colorLightBlue+"Positive Hit: "+colorWhite+targ
-                        d_list.push(domain)
-                    end if
+                    // // Attempt to log in to mail and check if user exists
+					//if who_string[0].indexOf(": ") == null then continue
+                    //domain = who_string[0].split(": ")[1].remove("www.")
+                    // targ = user_name + "@" + domain
+                    // if verbose or DEBUG then print "osint: attempting: "+ip+" : "+targ
+					// inbox = mail_login(targ, "a")
+                    // if inbox != targ + " user not found" then
+					// 	print colorLightBlue+"Positive Hit: "+colorWhite+targ
+                    //     d_list.push(domain)
+                    // end if
+
 					if cycle % 1000 == 0 then wait(.1)
 					if DEBUG then print "scanning..."
 					cycle = cycle + 1
