@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.6...(137.438)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.7...(144.261)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -348,7 +348,8 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 		a2 = arg3
 		if not a2 then a2 = "/"
 	end if
-	if not a1 or a1 == "-h" or a1 == "help" then return "GREP || get regular expression || regex"+char(10)+
+	if not a1 then return "grep: input error"
+	if a1 == "-h" or a1 == "help" then return "GREP || get regular expression || regex"+char(10)+
 		colorCyan+"Usage: grep [opt:-f|-n|-p] [pattern] [opt: search_path (default: / ) | object] "+char(10)+
 		"-- supports partial matches and limited regular expressions."+char(10)+char(10)+
 		"Usage: grep [pattern] [search_path|object] -- grep for text in files and folders"+char(10)+
@@ -403,7 +404,12 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 			for sub in sub_folders
 				if use_re == true then
 					if re.match(grep_tar.values, sub.name.values) then 
+						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+					if sub.is_symlink then 
+						gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
+					else
 						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+					end if
 						if findfile == true then
 							print gresult[-1]
 							globals.grepped_file = sub
@@ -414,8 +420,13 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 					end if
 				else
 					if sub.name == grep_tar or sub.name.indexOf(grep_tar) then 
-						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-						if findfile == true then
+						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+					if sub.is_symlink then 
+						gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
+					else 
+						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path+CT)
+					end if
+					if findfile == true then
 						if DEBUG then print "debug: found "+sub.path
 						print gresult[-1]
 						globals.grepped_file = sub
@@ -428,7 +439,12 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 			for f in sub_files
 				if use_re == true then
 					if re.match(grep_tar.values, f.name.values) then 
-            			gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+            			//gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+						if f.is_symlink then 
+							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+f.name+CT+colorLightBlue+" linked to file in: "+ f.parent.path + CT+char(10)+colorGold+"               |<u>"+f.path)
+						else 
+							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+						end if
 						if findfile == true then
 							if DEBUG then print "debug: found "+f.path
 							print gresult[-1]
@@ -438,7 +454,12 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
           			end if
 				else
 					if f.name == grep_tar or f.name.indexOf(grep_tar) >= 0 then 
-						gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+						//gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+						if f.is_symlink then 
+							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+f.name+CT+colorLightBlue+" linked to file in: "+ f.parent.path + CT+char(10)+colorGold+"               |<u>"+f.path)
+						else 
+							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
+						end if
 						if findfile == true then
 							if DEBUG then print "debug: found "+f.path  
 							print gresult[-1]
@@ -542,6 +563,74 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 		// new tree stuff goes here
 		
 
+	end if 
+	if arg1 then
+		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
+		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
+		if arg1 == "@clipc"  or arg1 == "@c" then arg1 = globals.clip_board_gamma
+		if typeof(arg1) == "string" then tem = localmachine.File(arg1)
+		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
+		if typeof(arg1) == "computer" then tem = arg1.File("/")
+		if typeof(arg1) == "file" then tem = arg1
+	else
+		tem = localmachine.File("/")
+	end if
+	if not tem or not p_validate(tem,"size") then return "tree: invalid path or file"
+	if arg3 == "0" then arg3 = 0
+	if use_new_tree == true then return globals.newtree(tem,arg2)
+	globals.grepped_file = null
+	globals.list_files(tem, arg2, arg3, arg4)
+	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
+	return 0
+end function
+command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
+	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
+	"Usage: tree [path|object] -- view filesystem from path down"+char(10)+
+	"Usage: tree [opt: path(string)|object(object)] [opt: grep_target(string)] [quiet: 1|0] [opt: r|y|n]"+char(10)+
+	"-- [path] - path to descend"+char(10)+
+	"-- [object] - shell or computer: descends from / on object"+char(10)+
+	"-- [object] - file: descends from path of file object on said object"+char(10)+
+	"-- [grep_target] - search for target file by name"+char(10)+
+	"---- matches exact name (no regex)"+char(10)+
+	"---- <b>returns the file as an object if found</b>"+char(10)+
+	"-- [1|0] -  1 = quiet, supress output"+char(10)+
+	"-- [1|0] -  0 = verbose, print output"+char(10)+
+	"-- [r|n|y] - r = send to t_buf, n = ignore, y = decipher (default is <b>r</b>)"+char(10)+
+	"---- this option determines where bank.txt, mail.txt, passwd, and others are stored when encountered"+char(10)+
+	"---- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+
+	"-- e.g:<b> tree / database.csv 1 N | file -b</b> "+char(10)+
+	"---- find database.csv on filesystem, display properties, pipe to BUFFER"+char(10)+
+	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
+	colorGreen+"-- -- -- -- -- --"+char(10)+
+	"<b>New: tree -f [path|object] [object|path] [opt: 1|0 ] - tree a directory or object and enumerate all files "+char(10)+
+	"-- omitting path|object (and opt) defaults to the / path"+char(10)+
+	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
+	"-- [opt: 0] - print output. default"+char(10)+
+	"---- omitting this option will print output"+char(10)+
+	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"+char(10)+
+	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
+	"Usage: tree -f [path] -- tree from path, enumerate to enum, print output"+char(10)+
+	"Usage: tree -f [object] -- tree from object's <b>/</b> directory, enumerate, print output"+char(10)+
+	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"+char(10)+
+	"Usage: tree -f [path|object] [object|path] -- tree from object's [path] directory, enumerate, print output"+char(10)+
+	"       -- this option will return the file or folder at path as an object if it exists"+char(10)+
+	"Usage: tree -f [param] [param] [1|0] -- performs as above but does <b>not</b> print output"+char(10)+
+	"N.B. tree -f [1] is ignored because it results in absolutely nothing happening"+char(10)+
+	"n.b. tree -f returns a string except as stated above"
+	tem = null
+	use_new_tree = false
+	return_list = false
+	if arg1 == "-f" or arg1 == "-fr" or arg1 == "-rf" or arg1 == "-r" then 
+		use_new_tree = true 
+		// new tree stuff goes here
+		if arg1 == "fr" or arg1 == "-rf" or arg1 == "-r" then 
+			return_list = true
+			arg3 = "2"
+		end if
+		arg1 = arg2 
+		arg2 = arg3 
+		arg3 = arg4 
 	end if 
 	if arg1 then
 		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
@@ -1120,6 +1209,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		"Usage: "+char(10)+
 		"-- file [<color=white>-l</color>] [path|object] [opt:object] -- return number of lines in the file as a string"+char(10)+
 		"-- file [<color=white>-c</color>] [path|object] [opt:object] -- return number of chars in the file as a string"+char(10)+
+		"-- file [<color=white>-s</color>] [path|object] [opt:object] -- return size of the file as a string"+char(10)+
 		"-- file [<color=white>-b</color>] [path|object] [opt:object] -- send file to BUFFER (and display file info)"+char(10)+
 		"---- also returns the file as an object"+char(10)+
 		"---- eg: "+colorLightBlue+"</b>grep <b>-f</b> *#.log$ /var | file -b"+char(10)+
@@ -1135,6 +1225,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	return_name = false
 	return_path = false
 	return_file = false
+	return_size = false 
 
 	if arg1.indexOf("-") >= 0 then //== "-l" or arg1 == "-c" or arg1 == "-b" then
 		if arg1 == "-r" then return_file = true
@@ -1146,6 +1237,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		end if
 		if arg1 == "-n" then return_name = true
 		if arg1 == "-p" then return_path = true
+		if arg1 == "-s" then return_size = true
 		if arg2 then arg1 = arg2 else return "file: missing path or object: file [opt] [thing] [opt:thing]"
 		if arg3 then arg2 = arg3
 		if arg4 then arg3 = arg4
@@ -1180,7 +1272,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	if typeof(arg1) == "file" then
 		if return_path then return arg1.path
 		if return_name then return arg1.name
-    	imp_status = null
+    	imp_stat = null
 		if DEBUG then print "checking for symlink"
 		sym_stat = arg1.is_symlink
 		if sym_stat then 
@@ -1194,8 +1286,8 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		if imp_stat != "symlink" then 
 			if imp_stat then imp_stat = "yes" else imp_stat = "no"
 		end if
-		if DEBUG then print "status: "+imp_status
-  		file_id_info = ["name: "+arg1.name, "path: "+arg1.path, "size: "+arg1.size, "owner: "+arg1.owner, "group: "+arg1.group, "perms: "+arg1.permissions, "sylink: "+sym_stat]
+		if DEBUG then print "status: "+imp_stat
+  		file_id_info = ["name: "+arg1.name, "path: "+arg1.path, "size: "+arg1.size, "owner: "+arg1.owner, "group: "+arg1.group, "perms: "+arg1.permissions] 
 		if arg1.is_folder then
 			if DEBUG then print "debug: is_folder"
 			file_id_info.push("type: folder")
@@ -1206,7 +1298,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 			if arg1.is_binary then
 				if DEBUG then print "debug: is_binary"
 				file_id_info.push("type: binary")
-				if sym_stat == "Yes" then file_id_info.push("import: "+imp_status)
+				file_id_info.push("import: "+imp_stat)
 			else
 				if DEBUG then print "debug: is_text"
 				file_id_info.push("type: ascii")
@@ -1219,6 +1311,11 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 				file_id_info.push("lines: "+str(lines))
 				file_id_info.push("chars: "+str(chars))
 			end if
+		end if
+		file_id_info.push("sylink: "+sym_stat)
+		if return_size == true then 
+			//print "file: returning file size..."
+			return arg1.size
 		end if
 		if to_buffer then
 			globals.BUFFER.push(arg1)
@@ -2121,10 +2218,14 @@ command.string = function(arg1,arg2,arg3,arg4)
 	colorWhite+"Strings: Stringify strings:"+char(10)+
 	colorCyan+"Usage: string [-t] [target_text] -- returns trimmed text"+char(10)+
 	"-- ie: it removes whitespace"+char(10)+
+	colorcyan+"Usage: string [-p] [target_text] -- strip the noparse richtext tag from a string and return it"
 	colorCyan+"Usage: string [-r] [target_text] [replacement_text] [string_to_parse]"+char(10)+
 	"-- replace all instances of target_text with replacement_text within string_to_parse"+char(10)+
 	"-- use piping, easy clip, and "" text blocks "" to supply strings"+char(10)+
+	"-- use """""" in order to indicate a space (char(32))"+char(10)+
+	"-- use @nl to indicate a newline (char(10))"+char(10)+
 	"-- all params should be strings and the function returns the modified string"+char(10)+
+	colorCyan+"Usage: string [-R] -- as above but allows the use of miniscript supported regex"
 	colorWhite+"Numbers: Stringify numbers"+char(10)+
 	colorCyan+"Usage: string [number] -- returns str(number) as a string"+char(10)+
 	"-- please note that numbers are passed as numbers, not strings, when piped"+char(10)+
@@ -2145,6 +2246,11 @@ command.string = function(arg1,arg2,arg3,arg4)
 
 	_handle_replacement = function( target, replacement, in_string )
 		if not in_string isa string or not target isa string or not replacement isa string then return "replace: -r expects strings"
+		if replacement == """" then replacement = "" 
+		if target == """" then target = ""
+		if replacement == "@nl" then replacement = char(10) 
+		if target == "@nl" then target = char(10)
+		if use_regex == true then return in_string.replace_regex( target, replacement )
 		out_string = in_string.replace( target, replacement )	
 		return out_string
 	end function
@@ -2180,6 +2286,15 @@ command.string = function(arg1,arg2,arg3,arg4)
 		end for
 		return output.join(char(10)).trim
 	end function
+	_strip_input = function( instring )
+		if typeof( instring ) != "string" then return "string: expects [-p] [string_input]"
+		sp_str = instring.split(char(10))
+		output = []
+		for line in sp_str 
+			output.push(line.replace("<noparse>",""))
+		end for
+		return output.join(char(10)).trim
+	end function
 
 	delim = null
 	in_list = null
@@ -2189,7 +2304,13 @@ command.string = function(arg1,arg2,arg3,arg4)
 		return arg1 + arg2
 	end if
 	if typeof(arg1) == "list" then in_list = arg1  
+	use_regex = false 
+	if arg1 == "-R" then
+		use_regex = true 
+		arg1 = "-r"
+	end if
 	if typeof(arg1) == "string" then 
+		if arg1 == "-p" then return _strip_input(arg2)
 		if arg1 == "-t" then return _trim_input( arg2 )
 		if arg1 == "-L" then return _to_int_list(arg2,arg3)
 		if arg1 == "-l" then return _to_list(arg2,arg3)
@@ -2361,12 +2482,10 @@ command["if"] = function(arg1,arg2,arg3,arg4)
 	print colorCyan+"<u>= = = evaluating = = =</u>"+char(10)+"<size=75%>"+colorCyan+"Result:"
 	if DEBUG then print "debug:_"+char(10)+@arg1+char(10)+@arg2+char(10)+@arg3+char(10)+@arg4
 	if arg3 == arg4 then
-		if @arg1 and typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then c = @s(arg1+" | return")
-		if @c isa string then return c.trim else return @c
+		if @arg1 and typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then arg1 = @s(arg1+" | return")
 		if @arg1 isa string then return arg1.trim else return @arg1
 	else 
-		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then c @s(arg2+" | return")
-		if @c isa string then return c.trim else return @c
+		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then arg2 @s(arg2+" | return")
 		if @arg2 isa string then return arg2.trim else return @arg2
 	end if
 end function
