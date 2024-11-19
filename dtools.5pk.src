@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8...(144.594)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8.1...(145.022)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -62,8 +62,7 @@ command.poke = function(arg1, arg2, arg3=0, arg4=0)
 		if split.len then dest = globals.get_file(split.join("/")) 
 		if DEBUG then print("dest: ["+dest+"]")
 		if not dest then
-			//if split.len and split[0] == "" then destination = "/" else 
-			destination = currentPath
+			if split.len and split[0] == "" then destination = "/" else destination = currentPath
 		else
 			destination = dest.path
 		end if
@@ -603,21 +602,26 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	"---- find database.csv on filesystem, display properties, pipe to BUFFER"+char(10)+
 	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
 	colorGreen+"-- -- -- -- -- --"+char(10)+
-	"<b>New: tree -f [path|object] [object|path] [opt: 1|0 ] - tree a directory or object and enumerate all files "+char(10)+
-	"-- omitting path|object (and opt) defaults to the / path"+char(10)+
-	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
-	"-- [opt: 0] - print output. default"+char(10)+
-	"---- omitting this option will print output"+char(10)+
-	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"+char(10)+
+	"<b>New: tree -f [path|object] [opt: 1|0 ]"+char(10)+
+	"-- tree a directory or object and enumerate all files "+char(10)+
+	"-- omitting path|object, and opt defaults to the / path"+char(10)+
+	"-- [opt: 1] - quiet mode; suppress output."+char(10)+
+	"-- [opt: 0] - print output; default"+char(10)+
+	"---- omitting this option will default to printing output"+char(10)+
+	"-- enumerates to the enum buffer"+char(10)+
+	"---- see <b>enum -h</b> for instructions on how to use it"+char(10)+
+	"- - - - - - - - - - - - - - - - - - - <b>details</b> - - - - - - - - - - - - - - - - - - - "+char(10)+
+	"Usage: tree -f [path] -- trees from path, enumerates file objects to enum, prints output"+char(10)+
+	"-- returns string"+char(10)+
+	"Usage: tree -f [object] -- trees from object's <b>/</b> directory, enumerates, prints output"+char(10)+
+	"-- returns string"+char(10)+
+	"Usage: tree -f [path|object] [1]-- performs as above but does <b>not</b> print output"+char(10)+
+	"-- returns 0"+char(10)+
 	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
-	"Usage: tree -f [path] -- tree from path, enumerate to enum, print output"+char(10)+
-	"Usage: tree -f [object] -- tree from object's <b>/</b> directory, enumerate, print output"+char(10)+
-	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"+char(10)+
-	"Usage: tree -f [path|object] [object|path] -- tree from object's [path] directory, enumerate, print output"+char(10)+
-	"       -- this option will return the file or folder at path as an object if it exists"+char(10)+
-	"Usage: tree -f [param] [param] [1|0] -- performs as above but does <b>not</b> print output"+char(10)+
-	"N.B. tree -f [1] is ignored because it results in absolutely nothing happening"+char(10)+
-	"n.b. tree -f returns a string except as stated above"
+	"Usage: tree -r [path|object] -- trees from path or object's '/' dir "+char(10)+
+	"-- returns output as a <b>list</b> of file objects"+char(10)+
+	"-- does not print filesystem output"+char(10)+
+	"-- does not enumerate output"
 	tem = null
 	use_new_tree = false
 	return_list = false
@@ -636,7 +640,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
 		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
 		if arg1 == "@clipc"  or arg1 == "@c" then arg1 = globals.clip_board_gamma
-		if typeof(arg1) == "string" then tem = localmachine.File(arg1)
+		if typeof(arg1) == "string" then tem = globals.get_file(arg1)
 		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
 		if typeof(arg1) == "computer" then tem = arg1.File("/")
 		if typeof(arg1) == "file" then tem = arg1
@@ -1313,7 +1317,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 				file_id_info.push("chars: "+str(chars))
 			end if
 		end if
-		file_id_info.push("sylink: "+sym_stat)
+		file_id_info.push("symlnk: "+sym_stat)
 		if return_size == true then 
 			//print "file: returning file size..."
 			return arg1.size
@@ -2457,7 +2461,7 @@ command.diff = function(input_1,input_2,arg3,arg4)
     return _diff(input_1,input_2,return_type)
 end function
 command["if"] = function(arg1,arg2,arg3,arg4)
-	if arg1 == "help" or arg1 == "-h" then return "IF || if statement || conditionals"+char(10)+
+	if @arg1 == "help" or @arg1 == "-h" then return "IF || if statement || conditionals"+char(10)+
 	"Usage: if [positive_return] [negative_return] [condition_1] [condition_2] -- a binary if statement"+char(10)+
 	"-- compares condition_1 to condition_2"+char(10)+
 	"-- returns positive_return if equal"+char(10)+
@@ -2472,23 +2476,44 @@ command["if"] = function(arg1,arg2,arg3,arg4)
 	"-- the string itself is surrounded by floating single quotes"+char(10)+
 	"--eg: <b>file -r /etc | clipa |  | if "" echo true "" "" echo false "" @a "" grep -f etc  "" "+char(10)+
 	"-- which would result in <b>true</b> printing to the screen (provided etc actually existed)"
-	s = @command["shell"]
+	//s = @command["shell"]
 	// edit this to handle function references without executing
 	if @arg3 and typeof(@arg3) == "string" and globals.command.hasIndex(arg3.split(char(32))[0]) then 
-		arg3 = @s(arg3+" | return")
+		//arg3 = @s(arg3+" | return")
+		a = arg3.split(char(32))
+		b = a.pull
+		f = @command[b]
+		arg3 = @f(a.join(char(32)))
 	end if
 	if @arg4 and typeof(@arg4) == "string" and globals.command.hasIndex(arg4.split(char(32))[0]) then 
-		arg4 = @s(arg4+" | return")
+		a = arg4.split(char(32))
+		b = a.pull 
+		f = @command[b]
+		arg4 = @f(a.join(char(32)))
+		//arg4 = @s(arg4+" | return")
 	end if
 	print colorCyan+"<u>= = = evaluating = = =</u>"+char(10)+"<size=75%>"+colorCyan+"Result:"
 	if DEBUG then print "debug:_"+char(10)+@arg1+char(10)+@arg2+char(10)+@arg3+char(10)+@arg4
 	if arg3 == arg4 then
-		if @arg1 and typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then arg1 = @s(arg1+" | return")
-		if @arg1 isa string then return arg1.trim else return @arg1
+		if @arg1 and typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then 
+			//arg1 = @s(arg1+" | return")
+			a = arg1.split(char(32)) 
+			b = a.pull 
+			f = @command[b]
+			arg1 = @f(a.join(char(32)))
+		end if
+		if @arg1 isa string then return arg1.trim else return arg1
 	else 
-		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then arg2 @s(arg2+" | return")
-		if @arg2 isa string then return arg2.trim else return @arg2
+		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then 
+			//arg2 = @s(arg2+" | return")
+			a = arg2.split(char(32)) 
+			b = a.pull 
+			f = @command[b]
+			arg2 = @f(a.join(char(32)))
+		end if
+		if @arg2 isa string then return arg2.trim else return arg2
 	end if
+	return 0
 end function
 command.sl = function(arg1,arg2,arg3,arg4)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Symlink || symbolic link || file path"+char(10)+
