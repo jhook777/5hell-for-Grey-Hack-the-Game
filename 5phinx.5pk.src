@@ -1,5 +1,5 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.6 for 5hell v 3.9.8...(138.306kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.6 for 5hell v 3.9.8.1...(138.316kb)</size>")
 
 //Define Globals
 sphinx_version = "2.6.6"
@@ -157,7 +157,7 @@ globals._ez_clip = function( in_prompt )
     end if
     if DEBUG then print("b: "+@e)
   end for
-  if DEBUG then print "returning: "+in_prompt
+  if DEBUG then print "ezclip: returning: "+in_prompt
   return in_prompt
 end function
 
