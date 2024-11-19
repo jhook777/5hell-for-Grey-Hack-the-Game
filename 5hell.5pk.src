@@ -1,11 +1,11 @@
 // 5hell v 3.9.8 by Plu70
 // released v 3.9.8
 // imports .5pk files from /root/src
-ver = "3.9.8_nightly_terrors"
+ver = "3.9.8.1_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 NIGHTLY = false // set to true if playing nightly, false if playing public!
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "135.344"
+size_of_5hell = "137.055"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -111,20 +111,23 @@ globals.this_mail = 0
 
 colorRed = "<color=#FF0000FF><b>"
 colorGreen = "<color=#00FF00FF><b>"
+colorOlive = "<color=#048004FF><b>"
 colorWhite = "<color=#FFFFFFFF><b>"
 colorCyan = "<color=#00FFFFFF><b>"
 colorGold = "<color=#CCCC00FF><b>"
 colorBlack = "<color=#000000FF><b>"
 colorOrange = "<color=#FF8400FF><b>"
+colorViolet = "<color=#8821FDFF><b>"
 colorMagenta = "<color=#FF00C8FF><b>"
 colorLightBlue = "<color=#2382FFFF><b>"
 CT = "</color></b>"
 
 globals.get_file = function(input_string)
-	if DEBUG then print("in_get_file: "+@input_string)
+	if DEBUG then print("debug: in_get_file: "+@input_string)
 	if typeof(input_string) == "file" then return input_string.path
 	if typeof(@input_string) != "string" then return 0
 	if input_string == "" or input_string == " " or not input_string then return 0
+	if DEBUG then print "debug: get_file: processing string: "+@input_string
 	if input_string.split("/")[0] == "" then
 		file = localmachine.File(input_string)
 	else
@@ -574,14 +577,27 @@ command.rm = function(arg1, arg2, arg3=0, arg4=0)
 	return "rm: file not found."
 end function
 command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return "Usage: mv [/source_path] [/destination_path] -- move file or folder to new path."+char(10)+
-	"-- if destination is folder uses original filename, else renames."+char(10)+
-	"Advanced: mv [/source/path] [@] -- move source to current path and use original file name."+char(10)+
-	"n.b. this command is also used to rename a file."+char(10)+
-	"e.g.<b> mv bob /burger -- moves bob to / dir and renames to burger."
+	if arg1 == "-h" or arg1 == "help" then return "MOVE || MV || rename || I like to move it move it"+char(10)+
+	"Usage: mv [source_path|file_object] [destination_path|file_object]"+char(10)+
+	"-- move file or folder to new path"+char(10)+
+	"-- optionally rename the file"+char(10)+
+	"-- if destination is folder uses original filename, else renames"+char(10)+
+	"-- overwrites destination file if it exists and is not a folder"+char(10)+
+	"-- if file objects are supplied then uses the object's path"+char(10)+
+	"Usage: mv [source_path|file_object] [@] -- move file to current path using original file name"+char(10)+
+	"-- e.g:<b> mv bob /burger -- moves bob to / dir and renames to burger"+char(10)+
+	"---- if /burger is a directory; moves bob into burger as /burger/bob"+char(10)+
+	"NOTE: this command moves files between folders on the machine local to the file object"+char(10)+
+	"-- please use <b>scpm</b> or BUFFER <b>scp</b> to transfer files between machines"+char(10)
+
+	if not arg1 or not arg2 then return "mv: not enough input"
+	if typeof(arg1) != "string" and typeof(arg1) != "file" then return "mv: invalid parameters;"+char(10)+
+	"-- expects strings or file objects"
+	if typeof(arg2) != "string" and typeof(arg2) != "file" then return "mv: invalid parameters;"+char(10)+
+	"-- expects strings or file objects"
 	print "<u>"+colorLightBlue+"= = = = ="
 	if typeof(arg1) == "file" then 
-		file = arg1 
+		if p_validate(arg1,"size") then file = arg1 else return "mv: error: input file object does not exist"
 	else 
 		file = globals.get_file(arg1)
 	end if
@@ -590,13 +606,18 @@ command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
 	final_name = null
 	// check for file object
 	if typeof(arg2) == "file" then 
-		dest = arg2 
+		if p_validate(arg2,"size") then dest = arg2 else return "mv: error: output file object does not exist"+char(10)+
+		"-- please purge this object, recreate the file, or supply a string instead"
 	else 
 		dest = globals.get_file(arg2)
 	end if
 	if not dest then
-		split = arg2.split("/")
-		final_name = split.pop
+		if typeof(arg2) == "string" then 
+			split = arg2.split("/")
+			final_name = split.pop
+		else 
+			return "mv: invalid parameters"
+		end if
 		if DEBUG then print("split: "+split)
 		if split.len and split[0] == "" then dest = globals.get_file(split.join("/")) else dest = globals.get_file(split.join("/"))
 		if DEBUG then print("dest: ["+dest+"]")
@@ -2038,13 +2059,15 @@ for p in ports
 end for
 bios_info.push("<size=85%>ports: ["+pl.join("] [")+"] </size>")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
+if DEBUG then print "debug: bios searching for database..."
 database = command.tree("/","database.csv",1,"N")
 data_lines = "--"
 data_size = "-not_found-"
 if database then
+	if DEBUG then print "-- found database.csv: "+database.path
 	data_size = command.file("-c",database)
 	if database.has_permission("r") then data_lines = command.file("-l",database) else data_lines = "-check_perms-"
-	if data_size.to_int > "75000".to_int then data_size = colorOrange+"Warning: "+data_size+CT
+	if data_size.to_int > "150000".to_int then data_size = colorOrange+"Warning: "+data_size+CT
 end if
 bios_info.push("<size=85%>[database_size:"+data_size+"]  [database_lines:"+data_lines+"]</size>")
 bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
@@ -2103,6 +2126,10 @@ bios_info.push("*<size=50%> see <b>bios -h</b> for additional usage info.")
 bios_info.push("<mark=red><u>=======================================================================</u></mark>")
 
 return bios_info.join(char(10))
+end function
+command.cname = function(arg1,arg2,arg3,arg4)
+	if arg1 == "help" or arg1 == "-h" then return "Usage: cname -- returns the name of the currently active copmuter_object"
+	return localmachine.get_name
 end function
 command.whoami = function(arg1,arg2,arg3,arg4)
 	if arg1 == "help" or arg1 == "-h" then return "WHOAMI || current user || active user || new user, who dis?"+char(10)+
