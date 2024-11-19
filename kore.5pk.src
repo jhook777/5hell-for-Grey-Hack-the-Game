@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.8...(146.772)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.8.1...(146.992)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -1904,7 +1904,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		print("<b>Connecting: </b>" + prx.value.user + "@" + "***************" + " " + prx.value.ip)
 		remote = last_shell.connect_service(prx.value.ip, 22, prx.value.user, prx.value.password)
 		if typeof(remote)  != "shell" then return "Connection failed."
-		if not scrub and not buffer then shell.scp(upload_path, destination_path, remote)
+		if not scrub and not buffer then print shell.scp(upload_path, destination_path, remote)
 		BUFFER.push(remote)
 		last_shell = remote
 	end for
@@ -2138,8 +2138,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if arg2 then 
 			if typeof(arg2) == "metaxploitLib" then print command.meta("-i",arg2) 
 			if typeof(arg3) == "metaxploitLib" then print command.meta("-i",arg3) 
-			if typeof(arg2) == "metaLib" then print command.meta("-",arg2)
-			if typeof(arg3) == "metaLib" then globals.metaLib = arg3 
+			if typeof(arg2) == "metaLib" then print command.meta("link",arg2)
+			if typeof(arg3) == "metaLib" then print command.meta("link",arg3) //globals.metaLib = arg3 
 			// add some error checking here ^
 		end if
 		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"... ready."
@@ -2493,10 +2493,12 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 			print(catch) 
 			return 0 // return 0 on success
 		else 
-			return "Database: entry not found; Scan required."
+			return "linkdb: database entry not found"+char(10)+
+			"-- run db or meta scan"
 		end if
 	end if
-	print( "Database: link failed; Check database path or permissions and try again." )
+	//print( "Database: link failed"+char(10)+"-- check database path or permissions and try again." )
+	print "linkdb: database.csv not found"+char(10)+"-- run db to create it" // print this, do NOT return this or everything breaks
 	return 0
 end function
 command.meta = function(arg1, arg2, arg3=0, arg4=0)
