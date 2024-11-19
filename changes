@@ -16,14 +16,24 @@
 // connect_service increases trace time: add something for that
 // add a way to tell grep to ignore specific folders
 // expand tree -f to take both path and object as params (jk have to start over)
-// -- kinda fixed this in the regular tree command....
+// -- kinda fixed this in the regular tree command...
 // update 5phinx F1 help info: remove or correct outdated info
 // scp falsely reports failure sometimes: track this down
 // absolutely must update the databasing system
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
 //
-// fix osint to do something new since it got nerfed
+// cname: new command for returning name of host_computer
+// tree: fixed usage info
+// tree: fixed typo causing tree to crash
+// kraken: will print failure messages when uploads fail
+// poke: fixed weird issue with not writing to /
+// if: should no longer show a double return
+// if: fixed an edge case crash when running if within do under certain circumstances
+// db: fixed typo preventing piping a metalib to db -m
+// mv: updated input handling and usage info
+// added colorOlive and colorViolet 
+// todo: fix osint to do something new since it got nerfed
 // 
 // shell: added 'shell --debug' command to manually toggle DEBUG mode at runtime
 // if: fixed crash caused by undefined 'c' variable
