@@ -215,24 +215,19 @@ command.shell = function(input=null)
           f = @command[prompt[0]] // command pointer
         end if
         catch = null
-        args = str(@f).split( "FUNCTION" )[1].split(", ") // get the number of args required by the function
-        if DEBUG then print("target function takes: "+args.len+" arguments.")
-        if prompt.hasIndex(4) then // san check #4,5,6,7
-          catch = f(prompt[1],prompt[2],prompt[3],prompt[4]) // this is where the magic happens (aka this fires the command)
+        // we need this for compatibility with improperly constructed functions
+        args = str(@f)[8:].split(", ").len // get the number of args required by the function
+        if DEBUG then print("target function takes: "+args+" arguments.")
+        if args == 4 then
+          catch = f(prompt[1], prompt[2], prompt[3], prompt[4])
+        else if args == 3 then
+          catch = f(prompt[1], prompt[2], prompt[3])
+        else if args == 2 then
+          catch = f(prompt[1], prompt[2])
+        else if args == 1 then
+          catch = f(prompt[1])
         else
-          if prompt.hasIndex(3) then
-            catch = f(prompt[1],prompt[2],prompt[3])
-          else
-            if prompt.hasIndex(2) then
-              catch = f(prompt[1],prompt[2])
-            else
-              if prompt.hasIndex(1) then
-                catch = f(prompt[1])
-              else
-                catch = f         /// compatibility with improperly formatted, imported functions
-              end if
-            end if
-          end if
+          catch = f
         end if
         if DEBUG then///// begin 3.1.2 compatibility changes
           print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
