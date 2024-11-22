@@ -279,8 +279,7 @@ command.shell = function(input=null)
           print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
           print("["+colorCyan+command.indexes.len+CT+"] commands and")
           print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
-          gp = ""
-          if globals.GLASSPOOL then gp = " active " else gp = " inactive "
+          gp = " " + ("in"*globals.GLASSPOOL==null) + "active "
           print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
           print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
         else
