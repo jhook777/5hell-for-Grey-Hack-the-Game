@@ -197,10 +197,12 @@ command.shell = function(input=null)
       // ############################ end customizables two ###############################
 
       // post_pre_processing
-      while prompt.len < 5
-        prompt.push(0) // sanity check #1
-      end while
-      if prompt.len > 5 then prompt = prompt[:5] 
+      prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out sanity check #1
+      // while prompt.len < 5
+      //   prompt.push(0) // sanity check #1
+      // end while
+      // if prompt.len > 5 then // we don't actually need to check if prompt.len > 5 for the below, because slicing ([:5]) is very safe
+      prompt = prompt[:5] 
       // sanity check #2
       for pp in prompt 
         if pp == "" then prompt[__pp_idx] = 0
