@@ -207,63 +207,16 @@ command.shell = function(input=null)
       end for
 
       // processing
-      if command.hasIndex(prompt[0]) and prompt[0] != "shell" and prompt[0] != "__isa" and prompt[0] != "classID" then
-        if typeof(@command[prompt[0]]) != "function" then // san check #3
-          print(colorOrange+"shell: use <b>cob get [element]</b> to retrieve element.")
-          continue
-        else
-          f = @command[prompt[0]] // command pointer
-        end if
-        catch = null
-        // we need this for compatibility with improperly constructed functions
-        args = str(@f).split(", ").len // get the number of args required by the function
-        if DEBUG then print("target function takes: "+args+" arguments.")
-        if args == 4 then
-          catch = f(prompt[1], prompt[2], prompt[3], prompt[4])
-        else if args == 3 then
-          catch = f(prompt[1], prompt[2], prompt[3])
-        else if args == 2 then
-          catch = f(prompt[1], prompt[2])
-        else if args == 1 then
-          catch = f(prompt[1])
-        else
-          catch = f
-        end if
-        if DEBUG then///// begin 3.1.2 compatibility changes
-          print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
-          //if typeof(@catch) != "function" then print("catch:  "+catch)
-        end if
-        // post processing
-        if @catch then
-          //print @catch
-          //if typeof(@catch) == "function" then return @catch
-            if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
-            if pipe.len > 0 and pipe[0] == "return" then return @catch
-            print(@catch)
-            if pipe.len then 
-              //if typeof(@catch) == "string" then 
-                //temp_string = catch.split(char(10))
-                // i = 0
-                // for line in temp_string
-                //   temp_string[i] = line.replace("<noparse>","")
-                //   i = i + 1
-                // end for
-                //catch = temp_string.join(char(10))
-              //end if
-              next.push(@catch) // using @reference instead of literal bc functions may now be passed
-              //if @pipe[0] == ["return"] then return @catch
-            end if
-            //print @catch
-          //else
-          //  print(catch)
-          //  if pipe.len then next.push(catch)
-          //end if
-        end if/// end 3.1.2 compatibility changes
-      else
-        if prompt[0] != "shell" then
-          print(prompt[0]+": unrecognized command (type <b>help</b> for command list)")
-          continue
-        end if
+
+      // you know what, there is was a distinct lack of using guard clauses here
+      // and i dont know if its for performance reasons but i think we
+      // can sacrifice a little bit of performance for readability
+      // (especially if its in this user facing code)
+
+      cmdName = prompt[0]
+
+      // handle case where prompt is "shell" actually
+      if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
         if prompt[1] == "--debug" then
           //-- streamline this
@@ -287,6 +240,69 @@ command.shell = function(input=null)
         print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
         print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
       end if
+
+      if not command.hasIndex(cmdName) then
+        print(cmdName+": unrecognized command (type <b>help</b> for command list)")
+        continue
+      end if
+
+      f = @command[cmdName]
+      if typeof(@f) != "function" then // san check #3
+        print(colorOrange+"shell: use <b>cob get [element]</b> to retrieve element.")
+        continue
+      end if
+
+      catch = null
+      // we need this for compatibility with improperly constructed functions
+      args = str(@f).split(", ").len // get the number of args required by the function
+      if DEBUG then print("target function takes: "+args+" arguments.")
+      if args == 4 then
+        catch = f(prompt[1], prompt[2], prompt[3], prompt[4])
+      else if args == 3 then
+        catch = f(prompt[1], prompt[2], prompt[3])
+      else if args == 2 then
+        catch = f(prompt[1], prompt[2])
+      else if args == 1 then
+        catch = f(prompt[1])
+      else
+        catch = f
+      end if
+
+      if DEBUG then///// begin 3.1.2 compatibility changes
+        print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
+        //if typeof(@catch) != "function" then print("catch:  "+catch)
+      end if
+
+      // post processing
+      if not @catch then
+        // do nothing
+        continue
+      end if
+
+      //print @catch
+      //if typeof(@catch) == "function" then return @catch
+      if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
+      print(@catch)
+      if pipe.len then
+        if pipe[0] == "return" then return @catch
+        //if typeof(@catch) == "string" then 
+          //temp_string = catch.split(char(10))
+          // i = 0
+          // for line in temp_string
+          //   temp_string[i] = line.replace("<noparse>","")
+          //   i = i + 1
+          // end for
+          //catch = temp_string.join(char(10))
+        //end if
+        next.push(@catch) // using @reference instead of literal bc functions may now be passed
+        //if @pipe[0] == ["return"] then return @catch
+      end if
+      //print @catch
+      //else
+      //  print(catch)
+      //  if pipe.len then next.push(catch)
+      //end if
+      /// end 3.1.2 compatibility changes
     end while             // end command parsing
   end while          // end main loop
 end function
