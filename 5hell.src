@@ -203,7 +203,7 @@ command.shell = function(input=null)
       if prompt.len > 5 then prompt = prompt[:5] 
       // sanity check #2
       for pp in prompt 
-        if pp == "" then prompt[prompt.indexOf(pp)] = 0
+        if pp == "" then prompt[__pp_idx] = 0
       end for
 
       // processing
