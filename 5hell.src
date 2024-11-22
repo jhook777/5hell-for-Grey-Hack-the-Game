@@ -378,28 +378,17 @@ if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
 // (the last one will open the editor where you may type out a list of commands)
 //
 if params and params[0] == "do" then
-  if params.len == 1 then command.quit(command.shell("do | return"))
-  if params.len == 2 then
-    num = params[1]
-    command.quit(command.shell("do "+num+" | return"))
+  cmd = "do"
+  if params.len == 2 then cmd = cmd + " " + params[1]
+  if params.len == 3 then cmd = cmd + " " + params[2]
+  if params.len > 3 then
+    if params[2] == "-f" then
+      cmd = cmd + " " + params[3]
+    else
+      cmd = cmd + " " + params[3:5].join(" ")
+    end if
   end if
-  if params.len == 3 then
-    num = params[1]
-    arg = params[2]
-    command.quit(command.shell("do "+num+" "+arg+" | return"))
-  end if
-  if params.len > 3 and params[2] == "-f" then
-    num = params[1]
-    arg = params[3]
-    command.quit(command.shell("do "+num+" -f "+arg+" | return"))
-  end if
-  if params.len > 3 and params[2] != "-f" then
-    num = params[1]
-    arg = params[2]
-    arg = arg+" "+params[3]
-    if params.len > 4 then arg = arg+" "+params[4]
-    command.quit(command.shell("do "+num+" "+arg+" | return"))
-  end if
+  command.quit(command.shell(cmd + " | return"))
 end if
 ////////////////END l_w_d CONTROL/////////////////
 //
