@@ -261,16 +261,20 @@ command.shell = function(input=null)
         end if/// end 3.1.2 compatibility changes
       else
         if prompt[0] == "shell" then // if you'd like the 'shell' command to return additional info, do that here
-          if prompt[1] == "--debug" then 
-            if globals.DEBUG != true then 
-              globals.DEBUG = true 
-              print "shell: activating DEBUG mode"
-              continue 
-            else 
-              globals.DEBUG = false 
-              print "shell: deactivating DEBUG mode"
-              continue 
-            end if
+          if prompt[1] == "--debug" then
+            //-- streamline this
+            print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
+            globals.DEBUG = not globals.DEBUG
+            continue
+            // if globals.DEBUG != true then 
+            //   globals.DEBUG = true 
+            //   print "shell: activating DEBUG mode"
+            //   continue 
+            // else 
+            //   globals.DEBUG = false 
+            //   print "shell: deactivating DEBUG mode"
+            //   continue 
+            // end if
           end if
           print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
           print("["+colorCyan+command.indexes.len+CT+"] commands and")
