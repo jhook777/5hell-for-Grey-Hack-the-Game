@@ -187,7 +187,7 @@ command.shell = function(input=null)
       if prompt[0] == "sc" then prompt[0] = "silentclean"
       if prompt[0] == "gp" then prompt[0] = "glasspool"
       if prompt[0] == "prompt" then // toggle full_prompt on or off
-          if full_prompt then full_prompt = 0 else full_prompt = 1
+          full_prompt = not full_prompt
           continue
       end if
       // end shortcuts
