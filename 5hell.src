@@ -216,7 +216,7 @@ command.shell = function(input=null)
         end if
         catch = null
         // we need this for compatibility with improperly constructed functions
-        args = str(@f)[8:].split(", ").len // get the number of args required by the function
+        args = str(@f).split(", ").len // get the number of args required by the function
         if DEBUG then print("target function takes: "+args+" arguments.")
         if args == 4 then
           catch = f(prompt[1], prompt[2], prompt[3], prompt[4])
