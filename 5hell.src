@@ -152,8 +152,7 @@ command.shell = function(input=null)
       prompt.push("|")
       while prompt.len
         pipe.push(prompt[:prompt.indexOf("|")])
-        prompt = prompt[prompt.indexOf("|"):]
-        prompt.pull
+        prompt = prompt[prompt.indexOf("|")+1:]
       end while
     else
       pipe.push(prompt[0:])
