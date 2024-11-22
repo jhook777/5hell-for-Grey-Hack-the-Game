@@ -379,8 +379,8 @@ if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
 //
 if params and params[0] == "do" then
   cmd = "do"
-  if params.len == 2 then cmd = cmd + " " + params[1]
-  if params.len == 3 then cmd = cmd + " " + params[2]
+  if params.len >= 2 then cmd = cmd + " " + params[1]
+  if params.len >= 3 then cmd = cmd + " " + params[2]
   if params.len > 3 then
     if params[2] == "-f" then
       cmd = cmd + " " + params[3]
