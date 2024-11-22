@@ -260,31 +260,32 @@ command.shell = function(input=null)
           //end if
         end if/// end 3.1.2 compatibility changes
       else
-        if prompt[0] == "shell" then // if you'd like the 'shell' command to return additional info, do that here
-          if prompt[1] == "--debug" then
-            //-- streamline this
-            print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
-            globals.DEBUG = not globals.DEBUG
-            continue
-            // if globals.DEBUG != true then 
-            //   globals.DEBUG = true 
-            //   print "shell: activating DEBUG mode"
-            //   continue 
-            // else 
-            //   globals.DEBUG = false 
-            //   print "shell: deactivating DEBUG mode"
-            //   continue 
-            // end if
-          end if
-          print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
-          print("["+colorCyan+command.indexes.len+CT+"] commands and")
-          print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
-          gp = " " + ("in"*globals.GLASSPOOL==null) + "active "
-          print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
-          print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
-        else
+        if prompt[0] != "shell" then
           print(prompt[0]+": unrecognized command (type <b>help</b> for command list)")
+          continue
         end if
+        // if you'd like the 'shell' command to return additional info, do that here
+        if prompt[1] == "--debug" then
+          //-- streamline this
+          print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
+          globals.DEBUG = not globals.DEBUG
+          continue
+          // if globals.DEBUG != true then 
+          //   globals.DEBUG = true 
+          //   print "shell: activating DEBUG mode"
+          //   continue 
+          // else 
+          //   globals.DEBUG = false 
+          //   print "shell: deactivating DEBUG mode"
+          //   continue 
+          // end if
+        end if
+        print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
+        print("["+colorCyan+command.indexes.len+CT+"] commands and")
+        print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
+        gp = " " + ("in"*globals.GLASSPOOL==null) + "active "
+        print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
+        print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
       end if
     end while             // end command parsing
   end while          // end main loop
