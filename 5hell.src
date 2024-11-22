@@ -208,7 +208,7 @@ command.shell = function(input=null)
 
       // processing
 
-      // you know what, there is was a distinct lack of using guard clauses here
+      // you know what, there was a distinct lack of using guard clauses here
       // and i dont know if its for performance reasons but i think we
       // can sacrifice a little bit of performance for readability
       // (especially if its in this user facing code)
