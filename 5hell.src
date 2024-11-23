@@ -152,8 +152,7 @@ command.shell = function(input=null)
       prompt.push("|")
       while prompt.len
         pipe.push(prompt[:prompt.indexOf("|")])
-        prompt = prompt[prompt.indexOf("|"):]
-        prompt.pull
+        prompt = prompt[prompt.indexOf("|")+1:]
       end while
     else
       pipe.push(prompt[0:])
@@ -188,7 +187,7 @@ command.shell = function(input=null)
       if prompt[0] == "sc" then prompt[0] = "silentclean"
       if prompt[0] == "gp" then prompt[0] = "glasspool"
       if prompt[0] == "prompt" then // toggle full_prompt on or off
-          if full_prompt then full_prompt = 0 else full_prompt = 1
+          full_prompt = not full_prompt
           continue
       end if
       // end shortcuts
@@ -198,97 +197,114 @@ command.shell = function(input=null)
       // ############################ end customizables two ###############################
 
       // post_pre_processing
-      while prompt.len < 5
-        prompt.push(0) // sanity check #1
-      end while
-      if prompt.len > 5 then prompt = prompt[:5] 
+      prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out sanity check #1
+      // while prompt.len < 5
+      //   prompt.push(0) // sanity check #1
+      // end while
+      // if prompt.len > 5 then // we don't actually need to check if prompt.len > 5 for the below, because slicing ([:5]) is very safe
+      prompt = prompt[:5] 
       // sanity check #2
       for pp in prompt 
-        if pp == "" then prompt[prompt.indexOf(pp)] = 0
+        if pp == "" then prompt[__pp_idx] = 0
       end for
 
       // processing
-      if command.hasIndex(prompt[0]) and prompt[0] != "shell" and prompt[0] != "__isa" and prompt[0] != "classID" then
-        if typeof(@command[prompt[0]]) != "function" then // san check #3
-          print(colorOrange+"shell: use <b>cob get [element]</b> to retrieve element.")
+
+      // you know what, there was a distinct lack of using guard clauses here
+      // and i dont know if its for performance reasons but i think we
+      // can sacrifice a little bit of performance for readability
+      // (especially if its in this user facing code)
+
+      cmdName = prompt[0]
+
+      // handle case where prompt is "shell" actually
+      if cmdName == "shell" then
+        // if you'd like the 'shell' command to return additional info, do that here
+        if prompt[1] == "--debug" then
+          //-- streamline this
+          print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
+          globals.DEBUG = not globals.DEBUG
           continue
-        else
-          f = @command[prompt[0]] // command pointer
+          // if globals.DEBUG != true then 
+          //   globals.DEBUG = true 
+          //   print "shell: activating DEBUG mode"
+          //   continue 
+          // else 
+          //   globals.DEBUG = false 
+          //   print "shell: deactivating DEBUG mode"
+          //   continue 
+          // end if
         end if
-        catch = null
-        args = str(@f).split( "FUNCTION" )[1].split(", ") // get the number of args required by the function
-        if DEBUG then print("target function takes: "+args.len+" arguments.")
-        if prompt.hasIndex(4) then // san check #4,5,6,7
-          catch = f(prompt[1],prompt[2],prompt[3],prompt[4]) // this is where the magic happens (aka this fires the command)
-        else
-          if prompt.hasIndex(3) then
-            catch = f(prompt[1],prompt[2],prompt[3])
-          else
-            if prompt.hasIndex(2) then
-              catch = f(prompt[1],prompt[2])
-            else
-              if prompt.hasIndex(1) then
-                catch = f(prompt[1])
-              else
-                catch = f         /// compatibility with improperly formatted, imported functions
-              end if
-            end if
-          end if
-        end if
-        if DEBUG then///// begin 3.1.2 compatibility changes
-          print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
-          //if typeof(@catch) != "function" then print("catch:  "+catch)
-        end if
-        // post processing
-        if @catch then
-          //print @catch
-          //if typeof(@catch) == "function" then return @catch
-            if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
-            if pipe.len > 0 and pipe[0] == "return" then return @catch
-            print(@catch)
-            if pipe.len then 
-              //if typeof(@catch) == "string" then 
-                //temp_string = catch.split(char(10))
-                // i = 0
-                // for line in temp_string
-                //   temp_string[i] = line.replace("<noparse>","")
-                //   i = i + 1
-                // end for
-                //catch = temp_string.join(char(10))
-              //end if
-              next.push(@catch) // using @reference instead of literal bc functions may now be passed
-              //if @pipe[0] == ["return"] then return @catch
-            end if
-            //print @catch
-          //else
-          //  print(catch)
-          //  if pipe.len then next.push(catch)
-          //end if
-        end if/// end 3.1.2 compatibility changes
-      else
-        if prompt[0] == "shell" then // if you'd like the 'shell' command to return additional info, do that here
-          if prompt[1] == "--debug" then 
-            if globals.DEBUG != true then 
-              globals.DEBUG = true 
-              print "shell: activating DEBUG mode"
-              continue 
-            else 
-              globals.DEBUG = false 
-              print "shell: deactivating DEBUG mode"
-              continue 
-            end if
-          end if
-          print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
-          print("["+colorCyan+command.indexes.len+CT+"] commands and")
-          print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
-          gp = ""
-          if globals.GLASSPOOL then gp = " active " else gp = " inactive "
-          print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
-          print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
-        else
-          print(prompt[0]+": unrecognized command (type <b>help</b> for command list)")
-        end if
+        print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
+        print("["+colorCyan+command.indexes.len+CT+"] commands and")
+        print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
+        gp = " " + ("in"*globals.GLASSPOOL==null) + "active "
+        print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
+        print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
       end if
+
+      if not command.hasIndex(cmdName) then
+        print(cmdName+": unrecognized command (type <b>help</b> for command list)")
+        continue
+      end if
+
+      f = @command[cmdName]
+      if typeof(@f) != "function" then // san check #3
+        print(colorOrange+"shell: use <b>cob get [element]</b> to retrieve element.")
+        continue
+      end if
+
+      catch = null
+      // we need this for compatibility with improperly constructed functions
+      if str(@f) == "FUNCTION()" then args = 0 else args = str(@f).split(", ").len // get the number of args required by the function
+      if DEBUG then print("target function takes: "+args+" arguments.")
+      if args == 4 then
+        catch = f(prompt[1], prompt[2], prompt[3], prompt[4])
+      else if args == 3 then
+        catch = f(prompt[1], prompt[2], prompt[3])
+      else if args == 2 then
+        catch = f(prompt[1], prompt[2])
+      else if args == 1 then
+        catch = f(prompt[1])
+      else
+        catch = f
+      end if
+
+      if DEBUG then///// begin 3.1.2 compatibility changes
+        print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
+        //if typeof(@catch) != "function" then print("catch:  "+catch)
+      end if
+
+      // post processing
+      if not @catch then
+        // do nothing
+        continue
+      end if
+
+      //print @catch
+      //if typeof(@catch) == "function" then return @catch
+      if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
+      print(@catch)
+      if pipe.len then
+        if pipe[0] == "return" then return @catch
+        //if typeof(@catch) == "string" then 
+          //temp_string = catch.split(char(10))
+          // i = 0
+          // for line in temp_string
+          //   temp_string[i] = line.replace("<noparse>","")
+          //   i = i + 1
+          // end for
+          //catch = temp_string.join(char(10))
+        //end if
+        next.push(@catch) // using @reference instead of literal bc functions may now be passed
+        //if @pipe[0] == ["return"] then return @catch
+      end if
+      //print @catch
+      //else
+      //  print(catch)
+      //  if pipe.len then next.push(catch)
+      //end if
+      /// end 3.1.2 compatibility changes
     end while             // end command parsing
   end while          // end main loop
 end function
@@ -364,28 +380,17 @@ if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
 // (the last one will open the editor where you may type out a list of commands)
 //
 if params and params[0] == "do" then
-  if params.len == 1 then command.quit(command.shell("do | return"))
-  if params.len == 2 then
-    num = params[1]
-    command.quit(command.shell("do "+num+" | return"))
+  cmd = "do"
+  if params.len >= 2 then cmd = cmd + " " + params[1]
+  if params.len >= 3 then cmd = cmd + " " + params[2]
+  if params.len > 3 then
+    if params[2] == "-f" then
+      cmd = cmd + " " + params[3]
+    else
+      cmd = cmd + " " + params[3:5].join(" ")
+    end if
   end if
-  if params.len == 3 then
-    num = params[1]
-    arg = params[2]
-    command.quit(command.shell("do "+num+" "+arg+" | return"))
-  end if
-  if params.len > 3 and params[2] == "-f" then
-    num = params[1]
-    arg = params[3]
-    command.quit(command.shell("do "+num+" -f "+arg+" | return"))
-  end if
-  if params.len > 3 and params[2] != "-f" then
-    num = params[1]
-    arg = params[2]
-    arg = arg+" "+params[3]
-    if params.len > 4 then arg = arg+" "+params[4]
-    command.quit(command.shell("do "+num+" "+arg+" | return"))
-  end if
+  command.quit(command.shell(cmd + " | return"))
 end if
 ////////////////END l_w_d CONTROL/////////////////
 //
