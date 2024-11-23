@@ -179,7 +179,6 @@ command.shell = function(input=null)
       //
       // ############################### begin customizables two ###########################
       // begin shortcuts
-      //if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f",prompt[1]]
       if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f"]+prompt[1:]
       if prompt[0] == "set" or prompt[0] == "get" then prompt = ["cob"]+prompt
       if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!!
@@ -198,10 +197,6 @@ command.shell = function(input=null)
 
       // post_pre_processing
       prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out sanity check #1
-      // while prompt.len < 5
-      //   prompt.push(0) // sanity check #1
-      // end while
-      // if prompt.len > 5 then // we don't actually need to check if prompt.len > 5 for the below, because slicing ([:5]) is very safe
       prompt = prompt[:5] 
       // sanity check #2
       for pp in prompt 
@@ -213,7 +208,7 @@ command.shell = function(input=null)
       // you know what, there was a distinct lack of using guard clauses here
       // and i dont know if its for performance reasons but i think we
       // can sacrifice a little bit of performance for readability
-      // (especially if its in this user facing code)
+      // (especially if its in this user facing code) - Clover
 
       cmdName = prompt[0]
 
@@ -221,19 +216,9 @@ command.shell = function(input=null)
       if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
         if prompt[1] == "--debug" then
-          //-- streamline this
           print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
           globals.DEBUG = not globals.DEBUG
           continue
-          // if globals.DEBUG != true then 
-          //   globals.DEBUG = true 
-          //   print "shell: activating DEBUG mode"
-          //   continue 
-          // else 
-          //   globals.DEBUG = false 
-          //   print "shell: deactivating DEBUG mode"
-          //   continue 
-          // end if
         end if
         print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
         print("["+colorCyan+command.indexes.len+CT+"] commands and")
@@ -241,6 +226,7 @@ command.shell = function(input=null)
         gp = " " + ("in"*globals.GLASSPOOL==null) + "active "
         print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
         print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
+        continue 
       end if
 
       if not command.hasIndex(cmdName) then
@@ -281,31 +267,11 @@ command.shell = function(input=null)
         continue
       end if
 
-      //print @catch
-      //if typeof(@catch) == "function" then return @catch
       if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
+      if pipe.len > 0 and pipe[0] == "return" then return @catch // added by me
       print(@catch)
-      if pipe.len then
-        if pipe[0] == "return" then return @catch
-        //if typeof(@catch) == "string" then 
-          //temp_string = catch.split(char(10))
-          // i = 0
-          // for line in temp_string
-          //   temp_string[i] = line.replace("<noparse>","")
-          //   i = i + 1
-          // end for
-          //catch = temp_string.join(char(10))
-        //end if
-        next.push(@catch) // using @reference instead of literal bc functions may now be passed
-        //if @pipe[0] == ["return"] then return @catch
-      end if
-      //print @catch
-      //else
-      //  print(catch)
-      //  if pipe.len then next.push(catch)
-      //end if
-      /// end 3.1.2 compatibility changes
-    end while             // end command parsing
+      if pipe.len then next.push(@catch) // using @reference instead of literal bc functions may now be passed
+    end while         // end command parsing
   end while          // end main loop
 end function
 //////END MAIN//////
