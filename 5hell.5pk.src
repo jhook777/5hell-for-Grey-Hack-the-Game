@@ -1,11 +1,11 @@
 // 5hell v 3.9.8 by Plu70
 // released v 3.9.8
 // imports .5pk files from /root/src
-ver = "3.9.8.1_nightly_terrors"
+ver = "3.9.8.4_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 NIGHTLY = false // set to true if playing nightly, false if playing public!
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "137.055"
+size_of_5hell = "137.732"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -886,7 +886,8 @@ import_code("/root/src/dtools.5pk")
 if DEBUG then 
 	if command.hasIndex("grep") then print "debug: dtools loaded"
 end if 
-command.run = function(arg1, arg2, arg3=0, arg4=0, arg5=0)
+command.run = function(arg1, arg2, arg3=0, arg4=0)
+	if DEBUG then print("debug: arg1: "+arg1+ " :end arg1")
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run [file|path_to_file] [opt:parameters|shell] [opt:shell|parameters -- launch a script binary at path (gui's not supported)"+char(10)+"-- piped file objects are launched from the objects path"+char(10)+"-- max 14 nested launches before stack call error."+char(10)+"-- providing a shell object will launch a binary using that shell object"+char(10)+"-- you must pipe launch params if more than one word"+char(10)+"-- use echo and easy clip for best results (@a,@b,@c)"+char(10)+"---- eg: echo do 1 -f pwn.bat | clipa | clipb @B 1 | run /home/guest/rkit/5hell @b @a"+char(10)+"---- eg: echo rshell 1.1.1.1 | clipa | brutus | run /root/rkit/5hell @a"+char(10)+"Note: run supports pshells with the launch function however p_objects are not currently in game"
 	if typeof(arg1) != "string" and typeof(arg1) != "file" then return "run: arg1 should be file object or path to file" 
 	parameters = ""
@@ -913,7 +914,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0, arg5=0)
 	if arg2 and typeof(arg2) == "string" then parameters = arg2
 	if arg3 and typeof(arg3) == "string" then parameters = parameters + " " + arg3 
 	if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
-	if arg5 and typeof(arg5) == "string" then parameters = parameters + " " + arg5 
+	//if arg5 and typeof(arg5) == "string" then parameters = parameters + " " + arg5 
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	return shell.launch(file.path, parameters)
 end function
@@ -1133,6 +1134,7 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
                 send = body
                 print(colorGreen+"<u>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</u>"+CT)
               end if
+			  if DEBUG then print "debug: addr: "+addr+char(10)+"-- subj: "+subj+char(10)+"-- send: "+send
               return mail.meta.send( addr, subj, send )
             end function
             mail.Delete = function(r=0)
@@ -1992,7 +1994,10 @@ if arg1 == "-i" then
 	if not arg2 then 
 		arg2 = user_input("Enter path to file.so :> ")
 	end if
-	return include_lib(arg2)
+	tf = globals.get_file(arg2)
+	if not tf then return "bios: "+colorRed+"</b>target file not found!"
+	inc = include_lib(arg2)
+	if not inc then return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+colorGreen+"kore: helper:</b> perhaps try<b> meta link -l [libname] </b>instead"+char(10)+"-- if you meant metax.load("+arg2+")" else return inc
 end if
 
 bios_info = []
@@ -2157,6 +2162,9 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("CheckUser function by: "+colorWhite+"Corvus"+CT)
 	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
+	print("Github Readme by: Hikaru918")
+	print("5hell Discord by: Redit0")
+	print("5hell.src optimizations by: Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
 	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
@@ -2166,7 +2174,9 @@ command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, 
 	did = false
 	if params and params[0] == "do" then did = true
 	if not state or did then 
-		if user_input("Exit "+colorRed+"5hell"+char(8482)+CT+"? [y/N]"+char(10)+"||: ",0,1).lower != "y" then return "aborting shutdown..."
+		if not state then 
+			if user_input("Exit "+colorRed+"5hell"+char(8482)+CT+"? [y/N]"+char(10)+"||: ",0,1).lower != "y" then return "aborting shutdown..."
+		end if
 	end if
 	exit(state)
 end function
@@ -2402,7 +2412,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	 colorGold+"@tbuf           |</b> transmission buffer -- globals.T_BUF"+char(10)+
 	 "-- this is                |</b> where hashes go when the tree command finds them"+char(10)+
 	 colorGold+"@home           |</b> HOME_SERVER ip address defined in 5hell.src"+char(10)+char(10)+
-	 colorGold+"@B [index|-m]   |</b> directly reference a value in the"+colorOrange+"BUFFER"+CT+"by [index] or menu: [-m]"+char(10)+
+	 colorGold+"@B [index|-m]   |</b> directly reference a value in the"+colorOrange+" BUFFER "+CT+"by [index] or menu: [-m]"+char(10)+
 	 colorGold+"@o [key]        |</b> directly reference a value in the custom object by key"+char(10)+
 	 "Please note: several commands have their own references for editing the clipboards"+char(10)+
 	 "-- these commands will use @clipa, @clipb, @clipc instead of @a, @b, @c"+char(10)+
