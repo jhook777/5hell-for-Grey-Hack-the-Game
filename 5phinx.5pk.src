@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.6 for 5hell v 3.9.8.1...(138.316kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.7 for 5hell v 3.9.8.4...(139.080kb)</size>")
 
 //Define Globals
-sphinx_version = "2.6.6"
-malp_version = "1.3.8"
+sphinx_version = "2.6.7"
+malp_version = "1.3.9"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 localip = localmachine.local_ip
@@ -1215,12 +1215,25 @@ globals.memory_alpha = function(go_to_buffer=null)
           print(colorGreen+"<u>==================================</u>"+CT)
           print("[a] to clipa|b|c...")
           print("[f] - felix file explorer [w] website.html (curl)")
-          print("[r] rename [m] move [c] copy")
-          if not buffer_selection.is_binary then print("[7] open text [8] edit text [9] save text ")
-          file_menu = user_input("[4] tag 4 scp [5] curl [6] rclean "+char(10)+"[1] root file [2] remove [3] perms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
+          print("[r] rename     [m] move   [c] copy")
+          if not buffer_selection.is_binary then print("[7] open text  [8] edit   [9] save text ")
+          file_menu = user_input("[4] tag 4 scp  [5] curl   [6] rclean "+char(10)+"[1] root file  [2] remove [3] perms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
+          if file_menu == "a" then
+            print "["+colorWhite+"a"+CT+"] - to clipa, ["+colorWhite+"b"+CT+"] - to clipb, ["+colorWhite+"c"+CT+"] - to clipc"
+            tc = user_input("(<<b>enter</b>>=quit)||: ",0,1)
+            if tc == "a" then print command.clipa(buffer_selection)
+            if tc == "b" then print command.clipb(buffer_selection)
+            if tc == "c" then print command.clipc(buffer_selection)
+            continue
+          end if
           if file_menu == "w" then 
             print globals.curl(buffer_selection)
             continue 
+          end if
+          if file_menu == "r" then 
+            newname = user_input("enter a new filename:> ").trim
+            if newname == "" then print "aborting..." else print buffer_selection.rename(newname)
+            continue
           end if
           if file_menu == "m" then 
             new_path = user_input("move_to_path (<<b>enter></b>=quit):> "+colorWhite)
@@ -1322,6 +1335,7 @@ globals.memory_alpha = function(go_to_buffer=null)
             buffered_filesys = buffer_selection
             continue
           end if
+          continue
         end if
         if typeof(buffer_selection) == "computer" then
           //decompiler(buffer_selection)
@@ -1346,7 +1360,7 @@ globals.memory_alpha = function(go_to_buffer=null)
           if typeof(buffer_selection) == "ftpshell" then 
             print "[g] get [p] put [c] host computer"
             fselect = user_input("[s] start (ftp) terminal ||:",0,1)
-// stubby
+            print "stub"
             continue
           end if
           choice = user_input("(<<b>enter</b>>|q=quit)||: ",0,1)
@@ -1362,9 +1376,13 @@ globals.memory_alpha = function(go_to_buffer=null)
             end if
           end if 
           if choice == "9" then 
-            print colorGold+"</b>spot: fetching MetaxploitLib from "+colorWhite+"</b>"+buffer_selection.host_computer.public_ip+ " <b>:</b> "+buffer_selection.host_computer.local_ip
-            print "spot: changing permissions of 5hell and metaxploit.so..."
-// stubby
+            ccc = command.fetch(buffer_selection)
+            if typeof(ccc) == "MetaxploitLib" then 
+              print "-- "+colorOrange+"BUFFERING MetaxploitLib..."
+              globals.BUFFER.push(ccc)
+            else 
+              print "fetch: task failed"
+            end if
           end if 
           if choice == "f" then  
             print("Buffering filesystem..." )
@@ -1381,7 +1399,7 @@ globals.memory_alpha = function(go_to_buffer=null)
           if choice == "d" then 
             d=(globals.decompiler(buffer_selection))
             print colorOrange+"BUFFERING..."+char(10)+d 
-            globals.BUFFER.push(buffer_selection)
+            globals.BUFFER.push(d)
             continue
           end if
           if choice == "b" then 
@@ -1474,9 +1492,9 @@ globals.memory_alpha = function(go_to_buffer=null)
             if kpx == "-" and kpw == "-" and kpr == "-" then
               print(command.perms("-r","o-rwx", kit.path))
             else
-              if kpx == "-" then kpx = "" else kpx = "x"
-              if kpw == "-" then kpw = "" else kpw = "w"
-              if kpr == "-" then kpr = "" else kpr = "r"
+              if kpx == "-" then kpx = "x" else kpx = ""
+              if kpw == "-" then kpw = "w" else kpw = ""
+              if kpr == "-" then kpr = "r" else kpr = ""
               print(command.perms("-r", "o-"+kpr+kpw+kpx, kit.path))
             end if
             print(kit.permissions+" "+kit.owner+" "+kit.group+" "+kit.size+" "+kit.permissions+" "+kit.path)
