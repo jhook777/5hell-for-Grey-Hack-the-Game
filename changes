@@ -23,6 +23,29 @@
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
 //
+// slight improvements to file handler
+// -- added to clipboard, move, rename, copy
+// slight imporvement to shell handler
+// -- added fetch metaxploit
+// fetch: added command to fetch metaxploitlib from piped shell (yeah, your friggin jump file. be happy)
+// meta: adjusted size of output text for [-i] option
+// quit: corrected logic error preventing auto=exit
+// run: adjusted number of params to 4 from 5 to prevent conflict with new 5hell.src 
+// -- need to fix command launching to be able to accomodate functions with more than 4 params as per old 5hell.src
+// rsi: fixed rsi being stuck in daemon mode
+// bios: added error message indicating when bios -i fails
+// -- error reminds user it is used for include_lib and not metaxploit.load
+// db: fixed typo preventing piping in a MetaLib/MetaxploitLib
+// liber: usage info will actually show now
+// malp: shell handler: decompiler will now buffer the return value, not the shell itself
+// malp: shell handler: upload rkit will correctly restore permissions 
+// credits: updated credits
+// 5hell.src: updated how command.shell returns from internal calls
+// 5hell.src: additional optimizations from Clover. Thanks Clover!
+// help: fixed typo in help buffer
+// string: fixed typo in usage info that caused a crash
+// cob: removed some misleading punctuation from output
+//
 // cname: new command for returning name of host_computer
 // tree: fixed usage info
 // tree: fixed typo causing tree to crash
