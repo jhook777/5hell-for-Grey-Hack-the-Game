@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8.1...(145.022)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8.4...(145.083)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2223,7 +2223,7 @@ command.string = function(arg1,arg2,arg3,arg4)
 	colorWhite+"Strings: Stringify strings:"+char(10)+
 	colorCyan+"Usage: string [-t] [target_text] -- returns trimmed text"+char(10)+
 	"-- ie: it removes whitespace"+char(10)+
-	colorcyan+"Usage: string [-p] [target_text] -- strip the noparse richtext tag from a string and return it"
+	colorCyan+"Usage: string [-p] [target_text] -- strip the noparse richtext tag from a string and return it"
 	colorCyan+"Usage: string [-r] [target_text] [replacement_text] [string_to_parse]"+char(10)+
 	"-- replace all instances of target_text with replacement_text within string_to_parse"+char(10)+
 	"-- use piping, easy clip, and "" text blocks "" to supply strings"+char(10)+
@@ -2555,7 +2555,7 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	return source_file.symlink(sym_parent_path, sym_name)
 end function
 command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
-
+	if not NIGHTLY then return "zc: disabled outside of nightly"
     if neurobox_user == "h" or neurobox_user == "help" then return "Zer0Chill || Zeroday || zero day || autopatcher || autosolver"+char(10)+
     colorWhite+"Usage: zc [user] [password] [MetaLib_object|MetaLib_name]</color> -- autosolve debugLibrary unit_testing and produce patch"+char(10)+
     "-- [user] - should be a neurobox engineer username gleened from investigating a<b> zero day rumor"+char(10)+
