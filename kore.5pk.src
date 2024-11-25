@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.8.1...(146.992)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.8.4...(150.614)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -735,7 +735,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		shells = metaxploit.rshell_server
 		if typeof(shells) == "string" then return shells
 		if shells.len == 0 and arg1 != "-d" then 
-			if one_loop == false then return colorOrange+"rsi: no rshells connected. use<b> rsi -d </b> to run in daemon mode."+CT 
+			if one_loop == false then return colorOrange+"rsi: no rshells connected. use<b> rsi -d </b> to run in daemon mode."+CT else one_loop = false
 		else 
 			one_loop = false
 		end if
@@ -1964,16 +1964,17 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "library version info || LIBER || metaLib version || liber te"+char(10)+
 	"<b>Usage: liber [/path/lib_file|MetaLib] -- returns library name and version"+char(10)+
 	"--e.g: liber /usr/cache/libhttp.so -- get name and version "+char(10)+
-	"--e.g: bios -m | liber"
+	"--e.g: bios -m | liber"+char(10)+
 	"<b><color=white>Usage: liber [-l] [libname] -- returns version info for libname located in /lib/"+char(10)+
 	"--e.g: liber [-l] libssh.so -- get info for /lib/libssh.so"+char(10)+
 	"<b>Usage: liber [-l] -- print version info for all libraries in /lib"+char(10)+
 	"<b>Usage: liber [/folder] -- print version info for all libraries in folder"+char(10)+
-	"--e.g: liber /usr/libcache"
+	"--e.g: liber /usr/libcache"+char(10)+
 	"<b>Usage: liber [-i] [/path/lib_file] -- returns an imported lib object from path"+char(10)+
-	"---- equivalent to <b>bios -i /path</b>"+char(10)+
+	"-- equivalent to <b>bios -i [/path]</b>"+char(10)+
+	"-- [-i] is for API objects such as metaxploit, crypto, blockchain, aptclient, etc"+char(10)+
+	"---- user <b>meta link [-l|-r]</b> to link metalib or netsession objects"+char(10)+
 	"--e.g: liber [-i] [/lib/blockchain.so] | malp -- imports lib and pipes to malp (BUFFER)"+char(10)+
-	"NOTE : [-i] is for API objects such as metaxploit, crypto, blockchain, aptclient, etc"
 	"NOTE : liber is limited to the scope of the <b>metaxploit</b> object currently in use."+char(10)+
 	"NOTE : liber will color code results if database.csv exists"+char(10)+
 	"---- "+colorOrange+"orange means the library is unkown"+char(10)+
@@ -2136,10 +2137,12 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		pre_load = true
 		print colorLightBlue+"db: custom scan..."
 		if arg2 then 
-			if typeof(arg2) == "metaxploitLib" then print command.meta("-i",arg2) 
-			if typeof(arg3) == "metaxploitLib" then print command.meta("-i",arg3) 
-			if typeof(arg2) == "metaLib" then print command.meta("link",arg2)
-			if typeof(arg3) == "metaLib" then print command.meta("link",arg3) //globals.metaLib = arg3 
+			if DEBUG then print "debug: db -m: arg2: "+arg2
+			if DEBUG then print "debug: db -m: arg3: "+arg3
+			if typeof(arg2) == "MetaxploitLib" then print command.meta("-i",arg2) 
+			if typeof(arg3) == "MetaxploitLib" then print command.meta("-i",arg3) 
+			if typeof(arg2) == "MetaLib" then print command.meta("link",arg2)
+			if typeof(arg3) == "MetaLib" then print command.meta("link",arg3) //globals.metaLib = arg3 
 			// add some error checking here ^
 		end if
 		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"... ready."
@@ -2339,7 +2342,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	locals.datafile = command.tree("/","database.csv",1,"N")
 
 	if typeof(rkit) == "file" and rkit.is_folder then 
-		datafile = command.tree(rkit,"database.csv",1,"N")
+		datafile = command.tree(rkit.path,"database.csv",1,"N")
 		if not datafile then datafile = command.tree("/","database.csv",1,"N")
 		if not datafile then 
 			print "tree: unable to locate database.csv"
@@ -2371,10 +2374,12 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 
 	if not datafile then return("db: database.csv not found")
 	if datafile.has_permission("w") then print "db: writing database to: "+datafile.path else return "db: write error: permission denied."
-	current_data = ""
-	if datafile.has_permission("r") then current_data = datafile.get_content.split(char(10)) else return "db: read error: permission denied."
+	current_data = "test"
+	if DEBUG then print command.file(datafile.path)
+	if datafile.has_permission("r") then current_data = datafile.get_content.trim.split(char(10)) else return "db: read error: permission denied."
+	if DEBUG then print "debug: database before splice: "+current_data.join(char(10)).len
 
-	// prepare the output
+	//prepare the output
 	while current_data.indexOf(lib_info) >= 0
 		buf_top = current_data[:current_data.indexOf(lib_info)]
 		buf_bot = current_data[current_data.indexOf(lib_info):]
@@ -2387,9 +2392,10 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		current_data = buf_top[0:]
 		if buf_bot.len then current_data = current_data[0:]+buf_bot[0:]
 	end while
-	// write output to database.csv
+	//write output to database.csv
 	debug_loop = 0
-	if DEBUG then print "debug: database size before write is: "+current_data.len 
+	if DEBUG then print "debug: database size before write is: "+current_data.join(char(10)).len 
+	if DEBUG then print "debug: DATA size before write is: "+DATA.join(char(10)).len
 	while current_data.join(char(10)).len + DATA.join(char(10)).len > 159990 
 		print "db: "+colorOrange+" warning: database size exceeds 160kb"+char(10)+colorOrange+"db: trimming oldest entries..."
 		current_data.pull 
@@ -2400,8 +2406,10 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if DEBUG then print "debug: trim loop: "+debug_loop
 		if DEBUG then print "debug: database size is: "+current_data.join(char(10)).len + DATA.join(char(10)).len
 	end while
-	catch = datafile.set_content(current_data.join(char(10))+char(10)+DATA.join(char(10)))
+	catch = datafile.set_content(current_data.join(char(10)).trim+char(10)+DATA.join(char(10)).trim)
+	//catch = datafile.set_content(current_data.trim+char(10)+DATA.join(char(10)).trim)
 	if DEBUG then print command.file(datafile.path)
+	if DEBUG then print datafile.get_content
 	if catch then return(catch)
 	return 0
 end function///////////////END DATABASER//////////////////
@@ -2593,7 +2601,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		if arg1 == "import" or arg1 == "-i" then 
 			if not arg2 or (typeof(arg2) != "string" and typeof(arg2) != "MetaxploitLib") then return "meta: -i expects a metaxploitLib object or a path to a metaxploit.so"
-			print "meta: backing up current metaxploit object"
+			print "<size=75%>meta: backing up current metaxploit object"
 			globals.backup_meta = globals.metaxploit
 			if typeof(arg2) == "string" then globals.metaxploit = include_lib(globals.get_file(arg2).path) else globals.metaxploit = arg2
 			if not globals.metaxploit or typeof(globals.metaxploit) != "MetaxploitLib" then 
@@ -2601,7 +2609,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				if typeof(arg2) == "string" then reason = "invalid path" else reason = "invalid input"
 				return "meta: metaxploit import failed: "+char(10)+reason+char(10)+"meta: backup metaxploit restored"
 			end if
-			print colorWhite+"<size=75%><u>meta: a new metaxploitLib has been imported!"+char(10)+"meta: use <b>meta restore</b> to revert back to the last metaxploitLib"+char(10)+"-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
+			print colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"<size=75%>meta: use <b>meta restore</b> to revert back to the last metaxploitLib"+char(10)+"<size=75%>-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
 		end if
 		if arg1 == "scan" then
 			if not globals.metaxploit then return colorRed+"meta: error: metaxploitLib not found"
@@ -2798,7 +2806,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 				cobble[key] = val
 			end if
 		end if
-		if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>." else return "cob: set error."
+		if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>" else return "cob: set error"
 	end function
 
 	cob.get = function( key=0, val=0, nil=0, nul=0 )
@@ -2813,7 +2821,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		return cobble.indexOf( val )
 		else
 		if cobble.indexOf( val ) != null then return cobble.indexOf( val )
-		return "cob: value not found."
+		return "cob: value not found"
 		end if
 	end function
 
@@ -2856,9 +2864,9 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 
 	cob.del = function( key=0, val=0, nil=0, nul=0 )
 		if typeof(@key) == "function" then
-		if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>." //else return "cob: key not found."
+		if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>" //else return "cob: key not found."
 		else
-		if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>." else return "cob: key not found."
+		if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>" else return "cob: key not found"
 		end if
 	end function
 
@@ -2869,7 +2877,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob.install = function(key=0, val=0, nil=0, nul=0)
 		g = @cob.get
 		new_command = g(key)
-		if typeof(@new_command) == "string" then return new_command + ": Install failed."
+		if typeof(@new_command) == "string" then return new_command + ": Install failed"
 		if typeof(@new_command) == "function" then 
 			command[key] = @new_command 
 			return "Set command."+key+" to "+@new_command
@@ -3088,4 +3096,67 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
     else
         return d_list.join(delim)
     end if
+end function
+command.fetch = function(arg1,arg2,arg3,arg4)
+	if arg1 == "help" or arg1 == "-h" then return "SPOT || FETCH || MetaxploitLib || k̑érberos"+char(10)+
+	"Usage: fetch [shell_object] -- obtain a MetaxploitLib object from a supplied shell"+char(10)+
+	"-- uploads metaxploit.so to /home/guest"+char(10)+
+	"-- creates a source file in /home/guest"+char(10)+
+	"-- builds and runs the file"+char(10)+
+	"-- places the MetaxploitLib in the custom object"+char(10)+
+	"-- 'spots' out the files; moves them all to an empty file named '.'"+char(10)+
+	"-- returns the MetaxploitLib as an object"+char(10)+
+	"NOTE: This is not a jump file. It is a spot file. That is all."
+	if typeof(arg1) != "shell" then return 0
+	print colorGold+"</b>fetch: fetching MetaxploitLib from "+colorWhite+"</b>"+arg1.host_computer.public_ip+ " <b>:</b> "+arg1.host_computer.local_ip
+	my_x = globals.get_file(meta_path)
+	if not my_x then my_x = command.grep("-f","metaxploit.so")
+	if typeof(my_x) != "file" then return "fetch: failed: metaxploit.so not found" 
+	my_perms = my_x.permissions.values 
+	pr = my_perms[-3]
+	pw = my_perms[-2]
+	px = my_perms[-1]
+	print colorGold+"</b>-- preparing payload..."
+	print colorGold+"</b>-- setting permissions..."
+	ctch = command.perms("o+rwx",my_x.path)
+	if ctch then print ctch
+	print my_x.path + " " + my_x.permissions
+	print colorGold+"</b>-- uploading payload..."
+	print globals.shell.scp(my_x.path,"/home/guest",arg1)
+	print colorGold+"</b>-- restoring permissions..."
+	if pr == "-" then pr = "r" else pr = ""
+	if pw == "-" then pw = "w" else pw = ""
+	if px == "-" then px = "x" else px = ""
+	ctch = command.perms("o-"+pr+pw+px,my_x.path)
+	if ctch then print ctch
+	print my_x.path + " " + my_x.permissions
+	arg1.host_computer.touch("/home/guest","..src")
+	imp = arg1.host_computer.File("/home/guest/..src")
+	if not imp then 
+		return colorGold+"</b>fetch: infiltration failed, cannot write to /home/guest" 
+	else 
+        print colorGold+"</b>fetch: spot file created: "+char(10)+imp.path+ " " +imp.permissions
+	end if
+	mole = "get_custom_object.fetched = include_lib(""/home/guest/metaxploit.so"")"
+	imp.set_content(mole)
+	print colorGold+"</b>-- clearing out fetched cache..."
+	if get_custom_object.hasIndex("fetched") then get_custom_object.remove("fetched")
+	print colorGold+"</b>-- building spot file..."
+	ctch = arg1.build(imp.path,imp.parent.path)
+	if ctch then print ctch 
+	print colorGold+"</b>-- launching payload..."
+	arg1.launch("/home/guest/.")
+	print colorGold+"</b>-- spotting source files..."
+	imp.set_content("")
+	imp.move("/home/guest","metaxploit.so")
+	imp.move("/home/guest",".")
+	if get_custom_object.hasIndex("fetched") then
+	  print "cob: set <b>fetched</b> to <b>"+get_custom_object.fetched
+	  print colorGold+"</b>fetch: task complete; returning..."
+	  return get_custom_object.fetched	
+	else 
+	  print "fetch: failed to obtain remote MetaxploitLib"
+	  return 0
+	end if
+	return 0
 end function
