@@ -1,7 +1,7 @@
 // 5hell v 3.9.8 by Plu70
 // released v 3.9.8
 // imports .5pk files from /root/src
-ver = "3.9.8.7_nightly_terrors"
+ver = "3.9.8.8_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 NIGHTLY = true // set to true if playing nightly, false if playing public!
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
@@ -918,7 +918,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg2) == "string" then parameters = arg2
 		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
 		globals.stack_pool("up")
-		cc arg3.launch(run_path, parameters)
+		cc = arg3.launch(run_path, parameters)
 		globals.stack_pool("down")
 		return cc
 	end if
@@ -1939,12 +1939,19 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"-- useful for putting a delay in 'do' scripts."+char(10)+
 	"-- useful for putting a delay in a chain of commands"+char(10)+
 	"-- this command uses the general function: wait(time)"+char(10)+
+	"Usage: pause [-v] [delay] -- as above but prints a notification at each pause"+char(10)+
 	"Usage: pause [-m] -- pause until manually unpaused (by pressing enter)"
+
 	time_to_wait = "1" // default wait 1 second 
 	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
+	verbose = false // if false; works silently. if true; prints a line on each pause
 	if arg1 == "-m" then 
 		manual_unpause = true 
 		arg1 = ".01"
+	end if
+	if arg1 == "-v" then 
+		verbose = true 
+		arg1 = arg2 
 	end if
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
 	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
@@ -1955,10 +1962,10 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		time_to_wait = 1
 		print "pause: invalid wait time: changing time_to_wait to 1 second"
 	end if
-	print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
+	if verbose then print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
 	wait(time_to_wait)
-	return colorWhite+"pause:"+CT+" resuming script execution"
-	//return 0
+	if verbose then return colorWhite+"pause:"+CT+" resuming script execution"
+	return 0
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"+char(10)+
