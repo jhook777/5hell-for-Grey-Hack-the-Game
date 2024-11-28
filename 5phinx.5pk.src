@@ -1,8 +1,8 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.7 for 5hell v 3.9.8.7...(140.963kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.9 for 5hell v 3.9.8.7...(140.963kb)</size>")
 
 //Define Globals
-sphinx_version = "2.6.8"
+sphinx_version = "2.6.9"
 malp_version = "1.3.9"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -3139,7 +3139,11 @@ sphinx_switch = function(resolve,tt)
     return false
   end if
   if resolve.lower == "." then 
-    print(command.dig(targetIP,targetPort))
+    if not targetIP then
+      print("Please set target IP and Port before continuing.")
+    else 
+      print(command.dig(targetIP,str(targetPort)))
+    end if
     return true
   end if
   if resolve == "-" then
