@@ -1,8 +1,8 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.7 for 5hell v 3.9.8.4...(139.080kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.7 for 5hell v 3.9.8.7...(140.963kb)</size>")
 
 //Define Globals
-sphinx_version = "2.6.7"
+sphinx_version = "2.6.8"
 malp_version = "1.3.9"
 //localhost = get_shell
 //localmachine = get_shell.host_computer
@@ -210,6 +210,16 @@ checkUser = function(result)
   end if
   if user == "" then user = "guest"
   return user // by Corvus
+end function
+
+globals.stack_pool = function(opt=null)
+  if get_custom_object.hasIndex("stack_pool") then
+    if opt == "up" then get_custom_object.stack_pool = get_custom_object.stack_pool + 1
+    if opt == "down" then get_custom_object.stack_pool = get_custom_object.stack_pool - 1
+  else 
+    get_custom_object.stack_pool = 0
+  end if 
+  return get_custom_object.stack_pool
 end function
 
 mail_user_list = function(ip_address, port)
@@ -534,7 +544,7 @@ globals.get_binaries = function(source_shell,dest_folder)
     if DEBUG then print "debug: source_file is: "+source_file+":"+typeof(source_file)
     print command.scpm("-d",source_file,dest_folder,source_shell)
   end for
-  return colorCyan+"Binaries Fetched."+char(10)+colorGreen+"kore"+CT+": recommendation: secure yourself with:"+char(10)+"<b>lock | usr -r root / | grp -r root /</b>"
+  return colorCyan+"Binaries Fetched."+char(10)+colorGreen+"kore"+CT+": recommendation: secure yourself with:"+char(10)+"<b>lock | usr -r root / | grp -r root /</b> (or <b>kore -s</b>)"
 end function
 
 // not yet used
@@ -564,7 +574,9 @@ globals.trythis = function(function_reference, function_name)
     return 0
   end function
   try.evaluate = function( fname )
+    globals.stack_pool("up")
     get_shell.launch( fname )
+    globals.stack_pool("down")
     return self.success
   end function
 
@@ -740,7 +752,7 @@ end function
 //// Scribus
 scribus = function(f_obj)
 
-  print("\nScribus v 0.2.7 by Plu70\n//////////////////////\n(@h on newline for help)\n")
+  print("\nScribus v 0.2.8 by Plu70\n//////////////////////\n(@h on newline for help)\n")
 
   print_help = function()
     print
@@ -755,6 +767,8 @@ scribus = function(f_obj)
     print("@i - insert new line after line# (can be a blank line)")
     print("@c - clear the buffer (deletes all text)")
     print("@C - clear the screen (run clear_screen)")
+    print("@t - trim whitespace from the buffer")
+    print("@n - display buffer without parsing richtext or markup")
     print("@h - show this help file")
     print("@@ - abort and quit")
     print
@@ -911,6 +925,29 @@ scribus = function(f_obj)
                           print(l)
                         end for
                         continue
+                      else 
+                        if buf[1] == "t" then ////////Trim whitespace
+                          t_array = []
+                          for line in array 
+                            t_array.push(line.trim)
+                          end for
+                          array = t_array 
+                          i = 0
+                          for l in array
+                            print(i+": "+l)
+                            i = i + 1
+                          end for
+                          continue 
+                        else 
+                          if buf[1] == "n" then 
+                            i = 0
+                            for l in array
+                              print(i+": "+"<noparse>"+l)
+                              i = i + 1
+                            end for
+                            continue
+                          end if
+                        end if
                       end if
                     end if
                   end if
@@ -1432,7 +1469,9 @@ globals.memory_alpha = function(go_to_buffer=null)
             if l_para == "@c" then l_para = globals.clipboard_gamma
             print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
             print(colorWhite+"<size=75%><u>Injecting process "+l_path+" into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
+            globals.stack_pool("up")
             print(buffer_selection.launch( l_path, l_para ) )
+            globals.stack_pool("down")
             globals.update_path
             continue
           end if
@@ -1509,7 +1548,9 @@ globals.memory_alpha = function(go_to_buffer=null)
               par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 "" cerebrum | brutus """+char(10)+":> ").trim // add preset options
               print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
               print(colorWhite+"<size=75%><u>Injecting process /home/guest/rkit/5hell into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
+              globals.stack_pool("up")
               catch = buffer_selection.launch("/home/guest/rkit/5hell",par)
+              globals.stack_pool("down")
               if catch then print(catch)
               globals.update_path
               continue
@@ -1687,7 +1728,7 @@ globals.transmit = function(wait_for_reply=0)
   if typeof(t_catch) == "string" then return t_catch else print "Purging buffer..." 
   // purge and reset tbuf
   globals.T_BUF = [(localip+"@"+pubip)] 
-
+  //globals.T_BUF = []
   if wait_for_reply then 
     print "Waiting for reply..."
     waiting = true
@@ -2142,6 +2183,7 @@ r_hecks = function()
         pass.set_content("")
         pass.set_content(globals.T_BUF.join(char(10)))
         globals.T_BUF = [(localip+"@"+pubip)]
+        //globals.T_BUF = []
         if tool then
           command.hashim("false")
         else
@@ -2439,8 +2481,9 @@ secure_connect = function(shll)
     if todo == "1" then
       a = user_input("command path:> ")
       b = user_input("parameters:> ")
+      globals.stack_pool("up")
       print remote.launch(a, b)
-      globals.stack_pool = globals.stack_pool - 1
+      globals.stack_pool("down")
     end if
     if todo == "3" then
       secure_copy(remote)
@@ -3095,6 +3138,10 @@ sphinx_switch = function(resolve,tt)
   if resolve.lower == "q" then
     return false
   end if
+  if resolve.lower == "." then 
+    print(command.dig(targetIP,targetPort))
+    return true
+  end if
   if resolve == "-" then
     print(command.purge("-d"))
     return true
@@ -3375,7 +3422,7 @@ main = function()
       print("001 SET IP WITH [<color=white>4</color>] 0<b>.")
       print("000 SET PT WITH [<color=white>5</color>] 0<b>.")
     end if
-    print("[<b>.</b>]DIG.["+colorWhite+"4"+CT+"]<b>IP</b>.[<b>5</b>]<b>PORT</b>.")
+    print("["+colorWhite+"."+CT+"]DIG.["+colorWhite+"4"+CT+"]<b>IP</b>.[<b>5</b>]<b>PORT</b>.")
     print("[Q][A][Z]["+char(177)+"].6<b>v</b>7<b><</b>8<b>></b>9<b>^</b>.")
     option = user_input("[0][1][2][3][4][5].<b>||: ",0,1)
     running = sphinx_switch(option,target_type)
