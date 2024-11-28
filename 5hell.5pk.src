@@ -1,11 +1,11 @@
 // 5hell v 3.9.8 by Plu70
 // released v 3.9.8
 // imports .5pk files from /root/src
-ver = "3.9.8.4_nightly_terrors"
+ver = "3.9.8.7_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
-NIGHTLY = false // set to true if playing nightly, false if playing public!
+NIGHTLY = true // set to true if playing nightly, false if playing public!
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "137.732"
+size_of_5hell = "139.899"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -48,7 +48,6 @@ globals.localmachine = shell.host_computer
 globals.currentPath = current_path
 globals.homePath = home_dir
 globals.enumerated = []
-globals.stack_pool = 14 // depricated
 globals.tagged_for_scp = ""
 globals.backup_meta = null
 //globals.services = {}
@@ -101,6 +100,7 @@ globals.XPLOITS = []
 globals.MEMORY = null
 globals.meta_scan = []
 globals.T_BUF = [(localip+"@"+pubip)] // transmission buffer
+//globals.T_BUF = []
 globals.portInfo = null
 globals.tarLan = null
 globals.grepped_file = null
@@ -163,6 +163,7 @@ command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		globals.T_BUF.pull
 		globals.clip_board_alpha = globals.T_BUF.join(char(10))
 		globals.T_BUF = [(localip+"@"+pubip)]
+		//globals.T_BUF = []
 	end if
 	if arg1 == "@cc" then globals.clip_board_alpha = globals.command_buffer.join(char(10))
 	if arg1 == "@B" then
@@ -201,6 +202,7 @@ command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		globals.T_BUF.pull
 		globals.clip_board_beta = globals.T_BUF.join(char(10))
 		globals.T_BUF = [(localip+"@"+pubip)]
+		//globals.T_BUF = []
 	end if
 	if arg1 == "@cc" then	globals.clip_board_beta = globals.command_buffer.join(char(10))
 	if arg1 == "@B" then
@@ -239,6 +241,7 @@ command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		globals.T_BUF.pull
 		globals.clip_board_gamma = globals.T_BUF.join(char(10))
 		globals.T_BUF = [(localip+"@"+pubip)]
+		//globals.T_BUF = []
 	end if
 	if arg1 == "@cc" then	globals.clip_board_gamma = globals.command_buffer.join(char(10))
 	if arg1 == "@B" then
@@ -481,7 +484,7 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		is_bin = subFile.is_binary
 		if is_bin then line_color = colorCyan + "</b>"
 		if subFile.is_folder then line_color = colorLightBlue + "</b>"
-		if NIGHTLY == true and subFile.is_symlink then nameFile = nameFile+"(sym_link)"
+		if NIGHTLY == true and subFile.is_symlink then nameFile = nameFile+" (sym_link)"
 		if raw_output then line_color = ""
 		//if showHide or nameFile.indexOf(".") != 0 then
 		if showDetails then
@@ -893,8 +896,18 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	parameters = ""
 	if arg2 and typeof(arg2) == "shell" then
 		if arg3 and typeof(arg3) == "string" then parameters = arg3 else parameters = ""
-		if typeof(arg1) == "string" then return arg2.launch(arg1, parameters)
-		if typeof(arg1) == "file" then return arg2.launch(arg1.path, parameters)
+		if typeof(arg1) == "string" then 
+			globals.stack_pool("up")
+			cc = arg2.launch(arg1, parameters)
+			globals.stack_pool("down")
+			return cc
+		end if
+		if typeof(arg1) == "file" then 
+			globals.stack_pool("up")
+			cc = arg2.launch(arg1.path, parameters)
+			globals.stack_pool("down")
+			return cc
+		end if
 		return "run: arg1 should be file or path to file"
 	end if
 	if arg3 and typeof(arg3) == "shell" then 
@@ -904,7 +917,10 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(run_path) != "string" then return "run: arg1 should be file object or path to file"
 		if typeof(arg2) == "string" then parameters = arg2
 		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
-		return arg3.launch(run_path, parameters)
+		globals.stack_pool("up")
+		cc arg3.launch(run_path, parameters)
+		globals.stack_pool("down")
+		return cc
 	end if
 	file = arg1
 	if typeof(file) != "file" then file = globals.get_file(arg1)
@@ -916,7 +932,10 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
 	//if arg5 and typeof(arg5) == "string" then parameters = parameters + " " + arg5 
 	if DEBUG then print("run: "+file.path+", "+parameters)
-	return shell.launch(file.path, parameters)
+	globals.stack_pool("up")
+	cc = shell.launch(file.path, parameters)
+	globals.stack_pool("down")
+	return cc
 end function
 command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Scribus Terminal Text Editor by Plu70"+char(10)+"scribus [path_to_file] -- open terminal text editor on file at path"+char(10)+"Advanced: scribus @clipa|@clipb|@clipc -- This edits the clipboard directly."+char(10)+"Advanced: scribus @cc -- edit the command buffer."+char(10)+"Advanced: scribus [file_object] -- text only, open contents of piped object."+char(10)+"Advanced: scribus @do -- edit the do buffer (to write / edit <b>do</b> scripts without launching them)"+char(10)+"-- see <b>do -h</b> for more info"+char(10)+"Note: you may press <b>@h</b> on a new line to get additional command info within the editor."
@@ -2002,7 +2021,7 @@ end if
 
 bios_info = []
 bios_info.push("<mark=red><u>=======================================================================</u></mark>")
-bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.5_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
+bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.6_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
 bios_info.push("* "+current_date+" "+globals.localmachine.local_ip+" @ "+globals.localmachine.public_ip+" up: "+time)
 procs = globals.localmachine.show_procs.split(char(10))
 //print(procs)
@@ -2040,23 +2059,55 @@ if hdd_io then
 	if h_s.len > 1 then h_n = h_s[1].to_int
 	if h_n then h_size = h_n - root.size.to_int else h_size = "<color=red>dev_sda error</color>"
 end if
-if globals.stack_pool <= 0 then stack_print = "depleted; restart required" else stack_print = globals.stack_pool
+if globals.stack_pool >= 15 then stack_print = "depleted; restart required" else stack_print = globals.stack_pool
 bios_info.push("<mark=red><size=85%>|</size></mark>")
 bios_info.push("<size=85%>Macula Registry: [stack_pool:"+colorRed+stack_print+CT+"] </size>")
 bios_info.push("<size=85%>root_procs [<b>"+root_procs+"</b>] user_procs [<b>"+user_procs+"</b>]  guest_procs [<b>"+guest_procs+"</b>] t:<b> "+(procs.len-1)+"</b></size>")
 bios_info.push("<size=85%>cpu_usage: ["+cpu_used+"%] mem_usage: ["+mem_used+"%] temp: <color=red>therm_io not found</color></size>")
 bios_info.push("<size=85%>[cpu:<mark=green>|"+"|"*(cpu_used/4)+"</mark>"+"_"*((100-cpu_used)/4)+"]   [ram:<mark=green>"+"|"*(mem_used/4+1)+"</mark>"+"_"*((100-mem_used)/4)+"]</size>")
 bios_info.push("<size=85%>[hdd_used: <b>"+root.size+" </b>bytes]  [hdd_free: "+h_size+" bytes]</size>")
-bios_info.push("<size=85%>num_folders [ ] num_binaries [ ] num_ascii [ ] t: ##</size>")
-
+allfiles = command.tree("-r","/")
+folds = 0
+bins = 0
+txts = 0
+tot = 0
+for f in allfiles
+	if f.is_folder then 
+		folds = folds + 1
+	else if f.is_binary then 
+		bins = bins + 1
+	else
+		txts = txts + 1
+	end if
+end for
+tot = folds + bins + txts
+bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] tot: ["+tot+"]</size>")
+ess = "-wifi disabled-"
 if localmachine.active_net_card == "WIFI" then
-	sig = floor(rnd*99)+1
-	sig = sig - 0
+	//sig = floor(rnd*99)+1
+	//sig = sig - 0
+	sig = 0
+	nets = localmachine.wifi_networks("wlan0") // list
+	ess = get_router.essid_name
+	_get_wifi = function(networks)
+		for net in networks 
+			n = net.split(" ")
+			if DEBUG then print "debug: n is: "+n+" and n[1] is: "+n[2]
+			if ess == n[2] then
+				sig = n[1].replace("%","")
+				sig = sig.to_int
+				if DEBUG then print "debug: sig strength is: "+sig+"%"
+				return sig 
+			end if
+		end for
+		return 0
+	end function
+	sig = _get_wifi(nets)
 	sig_not = 100 - sig
 	bios_info.push("<size=85%>[wifi_signal:<mark=green>|"+"|"*(sig/2)+"</mark>"+"_"*(sig_not/2)+"]</size>")
 end if
 dl = localmachine.network_devices.split(char(10))
-bios_info.push("<size=85%>["+dl.join("] [")+localmachine.active_net_card+"]")
+bios_info.push("<size=85%>["+dl.join("] [")+localmachine.active_net_card+"] ["+ess+"]")
 ports = localmachine.get_ports
 pl = []
 for p in ports
@@ -2097,24 +2148,59 @@ end if
 bios_info.push("<size=85%>[portmap:"+globals.PORT_MAP.len+"] [xploits: "+globals.NUM_SPLOITS+"] [metascan: ]</size>")
 bios_info.push("<size=85%>[dict_a:"+colorGold+globals.dict_a.len+CT+"]  [dict_size: "+dict_a.join(", ").len+"]</size>")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
+score = 10
 pwf = command.tree("/etc","passwd",1,"N")
-if pwf then pwf = pwf.permissions else pwf = "--null--"
+if pwf then 
+	pwf = pwf.permissions 
+	score = score - 1
+else 
+	pwf = "--null--"
+end if
 bff = command.tree("/","Bank.txt",1,"N")
-if bff then bff = bff.parent.path else bff = "--null--"
+if bff then
+	bff = bff.parent.path 
+	score = score - 1
+else 
+	bff = "--null--"
+end if
 mtf = command.tree("/","Mail.txt",1,"N")
-if mtf then mtf = mtf.parent.path else mtf = "--null--"
+if mtf then 
+	mtf = mtf.parent.path 
+	score = score - 1
+else 
+	mtf = "--null--"
+end if
 mcf = command.tree("/","Map.conf",1,"N")
-if mcf then mcf = mcf.parent.path else mcf = "--null--"
+if mcf then 
+	mcf = mcf.parent.path 
+	score = score - 1
+else 
+	mcf = "--null--"
+end if
 bcf = command.tree("/","Browser.txt",1,"N")
-if bcf then bcf = bcf.parent.path else bcf = "--null--"
+if bcf then 
+	bcf = bcf.parent.path 
+	score = score - 1
+else 
+	bcf = "--null--"
+end if
 clf = command.tree("/","ConfigLan.conf",1,"N")
-if clf then clf = clf.parent.path else clf = "--null--"
-bios_info.push("<size=85%>Security Audit Score: ##</size>")
-bios_info.push("<size=60%>[unsecured_files:  ]  [unsecured_directories:  ]</size>")
-bios_info.push("<size=60%>[/etc/passwd:"+pwf+"] [Mail.txt:"+mtf+"] [Bank.txt:"+bff+"]</size>")
-bios_info.push("<size=60%>[Map.conf:"+mcf+"] [Browser.txt:"+bcf+"] [ConfigLan.conf:"+clf+"]</size>")
-bios_info.push("<size=60%>[services:                   ]</size>")
-bios_info.push("<mark=red><size=50%>|</size></mark>")
+if clf then 
+	clf = clf.parent.path 
+	score = score - 1
+else 
+	clf = "--null--"
+end if
+unsec_files = 0
+unsec_dirs = 0
+for file in allfiles
+	fp = file.permissions.values 
+	if fp[-1] != "-" or fp[-2] != "-" or fp[-3] != "-" then 
+		if file.is_folder then unsec_dirs = unsec_dirs + 1 else unsec_files = unsec_files + 1
+	end if	
+end for
+if unsec_files then score = score - 1
+if unsec_dirs then score = score - 1
 log = localmachine.File("/var/system.log")
 log_size = 0
 log_is_binary = 0
@@ -2124,6 +2210,23 @@ if log then
 	log_is_binary = log.is_binary
 	log_permissions = log.permissions
 end if
+log_ps = log_permissions.values
+if log_ps[-2] != "-" or log_ps[-3] != "-" then score = score - 1
+if score == 10 then 
+	score = colorGreen+str(score) 
+	else if score < 2 then 
+		score = colorRed+str(score)
+	else 
+		score = colorOrange+str(score)
+end if
+bios_info.push("<size=85%>Security Audit Score: "+score+"/10</size>")
+bios_info.push("<size=60%>[unsecured_files:"+unsec_files+"]  [unsecured_directories: "+unsec_dirs+" ]</size>")
+bios_info.push("<size=60%>[/etc/passwd:"+pwf+"] [Mail.txt:"+mtf+"] [Bank.txt:"+bff+"]</size>")
+bios_info.push("<size=60%>[Map.conf:"+mcf+"] [Browser.txt:"+bcf+"] [ConfigLan.conf:"+clf+"]</size>")
+//bios_info.push("<size=60%>[services:                   ]</size>")
+bios_info.push("<mark=red><size=50%>|</size></mark>")
+
+
 bios_info.push("<size=85%>[/var/system.log: "+log_size+" bytes || is_binary: "+log_is_binary+" || perms: "+log_permissions+" ]")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
 bios_info.push("*<size=50%> (obvious stub needs obvious improvement)</size>")
@@ -2531,5 +2634,7 @@ if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
 //if DEBUG then print("initializing portmap...")
 //if localmachine.is_network_active then command.probe("-q",pubip,"0","1")
 if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
+if DEBUG then print("<size=75%>verifying stack_pool...")
+if DEBUG then print("<size=75%>stack_pool: ["+globals.stack_pool+"]") else globals.stack_pool
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
 /////////////////////BEGIN MAIN////////////////////////////////////////////////
