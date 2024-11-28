@@ -14,7 +14,6 @@
 // use are, of course, encouraged. Enjoy responsibly.
 //
 // 5hell is now covered by the MIT license which superscedes the above license.
-// As of 3.9.8.4 5hell's active contrubutors are: Plu70, Clover
 ///////////////////////// INSTRUCTIONS /////////////////////////////////////////
 
 // 5hell.src allows you to customize 5hell to your liking. You may add, remove,
@@ -77,7 +76,7 @@ command.shell = function(input=null)
   running = true
   full_prompt = 1
   while running
-    //print // an extra line before the prompt, if you want
+    print // an extra line before the prompt, if you want
     pipe = []  // pipe control, do not edit
     prompt = [] // prompt control, do not edit
     next = [] // pipe control, do not edit
@@ -224,7 +223,9 @@ command.shell = function(input=null)
         print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
         print("["+colorCyan+command.indexes.len+CT+"] commands and")
         print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
-        gp = " " + ("in"*globals.GLASSPOOL==null) + "active "
+        state = "in"
+        if globals.GLASSPOOL then state = ""
+        gp = " " + state + "active "
         print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
         print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
         continue 
@@ -245,6 +246,7 @@ command.shell = function(input=null)
       // we need this for compatibility with improperly constructed functions
       if str(@f) == "FUNCTION()" then args = 0 else args = str(@f).split(", ").len // get the number of args required by the function
       if DEBUG then print("target function takes: "+args+" arguments.")
+      if DEBUG then print("debug: preparing to fire: "+char(10)+prompt)
       if args == 4 then
         catch = f(prompt[1], prompt[2], prompt[3], prompt[4])
       else if args == 3 then
