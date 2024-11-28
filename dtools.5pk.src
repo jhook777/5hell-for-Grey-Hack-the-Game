@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8.4...(145.083)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8.7...(147.392)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -273,65 +273,73 @@ command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Gopher: decipher tool"+char(10)+"Usage: gopher [/path/to/file|file_object|hash_string|hash_list|@tbuf] -- decipher hashes using onboard dictionary or crypto.decipher."+char(10)+"-- outputs to /current_path/dump.txt"+char(10)+"-- see cerebrum for dictionary options."+char(10)+"-- gopher [/path] -- decipher contents of path"+char(10)+"-- gopher [object] -- decipher piped file object"+char(10)+"-- gopher [list] -- decipher piped list of strings"+char(10)+"-- gopher [string] -- decipher hash string (with or without preceding user: )"+char(10)+"-- gopher @tbuf -- deciphers contents of @tbuf"+char(10)+"-- tbuf is set when <b>tree</b> encounters a user:hash pair in /home or /etc/passwd"+char(10)+"-- eg: gopher user:ee11cbb19052e40b07aac0ca060c23ee or gopher ee11cbb19052e40b07aac0ca060c23ee"+char(10)+"N.B. function takes string, file_object, list. function writes to dump.txt. function returns string."+char(10)+"Advanced: gopher runs recursively on each line therefore each line of a file or list or string may:"+char(10)+"-- be a user:hash string"+char(10)+"-- be a hash string"+char(10)+"-- be a path to a file"+char(10)+"-- contain a list of the aforementioned types"
 	if not globals.crypto then print( "Warning: Crypto: not found" )
 	data = []
-  if DEBUG then print("top of gopher")
-  if arg1 == "@tbuf" then arg1 = globals.T_BUF
-  if typeof(arg1) == "file" then
-    if arg1.has_permission("r") then data = arg1.get_content.split(char(10)) else return "gopher: can't read "+arg1+": permission denied."
-  end if
-  if typeof(arg1) == "string" then
-    fpath = globals.get_file(arg1)
-    if fpath and typeof(fpath) == "file" then
-      if DEBUG then print("gopher: found file: "+fpath.path)
-      if fpath.has_permission("r") then data = fpath.get_content.split(char(10)) else return "gopher: can't read "+fpath.path+": permission denied."
-    else
-      if DEBUG then print("in gopher: is_string: arg1 is: "+arg1+" arg1 length is: "+arg1.len + " which is a "+typeof(arg1.len))
-      if arg1.len == 32 then // hash string
-        data = arg1
-      else 
-        if arg1.indexOf(char(10)) >= 0 then 
-          data = arg1.split(char(10))
-        else 
-          if arg1.indexOf(":") and arg1.len > 32 then data = arg1 else return "gopher: skipping invalid string"
-        end if
-      end if
-    end if
-  end if
-  if typeof(arg1) == "list" then
-    data = arg1 
-  end if 
-  if DEBUG then print("data type is: "+typeof(data))
-  if typeof(data) == "list" then
-    for element in data 
-      if element == "" or element == " " then continue
-      ctc = (command.gopher( element ))
-      if ctc then print ctc
-    end for
-  end if
-  if typeof(data) == "string" then 
-    print("gopher: deciphering:<b> "+data)
-    user = "unknown_user"
-    if data.indexOf(":") then
-      data = data.split(":")
-      user = data[0]
-      data = data[1]
-    end if 
-    if data.len != 32 then return "gopher: skipping invalid hash string"
-    pass = command.md5("-d",data) // decipher here
-    output = user + ":" + pass + ":"+data
-    print("["+colorGold+user+":"+colorGold+pass+CT+":"+data+"]")
-    dump = command.tree("/","dump.txt","1","n")
-    if not dump then 
-      command.poke("dump.txt")
-      dump = globals.get_file("dump.txt")
-    end if
-    if dump and typeof(dump) == "file" and dump.has_permission("w") then //and dump.has_permission("r") then 
-      print("gopher: saving data to "+dump.path)
-      print command.append(dump,output)
-	else 
-		print "gopher: failed to write to dump.txt; check permissions"
-    end if
-  end if 
-  return 0
+	if typeof(arg1) != "string" and typeof(arg1) != "list" and typeof(arg1) != "file" then return "gopher: invalid input: expects string, file, or list "
+	if DEBUG then print("top of gopher")
+	if arg1 == "@tbuf" then arg1 = globals.T_BUF // deprecated, @tbuf is now a callable variable, however this remains so that @tbuf may be used in an internal call
+	if typeof(arg1) == "file" then
+		if arg1.has_permission("r") then data = arg1.get_content.split(char(10)) else return "gopher: can't read "+arg1+": permission denied."
+	end if
+	if typeof(arg1) == "string" then
+		fpath = globals.get_file(arg1)
+		if fpath and typeof(fpath) == "file" then
+			if DEBUG then print("gopher: found file: "+fpath.path)
+			if fpath.has_permission("r") then data = fpath.get_content.split(char(10)) else return "gopher: can't read "+fpath.path+": permission denied."
+		else
+			if DEBUG then print("in gopher: is_string: arg1 is: "+arg1+" which is a "+typeof(arg1)+" of length: "+arg1.len)
+			if arg1.len == 32 then // hash string
+				data = arg1
+			else 
+				if arg1.indexOf(char(10)) >= 0 then 
+					data = arg1.split(char(10))
+				else 
+					if arg1.indexOf(":") and arg1.len > 32 then data = arg1 else return "gopher: skipping invalid string"
+				end if
+			end if
+		end if
+	end if
+	if typeof(arg1) == "list" then
+		data = arg1 
+	end if 
+	if DEBUG then print("data type is: "+typeof(data))
+	if typeof(data) == "list" then
+		for element in data 
+			if element == "" or element == " " then continue
+			if DEBUG then print "debug: gopher loop is looping on element: "+char(10)+element
+			if is_valid_ip(element.split("@")[0]) then 
+				print "gopher: skipping ip address line" 
+				continue
+			end if
+			wait(.1)
+			print "gopher: going for it..."
+			ctc = (command.gopher( element ))
+			if ctc then print ctc
+		end for
+	end if
+	if typeof(data) == "string" then 
+		print("gopher: deciphering:<b> "+data)
+		user = "unknown_user"
+		if data.indexOf(":") then
+		data = data.split(":")
+		user = data[0]
+		data = data[1]
+		end if 
+		if data.len != 32 then return "gopher: skipping invalid hash string"
+		pass = command.md5("-d",data) // decipher here
+		output = user + ":" + pass + ":"+data
+		print("["+colorGold+user+":"+colorGold+pass+CT+":"+data+"]")
+		dump = command.tree("/","dump.txt","1","n")
+		if not dump then 
+			command.poke("dump.txt")
+			dump = globals.get_file("dump.txt")
+		end if
+		if dump and typeof(dump) == "file" and dump.has_permission("w") then //and dump.has_permission("r") then 
+			print("gopher: saving data to "+dump.path)
+			print command.append(dump,output)
+		else 
+			print "gopher: failed to write to dump.txt; check permissions"
+		end if
+	end if 
+	return 0
 end function
 command.grep = function(a1, a2, arg3=0, arg4=0)
 	find_file = false
@@ -1015,8 +1023,9 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
             print("launch not available in ftpshell")
             return inf
           end if
+		  globals.stack_pool("up")
           try = shell.launch(selected.path, user_input("params for: "+char(10)+selected.path+" "))
-          globals.stack_pool = globals.stack_pool - 1
+		  globals.stack_pool("down")
           if try then print(try)
         end if
         return inf
@@ -1670,7 +1679,9 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   // -- cob import | brutus
   // -- other user defined params
   print "launching 5hell remotely..."
+  globals.stack_pool("up")
   dig_this.launch("/home/guest/rkit/5hell", "do 1 -f /home/guest/rkit/dig.bat")
+  globals.stack_pool("down")
   // rclean and exit
   // repeat if necessary
   return "returning to original 5hell session..."
@@ -2223,14 +2234,14 @@ command.string = function(arg1,arg2,arg3,arg4)
 	colorWhite+"Strings: Stringify strings:"+char(10)+
 	colorCyan+"Usage: string [-t] [target_text] -- returns trimmed text"+char(10)+
 	"-- ie: it removes whitespace"+char(10)+
-	colorCyan+"Usage: string [-p] [target_text] -- strip the noparse richtext tag from a string and return it"
+	colorCyan+"Usage: string [-p] [target_text] -- strip the noparse richtext tag from a string and return it"+char(10)+
 	colorCyan+"Usage: string [-r] [target_text] [replacement_text] [string_to_parse]"+char(10)+
 	"-- replace all instances of target_text with replacement_text within string_to_parse"+char(10)+
 	"-- use piping, easy clip, and "" text blocks "" to supply strings"+char(10)+
 	"-- use """""" in order to indicate a space (char(32))"+char(10)+
 	"-- use @nl to indicate a newline (char(10))"+char(10)+
 	"-- all params should be strings and the function returns the modified string"+char(10)+
-	colorCyan+"Usage: string [-R] -- as above but allows the use of miniscript supported regex"
+	colorCyan+"Usage: string [-R] -- as above but allows the use of miniscript supported regex"+char(10)+
 	colorWhite+"Numbers: Stringify numbers"+char(10)+
 	colorCyan+"Usage: string [number] -- returns str(number) as a string"+char(10)+
 	"-- please note that numbers are passed as numbers, not strings, when piped"+char(10)+
@@ -2375,7 +2386,7 @@ command.diff = function(input_1,input_2,arg3,arg4)
 					diff_list.push(i+1)
 					j = j + 1
 					if j < lines2.len then 
-						if lines1[i] != lines2[j] then i = i + 1 else diff_list.pop // this is a hack for compatibility with zero day stuff, make it better
+						if lines1[i] != lines2[j] then i = i + 1// else diff_list.pop // this is a hack for compatibility with zero day stuff, make it better
 					else 
 						i = i + 1
 						if DEBUG then print "processed line "+ i
@@ -2557,31 +2568,58 @@ end function
 command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
 	if not NIGHTLY then return "zc: disabled outside of nightly"
     if neurobox_user == "h" or neurobox_user == "help" then return "Zer0Chill || Zeroday || zero day || autopatcher || autosolver"+char(10)+
-    colorWhite+"Usage: zc [user] [password] [MetaLib_object|MetaLib_name]</color> -- autosolve debugLibrary unit_testing and produce patch"+char(10)+
-    "-- [user] - should be a neurobox engineer username gleened from investigating a<b> zero day rumor"+char(10)+
-    "-- [pass] - should be the debugging password for the above engineer, gained the same way"+char(10)+
-    "-- [MetaLib] - should be either an object or the <u>name</u> of a lib.so in /lib"+char(10)+
-    "--eg: zc foo bar net.so "+char(10)+
-    "NOTE: zc foo bar /lib/net.so is not valid: libs must be in /lib to be exploited in the first place"+char(10)+char(10)+
-    "Output:"+char(10)+
-    "Zer0Chill will store all objects (MetaLib and debugLibrary) and strings recovered in the BUFFER."+char(10)+
-    "Additionally, the original code will be trimmed of whitespace and line numbers and stored in /currentPath/orig, if possible."+char(10)+
-    "   ""  ""   , the generated, corrected code will be stored in /currentPath/patch.zd, if possible."+char(10)+
-    "   ""  ""   , both original and corrected code will be stored in the custom object under keys: original, corrected."+char(10)+
-    "   ""  ""   , both original and corrected code will be stored in the BUFFER."+char(10)+
-    "Any combination of these may be piped to <b>diff -l</b> to obtain a list of line numbers to use with debugLibrary unit testing."+char(10)+
-    "Finally, the original code will be compared with the new code using <b>diff</b> with the resulting list placed in the BUFFER."+char(10)+
-    "NOTE: this option will <b>not</b> automatically patch the debugLibrary! Use -p or -a for that."+char(10)+
-    colorLightBlue+"- - - - - -"+char(10)+
-    "Usage: zc [-s|--scan] [debugLibrary] -- run a scan on a debugLibrary and return the scan string"+char(10)+
-    "Usage: zc [-s|--scan] [user] [pass] [MetaLib] -- obtain a debugLibrary, scan it, and return the scan string"+char(10)+
-    "Usage: zc [-u|--unit-test] [list:line_nums|string:line_nums] [debugLibrary] -- run unit testing on the debug lib"+char(10)+
-    "-- line_nums should be a list or string of line numbers containing mistakes in the original code snippet"+char(10)+
-    "---- if a string is supplied it should be comma separated: 1,2,3,4"+char(10)+
-    "-- returns the resulting zero-day string"+char(10)+
-    "Usage: zc [-p|--patch] [/path|string] [debugLibrary] --  patch a debug lib using the code in the given string or file at path"+char(10)+
-    colorGold+"Usage: zc [-a|--auto-patch] [MetaLib|string:lib.so] -- automatically patch a MetaLib object or the named lib in /lib"+char(10)+
-    "--eg: zc -a net.so"
+	colorWhite+"Usage: zc [neurobox_username] [neurobox_password] [opt:metaLib_name|metaLib_object]"+char(10)+
+	"-- if a MetaLib is not supplied, zc will use the currently linked MetaLib"+char(10)+
+	"---- or return an error if one is not linked"+char(10)+
+	"-- zc will: obtain debugLibrary from a MetaLib"+char(10)+
+	"---- scan the debugLibrary and parse the output"+char(10)+
+	"---- construct a patched version of the output"+char(10)+
+	"---- write the original and patched versions to:"+char(10)+
+	"------ <b>orig</b> and <b>patch.zd</b>, respectively"+char(10)+
+	"---- BUFFER all of the above"+char(10)+
+	"NOTE: at this time lib patching is not automated"+char(10)+
+	"NOTE: at this time unit-testing is not automated"+char(10)+
+	"----: this is because both of these actions may result in a lock-out"+char(10)+
+	"----: please analyze the output and unit-test and patch carefully"+char(10)+
+	colorWhite+"- - - - - - - - -"+char(10)+
+	colorLightBlue+"DebugLibary Unit Testing:"+char(10)+
+	"Procedure: once <b>zc</b> has been run:"+char(10)+
+	"-- run the command:<b> diff -l orig patch.zd | clipa | malp"+char(10)+
+	"-- select the debugLibrary from the BUFFER"+char(10)+
+	"-- select option [2] - unit_testing"+char(10)+
+	"-- input <b>@a</b> to use the list stored in clipa"+char(10)+
+	"-- if successful, output string will be BUFFERED"+char(10)+
+	"-- select the output text from the BUFFER"+char(10)+
+	"-- select [s] - save and enter a filename for the zeroday data"+char(10)+
+	colorLightBlue+"MetaLib Patching:"+char(10)+
+	"Procedure: once <b>zc</b> and unit_testing are complete:"+char(10)+
+	"-- select the MetaLib from the BUFFER (or <b>bios -m | code</b> if it is still linked)"+char(10)+
+	"-- select patch and enter the path to patch.zd"
+    // colorWhite+"Usage: zc [user] [password] [MetaLib_object|MetaLib_name]</color> -- autosolve debugLibrary unit_testing and produce patch"+char(10)+
+    // "-- [user] - should be a neurobox engineer username gleened from investigating a<b> zero day rumor"+char(10)+
+    // "-- [pass] - should be the debugging password for the above engineer, gained the same way"+char(10)+
+    // "-- [MetaLib] - should be either an object or the <u>name</u> of a lib.so in /lib"+char(10)+
+    // "--eg: zc foo bar net.so "+char(10)+
+    // "NOTE: zc foo bar /lib/net.so is not valid: libs must be in /lib to be exploited in the first place"+char(10)+char(10)+
+    // "Output:"+char(10)+
+    // "Zer0Chill will store all objects (MetaLib and debugLibrary) and strings recovered in the BUFFER."+char(10)+
+    // "Additionally, the original code will be trimmed of whitespace and line numbers and stored in /currentPath/orig, if possible."+char(10)+
+    // "   ""  ""   , the generated, corrected code will be stored in /currentPath/patch.zd, if possible."+char(10)+
+    // "   ""  ""   , both original and corrected code will be stored in the custom object under keys: original, corrected."+char(10)+
+    // "   ""  ""   , both original and corrected code will be stored in the BUFFER."+char(10)+
+    // "Any combination of these may be piped to <b>diff -l</b> to obtain a list of line numbers to use with debugLibrary unit testing."+char(10)+
+    // "Finally, the original code will be compared with the new code using <b>diff</b> with the resulting list placed in the BUFFER."+char(10)+
+    // "NOTE: this option will <b>not</b> automatically patch the debugLibrary! Use -p or -a for that."+char(10)+
+    // colorLightBlue+"- - - - - -"+char(10)+
+    // "Usage: zc [-s|--scan] [debugLibrary] -- run a scan on a debugLibrary and return the scan string"+char(10)+
+    // "Usage: zc [-s|--scan] [user] [pass] [MetaLib] -- obtain a debugLibrary, scan it, and return the scan string"+char(10)+
+    // "Usage: zc [-u|--unit-test] [list:line_nums|string:line_nums] [debugLibrary] -- run unit testing on the debug lib"+char(10)+
+    // "-- line_nums should be a list or string of line numbers containing mistakes in the original code snippet"+char(10)+
+    // "---- if a string is supplied it should be comma separated: 1,2,3,4"+char(10)+
+    // "-- returns the resulting zero-day string"+char(10)+
+    // "Usage: zc [-p|--patch] [/path|string] [debugLibrary] --  patch a debug lib using the code in the given string or file at path"+char(10)+
+    // colorGold+"Usage: zc [-a|--auto-patch] [MetaLib|string:lib.so] -- automatically patch a MetaLib object or the named lib in /lib"+char(10)+
+    // "--eg: zc -a net.so"
     if not neurobox_user or not neurobox_pass then return "zer0Chill: invalid parameters: expects [user] [pass] [metaLib]"
     if typeof(metalib) != "MetaLib" then 
         if typeof(metalib) == "string" then 
