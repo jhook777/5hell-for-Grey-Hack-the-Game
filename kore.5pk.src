@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.8.4...(150.614)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.8.7...(151.063)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -617,6 +617,7 @@ command.tdump = function(arg1,arg2,arg3,arg4)
 	if DEBUG then print "debug: tcatch: "+tcatch+" is a "+ typeof(tcatch)
 	if typeof(tcatch) == "string" then return tcatch else print colorLightBlue+"tdump: task complete..."
 	globals.T_BUF = [(localip+"@"+pubip)]
+	//globals.T_BUF = []
 	print "tdump: returning file object for "+passfile.path
 	return passfile
 end function
@@ -814,8 +815,9 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		cpath = user_input("command_path:> ",0,0)
 		if cpath == "" then return "rsi: aborting..."
 		para = user_input("params:> ",0,0)
+		globals.stack_pool("up")
 		print(ts.launch( cpath,para ))
-		//globals.stack_pool = globals.stack_pool - 1
+		globals.stack_pool("down")
 	end if
 	if st == "7" then  
 		print "rsi: returning shell object"
@@ -1935,7 +1937,9 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 			pwf = remote.host_computer.File("/etc/passwd")
 			if pwf then pwf.delete
 			if arg2 == "-s" or arg3 == "-s" then
+				globals.stack_pool("up")
 				catch = BUFFER[o].launch("/root/rkit/silentclean")
+				globals.stack_pool("down")
 				if catch then
 					print(catch)
 				else
@@ -2681,6 +2685,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if not confirm then confirm = user_input("Clear T_BUF: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then
 			globals.T_BUF = [(localip+"@"+pubip)]
+			//globals.T_BUF = []
 			return "T_BUF purged."
 		else
 			return "aborting..."
@@ -2998,6 +3003,12 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
 	// handle error checking and input validation
 	if not octet_rules or (typeof(octet_rules) != "string" and typeof(octet_rules) != "list") then return "osint: invalid octet rules: expects list or string"
 	if not user_name or typeof(user_name) != "string" then return "osint: invalid user name: expects string "
+	// confirm mail account is active 
+	if not globals.inbox then 
+		print "Please login to a mail account then return here to continue: "
+		command.mail 
+	end if
+	if not globals.inbox then return "osint: please login to a mail account before continuing"
 	// prepare octet rules
 	if typeof(octet_rules) == "string" then 
 		octet_buff = octet_rules.split("\.")
@@ -3059,22 +3070,28 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
                     // Validate IP format and check if it’s a LAN IP
                     if not is_valid_ip(ip) or is_lan_ip(ip) then continue
                     // Perform WHOIS lookup and parse the result
-                    who_string = whois(ip).split(char(10))
-                    
-
-					// the following got nerfed, can't check if an email exists this way any more
-                    //if DEBUG then print "debug: in osint loop: domain: "+domain
-                    // // Attempt to log in to mail and check if user exists
-					//if who_string[0].indexOf(": ") == null then continue
-                    //domain = who_string[0].split(": ")[1].remove("www.")
-                    // targ = user_name + "@" + domain
-                    // if verbose or DEBUG then print "osint: attempting: "+ip+" : "+targ
-					// inbox = mail_login(targ, "a")
-                    // if inbox != targ + " user not found" then
-					// 	print colorLightBlue+"Positive Hit: "+colorWhite+targ
-                    //     d_list.push(domain)
-                    // end if
-
+                    who_string = whois(ip)
+					if who_string.indexOf("[Neurobox") != null then who_string = who_string.split(char(10)) else continue
+					//the following got nerfed, can't check if an email exists this way any more
+                    if DEBUG then print "debug: in osint loop: domain: "+domain
+                    // Attempt to send mail and check if user exists
+					if who_string[0].indexOf(": ") == null then continue
+                    domain = who_string[0].split(": ")[1].remove("www.")
+                    targ = user_name + "@" + domain
+                    if verbose or DEBUG then print "osint: attempting: "+ip+" : "+targ
+					if globals.inbox.send(targ,"do not reply","your account has been suspended due to non payment") != "Mail not delivered" then 
+						d_list.push(targ)
+						print colorWhite+targ
+						// Write the output to spool file if spool is true
+						if spool then
+							print("osint: writing results to:" + spool_file.path)
+							result = spool_file.set_content(d_list.join(char(10)))
+							if result != 1 then
+								print "error: unable to write to spool file"
+							end if
+						end if
+					end if 
+					wait(2.5)
 					if cycle % 1000 == 0 then wait(.1)
 					if DEBUG then print "scanning..."
 					cycle = cycle + 1
@@ -3082,14 +3099,7 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
             end for
         end for
     end for
-    // Write the output to spool file if spool is true
-    if spool then
-        print("osint: writing results to:" + spool_file.path)
-        result = spool_file.set_content(d_list.join(char(10)))
-        if result != 1 then
-            return "error: unable to write to spool file"
-        end if
-    end if
+    
     // Return the output as per the specified delimiter
     if delim == "list" then
         return d_list
@@ -3145,7 +3155,9 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	ctch = arg1.build(imp.path,imp.parent.path)
 	if ctch then print ctch 
 	print colorGold+"</b>-- launching payload..."
+	globals.stack_pool("up")
 	arg1.launch("/home/guest/.")
+	globals.stack_pool("down")
 	print colorGold+"</b>-- spotting source files..."
 	imp.set_content("")
 	imp.move("/home/guest","metaxploit.so")
