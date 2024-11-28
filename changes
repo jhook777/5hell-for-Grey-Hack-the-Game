@@ -23,6 +23,26 @@
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
 //
+// zc: updated zer0Chill usage info to reflect current function and procedure
+// bios: updated stackpool to accurately track through nested launches
+// -- stack pool is shown in bios
+// -- stack pool increments when shell.launch is used
+// -- stack pool decrements when returning from shell.launch
+// -- the game will prevent you from exceeding something like 15 stack calls
+// bios: updated info, now shows:
+// -- accurate wifi strength bar
+// -- accurate file/folder count
+// -- accurate security audit score, with details
+// ---- 0 is worst score, 10 is best
+// scribus: added trim and noparse options
+// shell: fixed typo in 5hell.src causing GLASSPOOL status to print incorrectly
+// string: fixed typo preventing usage info from displaying
+// gopher: added small delay before loop to avoid strange issue involving crypto scanning before the scan is actually called.....
+// sphinx: actually connected the dig button to dig
+// sphinx: added highlight to dig button
+// osint: made it useful again .... shhhhh
+// diff: improved accuracy of line number output with -l option
+//
 // slight improvements to file handler
 // -- added to clipboard, move, rename, copy
 // slight imporvement to shell handler
