@@ -2063,8 +2063,8 @@ if hdd_io then
 	h_c = hdd_io.get_content.split(char(10))
 	h_s = h_c[0].split(":")
 	h_n = 0
-	if h_s.len > 1 then h_n = h_s[1].to_int
-	if h_n then h_size = h_n - root.size.to_int else h_size = "<color=red>dev_sda error</color>"
+	if h_s.len > 1 then h_n = h_s[1].val
+	if h_n then h_size = h_n - root.size.val else h_size = "<color=red>dev_sda error</color>"
 end if
 if globals.stack_pool >= 15 then stack_print = "depleted; restart required" else stack_print = globals.stack_pool
 bios_info.push("<mark=red><size=85%>|</size></mark>")
