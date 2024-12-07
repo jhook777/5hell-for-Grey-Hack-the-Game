@@ -118,7 +118,14 @@ command.shell = function(input=null)
 
     // get user input unless command.shell was called internally (do, cc, glasspool...) // do not edit
     if input then prompt = input.split(" ") else prompt = user_input(bang).split(" ") 
-    if prompt[0] == "|" then continue // flow control, do not edit
+    // flow control, do not edit
+    if input and indexOf("|#-/", input[0]) != null then // thanks clover!
+      return 
+    else 
+      input = null
+    end if
+    if prompt[0] == "|" then continue // catch stray pipes in input prompt but not comment lines bc why would you type a comment into a one shot line? like for real?
+    // end flow control
     // #####################################################################
     // ####################### end customizables one ############################
 
@@ -296,6 +303,7 @@ end function
 // (of course you can also add your own!)
 // more globals in template.5pk.src
 //
+if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 ////////////////// IMPRTS SECTION ////////////////////////////
 /////// PASTE YOUR IMPORTED COMMANDS HERE!!  ////////
 /////// BE SURE TO FOLLOW THE TEMPLATE BELOW! ///////
@@ -332,6 +340,12 @@ end function
 /////////////////END SECURITY///////////////////
 //
 //
+if DEBUG then print("<color=yellow><size=75%>checking for rkit/5hell.rc")
+// auto 'do' a batch file on startup
+// unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
+// only executes if 5hell.rc is located in a folder named rkit
+dorc = globals._startup_resource_configuration
+if DEBUG then print dorc 
 //
 if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
 ///////////////BEGIN launch_with_do CONTROL /////////////////////////
