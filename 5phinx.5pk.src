@@ -228,6 +228,7 @@ globals.stack_pool = function(opt=null)
 end function
 
 globals._import_tables = function()
+  if globals.dict_a.len > 1 then return "cerebrum: already loaded"
   t = command.tree("/","tables","1","N")
   if not t then return "tree: tables not found"
   for f in t.get_folders 
