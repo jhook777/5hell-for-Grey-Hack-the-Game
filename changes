@@ -23,6 +23,47 @@
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
 //
+// 
+// 5hell.src: fixed infinite loop when prompt[0] is a "|"
+// -- now if prompt[0] is a "|" the line will be skipped, 
+// -- --effectively making the line a comment if it is in a do script
+// 5hell.src: REAL comment characters added to 5hell.src 
+// -- these are escaped from command.shell's input param only!
+// -- essentially this means do scripts (including dig.bat, and do.rc)
+// todo: add global BOOLS to enable/disable the startup procedures
+// added startup_resource_configuration
+// added startup import cerebrum
+// added startup stack_pool
+// added startup export metaxploitLib
+// meta: updated usage info
+// meta: added -r|return for returning the metaLib object
+// -- fixed bug preventing printing currently linked metalib name and version when using meta without params
+// meta: changed link -r|-l to: 
+// -- meta link -- link a remote net_session and dump the metaLib (formerly meta link -r)
+// -- meta load -- load a local metaLib (formerly meta link -l)
+// meta: added meta -x -- return the metaxploitLib object (same as bios -x)
+// zap: you may now pass an index to autoselect and exploit from the list
+// nsl: passing no argument defaults to local gateway
+// kore: made kore -s output a little less messy
+// kore: kore -s will now remove ALL bank.txt and mail.txt on a system
+// -- be sure to rename these files if you don't want kore to delete them
+// bios: added --stack option to return the stack_pool value
+// sphinx: updated F1 usage info within 5phinx
+// -- updated UI with additional target types
+// -- changed two variables to functions so that they update when called
+// metaxploit: 5hell will now export it's metaxploit object on each launch to the custom object
+// -- entries will be stored as key: myx# : MetaxploitLib
+// -- key will start at myx0, max is myx15
+// -- returning one level and launching anew will -overwrite- the entry that corresponds to that launch #
+// -- you can check the bios command and look for stack pool
+// -- the number listed will be the index of the current launches MetaxploitLib
+// enum: will enumerate more types of maps: shells, computers, files, custom_objects
+// -- note: in most cases it is better to send one of those objects through the decompiler (code command) instead of enum
+// ---- but you do you boo boo
+// run: fixed a typo in run causing a crash on 3 arguments
+// dig: fixed a type mismatch when using the dig button in 5phinx
+// pause: added verbose option, changed default behavior to silent
+//
 // zc: updated zer0Chill usage info to reflect current function and procedure
 // bios: updated stackpool to accurately track through nested launches
 // -- stack pool is shown in bios
