@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.8.7...(151.063)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9...(153.958)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -82,21 +82,34 @@ command.kore = function(arg1,arg2,arg3,arg4)
 	end function
 
     secure_it = function()
-        print colorGold+"kore: "+colorGreen+"running secure protocol..."
-        print colorGold+"kore: "+colorGreen+"</b>changing ownership of all files to root..."
-        print command.usr("-r","root","/")
-        print colorGold+"kore: "+colorGreen+"</b>changing group setting of all files to root..."
-        print command.grp("-r","root","/")
-		print "kore: removing /etc/passwd..."
-        print command.rm("/etc/passwd")
-		print "kore: removing *Bank.txt..."
-        print command.rm(command.grep("-f","Bank.txt"))
-		print "kore: removing *Mail.txt..."
-        print command.rm(command.grep("-f","Mail.txt"))
-		print "kore: remove guest folder..."
-		print command.rm("-r","/home/guest")
-		print "kore: locking system..."
-        print command.perms("lock","all")
+        print colorGold+"<size=75%>kore: "+colorGreen+"running secure protocol..."
+        print colorGold+"<size=75%>kore: "+colorGreen+"</b>changing ownership of all files to root..."
+		c = null
+        c = command.usr("-r","root","/")
+		if c then print "<size=75%>"+c
+        print colorGold+"<size=75%>kore: "+colorGreen+"</b>changing group setting of all files to root..."
+        c = null
+		c = command.grp("-r","root","/")
+		if c then print "<size=75%>"+c
+		print "<size=75%>kore: removing /etc/passwd..." 
+		print "<size=75%>"+ command.rm("/etc/passwd")
+		print "<size=75%>kore: removing *Bank.txt..."
+		working = true 
+		while working 
+			f = command.tree("/","Bank.txt","1","N")
+			if typeof(f) == "file" then print "<size=75%>"+ command.rm(f) else working = false
+		end while
+		print "<size=75%>kore: removing *Mail.txt..."
+		working = true 
+		while working 
+			f = command.tree("/","Mail.txt","1","N") 
+			if typeof(f) == "file" then print "<size=75%>"+ command.rm(f) else working = false 
+		end while
+		print "<size=75%>kore: removing guest folder..."
+		print "<size=75%>"+command.rm("-r","/home/guest")
+		print "<size=75%>-- consider manually deleting /home"
+		print "<size=75%>kore: locking system..."
+        print "<size=75%>" + command.perms("lock","all")
         return 0
     end function
 
@@ -1222,13 +1235,14 @@ command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not get then return "lanpro: invalid argument or router unreachable" else return get
 end function
 command.nsl = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup || reverse ip lookup || domain to ip</u>"+char(10)+
+	if arg1 == "-h" or arg1 == "help" then	return "<u>nsl || nslookup || reverse ip lookup || domain to ip</u>"+char(10)+
 	"Usage: nsl [opt:-t] [ip|domain] -- uses nslookup on ip|domain and returns domain|ip as a string"+char(10)+
 	"Example:<b> nsl www.burger.org | probe </b> -- gets the ip of burger.org and pipes to probe."+char(10)+
 	"NOTE: nsl will append <b>www.</b> to a domain if it is omitted."+char(10)+
 	"Usage: nsl [ip] -- returns domain linked to ip (reverse lookup)"+char(10)+
 	"Usage: nsl [domain] -- returns ip linked to domain (normal lookup)"+char(10)+
 	"Ope: [-t] -- passing -t as first param will set global targetIP to ip"
+	
 	if not localmachine.is_network_active then return "nsl: no network connection."
 	print "<u>"+colorGold+"= = = = NSLOOKUP = = = ="
 	set_targ = false
@@ -1238,6 +1252,8 @@ command.nsl = function(arg1, arg2, arg3=0, arg4=0)
 		arg2 = arg3 
 		arg3 = arg4 
 	end if
+	if not arg1 then arg1 = command.ifconfig("-p")
+	if typeof(arg1) != "string" then return "nsl: invalid input"
 	address = arg1
 	if typeof(address) != "string" then return "nsl: expects string"
 	print "Address: "+address//+char(10)
@@ -1654,6 +1670,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	mak_bin = false
 	map_path = home_dir + "/Config/Map.conf"
 	map_file = localmachine.File(map_path)
+	map_dat = ""
 	if not map_file and not get_custom_object.hasIndex("kraken_map") then
 		print( "kraken: Map.conf not found " )
 		mak_map = user_input("- Create it as binary or text?"+char(10)+"[<b>B|b</b> - create binary Map.conf]"+char(10)+"[t] - create text Map.conf"+char(10)+"[n|q] - abort ||: ",0,1)
@@ -1669,6 +1686,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		else 
 			mak_bin = true 
 		end if
+		
 	end if
 
 	////////// if map file is binary, process that, otherwise process text file
@@ -1755,28 +1773,37 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		for char in string
 			if char != " " then final = final + char
 		end for
+		final = command.string("-r","""","""""",final)
+		if DEBUG then print "debug: final: "+final
+
 		//localmachine.touch(currentPath, "Map.new")
-		new_map = localmachine.File(map_path)
-		//new_map_parent = new_map.parent.path
-		new_map_parent = home_dir+"/Config"
+		//new_map = localmachine.File(map_path)
+		new_map = globals.get_file(map_path)
+		new_map_parent_path = "/root/Config"
+		if new_map then 
+			new_map_parent_path = new_map.parent.path 
+		else 
+			if checkUser(localmachine) != "root" then new_map_parent_path = "/home/"+checkUser(localmachine)+"/Config"
+		end if
+		//new_map_parent = home_dir+"/Config"
 		// new stuff for binary Map.conf
 		if mak_bin == true or new_map.is_binary then 
 			KRAKEN_PASS = "password" // temp location of this variable
-			bin_buf = "if user_input(""Authenticate: "") != ""password"" then exit ""Authentication failed"";get_custom_object.kraken_map = """+command.string("-r","""","""""",final)+""""
+			if DEBUG then print "debug: string is: "+string
+			bin_buf = "if user_input(""Authenticate: "") != ""password"" then exit ""Authentication failed"";get_custom_object.kraken_map = """+final+""""
 			if DEBUG then print "debug: bin_buf: "
 			if DEBUG then print bin_buf
 			if DEBUG then print
 			if DEBUG then print "debug: map line: >> "
-			if DEBUG then print final
 			if DEBUG then print
 			if DEBUG then print "debug: poking source file"
-			make_file = command.poke("Map.conf.src")	
+			make_file = command.poke("Map.conf.src",bin_buf)	
 			if DEBUG then print "debug: poked"
-			make_file.set_content(bin_buf )
+			//make_file.set_content(bin_buf )
 			if DEBUG then print "debug: content set"
 			if DEBUG then print "debug: building..."
-			print command.make("Map.conf.src", new_map_parent)
-			print "kraken: [binary] Map.conf built. Please secure the file's permissions."
+			// next line will hopefully RunFast(tm)
+			mk = command.make(make_file.path, new_map_parent);print mk;if mk == "make: build successful" then; make_file.set_content("");print "kraken: [binary] Map.conf built. Please secure the file's permissions."; else; return "kraken: failed";end if
 		else 
 			new_map.set_content(final)
 			print "kraken: write to [text] Map.conf complete"
@@ -2519,90 +2546,62 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	"A "+colorOrange+"metaxploitLib "+CT+"is the object obtained from include_lib("+colorOrange+"metaxploit.so"+CT+")"+char(10)+
 	"<color=yellow>A "+colorLightBlue+"metaLib"+CT+" is the object obtained from metaxploit.load() or net_session.dump_lib"+char(10)+
 	"<color=yellow>A net_session object will dump a "+colorLightBlue+"metaLib"+CT+" object"+char(10)+
-	"<color=yellow>A "+colorLightBlue+"metaLib"+CT+" gets scanned, a "+colorOrange+"metaxploitLib "+CT+"does the scanning."+char(10)+
+	"<color=yellow>A "+colorLightBlue+"metaLib"+CT+" gets scanned, a "+colorOrange+"metaxploitLib "+CT+"does the scanning"+char(10)+
 	"- - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - "+char(10)+
-	"The <color=yellow>meta</color> command is used for fine control over metaLib and metaxploitLib processes"+char(10)+
-	"Usage: meta -- print the currently linked "+colorLightBlue+"metaLib"+CT+" name and version if any."+char(10)+
-	"Usage: meta link -- links a remote netsession using targetIP and TargetPort"+char(10)+
-	"<u>Usage: meta link [opt] [opt]-- links a remote or local "+colorLightBlue+"metaLib"+CT+char(10)+
-	"-- this is equivalent to the 5phinx [+] or [=] buttons"+char(10)+
-	colorCyan+"Usage: meta link ["+colorLightBlue+"metaLib"+CT+"] -- directly link a piped metaLib object"+char(10)+
-	colorCyan+"Usage: meta link -l [opt:lib_name]</color></b> -- link a local "+colorLightBlue+"metaLib"+char(10)+
+	"The <color=yellow>meta</color> command is used for fine control over "+colorLightBlue+"</b>metaLib"+CT+" and "+colorOrange+"</b>metaxploitLib"+CT+" processes"+char(10)+
+	"<b>Usage: meta -- print the currently linked "+colorLightBlue+"</b>metaLib"+CT+" name and version if any"+char(10)+
+
+	colorCyan+"Usage: meta load ["+colorLightBlue+"</b>metaLib"+CT+"] -- directly load a piped metaLib object"+char(10)+
+	"-- meta link [metaLib] and meta [metaLib] will also be accepted"+char(10)+
+	colorCyan+"Usage: meta load [opt:"+colorLightBlue+"</b>lib_name</color>] -- load a local "+colorLightBlue+"</b>metaLib"+char(10)+
 	"-- passing a lib name will link that lib if it is in /lib"+char(10)+
 	"-- not passing a lib name will bring up the menu"+char(10)+
 	"----- the menu will display libs in the <b>localhost</b>'s /lib folder"+char(10)+
-	"----- if using an imported "+colorOrange+"metaxploitLib "+CT+" the list will be wrong"+char(10)+
-	"----- selecting a lib from the list that is present on the target will still work"+char(10)+
-	"----- the "+colorOrange+"metaxploitLib "+CT+" object looks at the lib folder of it's native machine"+char(10)+
-	"----- use the ls command to get the correct contents of /lib "+char(10)+
-	"----- or run the db -m command with a glasspool shell/computer on the target"+char(10)+
-	colorCyan+"Usage: meta link -r [opt:ip] [opt:port]</color></b> -- link a remote net_session "+char(10)+
+	"----- if using an imported "+colorOrange+"</b>metaxploitLib"+CT+" the list may be wrong"+char(10)+
+	"----- selecting a lib from the list that is present on the target <b>will still work</b>, but"+char(10)+
+	"--- the "+colorOrange+"</b>metaxploitLib"+CT+" object loads from the lib folder of it's native machine"+char(10)+
+	"----- use the command while in glasspool to get the correct contents of /lib "+char(10)+
+	"------- if you have an available shell/computer that matches the metaxploitLib"+char(10)+
+	colorCyan+"Usage: meta link [opt:"+colorLightBlue+"</b>ip</color>] [opt:"+colorLightBlue+"</b>port</color>] -- link a remote net_session "+char(10)+
+	"-- dumps the "+colorLightBlue+"</b>metaLib"+CT+" from the net_session and loads it"+char(10)+
 	"-- uses global targetIP and targetPort if ip and port are not passed"+char(10)+
-	"-- skips confirmation "+char(10)+
 	"-- passing ip and port sets global targetIP and targetPort"+char(10)+
 	"-- if ip is passed without port; defaults to targetPort (or router if not set)"+char(10)+
-	colorCyan+"Usage: meta scan -- scans the linked "+colorLightBlue+"</b>metaLib"+CT+" and loads vulns to memory"+char(10)+
+	colorGold+"</b>Note: both link and load will attempt to run <b>linkdb</b> on the "+colorLightBlue+"</b>metaLib"+char(10)+
+	colorCyan+"</b>Usage: meta scan -- scans the loaded "+colorLightBlue+"</b>metaLib</color> and loads vulns to memory"+char(10)+
+	"-- uses the currently active "+colorOrange+"</b>MetaxploitLib"+CT+" object"+char(10)+
 	"-- does NOT update the database"+char(10)+
 	"-- equivalent to 5phinx [1]"+char(10)+
 	"-- use db -r or db -l or db -m for databasing"+char(10)+
 	"-- use zap or roil or 5phinx [A] or [2] after scanning to fire the exploits"+char(10)+
-	colorCyan+"Usage: meta -i [path|"+colorOrange+"metaxploitLib"+CT+"]</color></b> -- import a new "+colorOrange+"metaxploitLib "+CT+char(10)+
+	colorCyan+"</b>Usage: meta [-i|import] [path|"+colorOrange+"</b>metaxploitLib</color></b>] -- import a new "+colorOrange+"metaxploitLib "+CT+" object"+char(10)+
 	"-- imports from a path or from a piped object"+char(10)+
+	"-- use <b>meta restore</b> to revert to the <u>previously used</u>"+colorOrange+" metaxploitLib"+CT+" object"+char(10)+
+	colorCyan+"</b>Usage: meta "+colorLightBlue+"</b>return</color> -- return the currently linked"+colorLightBlue+"</b> metaLib"+CT+" object"+char(10)+
+	colorCyan+"</b>Usage: meta ["+colorOrange+"</b>-x"+CT+"] -- return the current "+colorOrange+"</b>metaxploitLib"+CT+" object"+char(10)+
 	"- - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - "+char(10)+char(10)+
 	"Next: once a metaLib or net_session is linked:"+char(10)+
 	"-- scan the imported object with <b>meta scan</b> or <b>db -m</b>"+char(10)+
-	"-- if not using db use roil to send all attacks at once (does not database results)"+char(10)+
-	"-- use <b><color=green>db -m</b></color> to force databasing the linked metaLib "+char(10)+
-	"-- n.b: running db without -m will cause db to look for a new lib to link and overwrite the linked metaLib)"+char(10)+
-	char(10)+
-	"Note: importing a "+colorOrange+"metaxploitLib"+CT+" from your server to a remote target allows using your hardware to scan the targets local libs."+char(10)+
-	"--Likewise, exporting a remote "+colorLightBlue+"</b>metaLib"+CT+" back to your server allows you to use your hardware to scan the remote libs."+char(10)+
-	"-- use <b>bios> along with <b>cob get</b> and <b>cob set</b> to import/export objects"
+	"-- if not using db use roil to send all attacks at once"+char(10)+
+	"-- use <b><color=green>db -m</b></color> to force databasing the linked "+colorLightBlue+"metaLib "+char(10)+
+	"-- n.b: running db without -m will cause db to look for a new lib to link and overwrite the linked "+colorLightBlue+"metaLib"+char(10)+char(10)+
+	"Note: importing a "+colorOrange+"</b>metaxploitLib"+CT+" from your server to a remote target"+char(10)+
+	"-- allows using your hardware to scan the target's local libraries."+char(10)+
+	"-- Likewise, exporting a remote "+colorLightBlue+"</b>metaLib"+CT+" back to your server "+char(10)+
+	"---- allows you to use your hardware to scan the remote libs."+char(10)+
+	"-- use <b>bios> along with <b>cob get</b> and <b>cob set</b> to import/export objects"+char(10)+char(10)+
+	"eg: <b>meta -i @o myx1 | meta link net.so | meta -i @o myx0 | meta scan"+char(10)+
+	"-- a library from the machine connected to myx1 will be scanned using"+char(10)+
+	"---- the hardware of the machine connected to myx0"
 	//if not globals.metaxploit then return "metaxploit.so not found"
 	if arg1 then
-		if arg1 == "restore" then 
-			if globals.backup_meta then 
-				globals.metaxploit = globals.backup_meta 
-				if typeof(globals.metaxploit) == "MetaxploitLib" then return "meta: previous metaxploitLib restored" else return colorRed+"meta: error! backup metaxploitLib corrupted!"+char(10)+"-- use <b>meta -i [/path]</b> to manually restore"
-			else 
 
-			end if
+		if typeof(arg1) == "MetaLib" then 
+				globals.metaLib = arg1
+				print "meta: loaded new <b>MetaLib</b> object"
+				return command.linkdb(arg1.lib_name+" v "+arg1.version,"-y")
 		end if
-		if arg1 == "link" then
-			if not globals.metaxploit then return colorRed+"meta: error: metaxploitLib not found"
-			arg = 0
-			if arg2 and typeof(arg2) == "MetaLib" then 
-				globals.metaLib = arg2
-				return "meta: imported new MetaLib object"+char(10)+"-- ready to scan"
-			end if
-			if not arg2 then 
-				link_me = user_input("[l]ocal or [<b>R</b>]emote (q=quit) ||: ",0,1)
-				if link_me.lower == "l" then arg2 = "-l" else arg2 = "-r"
-				if link_me.lower == "q" then return "meta: link aborted"
-			end if
-			if arg2 and arg2 == "-l" then
-				arg = "L"
-				scan_this_lib = null
-				//if arg3 and typeof(arg3) == "string" then scan_this_lib = arg3 
-				scan_this_lib = arg3
-				return command.linkdb(get_lib(arg,scan_this_lib),"-y") //else return "meta: invalid metaLib"// edit get_lib to take 3rd param: auto link
-			end if
-			if arg2 and arg2 == "-r" then 
-				arg = "Y"
-				if arg3 and is_valid_ip(arg3) then 
-					globals.targetIP = arg3
-					if arg4 then
-						if typeof(arg4.to_int) == "number" or arg4 == "router" then globals.targetPort = arg4.to_int else print "meta: invalid port"+char(10)+"-- defaulting to: "+globals.targetPort
-					end if 
-				end if
-				if globals.targetIP then // and globals.targetPort then
-					if not localmachine.is_network_active then return "meta: no network connection!"
-					return command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
-				else
-					return "meta: unable to establish connection."+char(10)+"-- check parameters and try again."
-				end if
-			end if
-		end if
+	
 		if arg1 == "import" or arg1 == "-i" then 
 			if not arg2 or (typeof(arg2) != "string" and typeof(arg2) != "MetaxploitLib") then return "meta: -i expects a metaxploitLib object or a path to a metaxploit.so"
 			print "<size=75%>meta: backing up current metaxploit object"
@@ -2610,11 +2609,58 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			if typeof(arg2) == "string" then globals.metaxploit = include_lib(globals.get_file(arg2).path) else globals.metaxploit = arg2
 			if not globals.metaxploit or typeof(globals.metaxploit) != "MetaxploitLib" then 
 				globals.metaxploit = globals.backup_meta
-				if typeof(arg2) == "string" then reason = "invalid path" else reason = "invalid input"
+				if typeof(arg2) == "string" then reason = "-- invalid path" else reason = "-- invalid input"
 				return "meta: metaxploit import failed: "+char(10)+reason+char(10)+"meta: backup metaxploit restored"
 			end if
-			print colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"<size=75%>meta: use <b>meta restore</b> to revert back to the last metaxploitLib"+char(10)+"<size=75%>-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
+			return colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"<size=75%>meta: use <b>meta restore</b> to revert back to the last metaxploitLib"+char(10)+"<size=75%>-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
 		end if
+	
+		if arg1 == "restore" then 
+			if globals.backup_meta then 
+				globals.metaxploit = globals.backup_meta 
+				if typeof(globals.metaxploit) == "MetaxploitLib" then return "meta: previous metaxploitLib restored" else return colorRed+"meta: error! backup metaxploitLib corrupted!"+char(10)+"-- use <b>meta -i [/path]</b> to manually restore"
+			else 
+				return "meta: no backup metaxploitLib to restore"
+			end if
+		end if
+	
+		if not globals.metaxploit then return "metaxploit.so not found"
+	
+		if arg1 == "link" or arg1 == "-r" then
+			arg = 0
+			if arg2 and typeof(arg2) == "MetaLib" then 
+				globals.metaLib = arg2
+				print colorLightBlue+"</b><size=75%>meta: linked new <b>MetaLib</b> object"
+				return command.linkdb(arg2.lib_name+" v "+arg2.version,"-y")
+			end if
+			if not localmachine.is_network_active then return "meta: no network connection!"
+			arg = "Y"
+			if arg2 and is_valid_ip(arg2) then globals.targetIP = arg2
+			if arg3 and (typeof(arg3.to_int) == "number" or arg3 == "router") then globals.targetPort = arg3.to_int
+			if globals.targetIP then // and globals.targetPort then
+				return command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
+			else
+				return "meta: invalid target IP"
+			end if
+		end if
+	
+		if arg1 == "load" or arg1 == "-l" then 
+			if arg2 and typeof(arg2) == "MetaLib" then 
+				globals.metaLib = arg2
+				print colorLightBlue+"</b><size=75%>meta: loaded new <b>MetaLib</b> object:"
+				return command.linkdb(arg2.lib_name+" v "+arg2.version,"-y")
+			end if
+			arg = "L"
+			//scan_this_lib = null
+			//if arg3 and typeof(arg3) == "string" then scan_this_lib = arg3 
+			scan_this_lib = arg2
+			return command.linkdb(get_lib(arg,scan_this_lib),"-y") //else return "meta: invalid metaLib"// edit get_lib to take 3rd param: auto link
+		end if
+	
+		if arg1 == "return" then return globals.metaLib
+
+		if arg1 == "-x" then return globals.metaxploit
+	
 		if arg1 == "scan" then
 			if not globals.metaxploit then return colorRed+"meta: error: metaxploitLib not found"
 			if globals.metaLib then
@@ -2623,14 +2669,24 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			else
 				print("meta: please establish a net session"+char(10)+"-- or load a lib with:"+char(10)+"<b>meta link [-l|-r]</b> "+char(10)+"-- before scanning" )
 			end if
+			return 0
 		end if
+	
 	end if
-	return 0
+	
+	if not globals.metaxploit then print "meta: metaxploit.so not found" 
+	if typeof(globals.metaLib) == "MetaLib" then return globals.metaLib.lib_name + " v " +globals.metaLib.version
+	return "meta: no MetaLib linked"
+	
 end function
 command.zap = function(arg1, arg2, arg3, arg4)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: zap -- select attack. Equivalent to 5phinx [A]"+char(10)+"Usage: zap [memory_address] [unsec_value] [opt:pass|ip] -- manual attack."
+	if arg1 == "help" or arg1 == "-h" then return "ZAP || Single Attack || overflow || exploit"+char(10)+
+	"Usage: zap -- select attack; Equivalent to 5phinx [A]"+char(10)+
+	"Usage: zap [memory_address] [unsec_value] [opt:pass|ip] -- manually input overflow parameters"+char(10)+
+	"Usage: zap [int] -- run the attack at index [int] "
 	if not metaLib then return "Link metaLib before continuing."
-	if arg1 and arg2 then
+	print colorRed+"<size=75%><u>zap:<color=white> zapping..."
+	if arg1 and arg2 and typeof(arg1) != "number" and typeof(arg1.to_int) != "number" then
 		result = null
 		if arg3 then
 			result = globals.metaLib.overflow( arg1, arg2, arg3 )
@@ -2640,7 +2696,7 @@ command.zap = function(arg1, arg2, arg3, arg4)
 		if result and result != 1 then globals.BUFFER.push(result)
 		return result
 	end if
-	return globals.select_attack
+	return globals.select_attack(arg1)
 end function
 command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Attack All | Spam Attack | Run all Exploits | Into the Roil"+char(10)+
@@ -2972,6 +3028,7 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
     if not option_flags or option_flags == "help" or option_flags == "-h" then return " osint || open source information || OSINT || fuzzer"+char(10)+
     colorWhite+"Usage: osint [option] [ip_octet_rules] [user_name] [bool:spool]"+char(10)+
 	"-- scour domains for valid emails using: user_name@domain"+char(10)+
+	"note: a mail account is required to use this function"+char(10)+
     colorGold+"</b>Options:"+char(10)+
 	"  "" ""  [-l|list] -- return output as a list of domain strings"+char(10)+
     "  "" ""  [-s|space] -- return output as a string of single spaced domains"+char(10)+
@@ -2989,17 +3046,17 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
     "--eg: 1-200.1-1.0-234.1-255"+char(10)+
     colorGold+"</b>User name:"+char(10)+
     "Input: any npc user name "+char(10)+
-    colorGold+"Output:"+char(10)+
-	"--  osint will perform a whois lookup on each ip"+char(10)+
-    "---- parse the string for the ip's domain"+char(10)+
-    "---- attempt to login to username@domain to determine if it exists"+char(10)+
-    "---- on positive hit, push domain to output buffer"+char(10)+
-    "---- return results based on options"+char(10)+
     colorGold+"Spool:"+char(10)+
 	"-- bool:[1|0] pass a positive value for the 'spool' parameter to write results to disk"+char(10)+
-    "-- writes to current_path/spool.osint"
+    "-- writes to current_path/spool.osint"+char(10)+
+	colorGold+"Output:"+char(10)+
+	"--  osint will perform a whois lookup on each ip"+char(10)+
+    "---- parse the string for the ip's domain"+char(10)+
+    "---- attempt to locate username@domain to determine if it exists"+char(10)+
+    "---- on positive hit, push domain to output buffer"+char(10)+
+    "---- return results based on options"
 	// banner
-	print colorLightBlue+"<u><size=125%>OS"+colorWhite+"int npc finder v0.8 by Plu</color>70"
+	print colorLightBlue+"<u><size=125%>OS"+colorWhite+"int npc finder v0.9 by Plu</color>70"
 	// handle error checking and input validation
 	if not octet_rules or (typeof(octet_rules) != "string" and typeof(octet_rules) != "list") then return "osint: invalid octet rules: expects list or string"
 	if not user_name or typeof(user_name) != "string" then return "osint: invalid user name: expects string "
