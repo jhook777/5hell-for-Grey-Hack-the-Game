@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.8.7...(147.392)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9...(147.625)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -525,71 +525,71 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	if gresult != [] then output = gresult.join(char(10))
 	return output
 end function
-command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
-	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
-	"Usage: tree [path|object] -- view filesystem from path down"+char(10)+
-	"Usage: tree [opt: path(string)|object(object)] [opt: grep_target(string)] [quiet: 1|0] [opt: r|y|n]"+char(10)+
-	"-- [path] - path to descend"+char(10)+
-	"-- [object] - shell or computer: descends from / on object"+char(10)+
-	"-- [object] - file: descends from path of file object on said object"+char(10)+
-	"-- [grep_target] - search for target file by name"+char(10)+
-	"---- matches exact name (no regex)"+char(10)+
-	"---- <b>returns the file as an object if found</b>"+char(10)+
-	"-- [1|0] -  1 = quiet, supress output"+char(10)+
-	"-- [1|0] -  0 = verbose, print output"+char(10)+
-	"-- [r|n|y] - r = send to t_buf, n = ignore, y = decipher (default is <b>r</b>)"+char(10)+
-	"---- this option determines where bank.txt, mail.txt, passwd, and others are stored when encountered"+char(10)+
-	"---- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+
-	"-- e.g:<b> tree / database.csv 1 N | file -b</b> "+char(10)+
-	"---- find database.csv on filesystem, display properties, pipe to BUFFER"+char(10)+
-	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
-	colorGreen+"-- -- -- -- -- --"+char(10)+
-	"<b>New: tree -f [path|object] [object|path] [opt: 1|0 ] - tree a directory or object and enumerate all files "+char(10)+
-	"-- omitting path|object (and opt) defaults to the / path"+char(10)+
-	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
-	"-- [opt: 0] - print output. default"+char(10)+
-	"---- omitting this option will print output"+char(10)+
-	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"+char(10)+
-	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
-	"Usage: tree -f [path] -- tree from path, enumerate to enum, print output"+char(10)+
-	"Usage: tree -f [object] -- tree from object's <b>/</b> directory, enumerate, print output"+char(10)+
-	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"+char(10)+
-	"Usage: tree -f [path|object] [object|path] -- tree from object's [path] directory, enumerate, print output"+char(10)+
-	"       -- this option will return the file or folder at path as an object if it exists"+char(10)+
-	"Usage: tree -f [param] [param] [1|0] -- performs as above but does <b>not</b> print output"+char(10)+
-	"N.B. tree -f [1] is ignored because it results in absolutely nothing happening"+char(10)+
-	"n.b. tree -f returns a string except as stated above"
-	tem = null
-	use_new_tree = false
-	if arg1 == "-f" then 
-		use_new_tree = true 
-		arg1 = arg2 
-		arg2 = arg3 
-		arg3 = arg4 
-		// new tree stuff goes here
+// command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
+// 	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
+// 	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
+// 	"Usage: tree [path|object] -- view filesystem from path down"+char(10)+
+// 	"Usage: tree [opt: path(string)|object(object)] [opt: grep_target(string)] [quiet: 1|0] [opt: r|y|n]"+char(10)+
+// 	"-- [path] - path to descend"+char(10)+
+// 	"-- [object] - shell or computer: descends from / on object"+char(10)+
+// 	"-- [object] - file: descends from path of file object on said object"+char(10)+
+// 	"-- [grep_target] - search for target file by name"+char(10)+
+// 	"---- matches exact name (no regex)"+char(10)+
+// 	"---- <b>returns the file as an object if found</b>"+char(10)+
+// 	"-- [1|0] -  1 = quiet, supress output"+char(10)+
+// 	"-- [1|0] -  0 = verbose, print output"+char(10)+
+// 	"-- [r|n|y] - r = send to t_buf, n = ignore, y = decipher (default is <b>r</b>)"+char(10)+
+// 	"---- this option determines where bank.txt, mail.txt, passwd, and others are stored when encountered"+char(10)+
+// 	"---- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+
+// 	"-- e.g:<b> tree / database.csv 1 N | file -b</b> "+char(10)+
+// 	"---- find database.csv on filesystem, display properties, pipe to BUFFER"+char(10)+
+// 	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
+// 	colorGreen+"-- -- -- -- -- --"+char(10)+
+// 	"<b>New: tree -f [path|object] [object|path] [opt: 1|0 ] - tree a directory or object and enumerate all files "+char(10)+
+// 	"-- omitting path|object (and opt) defaults to the / path"+char(10)+
+// 	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
+// 	"-- [opt: 0] - print output. default"+char(10)+
+// 	"---- omitting this option will print output"+char(10)+
+// 	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"+char(10)+
+// 	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
+// 	"Usage: tree -f [path] -- tree from path, enumerate to enum, print output"+char(10)+
+// 	"Usage: tree -f [object] -- tree from object's <b>/</b> directory, enumerate, print output"+char(10)+
+// 	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"+char(10)+
+// 	"Usage: tree -f [path|object] [object|path] -- tree from object's [path] directory, enumerate, print output"+char(10)+
+// 	"       -- this option will return the file or folder at path as an object if it exists"+char(10)+
+// 	"Usage: tree -f [param] [param] [1|0] -- performs as above but does <b>not</b> print output"+char(10)+
+// 	"N.B. tree -f [1] is ignored because it results in absolutely nothing happening"+char(10)+
+// 	"n.b. tree -f returns a string except as stated above"
+// 	tem = null
+// 	use_new_tree = false
+// 	if arg1 == "-f" then 
+// 		use_new_tree = true 
+// 		arg1 = arg2 
+// 		arg2 = arg3 
+// 		arg3 = arg4 
+// 		// new tree stuff goes here
 		
 
-	end if 
-	if arg1 then
-		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
-		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
-		if arg1 == "@clipc"  or arg1 == "@c" then arg1 = globals.clip_board_gamma
-		if typeof(arg1) == "string" then tem = localmachine.File(arg1)
-		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
-		if typeof(arg1) == "computer" then tem = arg1.File("/")
-		if typeof(arg1) == "file" then tem = arg1
-	else
-		tem = localmachine.File("/")
-	end if
-	if not tem or not p_validate(tem,"size") then return "tree: invalid path or file"
-	if arg3 == "0" then arg3 = 0
-	if use_new_tree == true then return globals.newtree(tem,arg2)
-	globals.grepped_file = null
-	globals.list_files(tem, arg2, arg3, arg4)
-	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
-	return 0
-end function
+// 	end if 
+// 	if arg1 then
+// 		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
+// 		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
+// 		if arg1 == "@clipc"  or arg1 == "@c" then arg1 = globals.clip_board_gamma
+// 		if typeof(arg1) == "string" then tem = localmachine.File(arg1)
+// 		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
+// 		if typeof(arg1) == "computer" then tem = arg1.File("/")
+// 		if typeof(arg1) == "file" then tem = arg1
+// 	else
+// 		tem = localmachine.File("/")
+// 	end if
+// 	if not tem or not p_validate(tem,"size") then return "tree: invalid path or file"
+// 	if arg3 == "0" then arg3 = 0
+// 	if use_new_tree == true then return globals.newtree(tem,arg2)
+// 	globals.grepped_file = null
+// 	globals.list_files(tem, arg2, arg3, arg4)
+// 	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
+// 	return 0
+// end function
 command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
 	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
@@ -2044,7 +2044,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 				return "cerebrum: invalid type. expects /path or file_object or @home."
 			end if
 		end if
-		print(colorGold+"Importing..."+char(10)+colorGold+"<align=center><<>></align>"+CT)
+		print(colorGold+"<size=75%>cerebrum: importing dictionary..."+char(10)+colorGold+"<align=center><size=75%><<>></align>"+CT)
 		if infile and not infile.is_binary then
 			d_b = infile.get_content
 			globals.dict_a([])
@@ -2593,7 +2593,7 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
 	"-- select [s] - save and enter a filename for the zeroday data"+char(10)+
 	colorLightBlue+"MetaLib Patching:"+char(10)+
 	"Procedure: once <b>zc</b> and unit_testing are complete:"+char(10)+
-	"-- select the MetaLib from the BUFFER (or <b>bios -m | code</b> if it is still linked)"+char(10)+
+	"-- select the debugLibrary from the BUFFER (or <b>bios -m | code</b> if it is still linked)"+char(10)+
 	"-- select patch and enter the path to patch.zd"
     // colorWhite+"Usage: zc [user] [password] [MetaLib_object|MetaLib_name]</color> -- autosolve debugLibrary unit_testing and produce patch"+char(10)+
     // "-- [user] - should be a neurobox engineer username gleened from investigating a<b> zero day rumor"+char(10)+
