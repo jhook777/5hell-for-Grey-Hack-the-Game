@@ -239,6 +239,7 @@ globals._import_tables = function()
 end function
 
 globals._startup_resource_configuration  = function()
+  if stack_pool then return 0
   r = command.tree("/","rkit","1","N")
   if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
   p = null
