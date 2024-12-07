@@ -1,17 +1,21 @@
 // Sphinx Hacking Interface v 2.5.8 by Plu70
-if DEBUG then print("<size=75%>loading 5phinx.5pk v 2.6.9 for 5hell v 3.9.8.7...(140.963kb)</size>")
 
 //Define Globals
-sphinx_version = "2.6.9"
-malp_version = "1.3.9"
+sphinx_version = "2.7.1"
+malp_version = "1.4.0"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9...(147.356kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
-localip = localmachine.local_ip
-pubip = localmachine.public_ip
+// localip = function()
+//   return localmachine.local_ip
+// end function
+// pubip = function()
+//   return localmachine.public_ip
+// end function
 //shell = get_shell // compatibility with plugins
 //currentPath = current_path
 
-cryptools = globals.crypto
+//cryptools = globals.crypto
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -27,11 +31,12 @@ end function
 
 _exit = @exit
 globals.exit = function(msg)
-  eob = get_custom_object
-  eob.return_value = msg
+  eob = get_custom_object // end of business, if you were wondering
+  eob.return_value = msg 
   _exit(msg)
 end function
 
+// make this more better good by searching the whole filesystem
 hot_swap_libs = function()
   globals.metaxploit = null
   globals.apt_get = include_lib("/lib/aptclient.so")
@@ -222,9 +227,46 @@ globals.stack_pool = function(opt=null)
   return get_custom_object.stack_pool
 end function
 
+globals._import_tables = function()
+  t = command.tree("/","tables","1","N")
+  if not t then return "tree: tables not found"
+  for f in t.get_folders 
+    if f.name == "tp" then 
+      return command.cerebrum("-i",f.path)
+    end if
+  end for
+  return 0
+end function
+
+globals._startup_resource_configuration  = function()
+  r = command.tree("/","rkit","1","N")
+  if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
+  p = null
+  for f in r.get_files 
+    if f.name == "do.rc" then p = f 
+  end for
+  if not p then return "tree: do.rc not found"
+  if p.is_binary then return "tree: do.rc is binary!"
+  if not p.has_permission("r") then return "do: do.rc is read protected"
+  c = p.get_content.split(char(10))
+  print colorGold+"<size=50%>kore:"+colorWhite+" ...rkit/do.rc detected, beginning resource configuration..."
+  for line in c
+    command.shell(line+" | return")
+  end for
+  return 0
+end function
+
 mail_user_list = function(ip_address, port)
   if not crypto then return 0
   return crypto.smtp_user_list( ip_address , port )
+end function
+
+globals._export_metax = function() // export metaxploit to the custom object: called on startup
+  s = globals.stack_pool
+  g = get_custom_object
+  m = globals.metaxploit 
+  g["myx"+s] = m 
+  return 0
 end function
 
 globals.sus = function(a,b,c,d) // expects libname v version
@@ -580,7 +622,7 @@ globals.trythis = function(function_reference, function_name)
     return self.success
   end function
 
-  try.this(@function_reference, function_name)
+  return try.this(@function_reference, function_name)
 end function 
 
 globals.rsi_purge = function()
@@ -1586,30 +1628,24 @@ globals.memory_alpha = function(go_to_buffer=null)
     end if
     if waitFor == "8" then
       print("<size=75%>Showing processes...")
-      p_buf = localmachine.show_procs.split(char(10))
-      i = 0
-      if DEBUG then print "debug: "+p_buf
-      for line in p_buf 
-        if i == 0 then line = colorWhite+"</b>"+line else line = colorCyan+"</b>"+line
-        if line.split(" ").indexOf("dession") != null then line = line.replace("dsession",colorRed+"</b>dsession")
-        p_buf[i] = line
-        i = i + 1
-      end for
-      print format_columns(p_buf.join(char(10)))
+      // p_buf = localmachine.show_procs.split(char(10))
+      // i = 0
+      // if DEBUG then print "debug: "+p_buf
+      // for line in p_buf 
+      //   if i == 0 then line = colorWhite+"</b>"+line else line = colorCyan+"</b>"+line
+      //   if line.split(" ").indexOf("dession") != null then line = line.replace("dsession",colorRed+"</b>dsession")
+      //   p_buf[i] = line
+      //   i = i + 1
+      // end for
+      // print format_columns(p_buf.join(char(10)))
+      print command.ps
       continue
     end if
     if waitFor == "9" then
       print("<size=75%>Showing processes... (dessions cannot be killed)")
       p_buf = localmachine.show_procs.split(char(10))
       if DEBUG then print "debug: "+p_buf
-      i = 0
-      for line in p_buf 
-        if i == 0 then line = colorWhite+"</b>"+line else line = colorCyan+"</b>"+line
-        if line.split(" ").indexOf("dession") != null then line = line.replace("dsession",colorRed+"</b>dsession")
-        p_buf[i] = line
-        i = i + 1
-      end for
-      print format_columns(p_buf.join(char(10)))
+      print command.ps
       k_tar = user_input("Enter target process ID or name to kill (<<b>enter</b>>=abort)"+char(10)+":> ")
       processes = []
       //print(procs)
@@ -2536,7 +2572,7 @@ silentclean = function()
   return command.silentclean
 end function
 
-select_attack = function()
+globals.select_attack = function(waitFor=null)
   if not metaLib then return "Link metaLib before continuing."
   memory = []
   custom_mem = ""
@@ -2549,7 +2585,9 @@ select_attack = function()
     i = i + 1
   end for
   print(format_columns(data))
-  waitFor = user_input("Select an exploit #: ").val
+  if typeof(waitFor) != "string" and typeof(waitFor) != "number" then return "zap: invalid input"
+  if typeof(waitFor) == "string" then waitFor = waitFor.to_int
+  if not waitFor then waitFor = user_input("Select an exploit #: ").val
   if waitFor == 0 then
     custom_mem = user_input("Enter memory address: ")
     if custom_mem == "" then return
@@ -3223,6 +3261,10 @@ sphinx_switch = function(resolve,tt)
     end if
     return true
   end if
+  if resolve == "*" or resolve == "/" then 
+    if globals.net_session then print command.db("-r","*") else print command.db("-l","*")
+    return true
+  end if
   if resolve == "4" or resolve.lower == "i" then
     catch = set_ip
     return true
@@ -3235,7 +3277,7 @@ sphinx_switch = function(resolve,tt)
     command.mail
     return true
   end if
-  if resolve == "7" or resolve == "LeftArrow" then
+  if resolve == "7" or resolve == "LeftArrow" or resolve.lower == "m" then
     memory_alpha
     return true
   end if
@@ -3254,46 +3296,81 @@ end function
 
 
 print_help = function()
-  print("Sphinx v" + sphinx_version + ", by Plu70   localhost: "+localmachine.local_ip)
+  print(colorRed+"Sphinx</color> v" + sphinx_version + ",<color=white> by Plu70   </b></color>running on localhost: "+localmachine.local_ip)
   print("<b>////////////////////////////////////////////</b>"+CT)
-  print("Press the key in []'s to activate a command:")
+  print("<b>Press the key in </b>[]<b>'s to activate a command:")
   print("A MetaLib is a scanned library (e.g. libssh 1.0.1) aka a<b> lib </b>")
   print("A vuln is a vulnerability in a MetaLib that may be exploited")
   print
-  print("<b>[4] or [i] - set target IP address (leave blank to default to current gateway)</b>")
-  print("[5] or [p] - manually change target port without changing IP")
-  print(colorCyan+"<b>[0] or [w] - perform port scan of target IP if target IP is a public ip.</b>"+char(10)+"       Additional prompt if target IP is a lan address.")
-  print(colorCyan+"<b>[+] or [=] - connect/load MetaLib. Establishes net_session</b> "+char(10)+"      (this leaves a log) or loads <b>local lib</b> for scanning/exploiting")
-  print("      n.b. if the target MetaLib is known in the database then this will "+char(10)+"      prompt to load the known vulns into memory")
-  print("[-] - unload currently loaded MetaLib and clear vulns in memory")
-  print("[1] or [s] - scan MetaLib at target IP/port and load vulns into memory."+char(10)+"      Does <u>not</u> update database")
-  print("[2] or [r] - perform 'hail mary' attack using all vulns loaded into memory")
-  print(colorCyan+"<b>[3] or [d] - scan target MetaLib, attack using all vulns, <b>update database</b> with results</b>")
-  print("[a] - select single attack to launch from vulns loaded into memory")
-  print("    - all results from [2], [3] and [a] are sent to BUFFER in memory alpha-")
-  print("[6] - access command.mail (default Herme5 mail) may also use down_arrow")
-  print(colorCyan+"<b>[7] - access command.malp (memory alpha) may also use <u>left_arrow</u></b>")
-  print("      n.b. results of roil/dbaser go to the BUFFER "+colorOrange+"[5]"+CT+" in malp")
-  print("[8] - access xtra menu, may also use right_arrow")
-  print("[9] - access bank heist, may also use up_arrow. n.b. bank heist is kinda crappy")
-  print("[z] - wipe local system.log. (sets I/O to 0 bytes aka empty text file)")
-  print("      n.b. changes in file size of system.log will trigger an alert.")
-  print("           i.e. size 0 (text) to any size (binary) or binary to text")
-  print("[F1] or [?] - access this help file ")
-  print("[q] - leave 5phinx and return to 5hell (perserves state so you may return)")
+  print(colorWhite+"To begin, select an ip and port to target:")
+  print(colorCyan+"</b>["+colorWhite+"4</b></color>] or ["+colorWhite+"i</b></color>] - set target IP and port \n-- <b>leave blank to default to current gateway")
+  print(colorCyan+"</b>["+colorWhite+"5</b></color>] or ["+colorWhite+"p</b></color>] - manually change target port without changing target IP")
+  print(colorCyan+"</b>["+colorWhite+"0</b></color>] or ["+colorWhite+"w</b></color>] - port scan (nmap) target IP"+char(10)+
+  "-- if target IP is not a router, 5phinx will attempt to locate the router, halfheartedly")
+  print(colorCyan+"</b>["+colorWhite+"+</b></color>] or ["+colorWhite+"=</b></color>] - connect or load MetaLib"+char(10)+
+  "--: [<b>y</b>] or <b>enter</b> establishes a net_session</b> "+char(10)+
+  "--: this leaves a connection established log on servers but not on routers"+char(10)+
+  "--: selecting [<b>l</b>] instead loads a <b>local lib</b> for scanning/exploiting")
+  print("--: if the target MetaLib is known in the database 5phinx will automatically link the entry\n--: and load the vulns (xploits) into memory")
+  print("["+colorWhite+"-</b></color>] - will unload the currently loaded MetaLib and clear vulns in memory")
+  print(colorCyan+"</b>["+colorWhite+"1</b></color>] or ["+colorWhite+"s</b></color>] - scan MetaLib at target IP:port and load vulns (xploits) into memory."+char(10)+
+  "--: this does <u>not</u> update the database"+char(10)+
+  "--: while the vuln requirements may be viewed in malp option [2] "+char(10)+
+  "--: the information is not stored"+char(10)+
+  "--: this is useful if you: want to scan a target without writing to the target's filesystem"+char(10)+
+  "--: or you want to scan a target without overwriting you current database entry")
+  print(colorCyan+"</b>["+colorWhite+"2</b></color>] or ["+colorWhite+"r</b></color>] - perform 'hail mary' attack using all vulns (xploits) loaded into memory"+char(10)+
+  "--: does not database results")
+  print(colorCyan+"<b>["+colorWhite+"3</b></color>] or ["+colorWhite+"d</b></color>] - scans the target IP and port"+char(10)+
+  "--: if a local metaLib has been loaded with [<b>=</b>] then db will database that instead of the target IP"+char(10)+
+  "--: attacks using all exploits found"+char(10)+
+  "--: <b>updates the database</b> with the results</b>"+char(10)+
+  "--: loads vulns (xploits) to memory"+char(10)+
+  "--: will overwrite the entry if a lib is databased again"+char(10)+
+  "--: it is not necessary to link a remote lib with [=] to use db on a remote target") 
+  print(colorCyan+"["+colorWhite+"a</b></color>] - select a single attack from memory to launch at the target"+char(10)+
+  "--: the same as the <b>zap</b> command"+char(10)+
+  "--: to manually enter a [mem] [string] press enter at the menu and fill in the values")
+  print(colorCyan+"</b>["+colorWhite+".</b></color>] - run the <b>dig</b> command against the target (see dig -h)"+char(10)+
+  "--: if dig.bat is not in rkit, a very basic dig.bat will be created"+char(10)+
+  "--: edit dig.bat to perform whatever tasks you want dig to auto-execute when attacking the target"+char(10)+
+  "--: dig uses the 'do' command to perform actions"+char(10)+
+  "--: you may include instructions in dig.bat to launch other bat files with do"+char(10)+
+  "--: any bat file, including dig.bat, may contain a call to shell.launch 5hell with a 'do' launch parameter"+char(10)+
+  "--: this allows you to spread 5hell like the plague"+char(10)+
+  "--: dig does not support digging /lib, use a do script for that")
+  print(colorCyan+"</b>["+colorWhite+"*</b></color>] or ["+colorWhite+"/</b></color>] - run <b>db</b> against all libs or ports in /lib or at target IP"+char(10)+
+  "--: if a local lib is linked then all libs in /lib will be databased"+char(10)+
+  "--: if no lib is linked then all libs in /lib will be databased"+char(10)+
+  "--: link a net_session with a port or router on the target to db all reachable ports")
+  print("--:<b> all results from <b>[2], [3], [.], [*], and [a]</b> "+char(10)+
+  "--: are sent to the "+colorOrange+"BUFFER</color></b> in memory alpha")
+  print("[6] - access the mail command"+char(10)+
+  "--: may also use the down arrow key")
+  print(colorCyan+"<b>["+colorWhite+"7</b></color>] or ["+colorWhite+"m</b></color>] - access the malp command (Memory Alpha)\n--: you may also use the <u>left_arrow</u></b> key")
+  print("--: from malp select "+colorOrange+"[5] to access the BUFFER")
+  print("[8] - access xtra menu, may also use the right arrow key")
+  print("[9] - access bank heist, may also use the up arrow key\n--: n.b. bank heist is kinda crappy\n--: and bank accounts contain almost nothing")
+  print(colorCyan+"</b>["+colorWhite+"z</b></color>] - wipe the local system.log"+char(10)+
+  "--: sets log to a text file of size 0"+char(10)+
+  "--: when returning to 5phinx's main menu, if the log has changed, an alert will print")
+  print("["+colorWhite+"F1</b></color>] or [?] - access this help file ")
+  print("[<b>q</b>] - leave 5phinx and return to 5hell \n--: preserves state so you may return"+char(10)+"--: shares state with 5hell")
   print
-  print("n.b. running command.probe from 5hell will set the target IP (and optionally"+char(10)+"      target port) for 5phinx")
+  print("n.b. running command.probe from 5hell will set the target IP and port for 5phinx")
   print("n.b. command.zap in 5hell is the same as [a] in 5phinx")
   print("n.b. command.roil in 5hell is the same as [2] in 5phinx")
   print("n.b. command.meta link  in 5hell is the same as [=]/[+] in 5phinx")
   print("n.b. database.csv is always <b>written</b> to /root/rkit/database.csv")
   print("n.b. database.csv may be read from anywhere (uses first copy found on system)")
-  print("     convention is to keep a copy of 5hell, metaxploit, crypto, database.csv"+char(10)+"      in /root/rkit along with other useful tools for easy uploading")
-  print("     this is important if you wish to use command.dig!!!")
+  print("n.b. convention is to keep a copy of 5hell, metaxploit, crypto, database.csv"+char(10)+
+  "--: in /root/rkit along with other useful tools for easy uploading"+char(10)+
+  "--: you may use <b>kore -r</b> to quickly construct the rkit")
   print
-  print("5hell/5phinx does not phone home and therefore does not autoupdate.")
+  print("5hell/5phinx does not phone home and therefore does not autoupdate"+char(10)+
+  "--: 5hell is now open source so the above is a moot point")
   print("5hell/5phinx is a product of Ra'al Tek and is written by jhook777 aka Plu70 aka Ra'al")
-  print("all rights reserved 2020-2022")
+  print("all rights reserved 2020-2024")
   print
   stop = user_input("press <<b>anyKey</b>> to continue",0,1)
 end function
@@ -3358,26 +3435,51 @@ main = function()
         end if
         if PI[0] == "libcam" or PI[0] == "cam" then target_type = "camera"
         if PI[0] == "http" then target_type = "http"
+        if PI[0] == "ssh" then target_type = "ssh"
+        if PI[0] == "rshell" then target_type = "rshell"
+        if PI[0] == "employees" or PI[0] == "criminals" or PI[0] == "students" or PI[0] == "bank" then target_type = "sql"
+        if PI[0] == "smtp" then target_type = "mail"
+        if PI[0] == "smartappliance" then target_type = "appliance"
       end if
       if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
         target_type = "local"
       end if
       if target_type == "camera" then
-        print("Target:________CAMERA_________Port Map: <b>Loaded</b>")
+                          print("Target:________CAMERA_________Port Map: <b>Loaded</b>")
       else
         if target_type == "computer" then
-          print("Target:______COMPUTER_________Port Map: <b>Loaded</b>")
+                          print("Target:_______SERVER__________Port Map: <b>Loaded</b>")
         else
           if target_type == "router" then
-            print("Target:________ROUTER_________Port Map: <b>Loaded</b>")
+                          print("Target:________ROUTER_________Port Map: <b>Loaded</b>")
           else
             if target_type == "http" then
-              print("Target:_______WEB_SERVER______Port Map: <b>Loaded</b>")
+                          print("Target:_______WEB_SERVER______Port Map: <b>Loaded</b>")
             else
               if target_type == "local" then
-                print("Target:________LOCAL__________Port Map: <b>Loaded</b>")
+                          print("Target:________LOCAL__________Port Map: <b>Loaded</b>")
               else
-                print("Target:___Set_with_[4]____Port Map: <b>Loaded</b>")
+                if target_type == "ssh" then
+                          print("Target:_______SSH_SERVER______Port Map: <b>Loaded</b>")
+                else 
+                  if target_type == "rshell" then 
+                          print("Target:_____RSHELL_SERVER_____Port Map: <b>Loaded</b>")
+                  else 
+                    if target_type == "sql" then 
+                          print("Target:_______SQL_SERVER______Port Map: <b>Loaded</b>")
+                    else 
+                      if target_type == "mail" then 
+                          print("Target:______MAIL_SERVER______Port Map: <b>Loaded</b>")
+                      else
+                        if target_type == "appliance" then 
+                          print("Target:_________DEVICE________Port Map: <b>Loaded</b>")
+                        else 
+                          print("Target:___Set_Port_with_[5]___Port Map: <b>Loaded</b>")
+                        end if
+                      end if
+                    end if
+                  end if
+                end if
               end if
             end if
           end if
@@ -3390,7 +3492,8 @@ main = function()
         print("Target:___Set_with_[4]____Port Map:"+colorOrange+" Not</b> Loaded</color>")
       end if
     end if
-    print(format_columns("[ " + targetIP + " ] [ " + targetPort + " ]"))
+    if targetPort == "router" then print_port = "0" else print_port = targetPort
+    print(format_columns("[ " + targetIP + " ] [ " + print_port + " ]"))
     if portInfo then
       print(format_columns("[ " + tarLan +   " ] [ " + portInfo +    " ]" ))
     end if
@@ -3426,7 +3529,7 @@ main = function()
       print("001 SET IP WITH [<color=white>4</color>] 0<b>.")
       print("000 SET PT WITH [<color=white>5</color>] 0<b>.")
     end if
-    print("["+colorWhite+"."+CT+"]DIG.["+colorWhite+"4"+CT+"]<b>IP</b>.[<b>5</b>]<b>PORT</b>.")
+    print("["+colorWhite+"."+CT+"]DIG.["+colorWhite+"4"+CT+"]<b>IP</b>.["+colorWhite+"5</b></color>]<b>PORT</b>.")
     print("[Q][A][Z]["+char(177)+"].6<b>v</b>7<b><</b>8<b>></b>9<b>^</b>.")
     option = user_input("[0][1][2][3][4][5].<b>||: ",0,1)
     running = sphinx_switch(option,target_type)
