@@ -30,6 +30,7 @@
 // 5hell.src: REAL comment characters added to 5hell.src 
 // -- these are escaped from command.shell's input param only!
 // -- essentially this means do scripts (including dig.bat, and do.rc)
+// -- current comment chars are #, -, /
 // todo: add global BOOLS to enable/disable the startup procedures
 // added startup_resource_configuration
 // added startup import cerebrum
