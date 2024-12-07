@@ -1,11 +1,16 @@
 // 5hell v 3.9.8 by Plu70
 // released v 3.9.8
 // imports .5pk files from /root/src
-ver = "3.9.8.8_nightly_terrors"
+ver = "3.9.9_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
-NIGHTLY = true // set to true if playing nightly, false if playing public!
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "139.899"
+/////// check for nightly, we don't want certain functions called if we are on public
+/////// set to true if playing nightly, false if playing public
+globals.NIGHTLY = false
+f = get_shell.host_computer.File("/")
+if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
+////// end check for nightly
+size_of_5hell = "141.627"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -37,6 +42,13 @@ cryptoLibVersion = "0.0.0"
 if globals.metaxploit then metaLibVersion = globals.metaxploit.load(meta_path).version
 if crypto and metaxploit then cryptoLibVersion = globals.metaxploit.load(cryp_path).version
 
+globals.localip = function()
+	return localmachine.local_ip
+end function
+globals.pubip = function()
+	return localmachine.public_ip
+end function
+
 globals.BIGBRAIN = false
 globals.GLASSPOOL = 0
 globals.command_buffer = []
@@ -55,8 +67,8 @@ globals.backup_meta = null
 targ = {"ip":"0.0.0.0", "pt":0} // edit this to match your server or pass ip and port when calling transmit or target ip and port
 if params and params.len > 0 then targ.ip = params[0]
 if params and params.len > 1 then targ.pt = params[1].to_int
-globals.localip = localmachine.local_ip
-globals.pubip = localmachine.public_ip
+//globals.localip = localmachine.local_ip
+//globals.pubip = localmachine.public_ip
 globals.neurobox_user = ""
 globals.neurobox_pass = ""
 globals.clip_board_alpha = "" 
@@ -342,7 +354,7 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 			continue 
 		end if
 		line = colorCyan+"</b>"+line
-		line = line.replace("dsession",colorRed+"</b>dsession").replace("Xorg",colorLightBlue+"</b>Xorg").replace("kernel_task",colorLightBlue+"</b>kernel_task").replace("ps",colorRed+"</b>ps(suspicious!)")//.replace("root",colorOrange+"<b>root</color>").replace("guest",colorWhite+"<b>guest</color>")
+		line = line.replace("dsession",colorRed+"</b>dsession").replace("Xorg",colorLightBlue+"</b>Xorg").replace("kernel_task",colorLightBlue+"</b>kernel_task").replace("ps",colorRed+"</b>ps(suspicious!)").replace("5hell",colorRed+"5"+colorWhite+"hell")//.replace("root",colorOrange+"<b>root</color>").replace("guest",colorWhite+"<b>guest</color>")
 		p_buf[i] = line
 		i = i + 1
 	end for
@@ -801,17 +813,18 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		end for
 
 		if home != null and arg2 != "down" then//home == "y" or home == "Y" then
-			print(colorBlack+"<mark=red>Auto-detected: u r home</mark>"+CT+char(10)+"Rerun with:<b> perms lock down </b>to force lock all.")
+			print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- locking file permissions")
 			command.perms("g+x","/bin/sudo")
 			command.perms("g+x","/bin/psudo")
 			command.perms("g+x","/bin/ssh")
 			command.perms("g+x","/usr/bin/Terminal.exe")
 			command.perms("g+x","/usr/bin/Chat.exe")
 			command.perms("g+x","/usr/bin/Mail.exe")
-			print("<b>User permissions relaxed</b>...")
+			print("<b><size=75%>perms: setting critical binaries to <b>g+x</b>...")
+			print("<size=75%>perms: rerun with <b>perms lock all</b> to force full lockdown")
 		end if
 		if arg2 == "partial" then command.perms("-R","g+x", "/")
-		return "perms: lockdown complete"+char(10)+"-- unless otherwise noted above"
+		return "perms: lockdown complete"
 	end if
 	perms = arg1
 	pathFile = arg2
@@ -1405,7 +1418,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		globals.enumerated = arg1
 		return "enum: list enumerated"
 	end if
-	if typeof(arg1) == "map" then
+	if typeof(arg1) == "map" or typeof(arg1) == "custom_object" or typeof(arg1) == "shell" or typeof(arg1) == "computer" or typeof(arg1) == "file" then
 	globals.enumerated = []
 		for a in arg1
 			globals.enumerated.push(a)
@@ -1805,7 +1818,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			"<u><mark=red>=============</u></mark>"+char(10)+
 			"(all commands are valid but note interactive commands will still require interaction)"
 		else
-			return colorGold+"<u>DO || SCRIPTING || AUTOMATION || NOT BASH || BATCH COMMANDS"+char(10)+
+			return colorGold+"<u>DO || SCRIPTING || AUTOMATION || NOT BASH || BATCH COMMANDS || DORC || BASHRC"+char(10)+
 			colorWhite+"</b>The scheduling or automation service for 5hell. You write a set of"+char(10)+
 			colorWhite+"</b>commands for 5hell to <b>do</b>. Commands may be entered in-line on the"+char(10)+
 			colorWhite+"</b>command line, entered into a text editor buffer, or read from a text file."+char(10)+
@@ -1846,7 +1859,11 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			colorLightBlue+"</b>---- press 'y' if you wish to exit, press enter or any other key to continue running"+char(10)+
 			colorGold+"This allows 5hell to launch 5hell with instructions to launch 5hell with instructions to..."+char(10)+
 			colorLightBlue+"</b>-- keep in mind there is a game limit of 15 <u>nested</u> uses of shell.launch"+char(10)+
-			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning <b>do 1000 dig -s</b> is completely valid"
+			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning <b>do 1000 dig -s</b> is completely valid"+char(10)+
+			colorGold+"Advanced: Resource Configuration"+char(10)+
+			colorCyan+"You may place a file named "+colorWhite+"do.rc</color> in your "+colorWhite+"rkit</color> folder"+char(10)+
+			colorLightBlue+"</b>-- the contents of the file should look like a standard <b>do</b> script and will be executed on launch"+char(10)+
+			colorLightBlue+"</b>-- unlike launching with <b>5hell do 1 -f do.rc</b>, this method will not prompt to exit on completion"
 		end if
 	end if
 	iter = 0
@@ -1995,7 +2012,9 @@ if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"
 "---- returns the blockchainLib object and pipes it to malp (to the BUFFER)"+char(10)+
 "---- note: cannot include_lib net.so, init.so, kernel_module.so"+char(10)+
 "------ only libs with API's may use include_lib"+char(10)+
-"------ use meta link to load those with the metaxploitLib"
+"------ use meta link to load those with the metaxploitLib"+char(10)+
+"Usage: bios --stack -- return the global stack_pool value (as a string numeral)"
+if arg1 == "--stack" then return str(globals.stack_pool)
 if arg1 == "-a" then return globals.apt_get 
 if arg1 == "-x" then return globals.metaxploit 
 if arg1 == "-c" then return globals.crypto 
@@ -2063,8 +2082,8 @@ if hdd_io then
 	h_c = hdd_io.get_content.split(char(10))
 	h_s = h_c[0].split(":")
 	h_n = 0
-	if h_s.len > 1 then h_n = h_s[1].val
-	if h_n then h_size = h_n - root.size.val else h_size = "<color=red>dev_sda error</color>"
+	if h_s.len > 1 then h_n = h_s[1].to_int
+	if h_n then h_size = h_n - root.size.to_int else h_size = "<color=red>dev_sda error</color>"
 end if
 if globals.stack_pool >= 15 then stack_print = "depleted; restart required" else stack_print = globals.stack_pool
 bios_info.push("<mark=red><size=85%>|</size></mark>")
@@ -2276,7 +2295,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: Redit0")
 	print("5hell.src optimizations by: Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -2635,13 +2654,18 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 
-///////////////////////////////////////////////////////////////////////////////
+//////////////////////////set-pre-launch-conditions/////////////////////////////////////
 if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
 //if DEBUG then print("<size=75%>size_of_5hell["+globals.SHEBIG+"]")
 //if DEBUG then print("initializing portmap...")
 //if localmachine.is_network_active then command.probe("-q",pubip,"0","1")
-if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 if DEBUG then print("<size=75%>verifying stack_pool...")
-if DEBUG then print("<size=75%>stack_pool: ["+globals.stack_pool+"]") else globals.stack_pool
+sp = globals.stack_pool
+if DEBUG then print("<size=75%>stack_pool: ["+sp+"]") 
+if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib...")
+globals._export_metax // export our metaxploit on each startup
+if DEBUG then print("<size=75%>checking for tables/tp")
+itp = globals._import_tables // import tables/tp if it exists
+if DEBUG then print itp
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
 /////////////////////BEGIN MAIN////////////////////////////////////////////////
