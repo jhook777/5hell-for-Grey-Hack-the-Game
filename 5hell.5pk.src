@@ -1,7 +1,7 @@
 // 5hell v 3.9.8 by Plu70
 // released v 3.9.8
 // imports .5pk files from /root/src
-ver = "3.9.9_nightly_terrors"
+ver = "3.9.9.1_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -2082,8 +2082,8 @@ if hdd_io then
 	h_c = hdd_io.get_content.split(char(10))
 	h_s = h_c[0].split(":")
 	h_n = 0
-	if h_s.len > 1 then h_n = h_s[1].to_int
-	if h_n then h_size = h_n - root.size.to_int else h_size = "<color=red>dev_sda error</color>"
+	if h_s.len > 1 then h_n = h_s[1].val
+	if h_n then h_size = h_n - root.size.val else h_size = "<color=red>dev_sda error</color>"
 end if
 if globals.stack_pool >= 15 then stack_print = "depleted; restart required" else stack_print = globals.stack_pool
 bios_info.push("<mark=red><size=85%>|</size></mark>")
@@ -2295,7 +2295,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: Redit0")
 	print("5hell.src optimizations by: Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Sl3ekr, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
