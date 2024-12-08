@@ -27,6 +27,8 @@
 // todo: probe
 // todo: tree, ls: colorize symlinks
 //
+// kraken: hotfix to fix completely busted status
+//
 // if: fixed commands not evaluating correctly
 // -- ezclip evaluates before the if statement, this can cause problems
 // -- the solution is to use piping inside of if statements instead
