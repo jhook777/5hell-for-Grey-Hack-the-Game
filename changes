@@ -23,6 +23,20 @@
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
 //
+// todo: kraken
+// todo: probe
+// todo: tree, ls: colorize symlinks
+//
+// if: fixed commands not evaluating correctly
+// -- ezclip evaluates before the if statement, this can cause problems
+// -- the solution is to use piping inside of if statements instead
+// --eg: if " echo yes " " echo no " " /lib/net.so " " grep -p @a "
+// -- is better written as
+// --eg: if " echo yes " " echo no " " /lib/net.so " " clipa | grep -p "
+// usr: add user now takes a password param
+// usr: del user now takes a delete-home-dir boolean
+// cerebrum: will no longer import the dictionary on launch if it already exists in cob
+// do.rc: will only execute if stack_pool is 0
 // 
 // 5hell.src: fixed infinite loop when prompt[0] is a "|"
 // -- now if prompt[0] is a "|" the line will be skipped, 
