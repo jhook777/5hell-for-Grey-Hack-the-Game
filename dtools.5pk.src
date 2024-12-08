@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9...(147.625)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.2...(147.127)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2487,43 +2487,23 @@ command["if"] = function(arg1,arg2,arg3,arg4)
 	"-- the string itself is surrounded by floating single quotes"+char(10)+
 	"--eg: <b>file -r /etc | clipa |  | if "" echo true "" "" echo false "" @a "" grep -f etc  "" "+char(10)+
 	"-- which would result in <b>true</b> printing to the screen (provided etc actually existed)"
-	//s = @command["shell"]
-	// edit this to handle function references without executing
-	if @arg3 and typeof(@arg3) == "string" and globals.command.hasIndex(arg3.split(char(32))[0]) then 
-		//arg3 = @s(arg3+" | return")
-		a = arg3.split(char(32))
-		b = a.pull
-		f = @command[b]
-		arg3 = @f(a.join(char(32)))
-	end if
-	if @arg4 and typeof(@arg4) == "string" and globals.command.hasIndex(arg4.split(char(32))[0]) then 
-		a = arg4.split(char(32))
-		b = a.pull 
-		f = @command[b]
-		arg4 = @f(a.join(char(32)))
-		//arg4 = @s(arg4+" | return")
-	end if
+
+	s = @command["shell"]
+
+	if @arg3 and typeof(@arg3) == "string" and globals.command.hasIndex(arg3.split(char(32))[0]) then arg3 = @s(arg3+" | return")
+	if @arg4 and typeof(@arg4) == "string" and globals.command.hasIndex(arg4.split(char(32))[0]) then arg4 = @s(arg4+" | return")
 	print colorCyan+"<u>= = = evaluating = = =</u>"+char(10)+"<size=75%>"+colorCyan+"Result:"
+
 	if DEBUG then print "debug:_"+char(10)+@arg1+char(10)+@arg2+char(10)+@arg3+char(10)+@arg4
+
 	if arg3 == arg4 then
-		if @arg1 and typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then 
-			//arg1 = @s(arg1+" | return")
-			a = arg1.split(char(32)) 
-			b = a.pull 
-			f = @command[b]
-			arg1 = @f(a.join(char(32)))
-		end if
+		if @arg1 and typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then arg1 = @s(arg1+" | return")
 		if @arg1 isa string then return arg1.trim else return arg1
 	else 
-		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then 
-			//arg2 = @s(arg2+" | return")
-			a = arg2.split(char(32)) 
-			b = a.pull 
-			f = @command[b]
-			arg2 = @f(a.join(char(32)))
-		end if
+		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then arg2 = @s(arg2+" | return")
 		if @arg2 isa string then return arg2.trim else return arg2
 	end if
+
 	return 0
 end function
 command.sl = function(arg1,arg2,arg3,arg4)
