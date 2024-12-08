@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9...(153.958)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.2...(153.957)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -115,7 +115,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
 
     report_hdd = function()
         print "kore: setting up /virt/hdd.io..."
-        size_of_disk = user_input(colorGold+"kore: "+CT+"please enter your HDD size in bytes:"+char(10)+colorGold+":> </color>").to_int
+        size_of_disk = user_input(colorGold+"kore: "+CT+"please enter your HDD size in bytes:"+char(10)+colorGold+":> </color>").val
         if typeof(size_of_disk) != "number" or size_of_disk < 1 then return "kore: expects size as a positive integer"
         print command.mkdir("/virt")
         print command.poke("/virt/hdd.io", "dev_sda:"+size_of_disk)
