@@ -1,7 +1,7 @@
 // 5hell v 3.9.8 by Plu70
 // released v 3.9.8
 // imports .5pk files from /root/src
-ver = "3.9.9.1_nightly_terrors"
+ver = "3.9.9.2_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "141.627"
+size_of_5hell = "142.349"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -701,20 +701,41 @@ command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
   return file.copy( destination, final_name )
 end function
 command.usr = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "USR || ADD USER || CHOWN"+char(10)+"Usage: usr [optional: -r -- recursive] [new_owner] [path] "+char(10)+"Usage: usr [add|del] [opt:user] -- add | remove users from system."+char(10)+"Usage: usr [path] -- return owner of file at path"+char(10)+"-- Do not a name user add or del, for #reasons."+char(10)+"-- It is good practice to run:"+char(10)+"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+"for optimal security."
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "USR || ADD USER || CHOWN"+char(10)+
+	"Usage: usr [opt: -r] [new_owner] [path] "+char(10)+
+	"-- [-r] flag makes the command recursive on all files and folders below [path]"+char(10)+
+	"Usage: usr [-a|add] [opt:user] [opt:password] -- add a user to the system"+char(10)+
+	"-- omitting user and or password will result in a prompt for these values"+char(10)+
+	"Usage: usr [-d|del] [username] [opt:bool 1|0] -- delete a user from the system"+char(10)+
+	"-- 0 == do not delete the home folder"+char(10)+
+	"-- 1 == delete the home folder"+char(10)+
+	"-- any other value results in a prompt"+char(10)+
+	"Usage: usr [path] -- return owner of file at path"+char(10)+
+	"-- Do not a name user add or del, for #reasons."+char(10)+
+		"-- It is good practice to run:"+char(10)+
+		" |><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
+		"-- or <b> kore -s</b> for optimal security"
 	is_recursive = false 
 	if arg1 == "add" then
 		if not arg2 then arg2 = user_input("new_user:> ")
+		if not arg3 then arg3 = user_input(arg2+" password:> ")
 		if arg2 == "" then return "usr: aborting..."
-		print "usr: attempting to create user. Please secure the new folder if successful."
-		return localmachine.create_user(arg2, user_input(arg2+" password:> "))
+		print "usr: attempting to create user:<b> "+arg2
+		uc = localmachine.create_user(arg2, arg3)
+		if uc == 1 then return "-- user created" else return uc 
 	end if
 	if arg1 == "del" then
-		if not arg2 then arg2 = user_input("del_user:> ")
-		del_home = user_input("Delete /home/"+arg2+"? [Y/n] "+char(10)+"||: ",0,1)
-		if del_home.lower == "n" then del_home = 0 else del_home = 1
-		if arg2 == "" then return "usr: aborting..."
-		return localmachine.delete_user(arg2, del_home)
+		d_user = null
+		if not arg2 then d_user = user_input("del_user:> ") else d_user = arg2
+		del_home = null
+		if arg3 == "0" then del_home = false 
+		if arg3 == "1" then del_home = true 
+		if del_home == null then 
+			del_home = user_input("Delete /home/"+d_user+"? [Y/n] "+char(10)+"||: ",0,1)
+			if del_home == "n" then del_home = false else del_home = true
+		end if
+		ud = localmachine.delete_user(d_user, del_home)
+		if ud == 1 then return "usr: deleted user: "+d_user else return ud
 	end if
 	if arg1 == "-r" or arg1 == "-R" then 
 		arg1 = 1
