@@ -2219,7 +2219,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
 	inject = ""
-	if arg3 == "1" then
+	if arg4 == "1" then
 		inject = user_input("enter a lan ip for bounce exploits"+char(10)+"enter a password for password change exploits"+char(10)+"otherwise press enter"+":> ")
 	else
 		if is_lan_ip(targetIP) then
