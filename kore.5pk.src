@@ -2041,10 +2041,14 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	return format_columns(buf.join(char(10)))
 end function
 command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABASER/////////////////
-	if not globals.metaxploit then return colorRed+"</b>db: error: metaxploit is not loaded"
-	remote = false
-	pre_load = false
-	lib_path = ""
+	
+    if not globals.metaxploit then return colorRed+"</b>db: error: metaxploit is not loaded"
+	
+    remote = false
+    pre_load = false
+    inject = null
+    lib_path = ""
+
 	//globals.metaLib = null // this is an obstacle to using mutliple metalibs/metaxploitlibs
 	db_usage = "<b><u>DB || dbaser || Databaser</u>"+char(10)+
 	colorLightBlue+"</b>Automated remote port and local lib scanning and databasing."+char(10)+
@@ -2057,24 +2061,25 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	"-- "+colorWhite+"shell obtained on port ##"+char(10)+
 	colorOrange+"Note:</b> logs may be left in other ways. See: "+colorGreen+"help logs"+CT+" for more."+char(10)+char(10)+
 	"Note: targetIP and targetPort are set with <b>probe</b> and/or <b>target</b>"+char(10)+char(10)+
-	colorWhite+"</b>Usage: db ["+colorRed+"-r"+CT+"] [opt:ip] [opt:port] [bool:inject]"+char(10)+
+	colorWhite+"</b>Usage: db ["+colorRed+"-r"+CT+"] [opt:ip] [opt:port] [opt:inject]"+char(10)+
 	"-- scans given port and databases results"+char(10)+
 	"-- uses targetIP and targetPort if not supplied"+char(10)+
-	"-- supplying [1] for inject boolean results in a prompt"+char(10)+
+	"-- supplying [-i] for inject results in a prompt"+char(10)+
 	"---- enter a lan_ip or password for the inject value at the prompt"+char(10)+
 	"Usage: db -r [ip] <color=yellow>*</color> -- db all ports at given ip"+char(10)+
 	"Usage: db -r <color=yellow>*</color> -- db all ports of targetIP"+char(10)+char(10)+
-	colorWhite+"</b>Usage: db ["+colorCyan+"-l"+CT+"] [opt:lib_name] [bool:inject]"+char(10)+
+	colorWhite+"</b>Usage: db ["+colorCyan+"-l"+CT+"] [opt:lib_name] [opt:inject]"+char(10)+
 	"-- scan a local lib and database resutls"+char(10)+
 	"-- brings up menu if lib_name not supplied"+char(10)+
-	"-- supplying [1] for inject boolean results in a prompt"+char(10)+
+	"-- supplying [-i] for inject results in a prompt"+char(10)+
 	"---- enter a lan_ip or password for the inject value at the prompt"+char(10)+
 	"Usage: db -l <color=yellow>*</color> -- db all local libs"+char(10)+char(10)+
-	colorWhite+"</b>Usage: db ["+colorMagenta+"-m"+CT+"] [metaLib|metaxploitLib] [metaxploitLib|metaLib] "+char(10)+
+	colorWhite+"</b>Usage: db ["+colorMagenta+"-m"+CT+"] [opt:metaLib|metaxploitLib] [opt:metaxploitLib|metaLib] [opt:inject]"+char(10)+
 	"-- scan currently linked metaLib or piped metaLib with currently linked metaxploitLib or piped metaxploitLib"+char(10)+
 	"-- unlike other modes, this mode will not link a new metaLib"+char(10)+
 	"---- unless a metalib is piped to it"+char(10)+
 	"-- instead, it scans the already linked metaLib"+char(10)+
+	"-- supplying [-i] for inject results in a prompt"+char(10)+
 	"---- use <b>meta link [piped_metaLib]</b> to choose a metaLib to scan"+char(10)+
 	"---- use <b>meta -i [pipe_metaxploitLib]</b> to choose the scanning metaxploitLib"+char(10)+
 	"---- see <b>meta help</b> for more"+char(10)+char(10)+
@@ -2082,84 +2087,84 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	"Note: It is not possible exploit/database libs that are not in the /lib folder"+char(10)
 
 	// params: -h|-H -show help (same as run without params)
-	if (arg1 != "-l" and arg1 != "-r" and arg1 != "-m") or arg1 == "-h" or arg1 == "help" then return(db_usage)
-	// params: -r|-R -remote_ip (optional -p|-P -port),
+	if not arg1 or (arg1 == "-h" or arg1 == "help") then return(db_usage)
+
 	if DEBUG then print("In command.db...")
+
+    // params: -m -metaLib (scan linked metaLib or piped metaLib)
 	if arg1.lower == "-m" then 
 		pre_load = true
 		print colorLightBlue+"db: custom scan..."
-		if arg2 then 
+		if arg2 and arg2 != "-i" then 
 			if DEBUG then print "debug: db -m: arg2: "+arg2
 			if DEBUG then print "debug: db -m: arg3: "+arg3
 			if typeof(arg2) == "MetaxploitLib" then print command.meta("-i",arg2) 
 			if typeof(arg3) == "MetaxploitLib" then print command.meta("-i",arg3) 
 			if typeof(arg2) == "MetaLib" then print command.meta("link",arg2)
-			if typeof(arg3) == "MetaLib" then print command.meta("link",arg3) //globals.metaLib = arg3 
+			if typeof(arg3) == "MetaLib" then print command.meta("link",arg3)
 			// add some error checking here ^
 		end if
 		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"... ready."
 	end if
 	if not globals.metaxploit then return "metaxploit.so not found"
+
+    // params: -r|-R -remote (scan remote target)
 	if arg1.lower == "-r" then
 		remote = true
-		if not arg2 then
+		if not arg2 or arg2 == "-i" then
 			arg2 = globals.targetIP
 			arg3 = globals.targetPort
 		end if
-        if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3)
+        if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4)
         if not is_valid_ip(arg2) and arg2 != "*" then return "db: invalid target ip"
-		//if arg2 then
-			//if is_valid_ip(arg2) then globals.targetIP = arg2 else return "db: "+arg2+": invalid ip"
-			if is_valid_ip(arg3) then globals.targetIP = arg3
-			if is_valid_ip(arg2) then globals.targetIP = arg2
-			if arg2 == "*" then 
-				if is_valid_ip(arg3) then arg2 = arg3 else arg2 = globals.targetIP
-				arg3 = "*"
-			end if
-			if not globals.targetIP then return "db: error: supply or set a target ip"
-			if arg3 == "*" then 
-				// get all ports on target
-				if is_valid_ip(arg2) then rr = get_router(arg2) else rr = ""
-				if typeof(rr) == "router" then 
-					locals.ports = rr.used_ports
-					if DEBUG then print "debug: rr is a router. ports are: "+ports
-				else 
-					if DEBUG then print "debug: guessing gateway..."
-					gate_guess = arg2.split("\.")
-					gate_guess[-1] = "1"
-					gate_guess = gate_guess.join(".")
-					rr = get_router(gate_guess)
-					if typeof(rr) == "router" then 
-						locals.ports = rr.used_ports
-						if DEBUG then print "debug: rr found a router. ports are: "+ports
-					else 
-						return "db: target has non-standard gateway."+char(10)+"db: try again with gateway ip"
-					end if
-				end if
-				if DEBUG then 
-					if ports.len > 0 then print "debug: port[0]: "+ports[0].port_number else print "debug: no ports found"
-				end if
-				//locals.ports.push(0) // add the gateway port 0
-				//command.db(arg1, arg2, 0)
-				for port in locals.ports
-					p = str(port.port_number)
-					print colorCyan+"db: -r "+arg2+ " "+ p // we dont scan the router here. once this finishes, router is scanned below
-					command.db(arg1, arg2, p)
-				end for 
-			end if 
-			if arg3 == 0 or arg3 == "0" then arg3 = "router"
-			if typeof(arg3) == "number" then arg3 = str(arg3)
-			if arg3 != "router" and arg3 != "*" then
-				globals.targetPort = arg3.to_int
-			else
-				globals.targetPort = "router"
-			end if
-		//end if
+        if is_valid_ip(arg3) then globals.targetIP = arg3
+        if is_valid_ip(arg2) then globals.targetIP = arg2
+        if arg2 == "*" then 
+            if is_valid_ip(arg3) then arg2 = arg3 else arg2 = globals.targetIP
+            arg3 = "*"
+        end if
+        if not globals.targetIP then return "db: error: supply or set a target ip"
+        if arg3 == "*" then 
+            // get all ports on target
+            if is_valid_ip(arg2) then rr = get_router(arg2) else rr = ""
+            if typeof(rr) == "router" then 
+                locals.ports = rr.used_ports
+                if DEBUG then print "debug: rr is a router. ports are: "+ports
+            else 
+                if DEBUG then print "debug: guessing gateway..."
+                gate_guess = arg2.split("\.")
+                gate_guess[-1] = "1"
+                gate_guess = gate_guess.join(".")
+                rr = get_router(gate_guess)
+                if typeof(rr) == "router" then 
+                    locals.ports = rr.used_ports
+                    if DEBUG then print "debug: rr found a router. ports are: "+ports
+                else 
+                    return "db: target has non-standard gateway."+char(10)+"db: try again with gateway ip"
+                end if
+            end if
+            if DEBUG then 
+                if ports.len > 0 then print "debug: port[0]: "+ports[0].port_number else print "debug: no ports found"
+            end if
+            for port in locals.ports
+                p = str(port.port_number)
+                print colorCyan+"db: -r "+arg2+ " "+ p // we dont scan the router here. once this finishes, router is scanned below
+                command.db(arg1, arg2, p)
+            end for 
+        end if 
+        if arg3 == 0 or arg3 == "0" then arg3 = "router"
+        if typeof(arg3) == "number" then arg3 = str(arg3)
+        if arg3 != "router" and arg3 != "*" then
+            globals.targetPort = arg3.to_int
+        else
+            globals.targetPort = "router"
+        end if
 	end if
-	// arg: -l|-L -local_libs (/lib),
+
+	// params: -l|-L -local_libs (/lib) (scan local lib)
 	if arg1 == "-l" or arg1 == "-L" then
 		remote = false
-		if arg2 then
+		if arg2 and arg2 != "-i" then
 			if arg2 == "*" then          ///////// wildcard! babY! ////////////
 				lib_f = localmachine.File("/lib")
 				if not lib_f then return "db: /lib folder not found!"
@@ -2177,10 +2182,15 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			if DEBUG then print("lib_path "+lib_path)
 		end if
 	end if
+
 	// arg: -f|-F -path_to_file (add file or folder to db)
 	if arg1.lower == "-f" then
 		return "depricated function"
 	end if
+
+	// params: -i -inject (inject value)
+    if arg2 == "-i" or arg3 == "-i" or arg4 == "-i" then inject = user_input("enter a lan ip or password for injects:> ")
+
 	command.purge("-d", "y")
 	DATA = []
 	lib_info = function()
@@ -2218,10 +2228,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	if not globals.metaLib then return colorRed+"MetaLib: error 265: unable to link/load net_session/metaLib."+CT
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
-	inject = ""
-	if arg4 == "1" then
-		inject = user_input("enter a lan ip for bounce exploits"+char(10)+"enter a password for password change exploits"+char(10)+"otherwise press enter"+":> ")
-	else
+	if not inject or inject.trim == "" then
 		if is_lan_ip(targetIP) then
 			inject = targetIP
 		else
