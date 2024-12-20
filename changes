@@ -27,6 +27,9 @@
 // todo: probe
 // todo: tree, ls: colorize symlinks
 //
+// merged pr from muhahahahahe:
+// --: db: fixed inject value parameter/prompt
+//
 // kraken: hotfix to fix completely busted status
 //
 // if: fixed commands not evaluating correctly
