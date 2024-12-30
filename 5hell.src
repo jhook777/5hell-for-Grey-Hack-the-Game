@@ -59,7 +59,7 @@ import_code("/root/src/5hell.5pk")
 //-- skipping this configuration means you can't use the transmit command. up to you.
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
-//globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)"]
+//globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)"]
 globals.HOME_SERVER = ["ip.add.re.ss", 22, "root", "password", "ssh", "/root/pass"]
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
@@ -71,7 +71,7 @@ globals.HOME_SERVER = ["ip.add.re.ss", 22, "root", "password", "ssh", "/root/pas
 //
 ///////BEGIN MAIN ////////////////////
 // only edit this part if you know what you are doing!!!!! ////
-command.shell = function(input=null)
+command.shell = function(input=null,mute=null)
   //print // an extra line before the prompt, if you want
   running = true
   full_prompt = 1
@@ -118,7 +118,8 @@ command.shell = function(input=null)
 
     // get user input unless command.shell was called internally (do, cc, glasspool...) // do not edit
     if input then prompt = input.split(" ") else prompt = user_input(bang).split(" ") 
-    // flow control, do not edit
+    // flow control, edit with care
+    // add or remove comment characters to/from the string below
     if input and indexOf("|#-/", input[0]) != null then // thanks clover!
       return 
     else 
@@ -167,16 +168,16 @@ command.shell = function(input=null)
     // end pipe control
 
     // process the pre_processed input
-    while pipe.len                   
+    while pipe.len > 0                  
       // begin command parsing
       prompt = pipe.pull // no touchy
-      if next.len then prompt.push(next.pull) // no touchy
+      if next.len > 0 then prompt.push(next.pull) // no touchy
 
       // some folks like to edit the below line to do command.cc instead of continue
       if not prompt.len or prompt[0] == "" or prompt[0] == 0 or prompt[0] == "0" or prompt[0] == null then continue
       //
       if prompt[0] == "return" then 
-        print colorWhite+"<size=50%><u><color=red>5</color>hell: returning..."
+        if not mute then print colorWhite+"<size=50%><u><color=red>5</color>hell: returning..."
         if prompt.len > 1 then 
           return prompt[1] 
         else 
@@ -278,15 +279,15 @@ command.shell = function(input=null)
       end if
 
       if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
-      if pipe.len > 0 and pipe[0] == "return" then return @catch // added by me
-      print(@catch)
-      if pipe.len then next.push(@catch) // using @reference instead of literal bc functions may now be passed
+      if pipe.len > 0 and @pipe[0] == "return" then return @catch // added by me
+      if not mute then print(@catch)
+      if pipe.len > 0 then next.push(@catch) // using @reference instead of literal bc functions may now be passed
     end while         // end command parsing
   end while          // end main loop
 end function
 //////END MAIN//////
 //
-// 5hell uses the following color palatte:
+// 5hell uses the following color palette, changing these values will OVERWRITE the defaults:
 // GLOBAL       DEFINITION
 //colorRed = "<color=red><b>"
 //colorGreen = "<color=green><b>"
@@ -304,9 +305,10 @@ end function
 // more globals in template.5pk.src
 //
 if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
-////////////////// IMPRTS SECTION ////////////////////////////
+////////////////// IMPORTS SECTION ////////////////////////////
 /////// PASTE YOUR IMPORTED COMMANDS HERE!!  ////////
 /////// BE SURE TO FOLLOW THE TEMPLATE BELOW! ///////
+/////// feel free to reference internal functions and globals in your code! ///////
 // e.g:
 //
 // command.my_func = function(arg1, arg2=0,arg3=0,arg4=0)
@@ -340,7 +342,7 @@ if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 /////////////////END SECURITY///////////////////
 //
 //
-if DEBUG then print("<color=yellow><size=75%>checking for rkit/5hell.rc")
+if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
 // auto 'do' a batch file on startup
 // unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
 // only executes if 5hell.rc is located in a folder named rkit
