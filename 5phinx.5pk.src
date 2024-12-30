@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.5.8 by Plu70
+// Sphinx Hacking Interface v 2.7.3 by Plu70
 
 //Define Globals
-sphinx_version = "2.7.2"
+sphinx_version = "2.7.3"
 malp_version = "1.4.0"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.2...(147.457kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.6...(150.110kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -81,6 +81,7 @@ globals._ez_clip = function( in_prompt )
     // done reprocessing
     if DEBUG then print("p: "+@e)
     e_indx = in_prompt.indexOf(@e) 
+    if @e == "@STOP" then in_prompt[e_indx] = globals.SAFEWORD
     if @e == "@a" then in_prompt[e_indx] = @globals.clip_board_alpha
     if @e == "@b" then in_prompt[e_indx] = @globals.clip_board_beta
     if @e == "@c" then in_prompt[e_indx] = @globals.clip_board_gamma
@@ -167,7 +168,6 @@ globals._ez_clip = function( in_prompt )
 end function
 
 // checkUser function by Corvus, additions by Plu70
-//if DEBUG then print("<size=75%>loading checkUser.5pk...</size>")
 checkUser = function(result)
   if DEBUG then print("checkUser: "+@result)
   if typeof(@result) == "function" then return "function"
@@ -241,17 +241,23 @@ end function
 
 globals._startup_resource_configuration  = function()
   if stack_pool then return 0
-  r = command.tree("/","rkit","1","N")
-  if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
+  //
   p = null
-  for f in r.get_files 
-    if f.name == "do.rc" then p = f 
-  end for
+  r = globals.get_file(home_dir+"/Config/do.rc") // look for do.rc in ~/Config, first
+  if not r then 
+    r = command.tree("/","rkit","1","N") // look for do.rc in rkit if it isn't in /Config
+    if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
+    for f in r.get_files 
+      if f.name == "do.rc" then p = f 
+    end for
+  else 
+    p = r
+  end if 
   if not p then return "tree: do.rc not found"
   if p.is_binary then return "tree: do.rc is binary!"
   if not p.has_permission("r") then return "do: do.rc is read protected"
   c = p.get_content.split(char(10))
-  print colorGold+"<size=50%>kore:"+colorWhite+" ...rkit/do.rc detected, beginning resource configuration..."
+  print colorGold+"<size=50%>kore:"+colorWhite+" ...<u>do.rc</u> detected, beginning resource configuration..."
   for line in c
     command.shell(line+" | return")
   end for
@@ -796,7 +802,7 @@ end function
 //// Scribus
 scribus = function(f_obj)
 
-  print("\nScribus v 0.2.8 by Plu70\n//////////////////////\n(@h on newline for help)\n")
+  print("\nScribus v 0.2.9 by Plu70\n//////////////////////\n(@h on newline for help)\n")
 
   print_help = function()
     print
@@ -808,11 +814,13 @@ scribus = function(f_obj)
     print("@s - search for text (word, string, single char), returns all matches")
     print("@d - delete line (closes gap)")
     print("@r - replace line with new text")
-    print("@i - insert new line after line# (can be a blank line)")
+    print("@i - insert new line below a given line ")
+    print("@I - insert a new line above given line ")
     print("@c - clear the buffer (deletes all text)")
     print("@C - clear the screen (run clear_screen)")
     print("@t - trim whitespace from the buffer")
     print("@n - display buffer without parsing richtext or markup")
+    print("@N - as above, but without line numbers")
     print("@h - show this help file")
     print("@@ - abort and quit")
     print
@@ -857,6 +865,7 @@ scribus = function(f_obj)
         if buf[1] == "r" then             //////////////////////REPLACE LINE
           num_lines = array.len - 1
           i = 0
+          print
           for l in array
             print(i+": "+l)
             i = i + 1
@@ -866,6 +875,12 @@ scribus = function(f_obj)
             print("#: "+array[line])
             replacement_text = user_input("&: ")
             array[line] = replacement_text
+            i = 0
+            print
+            for l in array
+              print(i+": "+l)
+              i = i + 1
+            end for
             continue
           else
             print("Line "+line+" doesn't exist.")
@@ -874,6 +889,7 @@ scribus = function(f_obj)
         else
           if buf[1] == "l" then      ///////////////////////LIST LINES
             i = 0
+            print
             for l in array
               print(i+": "+l)
               //if i != 0 then print(i+": "+l)
@@ -896,6 +912,7 @@ scribus = function(f_obj)
             else
               if buf[1] == "d" then    //////////////////////DELETE
                 i = 0
+                print
                 for l in array
                   print(i+": "+l)
                   i = i + 1
@@ -909,44 +926,77 @@ scribus = function(f_obj)
                 if d_line >= 0 and d_line < array.len then
                   print("Deleting... "+array[d_line])
                   array.remove(d_line)
+                  i = 0
+                  print
+                  for l in array
+                    print(i+": "+l)
+                    i = i + 1
+                  end for
                   continue
                 else
                   print("Line "+d_line+" doesn't exist.")
                   continue
                 end if
               else
-                if buf[1] == "i" then  ///////////////////INSERT
+                if buf[1] == "i" or buf[1] == "I" then  ///////////////////INSERT
                   temp = []
                   i = 0
+                  print
                   for l in array
                     print(i+": "+l)
                     i = i + 1
                   end for
                   num_lines = array.len
                   if num_lines < 1 then
-                    print("File is empty.")
+                    print("buffer is empty.")
                     continue
                   end if
-                  i_line = user_input("Insert text after which line? (0 to " + (num_lines - 1) + ")\n%: ").val
-                  if i_line >= 0 and i_line < array.len then
-                    i_text = user_input("Text to insert after line: "+i_line+"\n%: ")
-                    for r in range(0,i_line)
-                      temp.push(array[r])
-                    end for
-                    temp.push(i_text)
-                    for a in range(i_line,array.len-1)
-                      if a > i_line then temp.push(array[a])
-                    end for
-                    array = temp
-                    i = 0
-                    for l in array
-                      print(i+": "+l)
-                      i = i + 1
-                    end for
-                    continue
-                  else
-                    print("Line "+d_line+" doesn't exist.")
-                    continue
+                  if buf[1] == "i" then // insert after
+                    i_line = user_input("Insert text after which line? (0 to " + (num_lines - 1) + ")\n%: ").to_int
+                    if i_line >= 0 and i_line < array.len then
+                      i_text = user_input("Text to insert after line: "+i_line+"\n%: ")
+                      for r in range(0,i_line)
+                        temp.push(array[r])
+                      end for
+                      temp.push(i_text)
+                      for a in range(i_line,array.len-1)
+                        if a > i_line then temp.push(array[a])
+                      end for
+                      array = temp
+                      i = 0
+                      print
+                      for l in array
+                        print(i+": "+l)
+                        i = i + 1
+                      end for
+                      continue
+                    else
+                      print("Line "+i_line+" doesn't exist.")
+                      continue
+                    end if
+                  else             // insert before
+                    i_line = user_input("Insert text before which line? (0 to " + (num_lines - 1) + ")\n%: ").to_int
+                    if i_line >= 0 and i_line < array.len then 
+                      i_text = user_input("Text to insert before line: "+i_line+"\n%: ")
+                      if i_line == 0 then 
+                       temp = [i_text]+array 
+                      else 
+                        temp = array[0:i_line]
+                        temp.push(i_text)
+                        temp = temp + array[i_line:]
+                      end if 
+                      array = temp
+                      i = 0
+                      print
+                      for l in array
+                        print(i+": "+l)
+                        i = i + 1
+                      end for
+                      continue
+                    else 
+                      print("Line "+i_line+" doesn't exist.")
+                      continue
+                    end if
                   end if
                 else
                   if buf[1] == "c" then ///////////CLEAR
@@ -965,6 +1015,7 @@ scribus = function(f_obj)
                       continue
                     else
                       if buf[1] == "L" then //////////List lines no numbers
+                        print
                         for l in array
                           print(l)
                         end for
@@ -977,6 +1028,7 @@ scribus = function(f_obj)
                           end for
                           array = t_array 
                           i = 0
+                          print
                           for l in array
                             print(i+": "+l)
                             i = i + 1
@@ -985,11 +1037,20 @@ scribus = function(f_obj)
                         else 
                           if buf[1] == "n" then 
                             i = 0
+                            print
                             for l in array
                               print(i+": "+"<noparse>"+l)
                               i = i + 1
                             end for
                             continue
+                          else 
+                            if buf[1] == "N" then 
+                              print
+                              for l in array 
+                                print "<noparse>"+l 
+                              end for 
+                              continue 
+                            end if
                           end if
                         end if
                       end if
@@ -1608,7 +1669,7 @@ globals.memory_alpha = function(go_to_buffer=null)
             else
               print(colorWhite+"-ftp---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
             end if
-            command.quite(exit(buffer_selection.start_terminal))
+            command.quit(exit(buffer_selection.start_terminal))
             continue
           end if
           if choice == "2" then 
@@ -1851,10 +1912,12 @@ globals.newtree = function(a_file,quiet=0)
   outprint = []
   for i in system_map.indexes
       for f in system_map[i].values
+          s = ""
+          if globals.NIGHTLY and f.is_symlink then s="<color=yellow>"
           if f.is_folder then 
-              outprint.push( "<size=85%><b><color=#2382FFFF>"+f.permissions+" "+f.path )
+              outprint.push( "<size=85%><b><color=#2382FFFF>"+f.permissions+" "+s+f.path )
           else 
-              if f.is_binary then outprint.push( "<size=80%><color=blue>|..<color=#00FFFF>"+f.permissions+" "+f.path) else outprint.push( "<size=80%><color=blue>|..</color><color=white>"+f.permissions+" "+f.path )
+            if f.is_binary then outprint.push( "<size=80%><color=blue>|..<color=#00FFFF>"+f.permissions+" "+s+f.path) else outprint.push( "<size=80%><color=blue>|..</color><color=white>"+f.permissions+" "+s+f.path )
           end if
           output.push(f)
       end for
@@ -1875,12 +1938,16 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
   //grepped_file = "File: " + grep + " not found."
   //if not quiet then print("Expanding: " + colorLightBlue+result.path)
   if not quiet then 
+    s = ""
+    if globals.NIGHTLY and result.is_symlink then s="<color=yellow>"
     if result.is_binary then 
       if not result.is_folder then 
-        print "<size=80%><color=blue>|..<color=#00FFFF>"+result.permissions+" "+result.path 
+        s = ""
+        if globals.NIGHTLY and result.is_symlink then s="<color=yellow>"
+        print "<size=80%><color=blue>|..<color=#00FFFF>"+result.permissions+" "+s+result.path 
       end if 
     else 
-      print "<size=80%><color=blue>|..</color><color=white>"+result.permissions+" "+result.path
+      print "<size=80%><color=blue>|..</color><color=white>"+result.permissions+" "+s+result.path
     end if
   end if
   if not result.is_binary then
@@ -2266,11 +2333,11 @@ shell_prompt = function(passShell)
     if waitFor == "y" or waitFor == "Y" then
       if globals.GLASSPOOL then
         print("Opening shell: "+passShell.host_computer.local_ip+"@"+passShell.host_computer.public_ip+"...")
-        passShell.start_terminal
+        exit passShell.start_terminal
         globals.update_path
       else
         print("Piping shell connection...")
-        passShell.start_terminal
+        exit passShell.start_terminal
         print(colorWhite+"Terminal session queued. Exit 5hell manually to begin.")
         globals.update_path
       end if
@@ -2285,7 +2352,7 @@ shell_prompt = function(passShell)
           if c_shell then
             globals.BUFFER.push(c_shell)
             ch = user_input("New shell sent to BUFFER. Open it? [y/N] ")
-            if ch == "Y" or ch == "y" then c_shell.start_terminal
+            if ch == "Y" or ch == "y" then exit c_shell.start_terminal
           else
             print("Failed to open shell. Check credentials and try again.")
           end if
@@ -2307,8 +2374,8 @@ shell_prompt = function(passShell)
     if typeof(try) == "shell" then
       globals.BUFFER.push(try)
       ch = user_input("New shell sent to BUFFER. Open it? [y/N] ||: ",0,1)
-      if ch == "Y" or ch == "y" then try.start_terminal
-      globals.update_path
+      if ch == "Y" or ch == "y" then exit try.start_terminal
+      //globals.update_path
       return try
     end if
     if try then print(try)
@@ -2510,7 +2577,7 @@ secure_connect = function(shll)
     print(            "[4] glasspool ")
     todo = user_input("[1] run [2] start terminal [3] scp"+char(10)+"[0|q] quit ||: ",0,1)
     if todo == "2" then
-      remote.start_terminal
+      exit remote.start_terminal
     end if
     if todo == "0" then
       print "aborting..."
