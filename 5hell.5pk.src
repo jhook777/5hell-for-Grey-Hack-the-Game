@@ -1,7 +1,7 @@
-// 5hell v 3.9.8 by Plu70
-// released v 3.9.8
+// 5hell v 3.9.9 by Plu70
+// released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.2_nightly_terrors"
+ver = "3.9.9.6_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "142.349"
+size_of_5hell = "151.713"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -101,6 +101,7 @@ end function
 //////////////////////////////////////////////////////////////////
 if DEBUG then ds = dict_a.len
 if DEBUG then print("<size=75%>dictionary loaded...("+(ds/1000)+"kb)</size>")
+globals.SAFEWORD = "stop_code" // use @STOP (or this value) in a do script and/or in an if statement within a do script to 'break' the do loop
 globals.routerLib = null
 globals.targetIP = null
 globals.targetPort = "router"
@@ -120,6 +121,7 @@ globals.airing = false
 globals.mail_user = null
 globals.last_mail = null
 globals.this_mail = 0
+
 
 colorRed = "<color=#FF0000FF><b>"
 colorGreen = "<color=#00FF00FF><b>"
@@ -286,9 +288,8 @@ command.passwd = function(arg1, arg2, arg3=0, arg4=0)
   return try
 end function
 command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "ECHO || echo || Echo || echO"+char(10)+
-	"Usage: echo [up] [to] [four] [params] -- returns concatonated params to the terminal"+char(10)+
-	char(10)+
+	if arg1 == "help" or arg1 == "-h" then return "ECHO || echo || Echo || echO"+char(10)+
+	"Usage: echo [up] [to] [four] [params] -- returns concatonated params to the terminal"+char(10)+char(10)+
 	"General usage is to echo text back to the terminal during batch script/macro execution."+char(10)+
 	"However, it may also be used to feed input to another command or concatonate outputs"+char(10)+
 	"of multiple commands. You may use floating quotes (single quotes not touching another"+char(10)+
@@ -298,8 +299,7 @@ command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
 	"-- output: Eat at Joe's diner. <color=red>Because</color> it's the best."+char(10)+
 	"|> echo three four | echo one two -- output: one two three four"+char(10)+
 	"Here's a fairly useless example, lol:"+char(10)+
-	"|> cat file.txt | echo | poke file2.txt | cat | echo | poke file3.txt"
-	char(10)+
+	"|> cat file.txt | echo | poke file2.txt | cat | echo | poke file3.txt"+char(10)+char(10)+
 	"Simple enough. You may use richtext in the echo to spruce it up."+char(10)+
 	"Resizing text and adding color allows the echo to stand out when text"+char(10)+
 	"is flying by during a complex <b>dig</b>, for example."
@@ -496,7 +496,7 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		is_bin = subFile.is_binary
 		if is_bin then line_color = colorCyan + "</b>"
 		if subFile.is_folder then line_color = colorLightBlue + "</b>"
-		if NIGHTLY == true and subFile.is_symlink then nameFile = nameFile+" (sym_link)"
+		if NIGHTLY == true and subFile.is_symlink then nameFile = colorGold+"</b>"+nameFile
 		if raw_output then line_color = ""
 		//if showHide or nameFile.indexOf(".") != 0 then
 		if showDetails then
@@ -1865,7 +1865,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			colorLightBlue+"</b>-- it is just a convention, you may name them whatever you wish except:"+char(10)+
 			colorLightBlue+"</b>---- dig.bat must be named dig.bat in order for <b>dig</b> to use it (see dig -h)"+char(10)+
 			colorGold+"</b>-- nested calls to the do command within these files are valid and encouraged"+char(10)+
-			colorGold+"</b>---- dig.bat: cerebrum | brutus | run /home/guest/rkit/5hell "" do 1 -f file2.bat | exit done "" "+char(10)+
+			colorGold+"</b>---- dig.bat: cerebrum | brutus | run /home/guest/rkit/5hell "" do 1 -f file2.bat "" "+char(10)+
 			colorGold+"</b>---- file2.bat: rshell @home | sc -d | exit rshell_placed"+char(10)+
 			colorLightBlue+"</b>-- by placing these two files in your rkit folder and running <b>dig [ip]</b> you are able to:"+char(10)+
 			colorLightBlue+"</b>---- automate: infiltrating and placing a root rshell on the target"+char(10)+
@@ -1882,9 +1882,19 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			colorLightBlue+"</b>-- keep in mind there is a game limit of 15 <u>nested</u> uses of shell.launch"+char(10)+
 			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning <b>do 1000 dig -s</b> is completely valid"+char(10)+
 			colorGold+"Advanced: Resource Configuration"+char(10)+
-			colorCyan+"You may place a file named "+colorWhite+"do.rc</color> in your "+colorWhite+"rkit</color> folder"+char(10)+
+			colorCyan+"You may place a file named "+colorWhite+"do.rc</color> in your "+colorWhite+"rkit</color> and/or "+ColorWhite+"Config folder"+char(10)+
 			colorLightBlue+"</b>-- the contents of the file should look like a standard <b>do</b> script and will be executed on launch"+char(10)+
-			colorLightBlue+"</b>-- unlike launching with <b>5hell do 1 -f do.rc</b>, this method will not prompt to exit on completion"
+			colorLightBlue+"</b>-- unlike launching with <b>5hell do 1 -f do.rc</b>, this method will not exit on completion"+char(10)+
+			colorLightBlue+"</b>-- do.rc in <b>Config</b> will take priority over do.rc in <b>rkit</b>. This allows a 'home' and 'away' do.rc"
+			char(10)+
+			colorCyan+"Early Termination:"+char(10)+
+			colorLightBlue+"</b>If the final return value of a line in a do script is: <b>@STOP</b>, then:"+char(10)+
+			colorLightBlue+"</b>-- that iteration will cease, and the next iteration will begin"+char(10)+
+			"----: equivalent to a <b>continue</b>"+char(10)+
+			colorLightBlue+"</b>If the final return value of a line in a do script is: <b>@RETURN</b>, then:"+char(10)+
+			"-- the do script will terminate; no further iterations will run"+char(10)+
+			"----: equivalent to a <b>break</b>"+char(10)+
+			colorGreen+"See Also: macro -h, help conventions, help alias"
 		end if
 	end if
 	iter = 0
@@ -1921,23 +1931,27 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			if not cf.has_permission("r") then return "do: can't read "+arg3+": permission denied"
 			cmd = cf.get_content.split(char(10))
 		else
-			return "do: input error: -f expects a file path."
+			return "do: input error: -f expects a file path"
 		end if
 	end if
 	time_s = time
 	if DEBUG then print(cmd)
 	if cmd.len then
 		for i in range(1,iter)
-			print(colorBlack+"*"+CT)
+			//print(colorBlack+"*"+CT)
 			for c in cmd
+				// experimental
+				if c == globals.SAFEWORD then break // ick
 				c = c + " | return"
-				command.shell(c)
+				r = command.shell(c)
+				if r == "@STOP" then break
+				if r == "@RETURN" then return
 			end for
 		end for
 	else
 		return "<b>aborting...</b>"
 	end if
-	return colorCyan+"--batch complete in ["+colorOrange+(time-time_s)+colorCyan+"] seconds--"+CT
+	return colorCyan+"<size=50%>do: batch complete in [</size><size=75%>"+colorOrange+(time-time_s)+colorCyan+"</size><size=50%>] seconds"+CT
 end function
 command.cc = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return ": carbon copy: command buffer."+char(10)+"Usage: cc -- select command from history."+char(10)+"Usage: cc [#] -- where # corresponds to the command you wish to run from the command buffer."+char(10)+"-- will <b>return</b> the output of the commands as if they were run normally."+char(10)+"-- you may use cc inside of pipe chains."+char(10)+"---- e.g: cc 22 | echo | cc 10 | poke file.txt"
@@ -2192,6 +2206,8 @@ if typeof(@globals.clip_board_gamma) == "string" then
 else
 	bios_info.push("[clipc:<size=60%>"+@globals.clip_board_gamma+"</size>]")
 end if
+mscan = "-none-"
+if globals.meta_scan then mscan = "ready"
 bios_info.push("<size=85%>[portmap:"+globals.PORT_MAP.len+"] [xploits: "+globals.NUM_SPLOITS+"] [metascan: ]</size>")
 bios_info.push("<size=85%>[dict_a:"+colorGold+globals.dict_a.len+CT+"]  [dict_size: "+dict_a.join(", ").len+"]</size>")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
@@ -2312,11 +2328,12 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("CheckUser function by: "+colorWhite+"Corvus"+CT)
 	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
+	print("Additional code contributions by: Clover, redit0, muhahahahe")
 	print("Github Readme by: Hikaru918")
 	print("5hell Discord by: Redit0")
 	print("5hell.src optimizations by: Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, Sl3ekr, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -2337,7 +2354,8 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		print(colorGold+"<u>= = = = = = = = = = = = = =</u>"+CT)
 		print("Quick start guide: (5hell command line: |> )")
 		print(colorGold+"probe [ip]"+CT+" -- perform a whois and portscan on target ip. Sets target IP in 5phinx/sphinx.")
-		print(colorGold+"sphinx"+CT+" -- bring up pentest tool with target already set."+char(10)+"-- Press [0] to view portmap, [4] to change target ip, [5] to set target port.")
+		print(colorGold+"sphinx"+CT+" -- bring up pentest tool with target already set."+char(10)+
+		"-- Press [0] to view portmap, [4] to change target ip, [5] to set target port.")
 		print("Use arrow keys to access other 5phinx menus.")
 		print("in sphinx "+colorGold+"press [=]"+CT+" -- connect metalib and get net_session (or load local lib)")
 		print("in sphinx "+colorGold+"press [3]"+CT+" -- if target lib is unknown (scan/add to dbase)")
@@ -2349,11 +2367,17 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		print("do this<u> before </u>activating glasspool for best results.")
 		print("use "+colorGold+"felix"+CT+" -- file explorer to send files/folders to BUFFER")
 		print("all other commands are utility. explore them!")
-		print(colorGold+"glasspool is shell/computer mirroring. some commands may change when this is active. "+CT+char(10)+"N.B. when active you are on the other side of the mirror looking back.")
+		print(colorGold+"glasspool is shell/computer mirroring. some commands may change when this is active. "+CT+char(10)+
+		"N.B. when active you are on the other side of the mirror looking back.")
 		print(colorGold+"*--*"+CT)
-		print("<b>/root/rkit</b> is the default location of the rootkit which should consist of:"+char(10)+"<b>   5hell, crypto.so, metaxploit.so, database.csv </b>"+char(10)+"Additionally it may contain: "+char(10)+"   dig.bat, ScanLan.exe, and other tools/libs you find useful.")
-		print("In most cases you may type<b> kore -r</b> to have the rkit built for you."+char(10)+"kore will look for 5hell in /bin, and meta and crypto in /lib."+char(10)+"Add these files manually if kore is unable to do so.")
-		print("For scripting see:<b> do -h</b>"+char(10)+"For dictionary attacks see:<b> cerebrum -h, brutus -h, gopher -h, hashim -h</b>")
+		print("<b>/root/rkit</b> is the default location of the rootkit which should consist of:"+char(10)+
+		"<b>   5hell, crypto.so, metaxploit.so, database.csv </b>"+char(10)+"Additionally it may contain: "+char(10)+
+		"   dig.bat, ScanLan.exe, and other tools/libs you find useful.")
+		print("In most cases you may type<b> kore -r</b> to have the rkit built for you."+char(10)+
+			"kore will look for 5hell in /bin, and meta and crypto in /lib."+char(10)+
+				"Add these files manually if kore is unable to do so.")
+		print("For scripting see:<b> do -h</b>"+char(10)+
+		"For dictionary attacks see:<b> cerebrum -h, brutus -h, gopher -h, hashim -h</b>")
 		print("For networking see:<b> air -h, iwlist -h, ifconfig -h, ssh -h, kraken -h</b>")
 		print("For security see:<b> perms -h, usr -h, grp -h, sniff -h, silentclean -h, bios -h")
 		print("For dev tools see:<b> scribus -h, makfit -h, clipb -h, make -h, chop -h, dfit -h </b>")
@@ -2388,15 +2412,15 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"-------- the format is the same as if typing commands on the command line"+char(10)+
 	"-------- newlines in the script are considered to be new command line entries"+char(10)+
 	"-------- you may use piping, easy clip, and even calls for <b>do</b> to execute further scripts"+char(10)+
-	"-------- you may use text blocks for complex commands in place of files or the editor if you wish"+char(10)+
-	"---------- |> do 3 "" rnip 1 | dig |  | cob get metx | meta -i | db -m | zap "" | poke test.txt "" this is a bunch of text going into a file """+char(10)+
-	colorGold+"****** it is possible to almost completely automate every aspect of 5hell via <u>do</u> and <u>dig</u>"+char(10)+
+	"-------- you may use text blocks for complex commands in place of files or the editor"+char(10)+
+	"--eg:  |> do 3 "" rnip 1 | dig |  | cob get metx | meta -i | db -m | zap "" | poke test.txt "" this is a bunch of text going into a file """+char(10)+
+	colorGold+"** it is possible to almost completely automate every aspect of 5hell via <u>do</u> and <u>dig</u>"+char(10)+
 	"------ for ease of use <b><color=white>do 1 -f</b></color> has been aliased to <color=white><b>bat</b></color> in 5hell.src:"+char(10)+
 	"-------- |> <b>bat /foo.bar</b> is equivalent to |> <b>do 1 -f foo.bar</b>"+char(10)+
 	"------ please see <u><b><color=yellow>do -h</b> and <b>dig -h</b></u></color> for more information on automation"+char(10)+
 	colorLightBlue+"----* piping input: |> grep -f ^syst | file -p | cp /etc/passwd"+char(10)+
 	"------ would result in copying /etc/passwd over top of system.log (if permissions allowed it)"+char(10)+
-	"------ piping allows you to transfer the output of one command to the [last open parameter] of another command"+char(10)+
+	"------ piping allows you to transfer the output of one command to the innput another command"+char(10)+
 	"------ in the above example the output of grep [args...] is the input of file -p [input]"+char(10)+
 	"------ and the output of file -p [args] is the input of cp /etc/passwd [input]"+char(10)+
 	"------ please see <b>pipe -h</b> for more"+char(10)+
@@ -2434,7 +2458,8 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"-- by default the prompt indicates user privileges (root,user,guest) with:"+char(10)+
 	"---- under the ip information there will be a:"+char(10)+
 	"------ a<color=red> red line for root</color>, <color=green>green line for user </color>, </color>and <color=white>white line for guest"+char(10)+
-	"---- please note that user permissions are determined by access level and not by 'actual' user"+char(10)+
+	"---- please note that user permissions are determined by access level"+char(10)+
+	"---- in some cases, this might not be the actual user"+char(10)+
 	"-- you may customize the prompt to your liking in 5hell.src"+char(10)
 
 	help_tools = "<u><b>Main tools:"+char(10)+
@@ -2513,7 +2538,8 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"However! You <u>should</u> start_terminal on your end point attack proxy. In fact, do it twice:"+char(10)+
 	"-- use <b>prox</b> to tunnel to your end point proxy then launch 5hell and type <b>psudo</b> and then select [y]"+char(10)+
 	"-- this will start_terminal on top of your start_terminal, effectively looping your connection on that machine"+char(10)+
-	"-- this will ensure your end point proxy's ip is left in logs. Without this, you risk exposing ip's behind the proxy."+char(10)+
+	"-- this will ensure your end point proxy's ip is left in logs, not your origin ip"+char(10)+
+	"-- without this, you risk exposing ip's behind the proxy"+char(10)+
 	"-- note: this means you'll have to 'exit' twice from that proxy to return home"+char(10)+
 	colorRed+"Passive Traces"+CT+" can/will start when certain actions have been left unaddressed:"+char(10)+
 	"- Deleting a file and not removing the log entry"+char(10)+
@@ -2533,7 +2559,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"but not necessary. You may run silentclean, exit 5hell, exit the terminal, and you will not leave a disconnect log."+char(10)+
 	"-- be aware that taking any log-creating action after running sc, except exiting, may regenerate the log."+char(10)
 
-	help_alias = "<u><b>Aliases || Shortcuts || Macros || or is it Macro's ? || User Defined Behavior"+char(10)+
+	help_alias = "<u><b>aliases || do script || shortcuts || macros || or is it Macro's ? || User Defined Behavior"+char(10)+
 	"5hell can be very simple to use, or very, very complicated, depending on your goals."+char(10)+
 	"It isn't necessary to learn 100% of 5hell. Nor is it necessary to suffer through some of it's"+char(10)+
 	"more complex chains of commands. You can define your own behavior in a number of ways:"+char(10)+char(10)+
@@ -2547,30 +2573,109 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorWhite+"might not quite qualify."+char(10)+char(10)+
 	"Here is a list of the currently defined default aliases in 5hell.src:"+char(10)+
 	colorLightBlue+"Alias           | Definition"+char(10)+
-	 colorCyan+"bat [path]      |</b> do 1 -f [path]"+char(10)+
-	 colorCyan+"set [key] [val] |</b> cob set [key] [val]"+char(10)+
-	 colorCyan+"get [key]       |</b> cob get [key]"+char(10)+
-	 colorCyan+"lock            |</b> perms lock all"+char(10)+
-	 colorCyan+"exit            |</b> quit"+char(10)+
-	 colorCyan+"sc [opt]        |</b> silentclean [opt]"+char(10)+
-	 colorCyan+"gp [#]          |</b> glasspool [#]"+char(10)+
-	 colorCyan+"prompt          |</b> -this will toggle the full_prompt on/off-"+char(10)+char(10)+
+	colorCyan+"bat [path]      |</b> do 1 -f [path]"+char(10)+
+	colorCyan+"set [key] [val] |</b> cob set [key] [val]"+char(10)+
+	colorCyan+"get [key]       |</b> cob get [key]"+char(10)+
+	colorCyan+"lock            |</b> perms lock all"+char(10)+
+	colorCyan+"exit            |</b> quit"+char(10)+
+	colorCyan+"sc [opt]        |</b> silentclean [opt]"+char(10)+
+	colorCyan+"gp [#]          |</b> glasspool [#]"+char(10)+
+	colorCyan+"prompt          |</b> -this will toggle the full_prompt on/off-"+char(10)+char(10)+
 	colorWhite+"Easy Clip       |</b> Replacement"+char(10)+
-	 colorGold+"@a              |</b> clipa -- globals.clip_board_alpha"+char(10)+
-	 colorGold+"@b              |</b> clipb -- globals.clip_board_beta"+char(10)+
-	 colorGold+"@c              |</b> clipc -- globals.clip_board_gamma"+char(10)+
-	 colorGold+"@tbuf           |</b> transmission buffer -- globals.T_BUF"+char(10)+
-	 "-- this is                |</b> where hashes go when the tree command finds them"+char(10)+
-	 colorGold+"@home           |</b> HOME_SERVER ip address defined in 5hell.src"+char(10)+char(10)+
-	 colorGold+"@B [index|-m]   |</b> directly reference a value in the"+colorOrange+" BUFFER "+CT+"by [index] or menu: [-m]"+char(10)+
-	 colorGold+"@o [key]        |</b> directly reference a value in the custom object by key"+char(10)+
-	 "Please note: several commands have their own references for editing the clipboards"+char(10)+
-	 "-- these commands will use @clipa, @clipb, @clipc instead of @a, @b, @c"+char(10)+
-	 "Further, the clipa, clipb, and clipc will use @B to reference the BUFFER:"+char(10)+
-	 "-- e.g: |> <b>clipa @B 1</b> -- copy the object at index 1 in the BUFFER to clipa"+char(10)+
-	 "---- that object may then be used by other commands that accept piped objects as input"+char(10)+
-	 "-- as of 3.9.6 any command may use @B [index] as any parameter(s)"
-	 "-- there are other ways to pipe objects around besides the clipboards, explore to learn more."
+	colorGold+"@a              |</b> clipa -- globals.clip_board_alpha"+char(10)+
+	colorGold+"@b              |</b> clipb -- globals.clip_board_beta"+char(10)+
+	colorGold+"@c              |</b> clipc -- globals.clip_board_gamma"+char(10)+
+	colorGold+"@tbuf           |</b> transmission buffer -- globals.T_BUF"+char(10)+
+	"-- this is                |</b> where hashes go when the tree command finds them"+char(10)+
+	colorGold+"@home           |</b> HOME_SERVER ip address defined in 5hell.src"+char(10)+char(10)+
+	colorGold+"@B [index|-m]   |</b> directly reference a value in the"+colorOrange+" BUFFER "+CT+"by [index] or menu: [-m]"+char(10)+
+	colorGold+"@o [key]        |</b> directly reference a value in the custom object by key"+char(10)+
+	"Please note: several commands have their own references for editing the clipboards"+char(10)+
+	"-- these commands will use @clipa, @clipb, @clipc instead of @a, @b, @c"+char(10)+
+	"Further, the clipa, clipb, and clipc will use @B to reference the BUFFER:"+char(10)+
+	"-- e.g: |> <b>clipa @B 1</b> -- copy the object at index 1 in the BUFFER to clipa"+char(10)+
+	"---- that object may then be used by other commands that accept piped objects as input"+char(10)+
+	"-- as of 3.9.6 any command may use @B [index] as any parameter(s)"+char(10)+
+	"-- there are other ways to pipe objects around besides the clipboards, explore to learn more."+char(10)+
+	char(10)+
+	colorOlive+"Marco's and Automation: "+char(10)+
+	colorWhite+" </b>You may define custom macro's with the "+colorOrange+"</b>macro</color> command. A macro is a "+char(10)+
+	colorWhite+"</b>runtime-defined set of instructions executed by a single command. Think of it as an alias that performs"+char(10)+
+	colorWhite+"</b>commands for you. Additionally, you may execute batch commands either from a file or from memory. There are"+char(10)+
+	colorWhite+"</b>a few differences between a <u>macro</u> and a <u>do script</u>"+char(10)+
+	colorWhite+"</b>Please see:  "+colorLightBlue+"</b>do -h, macro -h, and help automation for more information on this topic."+char(10)
+
+	help_automation = "<u><b>automation || macro || do script || batch file"+char(10)+
+	colorCyan+"How to fully automate <color=red>5</color><color=white>hell</color>:"+char(10)+
+	colorWhite+"</b> As mentioned in <b>help alias</b>, you may define custom macro's, or sets of commands"+char(10)+
+	colorWhite+"</b>that <color=red>5hell</color> will execute automatically. The two commands involved are:"+char(10)+
+	colorOrange+"--: </b>macro</color> and "+colorOrange+"</b>do"+char(10)+
+	colorWhite+"</b>The two commands function similarly in that they execute the defined commands as "+char(10)+
+	colorWhite+"</b>if they were typed by you. The list of commands, or 'script,' is formed the same "+char(10)+
+	colorWhite+"</b>way for both commands. Therefore both commands may execute the same scripts. That is, "+char(10)+
+	colorWhite+"</b>do may execute a macro, and macro may execute a do script. This way, don't have to "+char(10)+
+	colorWhite+"</b>remember two different formats for these similar commands."+char(10)+
+	colorWhite+"</b>The specific behavior of each is as follows:"+char(10)+
+	colorOrange+"DO: "+char(10)+
+	colorCyan+"<b> Do is essentially a 'do while' loop that executes at least once. You specify the number "+char(10)+
+	colorCyan+"</b>of loops with the first argument: <b>do [some integer]</b> "+char(10)+
+	colorCyan+"</b>The <b>primary</b> way to use do is like a macro that you want repeated on a loop."+char(10)+
+	colorCyan+"</b>If there are no more arguments after the number, an editor will open (scribus) where you may"+char(10)+
+	colorCyan+"</b>type out the commands you want executed line by line. Lines may be complex lines, that is, "+char(10)+
+	colorCyan+"</b>the lines may include piping. The output of a line will <b>not</b> be passed to the following "+char(10)+
+	colorCyan+"</b>line. This way, you may type out commands without using the <b>|  |</b> trick. Once "+char(10)+
+	colorCyan+"</b>you type <b>@</b> on a new line, the script will begin executing. Use <b>@@</b> on a new line"+char(10)+
+	colorCyan+"</b>to abort execution. Additionally, you may use<b> scribus @do</b> to edit the buffer without executing."+char(10)+
+	colorCyan+"</b>You may then fire it later with<b> do [#]</b> and then <b>@</b>."+char(10)+
+	colorLightBlue+"An example do script, either written in the editor or read from a file* (*explained in the third usage): "+char(10)+
+	colorGold+"</b>ifconfig -p | probe"+char(10)+
+	colorGold+"</b>brutus | clipb"+char(10)+
+	colorGold+"</b>grep -p 5hell | clipc"+char(10)+
+	colorGold+"</b>run @c "" do 1 rshell @home "" @b"+char(10)+
+	colorGold+"</b>rclean @b/b>"+char(10)+
+	colorLightBlue+"</b>This would result in a network probe, an escalation, a root rshell placement, and "+char(10)+
+	colorLightBlue+"</b>finally a log scrub. This is useful to run each time you attack a new target and "+char(10)+
+	colorCyan+"</b>is also included as the default <b>dig.bat</b>."+char(10)+
+	char(10)+
+	colorCyan+"</b>The <b>Second</b> way to use do is to define the commands on a single line, wrapped by floating quotes. "+char(10)+
+	colorLightBlue+"</bThis would look like:<b> do 5 "" rnip 1 | ping 1.1.1.1 """+char(10)+
+	colorLightBlue+"</bThis results in pinging 1.1.1.1 five times. More complex commands may be further chained by piping. "+char(10)+
+	colorLightBlue+"</b>Be sure to wrap the commands you wish to <b>do</b> in quotes* that do not touch anything "+char(10)+
+	colorLightBlue+"</b>(ie, floating) as shown above."+char(10)+
+	colorLightBlue+"<b>* If the command string is only two words, quotes are not needed. eg: do 1 ping 1.1.1.1"+char(10)+
+	char(10)+
+	colorCyan+"The <b>Third</b> way to use do is to read defined commands from a file."+char(10)+
+	colorLightBlue+"</b>The commands in the (text) file are written exactly as they are when using the editor to list commands."+char(10)+
+	colorLightBlue+"</b>These commands are executed with:<b> do [#] -f [pathToFile]"+char(10)+
+	colorLightBlue+"</b>For your convenience, the alias "+colorGold+"</b>bat [path]</color> will be relaced by <b>do 1 -f [path]"+char(10)+
+	colorLightBlue+"</b>This is most useful when launching 5hell with a set of instructions. If you launch 5hell from the command "+char(10)+
+	colorLightBlue+"</b>line with: <b>5hell do 1 -f [path] </b>5hell will automatically execute the commands in the file and then exit."+char(10)+
+	colorLightBlue+"</b>If you do not wish 5hell to exit after completion, use a file named <b>do.rc</b> in your home_dir/Config or"+char(10)+
+	colorLightBlue+"</b>in rkit (executes only if ~/Config/do.rc does not exist). Note that <b>do</b> does not return a value other than"+char(10)+
+	colorLightBlue+"</b>it's completion time. Macro's, however, do return the final value. Additionally, the <b>dig</b> command makes"+char(10)+
+	colorLightBlue+"</b>use of the <b>do</b> engine when executing <b>dig.bat</b> (which itself, may reference other do scripts). "+char(10)+
+	colorLightBlue+"</b>This allows 5hell to be fully automated throughout an arbitrary number of attacks. Cool stuff, right!?"+char(10)+
+	char(10)+
+	colorGold+"Macro:"+char(10)+
+	colorWhite+"</b>A macro is similar to a do script, except it is intended to be written 'on the fly.' In other words, you type "+char(10)+
+	colorWhite+"</b>the macro definition on the command line, without the editor, in most cases. If you do wish to use the editor, "+char(10)+
+	colorWhite+"</b>simply use: <b>scribus @clipa/b/c | macro [macro_name]"+char(10)+
+	colorWhite+"</b>Marco's are stored in the custom object and are executed when called by name: <b>macro [name]"+char(10)+
+	colorWhite+"</b>A macro <b>will</b> return it's final value and will not print execution time. There is no built in option "+char(10)+
+	colorWhite+"</b>to read a macro from a file, but <b>cat [file] | macro [name]</b> may be used to achieve this."+char(10)+
+	colorWhite+"</b>An example macro definition:"+char(10)+
+	colorWhite+"macro prop "" cp 5hell /bin | cp /bin/5hell rkit | kraken /bin/5hell | kraken rkit/5hell """+char(10)+
+	colorWhite+"</b>Again, it looks exactly the same as an inline do script, because it is! However, this script is stored "+char(10)+
+	colorWhite+"</b>in the custom object, </b>meaning it may be retrieved with <b>get [name]</b> and piped somewhere,"+char(10)+
+	colorWhite+"</b>such as to a file. You may absolutely fire a macro with <b>do</b>. Simply type: <b>do [#] @o [macroName]</b>"+char(10)+
+	colorWhite+"</b>and do will happily execute the macro. Likewise, as mentioned earlier, piping the </b>contents of a "+char(10)+
+	colorWhite+"</b>do script to macro will define the macro as that do script."+char(10)+
+	char(10)+
+	"This all may seem complicated, but it is actually rather simple: "+char(10)+
+	"--define a list of commands as if you were typing them, fire the batch of commands."+char(10)+
+	"For more information, please see: <b>do -h, macro -h, dig -h</b>, help alias, and help conventions."+char(10)+
+	"Also, visit the 5hell discord for example scripts!"
+
 
 	if arg1 == "-s" or arg1 == "show" or arg1 == "search" then
 		c_buf = []
@@ -2617,13 +2722,17 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if arg1 == "home" then
 		return "  Convention: <b>@home</b> -- indicates a server you, the end user, have set up for 5hell"+char(10)+
-		"services. Servers should be of type <b>SSH</b> and/or <b>RSHELL</b> and it is recommended to run<b> pwgen | pwgen hash</b>"+char(10)+
-		"on ssh servers running the <b>hashim daemon</b>. The @home server is used by:<b> cerebrum, brutus, linkdb, transmit, rshell</b>."+char(10)+
-		"For example: <b>rshell @home notAvirus</b> would create an rshell with ip set as your @home server."
-		"  The @home server may optionally run:<b> hashim, dbmon, and outmon</b>. Please contact Plu70 if you have questions about setting"+char(10)+
-		"up these resources."+char(10)+"Please edit the appropriate line in 5hell.src to setup @home by providing an ip address, port, password,"+char(10)+
-		"and directory for the pass file. It is important that you secure 5hell with login authentication, either stock or your own, to prevent"+char(10)+
-		"exposure of this information! "
+		"services. Servers should be of type <b>SSH</b> and/or <b>RSHELL</b> and it is recommended to run:"+char(10)+
+		"<b> pwgen | pwgen hash</b>"+char(10)+
+		"on ssh servers running the <b>hashim daemon</b>. The @home server is used by:"+char(10)+
+		"<b> cerebrum, brutus, linkdb, transmit, and rshell/rsi</b>"+char(10)+
+		"For example: <b>rshell @home notAvirus</b> would create an rshell with ip set as your @home server."+char(10)+
+		"That server would be running the rshell_server used by the rsi command. An @home server may also run:"+char(10)+
+		"<b> hashim, outmon, or other custom services</b>. Please contact Plu70 if you have questions about setting"+char(10)+
+		"up these resources."+char(10)+
+		"Please edit the appropriate line in 5hell.src to setup @home by providing an ip address, port, password,"+char(10)+
+		"and directory for the pass file. It is important that you secure 5hell with login authentication,"+char(10)+
+		"either stock or your own, to prevent exposure of this information! "
 	end if
 	
 	if arg1 == "alias" then return help_alias
@@ -2631,6 +2740,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-t" or arg1 == "tools" then return help_tools
 	if arg1 == "-b" or arg1 == "buffer" then return help_buffer
 	if arg1 == "-l" or arg1 == "logs" then return help_logs
+	if arg1 == "-a" or arg1 == "automation" then return help_automation
 
 	index = command.indexes
 	if index.indexOf("__isa") != null then index.remove( index.indexOf("__isa"))
@@ -2662,12 +2772,13 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	//print(":> help [-c|conventions] -- information about 5hell prompt conventions")
 	print(":> help [-p|prompt|-c|conventions] -- information about 5hell prompt conventions")
 	print(":> help [-t|tools] -- a short list of the main tools")
+	print(":> help [-a|automation] -- print information about automating tasks")
+	print(":> help [-A|alias] -- a list of the current default aliases in 5hell.src")
 	print(colorOrange+":> help [-b|buffer] -- buffer, clipboard, and custom_object info")
 	print(":> help [-l|logs] -- information regarding system.log")
 	print(":> help [-s|show|search] -- for a full descriptive list of commands")
 	print(colorCyan+":> help [-s|show|search] [word|string|regex] -- search all help info for pattern"+char(10)+"-- see grep -h for regex tokens")
 	print(":> help [-i] -- list commands by command map index")
-	print(":> help [alias] -- a list of the current default aliases in 5hell.src")
 	print(":> help [home] -- information about the @home system")
 	print(":> lock -- shortcut for perms lock all")
 	print(":> prompt -- toggle full_prompt on and off")
