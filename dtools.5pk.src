@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.6...(149.924)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.6...(149.946)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -1656,12 +1656,12 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
       zp = yp[-1]
       if zp == "shell" then 
           mem = yp[0]
-          val = yp[1]
+          unsec_val = yp[1]
       end if
   end for
   if mem == "" then return "dig: shell exploit not found on target"
   dig_this = null
-  dig_this = command.zap(mem,val,0) // get the remote shell
+  dig_this = command.zap(mem,unsec_val,0) // get the remote shell
   if typeof(dig_this) != "shell" then return "dig: failed to obtain shell on target."
   // upload rkit (mind permissions)
   if DEBUG then print "dig: found a shell"
@@ -2858,7 +2858,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	"Marco's are essentially 'on the fly' do scripts that are stored in the custom object."+char(10)+
 	"You may retrieve a macro from the custom object (for piping, or whatever) with<b> get [macro_name]."+char(10)+
 	"You may pipe a <b>do</b> script into a macro. A do script may execute a macro with: <b>do # @o [macro_name]."+char(10)+
-	"This makes the two interchangeable, allowing you to choose the exact behavior you want performed."
+	"This makes the two interchangeable, allowing you to choose the exact behavior you want performed."+char(10)+
 	"Usage: macro [name] [string] -- set a macro to the given string"+char(10)+
 	"-- eg: macro foo ""echo bar | clipa"""+char(10)+
 	"Usage: macro [name] -- fire the named macro"+char(10)+
