@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.2...(153.957)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.6...(154.294)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -749,7 +749,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		shells = metaxploit.rshell_server
 		if typeof(shells) == "string" then return shells
 		if shells.len == 0 and arg1 != "-d" then 
-			if one_loop == false then return colorOrange+"rsi: no rshells connected. use<b> rsi -d </b> to run in daemon mode."+CT else one_loop = false
+			if one_loop == false then return colorOrange+"</b>rsi: no reverse shells connected\n-- use<b> rsi -d </b> to run in daemon mode."+CT else one_loop = false
 		else 
 			one_loop = false
 		end if
@@ -776,6 +776,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	rs_buf = []
 	while typeof(option) != "number" or option > shells.len or option < 0
 		print(colorLightBlue + shells.len + "</b> shell(s) connected:"+char(10)+"- if your expected shell isn't listed yet"+char(10)+"- press <<b>enter</b>> to refresh the page"+char(10)+"<b>Select a shell to access:"+CT)
+		if shells.len < 1 then return "rsi:"+colorRed+"</b> there are no reverse shells connected"
 		rs_buf = []
 		for i in range(0, shells.len - 1)
 			rs_buf.push(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + shells[i].host_computer.public_ip + char(10) + "Local  IP: " + shells[i].host_computer.local_ip + char(10) + colorWhite + command.ps(shells[i]) )
@@ -1293,7 +1294,7 @@ command.ping = function(arg1, arg2=0, arg3=0, arg4=0)
 		if typeof(catch) == "string" then
 			return catch
 		else
-			print(colorLightBlue+"Ping "+arg1+": successful"+CT)
+			print(colorLightBlue+"Ping "+colorWhite+arg1+"</color>: successful"+CT)
 			color_time = colorOrange
 			if time_e < .03 then color_time = colorGreen
 			if time_e > .1 then color_time = colorRed
@@ -1602,19 +1603,19 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	if arg1 and typeof(arg1) != "string" then print colorOrange+"silentclean: unsupported type. use rclean [opt:-d|-n] instead"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"
 	if arg2 then print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
-	
-	target_machine = localmachine 
-	// switch 
-	
-	cleaner = localmachine.File(program_path)
-	if cleaner and cleaner.parent.name == "rkit" then cleaner = cleaner.parent
-	syslog = localmachine.File("/var/system.log")
+		
+	//cleaner = localmachine.File(program_path)
+	cleaner = command.tree("/","5hell","1","N")
+	if cleaner then 
+		if cleaner.parent.name == "rkit" then cleaner = cleaner.parent
+	end if
+	syslog = globals.get_file("/var/system.log")
 	if not syslog then return "silentclean: <b>/var/system.log not found!!</b>"
 
 	nuke_em = function()
-		libFolder =  localmachine.File("/lib")
-		bootFolder = localmachine.File("/boot")
-		systemFolder = localmachine.File("/sys")
+		libFolder =  globals.get_file("/lib")
+		bootFolder = globals.get_file("/boot")
+		systemFolder = globals.get_file("/sys")
 		if cleaner then cleaner.delete
 		if libFolder then libFolder.delete
 		if bootFolder then bootFolder.delete
@@ -1624,23 +1625,23 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 
 	if syslog and syslog.has_permission("w") then
 		localmachine.touch("/var","system.bak")
-		syslogbak = localmachine.File("/var/system.bak")
+		syslogbak = globals.get_file("/var/system.bak")
 		if syslogbak then
 			syslog.delete
 			syslogbak.set_content("No IPs Today :D")
 		else
-			return "Write failed. Permission denied."
+			return "silentclean: write failed; permission denied"
 		end if
 		if arg1 == "-n" then nuke_em
-		if arg1 == "-d" then
+		if arg1 == "-d" or arg1 == "-n" then
 			if cleaner then cleaner.delete
 		end if
 		try = syslogbak.move("/var", "system.log")
-		syslog = localmachine.File("/var/system.log")
-		if syslog and try == 1 then syslog.chmod("o-rwx")
+		syslog = globals.get_file("/var/system.log")
+		//if syslog and try == 1 then syslog.chmod("o-rwx")// i don't think we need this autolocking
 		return try
 	else
-		return "silentclean failed. Permission denied."
+		return "silentclean: write failed; permission denied"
 	end if
 	return 0
 end function
@@ -1668,16 +1669,16 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end function
 	if arg1 == "-h" or arg1 == "help" then return kraken_help
 	map_path = home_dir + "/Config/Map.conf"
-	map_file = localmachine.File(map_path)
+	map_file = globals.get_file(map_path)
 	if not map_file then
-		print( "404: map.conf not found. " )
+		print( "kraken: map.conf not found. " )
 		mak_map = user_input("Create it? [Y/n] ||: ",0,1)
 		if mak_map.lower == "n" then return "aborting..."
-		localmachine.touch(home_dir+"/Config", "Map.conf")
-		map_path = home_dir + "/Config/Map.conf"
-		map_file = localmachine.File(map_path)
+		print localmachine.touch(home_dir+"/Config", "Map.conf")
+		map_file = globals.get_file(map_path)
 		if map_file then print(home_dir+"/Config/Map.conf created.") else return "kraken: write error!"
 	end if
+	map_contents = map_file.get_content
 	//map read
 	print(colorCyan+"Initializing Kraken v 0.9.5 by Plu70..."+CT)
 	time_s = time
@@ -1721,19 +1722,40 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end function
 
 	proxy.save = function()
-	  out = {"accounts":[],"historyConnections":[]}
-	  for i in proxy.accounts
-	    out.accounts.push(i.value)
-	  end for
-	  string = "{""accounts"":["+out.accounts.join(",")+"],""historyConnections"":[]}"
-	  final = ""
-	  for char in string
-	    if char != " " then final = final + char
-	  end for
-	  //localmachine.touch(currentPath, "Map.new")
-	  new_map = localmachine.File(map_path)
-	  new_map.set_content(final)
-	  return "...saved to "+new_map.path
+		out = {"accounts":[],"historyConnections":[]}
+		for i in proxy.accounts
+			out.accounts.push(i.value)
+		end for
+		string = "{""accounts"":["+out.accounts.join(",")+"],""historyConnections"":[]}"
+		final = ""
+		for char in string
+			if char != " " then final = final + char
+		end for
+
+		// if Map.conf is meant to be binary, convert final to code
+		// -- write Map.conf.src with code
+		// -- make Map.conf and copy it over Map.conf.src then rename to Map.conf 
+
+		map_source = "if get_custom_object.hasIndex(""kraken_password"") and get_custom_object.kraken_password == ""password"" then get_custom_object.kraken_map = """+final+""" else exit ""kraken: access denied;get_custom_object.remove(""kraken_password"");exit ""kraken: write complete"""
+		make_map = false
+		if make_map == true then 
+			map_file = command.poke(map_path)
+			map_folder = map_path.replace("/Map.conf","")
+			if typeof(map_file) != "file" then return "kraken: cannot create Map.conf"+char(10)+"-- "+map_file
+			map_file.move(map_folder,"Map.conf.src")
+			map_file.set_content(map_source)
+			globals.shell.build(map_file.path,map_folder) 
+			map_conf = globals.get_file(map_path)
+			if not map_conf then return "kraken: failed to build Map.conf"
+			map_conf.move(map_path.replace("/Map.conf",""),"Map.conf.src") 
+			map_conf.move(map_path.replace("/Map.conf",""),"Map.conf") 
+			return "kraken: successfully built Map.conf"
+		end if
+
+		new_map = globals.get_file(map_path)
+		if not new_map then return "kraken: error; Map.conf vanished!"
+		if new_map.has_permission("w") then new_map.set_content(final) else return "kraken: write error, Map.conf not saved!"
+		return colorOrange+"</b>kraken: saved map to "+new_map.path
 	end function
 
 	MAP.parse = function()
@@ -1774,7 +1796,8 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	connect = false
 	get_logs = false
 	map_file = localmachine.File(home_dir + "/Config/Map.conf")
-	MAP.init(map_file.get_content)
+	//MAP.init(map_file.get_content)
+	MAP.init(map_contents)
 	MAP.parse
 	time_e = (time - time_s)
 	print("...init completed in ["+colorOrange+time_e+CT+"] seconds.")
@@ -1905,7 +1928,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end for
 	print(colorCyan+"Kraken: task complete in </b>"+colorOrange+(time - time_s)+colorCyan+"<b> seconds."+CT)
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
-	if connect then return remote.start_terminal
+	if connect then exit remote.start_terminal
 	return 0
 end function
 
@@ -2090,21 +2113,25 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	if not arg1 or (arg1 == "-h" or arg1 == "help") then return(db_usage)
 
 	if DEBUG then print("In command.db...")
+	inject = null
+	if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4)
 
     // params: -m -metaLib (scan linked metaLib or piped metaLib)
 	if arg1.lower == "-m" then 
 		pre_load = true
-		print colorLightBlue+"db: custom scan..."
-		if arg2 and arg2 != "-i" then 
-			if DEBUG then print "debug: db -m: arg2: "+arg2
-			if DEBUG then print "debug: db -m: arg3: "+arg3
+		print colorLightBlue+"<size=75%></b>db: preparing custom scan..."
+		if arg2 != "-i" then 
+			if DEBUG then print "debug: db -m: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4
 			if typeof(arg2) == "MetaxploitLib" then print command.meta("-i",arg2) 
 			if typeof(arg3) == "MetaxploitLib" then print command.meta("-i",arg3) 
+			if typeof(arg4) == "MetaxploitLib" then print command.meta("-i",arg4) 
 			if typeof(arg2) == "MetaLib" then print command.meta("link",arg2)
 			if typeof(arg3) == "MetaLib" then print command.meta("link",arg3)
+			if typeof(arg4) == "MetaLib" then print command.meta("link",arg4)
 			// add some error checking here ^
+			// we check for -i after we check for all the other flags
 		end if
-		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"... ready."
+		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"<size=75%></b>db: custom scan ready"
 	end if
 	if not globals.metaxploit then return "metaxploit.so not found"
 
@@ -2115,7 +2142,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			arg2 = globals.targetIP
 			arg3 = globals.targetPort
 		end if
-        if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4)
         if not is_valid_ip(arg2) and arg2 != "*" then return "db: invalid target ip"
         if is_valid_ip(arg3) then globals.targetIP = arg3
         if is_valid_ip(arg2) then globals.targetIP = arg2
@@ -2149,7 +2175,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
             for port in locals.ports
                 p = str(port.port_number)
                 print colorCyan+"db: -r "+arg2+ " "+ p // we dont scan the router here. once this finishes, router is scanned below
-                command.db(arg1, arg2, p)
+                command.db(arg1, arg2, p, inject)
             end for 
         end if 
         if arg3 == 0 or arg3 == "0" then arg3 = "router"
@@ -2172,7 +2198,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 				for l in libs  
 					arg2 = l.name
 					print colorCyan+"db: -l "+arg2
-					command.db(arg1,arg2)
+					command.db(arg1,arg2,inject)
 				end for 
 				return 0
 			end if
@@ -2208,9 +2234,9 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	end function
 	get_lib = function() // remote true
 		if globals.targetPort == "router" then
-			net_session = globals.metaxploit.net_use( targetIP )
+			net_session = globals.metaxploit.net_use( globals.targetIP )
 		else
-			net_session = globals.metaxploit.net_use( targetIP , targetPort )
+			net_session = globals.metaxploit.net_use( globals.targetIP , globals.targetPort )
 		end if
 		if net_session then
 			globals.metaLib = net_session.dump_lib
@@ -2218,7 +2244,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			print("Error. Can't establish net session.")
 			return
 		end if
-		if DEBUG then print(lib_info)
+		if DEBUG then print("debug: db: lib_info"+lib_info)
 	end function
 	if remote then
 		if not pre_load then get_lib // pre_load == true means db the currently loaded metaLib (wip)
@@ -2228,24 +2254,54 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	if not globals.metaLib then return colorRed+"MetaLib: error 265: unable to link/load net_session/metaLib."+CT
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
+	pass_inject = "password"
+	lan_inject = globals.targetIP
 	if not inject or inject.trim == "" then
-		if is_lan_ip(targetIP) then
-			inject = targetIP
+		if globals.metaLib.lib_name == "kernel_router.so" then 
+			if is_lan_ip(globals.targetIP) then
+				inject = globals.targetIP
+			else
+				rtt = ""
+				if localmachine.is_network_active then rtt = get_router(targetIP) else return "db: error: no active network connection"
+				if typeof(rtt) == "router" then
+					ports = rtt.used_ports
+					if ports.len then pt = ports[0] else pt = 0
+					if typeof(pt) == "port" then
+						inject = pt.get_lan_ip
+					else
+						inject = rtt.local_ip
+					end if
+				else
+					inject = localmachine.local_ip
+				end if
+			end if
+		else 
+			print colorCyan+"</b>db: using default inject: ""password"""
+			inject = "password"
+		end if 
+	end if
+	if inject == "" then inject = "password"
+	if is_valid_ip(inject) then 
+		lan_inject = inject 
+	else 
+		if is_lan_ip(globals.targetIP) then
+			lan_inject = globals.targetIP
 		else
 			rtt = ""
-			if localmachine.is_network_active then rtt = get_router(targetIP)
+			if localmachine.is_network_active then rtt = get_router(targetIP) else return "db: error: no active network connection"
 			if typeof(rtt) == "router" then
 				ports = rtt.used_ports
 				if ports.len then pt = ports[0] else pt = 0
 				if typeof(pt) == "port" then
-					inject = pt.get_lan_ip
+					lan_inject = pt.get_lan_ip
 				else
 					inject = rtt.local_ip
 				end if
 			else
-				inject = localmachine.public_ip
+				lan_inject = localmachine.local_ip
 			end if
 		end if
+		if typeof(inject) == "string" then pass_inject = inject 
 	end if
 	memory = metaxploit.scan(globals.metaLib)
 	globals.MEMORY = memory
@@ -2263,6 +2319,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if string == "file" then cc = colorGreen
 		if string == "computer" then cc = colorCyan
 		if string == "shell" then cc = colorGold
+		if string == "firewall_disable" or string == "password_change" then cc = colorOlive
 		return cc+string+CT
 	end function
 	for mem in memory
@@ -2272,23 +2329,32 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			if add == address[0] then continue
 			value = add[add.indexOf("<b>")+3:add.indexOf("</b>")]
 			value = value.replace("\n", "")
-			result = globals.metaLib.overflow(mem, value, "")
+			result = globals.metaLib.overflow(mem, value, pass_inject)
 			if result == null then
 				print(colorOrange+"checking for bounce (this process is not perfect)..."+CT)
-				result = globals.metaLib.overflow(mem, value, inject)
+				if DEBUG then print "in db: preparing to overflow: "+ mem + " " + val + " " + lan_inject
+				result = globals.metaLib.overflow(mem, value, lan_inject)
 				if result then
-					DATA.push("Hooked: " + globals.checkUser(result) + " " + typeof(result) + ":bounce with " + mem + " " + value)
+					DATA.push("Hooked: " + globals.checkUser(result) + " " + _object_color(typeof(result)) + ":bounce with " + mem + " " + value)
 					//print(DATA[-1])
-					print("Hooked: " + globals.checkUser(result) + " " + typeof(result) + colorOrange+":bounce</color></b> with " + mem + " " + value)
+					print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(typeof(result)) + colorOrange+":bounce</color></b> with " + mem + " " + value)
 					globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result)+":bounce")
 					globals.BUFFER.push(result)
 					continue
 				end if
 			end if
-			DATA.push("Hooked: " + globals.checkUser(result) + " " + typeof(result) + " with " + mem + " " + value)
+			result_type = typeof(result)
+			if result == 1 or result == 0 then // firewall or password change
+				if globals.metaLib.lib_name == "kernel_router.so" then // firewall
+					result_type = "firewall_disable"
+				else 
+					result_type = "password_change"
+				end if
+			end if
+			DATA.push("Hooked: " + globals.checkUser(result) + " " + _object_color(result_type) + " with " + mem + " " + value)
 			//print(DATA[-1])
-			print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(typeof(result)) + " with " + mem + " " + value)
-			globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result))
+			print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(result_type) + " with " + mem + " " + value)
+			globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + result_type)
 			if result then globals.BUFFER.push(result)
 		end for
 	end for
@@ -2534,7 +2600,14 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			if not arg2 or (typeof(arg2) != "string" and typeof(arg2) != "MetaxploitLib") then return "meta: -i expects a metaxploitLib object or a path to a metaxploit.so"
 			print "<size=75%>meta: backing up current metaxploit object"
 			globals.backup_meta = globals.metaxploit
-			if typeof(arg2) == "string" then globals.metaxploit = include_lib(globals.get_file(arg2).path) else globals.metaxploit = arg2
+			globals.metaxploit = null
+			target_lib = null
+			if typeof(arg2) == "string" then 
+				target_lib = globals.get_file(arg2)
+				if target_lib then globals.metaxploit = include_lib(target_lib.path)
+			end if
+			if typeof(arg2) == "MetaxploitLib" then globals.metaxploit = arg2 
+
 			if not globals.metaxploit or typeof(globals.metaxploit) != "MetaxploitLib" then 
 				globals.metaxploit = globals.backup_meta
 				if typeof(arg2) == "string" then reason = "-- invalid path" else reason = "-- invalid input"
@@ -2776,8 +2849,8 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	colorGold+"EZclip: you may use "+colorWhite+"@o </color>[<color=white>key</color>]</b>"+char(10)+
 	"-- to reference a key in the custom object"+char(10)+
 	"-- the <b>@o [key]</b> will be replaced by the key's value, much like using @a, @b, @c for the clipboard"
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return usage_info
-
+	if arg1 == "help" or arg1 == "-h" then return usage_info
+	if not arg1 then return "cob: invalid input: see <b>cob -h</b>"
 	cobble = get_custom_object
 	cob = {}
 	cob.set = function( key=0, val=0, nil=0, nul=0 )
@@ -2821,17 +2894,16 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob.inspect = function( key=0, val=0, nil=0, nul=0 )
 		inspect_buf = []
 		value_buf = []
-		sk = "KEY"
-		st = " : [TYPE] : "
+		st = "KEY "+colorWhite+":"+CT+" [" + colorGold+"</b>"+ "TYPE" + "</color>] "+colorWhite+":"+CT+" "
 		sv = "VALUE"
-		inspect_buf.push(sk + st)
+		inspect_buf.push(st)
 		value_buf.push(sv)
 		for thing in cobble 
 			parsed_value = @thing.value
 			if typeof(@thing.value) == "string" and thing.value.len > 32 then parsed_value = thing.value[:27]+"..."
 			if typeof(@thing.value) == "list" and thing.value.len > 5 then parsed_value = thing.value[:5]+["..."]
 			if typeof(@thing.value) == "map" and thing.value.len > 0 then parsed_value = "{...}"
-			inspect_buf.push(@thing.key + " : [" + typeof(@thing.value) + "] : ")// + parsed_value)
+			inspect_buf.push(@thing.key + " "+colorWhite+":"+CT+" [" + colorGold+"</b>"+ typeof(@thing.value) + "</color>] "+colorWhite+":"+CT+" ")// + parsed_value)
 			value_buf.push(@parsed_value)
 		end for
 		inspect_buf.push("[end of ")
@@ -2848,7 +2920,6 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 			fi = fi + 1
 		end for
 		return format_buf.join(char(10))
-		//return command.code(cobble,0,0,0)
 	end function
 
 	cob.del = function( key=0, val=0, nil=0, nul=0 )
