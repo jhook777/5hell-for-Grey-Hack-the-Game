@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.6...(154.294)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.6...(154.279)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -2351,7 +2351,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 					result_type = "password_change"
 				end if
 			end if
-			DATA.push("Hooked: " + globals.checkUser(result) + " " + _object_color(result_type) + " with " + mem + " " + value)
+			DATA.push("Hooked: " + globals.checkUser(result) + " " + result_type + " with " + mem + " " + value)
 			//print(DATA[-1])
 			print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(result_type) + " with " + mem + " " + value)
 			globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + result_type)
