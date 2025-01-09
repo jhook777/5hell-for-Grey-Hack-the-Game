@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "2.7.4"
 malp_version = "1.4.0"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.7...(150.115kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.7...(150.091kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -3278,7 +3278,7 @@ sphinx_switch = function(resolve,tt)
     silentclean
     print("Complete.")
   end if
-  if resolve == "0" or resolve.lower == "w" then
+  if resolve == "0" or resolve.lower == "p" then
     if not localmachine.is_network_active then 
       print(colorOrange+"No Network Connection!")
       return true
@@ -3338,7 +3338,7 @@ sphinx_switch = function(resolve,tt)
     catch = set_ip
     return true
   end if
-  if resolve == "5" or resolve.lower == "p" then
+  if resolve == "5" then
     set_port
     return true
   end if
