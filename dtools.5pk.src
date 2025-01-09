@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.7...(150.004)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.7...(149.912)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2525,8 +2525,7 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	"Usage: sl [path] -- returns true if path is a symlink, returns false otherwise"+char(10)+
 	"Usage: sl [path] [/new_path/new_name] -- create a symbolic link at path"+char(10)+
 	"-- returns 1 on success, string on fail"+char(10)+
-	"Note: command is disabled by default"+char(10)+
-	"-- if playing nightly, to activate the command: change the global NIGHTLY variable to true"
+	"Note: this command is disabled outside of nightly"
 	if not NIGHTLY then return "sl: function disabled"
 	if typeof(arg1) == "file" then arg1 = arg1.path
 	if typeof(arg1) != "string" then return "sl: invalid path"
