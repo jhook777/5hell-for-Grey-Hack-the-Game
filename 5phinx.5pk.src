@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.7.3 by Plu70
 
 //Define Globals
-sphinx_version = "2.7.3"
+sphinx_version = "2.7.4"
 malp_version = "1.4.0"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.6...(150.110kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.7...(150.115kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -3429,7 +3429,7 @@ print_help = function()
   print("n.b. running command.probe from 5hell will set the target IP and port for 5phinx")
   print("n.b. command.zap in 5hell is the same as [a] in 5phinx")
   print("n.b. command.roil in 5hell is the same as [2] in 5phinx")
-  print("n.b. command.meta link  in 5hell is the same as [=]/[+] in 5phinx")
+  print("n.b. command.meta link|load  in 5hell is the same as [=]/[+] in 5phinx")
   print("n.b. database.csv is always <b>written</b> to /root/rkit/database.csv")
   print("n.b. database.csv may be read from anywhere (uses first copy found on system)")
   print("n.b. convention is to keep a copy of 5hell, metaxploit, crypto, database.csv"+char(10)+
