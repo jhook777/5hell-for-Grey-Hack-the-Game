@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.6...(154.279)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.7...(154.368)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -2125,9 +2125,9 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			if typeof(arg2) == "MetaxploitLib" then print command.meta("-i",arg2) 
 			if typeof(arg3) == "MetaxploitLib" then print command.meta("-i",arg3) 
 			if typeof(arg4) == "MetaxploitLib" then print command.meta("-i",arg4) 
-			if typeof(arg2) == "MetaLib" then print command.meta("link",arg2)
-			if typeof(arg3) == "MetaLib" then print command.meta("link",arg3)
-			if typeof(arg4) == "MetaLib" then print command.meta("link",arg4)
+			if typeof(arg2) == "MetaLib" then print command.meta(arg2)
+			if typeof(arg3) == "MetaLib" then print command.meta(arg3)
+			if typeof(arg4) == "MetaLib" then print command.meta(arg4)
 			// add some error checking here ^
 			// we check for -i after we check for all the other flags
 		end if
@@ -2440,7 +2440,16 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 end function///////////////END DATABASER//////////////////
 
 command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Link Database"+char(10)+"Uasage: linkdb [target_lib] [optional:path_to_database] -- link a lib in the database that matches target_lib"+char(10)+"-- eg: linkdb 1.0.1 -- prompts to link any entry that contains 1.0.1"+char(10)+"Usage: linkdb [target_lib] @home -- uses connect_service to access remote database for linking"+char(10)+"-- set ip, port and pw with launch params or the <b>target</b> command."+char(10)+"-- eg: linkdb kernel @home -- connects to machine at target ip and prompts to link any entry that matches 'kernel' "
+	if arg1 == "help" or arg1 == "-h" then return "Link Database"+char(10)+
+	"Uasage: linkdb [target_lib] [optional:path_to_database] "+char(10)+
+	"-- link a lib in the database that matches target_lib"+char(10)+
+	"-- eg:<b> linkdb 1.0.1</b> "+char(10)+
+	"-- prompts to link any entry that contains 1.0.1"+char(10)+
+	"Usage: linkdb [target_lib] @home -- uses connect_service to access remote database for linking"+char(10)+
+	"-- set ip, port and pw with launch params or the <b>target</b> command."+char(10)+
+	"-- eg:<b> linkdb kernel @home "+char(10)+
+	"---- connects to machine at target ip and prompts to link any entry that matches 'kernel' "
+	if not arg1 then return "linkdb: invalid input"
 	link = function(f,a,y)
 		buf = f.get_content.split(char(10))
 		found_it = false
