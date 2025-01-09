@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.6...(149.946)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.7...(150.004)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -1642,9 +1642,11 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   // portmap target
   command.probe("-q",t,p)
   // if not in database, scan target
-  if command.meta("link","-r") then
+//  if command.meta("link","-r") then
+  if command.meta("link") then
       command.db("-r")
-      if command.meta("link","-r") then // idfk
+      //if command.meta("link","-r") then // idfk
+	  if command.meta("link") then // idfk
           return "dig: database error!"
       end if
   end if
@@ -2620,7 +2622,7 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
             //if DEBUG then print "debug: file path: "+file_path
             //metalib_file = globals.get_file(metalib)
             //if not metalib_file then return "zer0Chill: "+metalib+" not found in /lib"+char(10)+"-- supply an object of type MetaLib or"+char(10)+"-- the name of a metalib.so in /lib. eg: net.so"+char(10)+"-- libs must be in /lib to be exploited"
-            print command.meta("link","-l",metalib)        
+            print command.meta(metalib)        
             metalib = command.bios("-m")
             if typeof(metalib) != "MetaLib" then return "zer0Chill: error: that wasn't a MetaLib!" else globals.BUFFER.push(metalib)
         else 
@@ -2636,7 +2638,7 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
 			end if
         end if
     else 
-        command.meta("link",metalib)    
+        command.meta(metalib)    
         globals.BUFFER.push(command.bios("-m"))
     end if
 
