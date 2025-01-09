@@ -1,7 +1,7 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.6_nightly_terrors"
+ver = "3.9.9.7_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "151.713"
+size_of_5hell = "151.794"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -2188,6 +2188,7 @@ if database then
 end if
 bios_info.push("<size=85%>[database_size:"+data_size+"]  [database_lines:"+data_lines+"]</size>")
 bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
+bios_info.push("<size=85%>[Custom_Object: "+get_custom_object.len+" indexes]")
 bios_info.push("<size=85%>[tagged4scp: "+globals.tagged_for_scp+"]</size>")
 bios_info.push("[tbuf:<size=60%>"+globals.T_BUF.join(" ")+"</size>]</size>")
 //bios_info.push("[clipa:<size=60%>"+@globals.clip_board_alpha+"</size>]"+char(10)+"[clipb:<size=60%>"+@globals.clip_board_beta+"</size>]"+char(10)+"[clipc:<size=60%>"+@globals.clip_board_gamma+"</size>]"+char(10)+"[enum:<size=60%>"+globals.enumerated.len+"</size>]")
@@ -2602,7 +2603,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorWhite+" </b>You may define custom macro's with the "+colorOrange+"</b>macro</color> command. A macro is a "+char(10)+
 	colorWhite+"</b>runtime-defined set of instructions executed by a single command. Think of it as an alias that performs"+char(10)+
 	colorWhite+"</b>commands for you. Additionally, you may execute batch commands either from a file or from memory. There are"+char(10)+
-	colorWhite+"</b>a few differences between a <u>macro</u> and a <u>do script</u>"+char(10)+
+	colorWhite+"</b>a few differences between a <u>macro</u> and a <u>do script</u>."+char(10)+
 	colorWhite+"</b>Please see:  "+colorLightBlue+"</b>do -h, macro -h, and help automation for more information on this topic."+char(10)
 
 	help_automation = "<u><b>automation || macro || do script || batch file"+char(10)+
