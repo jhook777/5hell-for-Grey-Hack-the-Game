@@ -1,7 +1,7 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.8_nightly_terrors"
+ver = "3.9.9.9_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "158.373"
+size_of_5hell = "158.474"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -520,7 +520,7 @@ command.psudo = function(operation, arg2, arg3, arg4)
         if typeof( locals.sh ) == "shell" then 
             colorLightBlue+"</b>malp: "+colorGreen+"success</color></b>; new shell sent to "+colorOrange+"BUFFER"
             open_it = user_input(colorGreen+"</b>-- view context menu in "+colorOrange+"BUFFER"+CT+"? [y/<b>N</b>] ||: "+colorWhite,0,1)
-            if open_it.lower == "y" then return command.malp("-b",locals.sh)
+            if open_it.lower == "y" then return command.malp("-b",locals.sh) else globals.BUFFER.push(locals.sh)
             colorGold+"</b>psudo: returning shell object..."
             return locals.sh
         else 
@@ -1465,7 +1465,7 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 			//if arg1 then globals.BUFFER.push(arg1)
 		end if
 	end if
-	if DEBUG then print("starting malp...")
+	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"-- oe: "+open_entry)
 	//if open_buffer then globals.memory_alpha(true) else globals.memory_alpha(false)
 	return globals.memory_alpha(open_buffer,open_entry)
 end function
