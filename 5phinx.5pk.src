@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.7.3 by Plu70
+// Sphinx Hacking Interface v 2.7.5 by Plu70
 
 //Define Globals
-sphinx_version = "2.7.4"
-malp_version = "1.4.0"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.7...(150.091kb)</size>")
+sphinx_version = "2.7.5"
+malp_version = "1.4.1"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.8...(154.360kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -1080,7 +1080,7 @@ end function
 /////////////////////////////////////// END Scribus ///////////////////////////////
 
 ////////////// BEGIN_MEMORY_ALPHA //////////////////////////////
-globals.memory_alpha = function(go_to_buffer=null)
+globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
   buffered_filesys = null
   viewing = true
   print(colorWhite + "5phinx"+char(8482)+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"  + CT )
@@ -1088,7 +1088,10 @@ globals.memory_alpha = function(go_to_buffer=null)
   if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
   print
   while viewing
-
+    print(colorWhite + "5phinx"+char(8482)+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"  + CT )
+    print("<b>/////////////////////////////////////////////</b>")
+    if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
+    print
     print
     if PORT_MAP then print(colorLightBlue+"[0] Portmap Loaded. "+CT)
     if XPLOITS then print(colorLightBlue+"[1] XPLOITS loaded: ["+NUM_SPLOITS+"] "+CT)
@@ -1107,7 +1110,7 @@ globals.memory_alpha = function(go_to_buffer=null)
     print("[6] Air [/] cBios [-] RSI [.] dBase" )
     print("[7] Go Back   [8] Procs   [9] Kill  ")
     if DEBUG then print("prompt ready: ")
-    if go_to_buffer then
+    if go_to_buffer == true then
       waitFor = "5"
       go_to_buffer = false
     else 
@@ -1305,7 +1308,9 @@ globals.memory_alpha = function(go_to_buffer=null)
         i = i + 1
       end for
       print(colorWhite+"__________________________________")
-      selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
+      selection = null
+      if go_to_selection == true then selection = BUFFER.len-1 else user_input(colorWhite+"Select an object to access:> "+CT).to_int
+      go_to_selection = false
       if selection >= BUFFER.len or selection < 0 or typeof(selection) != "number" then continue
       if BUFFER.hasIndex(selection) and @BUFFER[selection] then
         buffer_selection = @BUFFER[selection]
@@ -1322,10 +1327,10 @@ globals.memory_alpha = function(go_to_buffer=null)
           end if
           if typeof(@buffer_selection) == "string" then 
             print buffer_selection
-            print colorGreen+"["+colorWhite+"1<color=green>|</color>d</color>]"+CT+" - Get Character Codes (decompiler)"+char(10)+
-            colorGreen+"["+colorWhite+"2<color=green>|</color>s</color>]"+CT+" - save to file"+char(10)+
-            colorGreen+"["+colorWhite+"3<color=green>|</color>e</color>]"+CT+" - edit with scribus"+char(10)+
-            colorGreen+"["+colorWhite+"4<color=green>|</color>a</color>"+CT+colorGreen+"]"+CT+" - to clipa "+colorGreen+"["+colorWhite+"5<color=green>|</color>b</color>"+CT+colorGreen+"]"+CT+" - to clipb "+colorGreen+"["+colorWhite+"6<color=green>|</color>c</color>"+CT+colorGreen+"]"+CT+" - to clipc"
+            print colorWhite+"["+colorWhite+"</b>1<color=green>|</color>d</color>]"+CT+" - Get Character Codes (decompiler)"+char(10)+
+            colorWhite+"</b>["+colorWhite+"</b>2<color=green>|</color>s</color>]"+CT+" - save to file"+char(10)+
+            colorWhite+"</b>["+colorWhite+"</b>3<color=green>|</color>e</color>]"+CT+" - edit with scribus"+char(10)+
+            colorWhite+"[</b>"+colorWhite+"</b>4<color=green>|</color>a</color>"+CT+colorWhite+"</b>]"+CT+" - to clipa "+colorWhite+"</b>["+colorWhite+"</b>5<color=green>|</color>b</color>"+CT+colorWhite+"</b>]"+CT+" - to clipb "+colorWhite+"</b>["+colorWhite+"6<color=green>|</color>c</color>"+CT+colorWhite+"</b>]"+CT+" - to clipc"
             do_this = user_input("(<b>enter</b>=quit)||: ",0,1)
             if do_this == "a" or do_this == "4" then print command.clipa(buffer_selection)
             if do_this == "b" or do_this == "5" then print command.clipb(buffer_selection)
@@ -1500,6 +1505,7 @@ globals.memory_alpha = function(go_to_buffer=null)
                                                             "[1] open    [2] redirect   [3] upload rkit"+char(10)+
                                                             "[0] to cob  [d] decompile  [b] fetch binaries"
           if typeof(buffer_selection) == "ftpshell" then 
+            print "[disabled, pending adjustment...]"
             print "[g] get [p] put [c] host computer"
             fselect = user_input("[s] start (ftp) terminal ||:",0,1)
             print "stub"
@@ -1729,6 +1735,7 @@ globals.memory_alpha = function(go_to_buffer=null)
   end while
 end function
 ///////////////////////////////////// END MEMORY ALPHA ///////////////////////////
+
 
 
 
@@ -2327,9 +2334,11 @@ r_hecks = function()
   return 0
 end function
 
-shell_prompt = function(passShell)
+// let's rewrite this to be a little more intuitive in form and function
+globals.shell_prompt = function(passShell, waitFor=null)
   if typeof(passShell) == "shell" then
     waitFor = user_input("Open shell? [c/y/N] "+char(10)+"||: ",0,1)
+    
     if waitFor == "y" or waitFor == "Y" then
       if globals.GLASSPOOL then
         print("Opening shell: "+passShell.host_computer.local_ip+"@"+passShell.host_computer.public_ip+"...")
@@ -2373,19 +2382,82 @@ shell_prompt = function(passShell)
     if typeof(passShell) == "string" then try = get_shell("root", passShell)
     if typeof(try) == "shell" then
       globals.BUFFER.push(try)
-      ch = user_input("New shell sent to BUFFER. Open it? [y/N] ||: ",0,1)
-      if ch == "Y" or ch == "y" then exit try.start_terminal
+      ch = user_input(colorLightBlue+"malp:</b> new shell sent to "+colorOrange+"BUFFER"+char(10)+colorLightBlue+"-- open object in "+colorOrange+"</b>malp? [y/<b>N</b>] ||: ",0,1)
+      //if ch == "Y" or ch == "y" then exit try.start_terminal
+      if ch.lower != "y" then return try else return globals.memory_alpha(str(globals.BUFFER.len - 1))
       //globals.update_path
-      return try
     end if
     if try then print(try)
     if DEBUG then print "passShell is a: "+typeof(passShell)
-    return "psudo: incorrect parameters."+char(10)+"psudo: expects shell object or correct password."
+    return "psudo:"+colorRed+"</b> incorrect parameters:"+char(10)+"-- expected shell object or <b>correct</b> password"
   end if
   return 0
 end function
 
-hooked_comp = function(result)
+// stub for the future
+globals._shell_prompt = function( input_shell=null, confirm=null, uu=null, pw=null )
+  if typeof(input_shell) != "shell" then return "psudo: expected shell, got: "+typeof(input_shell)
+  
+  // menu
+  if not confirm or confirm == "-m" then 
+    // display options
+    print colorGold+"</b>psudo: "+CT+"["+colorWhite+"y</b>|<b>l"+CT+"] open shell; aka run start_terminal on this shell object"
+    print colorGold+"</b>psudo: "+CT+"["+colorWhite+"u"+CT+"] BUFFER a <b>local</b> user shell with credentials"
+    print colorGold+"</b>psudo: "+CT+"["+colorWhite+"s"+CT+"] BUFFER a <b>local</b> root shell with credentials"
+    print "-- press any other key to abort"
+    confirm = user_input(colorWhite+"||: "+colorGold+"</b>").lower
+    if "ylus".indexOf(confirm) == null then return "psudo: aborting..."
+  end if
+  // handle options
+    
+  if confirm == "y" or confirm == "-y" or confirm == "-l" or confirm == "l" then 
+    print colorGold+"</b>psudo: "+CT+" runnning start_terminal on this shell connection"+char(10)
+    exit input_shell.start_terminal
+    print colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
+    colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
+    colorOrange+"</b>-- despite having used start_terminal."+char(10)+
+    colorOrange+"</b>-- You will need to manually exit out of 5hell to start the terminal."+char(10)+
+    colorOrange+"</b>-- Note: you must exit; do not use ctrl+c"
+    exit "This is a game bug, not mine."
+    return 0
+  end if
+
+  if confirm == "u" or confirm == "-u" or confirm == "s" or confirm == "-s" then 
+    if globals.GLASSPOOL then
+      print("psudo: starting terminal on glasspool shell...")
+      secure_connect(passShell)
+    else
+      uu = null
+      if confirm == "-s" or confirm == "s" then uu = "root" 
+      if not uu then 
+        print("Get credentialed shell for what user? (leave blank to abort): ")
+        uu = user_input("user_name:> <b>")
+      else 
+        print("Getting root shell...")
+      end if
+      if uu == "" then return "aborting..."
+      if not pw then pw = user_input(uu+" password:> <b>",1)
+      if pw == "" then return "aborting..."
+      c_shell = get_shell(uu,pw)
+      if typeof(c_shell) == "shell" then 
+        if ch == "y" then exit globals._shell_prompt(c_shell,"-l")
+        globals.BUFFER.push(c_shell)
+        //ch = user_input("New shell sent to BUFFER. Open it? [y/N] ")
+        //if ch == "Y" or ch == "y" then exit c_shell.start_terminal
+        print colorLightBlue+"malp:</b> new shell sent to "+colorOrange+"BUFFER"
+        if ch != "-m" then ch = user_input(colorLightBlue+"-- open object in "+colorOrange+"</b>malp? [y/<b>N</b>] ||: ",0,1)
+        if ch.lower != "y" then return c_shell else return globals.memory_alpha(str(globals.BUFFER.len - 1))
+
+      else
+        return(colorGold+"psudo: "+CT+"failed to open shell"+char(10)+"-- check credentials and try again")
+      end if
+    end if
+  end if
+
+  return "psudo: aborting..."
+end function
+// handle computer objects
+globals.hooked_comp = function(result)
   logfile = result.File("/var/system.log")
   passfile = result.File("/etc/passwd")
   homefolder = result.File("/home")
@@ -2637,11 +2709,12 @@ secure_connect = function(shll)
   end if
 end function
 
+// legacy shit
 silentclean = function()
   return command.silentclean
 end function
 
-globals.select_attack = function(waitFor=null)
+globals.select_attack = function(waitFor=0)
   if not metaLib then return "Link metaLib before continuing."
   memory = []
   custom_mem = ""
@@ -2676,15 +2749,15 @@ globals.select_attack = function(waitFor=null)
   inject = user_input("Enter ip or passwd for inject value or leave blank (press<b> return</b>)"+char(10)+":> ")
   print("Injecting address: " + mem + " with " + exploit)
   result = metaLib.overflow(mem, exploit, inject)
-  if result then  globals.BUFFER.push(result) // buffer result before handling it
+  if result then 
+    globals.BUFFER.push(result) // buffer result before handling it
+    print colorRed+"</b>zap:"+colorWhite+" sending <b>"+result+"</b> to "+colorOrange+"BUFFER"
+  end if
   if typeof(result) == "shell" then
-    print("Obtained " + result)
-    remote_comp = result.host_computer
-    if remote_comp then
-      globals.BUFFER.push(remote_comp)
-      print("Sending to BUFFER. ")
-    end if
-    shell_prompt(result)
+
+    ob = user_input(colorWhite+"</b>-- open shell in "+colorOrange+"BUFFER"+CT+"? ["+colorOrange+"Y"+CT+"/n]"+char(10)+"||: ",0,1)
+    if ob.lower == "n" then print colorRed+"</b>zap: "+colorWhite+"</b> returning... " else return command.malp(true,true)
+    return result
   end if
   if typeof(result) == "computer" then
     print("Obtained " + result)
@@ -2695,6 +2768,7 @@ globals.select_attack = function(waitFor=null)
     list_files(result.parent)
   end if
   //if result then  globals.BUFFER.push(result)
+  print("-- returning... ")
   return result
 end function
 
@@ -3266,8 +3340,8 @@ sphinx_switch = function(resolve,tt)
     return true
   end if
   if resolve.lower == "a" then
-    if targetIP and metaLib then
-      select_attack
+    if metaLib then
+      print colorRed+"zap: "+colorWhite+" obtained: "+select_attack
     else
       print("Error: metaLib not loaded. ")
     end if
