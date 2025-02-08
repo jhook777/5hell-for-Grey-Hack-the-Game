@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.7.7 by Plu70
 
 //Define Globals
-sphinx_version = "2.7.7"
+sphinx_version = "2.7.8"
 malp_version = "1.4.3"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9...(154.372kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.1...(154.382kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -2756,7 +2756,7 @@ globals.select_attack = function(waitFor=0)
   if typeof(result) == "shell" then
 
     ob = user_input(colorWhite+"</b>-- open shell in "+colorOrange+"BUFFER"+CT+"? ["+colorOrange+"Y"+CT+"/n]"+char(10)+"||: ",0,1)
-    if ob.lower == "n" then print colorRed+"</b>zap: "+colorWhite+"</b> returning... " else return command.malp(true,true)
+    if ob.lower == "n" then print colorRed+"</b>zap: "+colorWhite+"</b> returning... " else return globals.memory_alpha(true,true)
     return result
   end if
   if typeof(result) == "computer" then
