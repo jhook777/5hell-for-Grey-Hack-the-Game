@@ -1,7 +1,7 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.7_nightly_terrors"
+ver = "3.9.9.8_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "151.794"
+size_of_5hell = "158.373"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -411,21 +411,168 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 	return "kill: process <u>" + PID + "</u> not found"
 end function
 command.pwd = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "pwd: returns current path"
+	if arg1 == "help" or arg1 == "-h" then return "Usage: pwd -- print working directory"+char(10)+"-- returns the current path as a string"
 	return currentPath
 end function
-command.psudo = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "Usage: psudo -- shell session management; without args prompts user for input:"+char(10)+"-- 'y' to open current active shell, 'c' to enter credentials (ie escalate privileges)"+char(10)+"Usage: psudo -s [opt:password] -- get root a shell and send it to BUFFER (prompts for password if not supplied)"+char(10)+"Usage: [shell_returned_by_function] | psudo -- open piped shell"+char(10)+"Example: ssh root@pass 1.1.1.1 | psudo  -- to be prompted to open terminal immediately instead of sending shell to buffer."+char(10)+"N.B. psudo may be used to 'go live' from glasspool (ie open the shell) but running a binary via glasspool"+char(10)+"i.e. glasspool >> run 5hell"+char(10)+"(shell.launch(5hell))... running psudo will end the shell.launch session and return you to the glasspool session."+char(10)+"This is not something I can control."+char(10)+"Advanced: psudo -- answer 'y' at prompt. Pipes current session, useful for hiding the ip of your previous connection."
-	psl = globals.shell
-	if arg1 and arg1 == "-s" and not arg2 then
-		psl = user_input("root pass:> ",1,0)
+// command.psudo = function(arg1, arg2, arg3=0, arg4=0)
+// 	// if arg1 == "-h" or arg1 == "help" then return "Usage: psudo -- shell session management; without args prompts user for input:"+char(10)+
+// 	// 	"-- 'y' to open current active shell, 'c' to enter credentials (ie escalate privileges)"+char(10)+
+// 	// 	"Usage: psudo -s [opt:password] -- get root a shell and send it to BUFFER (prompts for password if not supplied)"+char(10)+
+// 	// 		"Usage: [shell_returned_by_function] | psudo -- open piped shell"+char(10)+
+// 	// 		"Example: ssh root@pass 1.1.1.1 | psudo  -- to be prompted to open terminal immediately instead of sending shell to buffer."+char(10)+
+// 	// 		"N.B. psudo may be used to 'go live' from glasspool (ie open the shell) but running a binary via glasspool"+char(10)+
+// 	// 		"i.e. glasspool >> run 5hell"+char(10)+
+// 	// 		"(shell.launch(5hell))... running psudo will end the shell.launch session and return you to the glasspool session."+char(10)+
+// 	// 		"This is not something I can control."+char(10)+
+// 	// 		"Advanced: psudo -- answer 'y' at prompt. Pipes current session, useful for hiding the ip of your previous connection."
+	
+
+// 	if arg1 == "help" or arg1 == "-h" then return "<u>PSUDO || sudo || shell switcher || escalate"+char(10)+char(10)+
+// 	colorWhite+"</b>Usage: "+colorCyan+"</b>psudo</color> -- display psudo menu and perform selected action"+char(10)+
+// 	colorWhite+"</b>-- allows selecting the below options from a menu"+char(10)+char(10)+
+// 	colorWhite+"</b>Usage: psudo ["+colorCyan+"-s</b></color>] [opt:password] -- escalate"+char(10)+
+// 	"-- attempt get_shell(""root"", ""password"") and BUFFER result"+char(10)+
+// 	"-- prompts for password if not provided"+char(10)+
+// 	"-- simplest way to escalate privileges "+char(10)+char(10)+
+// 	colorWhite+"</b>Usage: psudo [<b>-u</b>] [opt:user] [opt:pass] -- switch user"+char(10)+
+// 	"-- attempt get_shell(""user"",""password"") and BUFFER result"+char(10)+
+// 	"-- prompts for user and/or password if not supplied"+char(10)+
+// 	"--note: "+char(10)+char(10)+
+// 	colorWhite+"</b>Usage: psudo [<b>-l|-y</b>] [opt:shell_object] -- ""loop"" shell session"+char(10)+
+// 	"-- supplying a shell object results in running shell_object.start_terminal"+char(10)+
+// 	"-- omitting a shell object results in running get_shell.start_terminal"+char(10)+
+// 	"---- running get_shell.start_terminal is ""looping"" your current shell connection"+char(10)+
+// 	"---- the direct result of this is two-fold:"+char(10)+
+// 	"---- first, your active trace time limit is increased (each use of start_terminal does this)"+char(10)+
+// 	"---- second, the IP left with file deleted logs will be the IP of the looped connection"+char(10)+
+// 	"---- the IP left with file deleted logs is that of the shell that did start_terminal"+char(10)+
+// 	"------ NOT the started terminal; looping solves this issue"+char(10)+
+// 	"--note: supplying a shell object is better referred to as pivoting, not looping"+char(10)+
+// 	"---- but I'm not gonna add another flag for that when this will do"+char(10)+char(10)+
+// 	"N.B.: psudo will no longer offer to run start_terminal when it obtains a shell"+char(10)+
+// 	"-- running start_terminal is not recommended unless strictly necessary"+char(10)+
+// 	"-- doing so ends 5hell and therefore is worth the extra effort to initiate"
+
+// 	origin_shell = globals.shell 
+// 	user = null 
+// 	pass = null
+// 	if not arg1 then return globals._shell_prompt(origin_shell,"-m")
+
+// 	if arg1 and typeof(arg1) != "string" and arg1 != "-m" and arg1 != "-s" and arg1 != "-u" and arg1 != "-l" then return "psudo: invalid flag"
+// 	flag = arg1
+// 	if flag == "-l" and typeof(arg2) == "shell" then origin_shell = arg2 
+
+// 	if typeof(arg3) == "string" then locals.user = arg3 
+// 	if typeof(arg4) == "string" then locals.pass = arg4
+	
+// 	return globals._shell_prompt(origin_shell,flag,user,pass)
+	
+	
+// 	//	psl = globals.shell
+// 	//	if arg1 and arg1 == "-s" and not arg2 then
+// 	//		psl = user_input("root pass:> ",1,0)
+// 	//	end if
+// 	//	if arg2 and arg1 == "-s" then
+// 	//		psl = arg2
+// 	//	else
+// 	//		if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell") then psl = arg1
+// 	//	end if
+
+
+// 	//return globals.shell_prompt( psl )
+// end function
+// psudo 2.0 by Plu70
+// conditions:
+// 
+// psudo -- show menu
+// psudo [shell] -- prompt to start terminal on shell
+// psudo [-l] -- start terminal on current active shell
+// psudo [-y|-l] [shell] -- same as psudo [shell] but does not prompt
+// psudo [-u] [user] [pass] -- get_shell(user,pass)
+// psudo [-s] [pass] -- get_shell("root",pass)
+command.psudo = function(operation, arg2, arg3, arg4)
+    if operation == "help" or operation == "-h" then return "PSUDO || sudo || get shell || get_shell || start terminal"+char(10)+
+	colorCyan+"<u>Start_terminal options:"+char(10)+"--"+char(10)+
+    "Usage: "+colorGold+"</b>psudo"+CT+" -- display the psudo menu"+char(10)+"--"+char(10)+
+    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"shell_object"+CT+"] -- execute <b>start_terminal</b> on the shell_object"+char(10)+
+    "-- unlike <b>run</b>, this command will <b>end</b> the script"+char(10)+"--"+char(10)+
+    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-l"+CT+"] -- execute start_terminal on the currently active shell object"+char(10)+
+	"-- unlike <b>run</b>, this command will <b>end</b> the script"+char(10)+"--"+char(10)+
+	colorCyan+"<u>Get_shell options:"+char(10)+"--"+char(10)+
+    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-u"+CT+"] [opt:"+colorWhite+"user"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a shell object using credentials"+char(10)+"--"+char(10)+
+	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-s"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a <b>root</b> shell object using credentials"
+//
+    _psudo_menu = function()
+        // display options
+        print colorGold+"</b>psudo: "+CT+"["+colorWhite+"y</b>|<b>l"+CT+"] execute "+colorCyan+"</b>start_terminal"+CT+" on the currently active shell object"
+        print colorGold+"</b>psudo: "+CT+"["+colorWhite+"u"+CT+"] BUFFER a <b>local</b> user shell using credentials"
+        print colorGold+"</b>psudo: "+CT+"["+colorWhite+"s"+CT+"] BUFFER a <b>root</b> shell using credentials"
+        print colorGold+"</b>-- press any other key to abort"
+        op = user_input(colorWhite+"||: "+colorGold+"</b>",0,1).lower
+        if "ylus".indexOf(op) == null then return 0 else return "-"+op
+    end function
+//
+    _go_time = function(user=null,pass=null)
+		if DEBUG then print "debug: go time: "+char(10)+"usr: "+user+" is a: "+typeof(user)+char(10)+"pass: "+pass+" is a: "+typeof(pass)
+        if not user or not pass or user == "" or pass == "" then return colorGold+"</b>psudo: aborting..."
+		if typeof(user) != "string" or typeof(pass) != "string" then return colorGold+"</b>psudo: aborting..."
+        locals.sh = get_shell(user,pass)
+        if typeof( locals.sh ) == "shell" then 
+            colorLightBlue+"</b>malp: "+colorGreen+"success</color></b>; new shell sent to "+colorOrange+"BUFFER"
+            open_it = user_input(colorGreen+"</b>-- view context menu in "+colorOrange+"BUFFER"+CT+"? [y/<b>N</b>] ||: "+colorWhite,0,1)
+            if open_it.lower == "y" then return command.malp("-b",locals.sh)
+            colorGold+"</b>psudo: returning shell object..."
+            return locals.sh
+        else 
+            return colorGold+"</b>psudo: "+colorRed+"</b>failed</color> to obtain shell object"+char(10)+colorGold+"</b>-- check credentials and try again"
+        end if
+    end function
+//
+    _shell_prompt = function(sh)
+		if typeof(sh) != "shell" then return colorGold+"psudo: error, expected shell, got: "+sh
+        if user_input(colorGold+"</b>psudo: "+colorOrange+"warning; start_terminal ends the script!"+char(10)+
+            colorGold+"psudo: "+colorOrange+"warning; start_terminal may result in an active trace"+char(10)+
+            colorGold+"</b>Continue? ["+colorWhite+"y"+CT+colorGold+"</b>/"+CT+colorWhite+"N"+CT+colorGold+"</b>] ||: "+colorWhite,0,1).lower == "y" then
+                exit locals.sh.start_terminal
+                exit "starting_terminal on target shell..."
+                return char(10)+
+                colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
+                colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
+                colorOrange+"</b>-- despite having used start_terminal."+char(10)+
+                colorOrange+"</b>-- You will need to manually exit out of 5hell to start the terminal."+char(10)+
+                colorOrange+"</b>-- Note: you must <b>exit</b>; do not use ctrl+c"
+                exit "This is a game bug, not mine."
+            return 0
+		else 
+		 	return colorGold+"</b>psudo: aborting..."
+        end if
+    end function
+//
+	if not operation then operation = _psudo_menu
+	if not operation then return colorGold+"</b>psudo: aborting..."
+    // if it's a shell we warn and confirm
+    if typeof(operation) == "shell" then _shell_prompt(operation)
+//
+    // otherwise we parse the flag or return if invalid flag
+    if typeof(operation) != "string" then return colorGold+"</b>psudo: aborting..."
+// 
+    if operation == "-l" or operation == "-y" then return _shell_prompt(globals.shell)
+//
+	usr = null
+	psw = null
+    if operation == "-u" then 
+		if not arg2 then usr = user_input("user name:> ") else usr = arg2 
+		if arg3 then psw = arg3 else psw = user_input("user passwor:> ")
+		return _go_time(usr,psw)
 	end if
-	if arg2 and arg1 == "-s" then
-		psl = arg2
-	else
-		if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell") then psl = arg1
+//
+    if operation == "-s" then
+		usr = "root"
+		if not arg2 then psw = user_input("root password:> ",1) else psw = arg2
+		return _go_time(usr,psw)
 	end if
-	return globals.shell_prompt(psl)
+//
+    return colorGold+"</b>psudo: invalid input"+char(10)+"-- aborting..."
 end function
 command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "List Files | List Folders | File Details"+char(10)+
@@ -1272,10 +1419,11 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	if @arg1 == "-h" or @arg1 == "help" then return "malp: Memory Alpha - buffer, object and database management menu. "+char(10)+
-	"Usage: malp -- Access all<b> BUFFER </b>objects from here."+char(10)+
-	"Usage: malp [piped_object] -- adds ANY piped objec to the BUFFER."+char(10)+
-	"-- May be of any type: string, list, map, shell, file, computer, etc, et al."+char(10)+
-	colorOrange+"Usage: malp [-b] [opt: piped_object] -- open the BUFFER immediately on opening malp"+char(10)+
+	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> -- Access all"+colorOrange+"</b> BUFFER "+CT+"objects from here."+char(10)+
+	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorGold+"</b>piped_object"+CT+"] -- adds ANY piped object to the "+colorOrange+"</b> BUFFER "+CT+"."+char(10)+
+	colorWhite+"</b>-- May be of any type: string, list, map, shell, file, computer, etc, et al."+char(10)+
+	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-b"+CT+"] [opt: piped_object] -- open the"+colorOrange+"</b> BUFFER "+CT+"immediately on opening malp"+char(10)+
+	"-- if an object is supplied, it's entry will be opened in the BUFFER"+char(10)+
 	"Functions: "+char(10)+
 	"[0] -- display portmap, if available"+char(10)+
 	"[1] -- display loaded exploits and requirements if known"+char(10)+
@@ -1291,13 +1439,14 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	"[6] -- Air menu for cracking wifi"+char(10)+
 	"[7|q] -- exit"+char(10)+
 	"[8] -- show running processes"+char(10)+
-	"[9] -- kill process(s)"+char(10)+
+	"[9] -- kill processes"+char(10)+
 	"[0] exit"+char(10)+
-	"[/] -- open cer bios"+char(10)+
+	"[/] -- open Cer Bios"+char(10)+
 	"[-] -- open reverse shell interface"+char(10)+
 	"[.] -- linkdb database entry"
 	if DEBUG then print("@arg1: "+typeof(@arg1))
 	open_buffer = false
+	open_entry = false
 	if @arg1 then
 		if typeof(@arg1) == "string" then 
 			if arg1 == "-b" then 
@@ -1307,16 +1456,18 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 				arg3 = arg4 
 			end if
 		end if
-		if typeof(@arg1) == "function" then
-			if DEBUG then print("function detected...")
+		//if typeof(@arg1) == "function" then
+		if @arg1 then 
+			//if DEBUG then print("function detected...")
 			globals.BUFFER.push(@arg1)
-		else
-			if arg1 then globals.BUFFER.push(arg1)
+			open_entry = true
+		//else
+			//if arg1 then globals.BUFFER.push(arg1)
 		end if
 	end if
 	if DEBUG then print("starting malp...")
-	globals.memory_alpha(open_buffer)
-	return 0
+	//if open_buffer then globals.memory_alpha(true) else globals.memory_alpha(false)
+	return globals.memory_alpha(open_buffer,open_entry)
 end function
 command.fwr = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if GLASSPOOL then print(colorOrange+"fwr: ignores glasspool."+CT)
@@ -1530,72 +1681,6 @@ command.ipfit = function(arg1, arg2, arg3=0, arg4=0)
 		return command.clipb
 	end if
 	return 0
-end function
-command.rnip = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "Usage: rnip [iter] [optional: delimiter] -- produce [iter] random ip addressses and"+char(10)+"return as a string with optional [delimiter] (default newline)"+char(10)+"e.g. rnip 100 ,  -- returns a string of 100 ips seperated by a comma"
-	loop = 1
-	delimiter = char(10)
-	if arg1 then loop = arg1.to_int
-	if arg2 then delimiter = arg2
-	rng = range(1,223)
-	rnd = range(0,223)
-	rand_ip = []
-	if loop < 1 then return "rnip: iteration must be a positive integer."
-	for i in range(1,loop)
-		rng.shuffle
-		rnd.shuffle
-		sub = rnd[0]
-		rnd.shuffle
-		ito = rnd[0]
-		rnd.shuffle
-		rand_ip.push([rng[0], rnd[0], ito, sub].join("."))
-	end for
-	return rand_ip.join(delimiter)
-end function
-command.porter = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: porter [port] [comma,or,newline,separated,ip,list] --  print lib version of service on port, if any, for given ip address(es)"
-	if not localmachine.is_network_active then return "nsl: no network connection."
-	r_buf = []
-	ip = arg2
-	if ip.split(char(10)).len > 1 then
-		ip = ip.split(char(10))
-		ip = ip.join(",")
-	end if
-	array = false
-	if ip.indexOf(",") >= 0 then
-		ip = ip.split(",")
-		array = true
-	else
-		i = ip
-		ip = [i]
-	end if
-	a_size = 1
-	if array then a_size = ip.len
-	port = 0
-	if arg1 then port = arg1.to_int else port = 0
-	time_s = time
-	print(colorLightBlue+"- - - - - - - - - - - - - - - - - - - - -"+CT)
-	print(colorLightBlue+"<align=center><b>(>|<)</b></align>"+CT)
-	for r in range(1, a_size)
-		i = ip[r-1]
-		if not localmachine.is_network_active then return "porter: no network connection found."
-		rtr = get_router(i)
-		if typeof(rtr) != "router" then continue
-		if port then
-			pinfo = null
-			png = rtr.ping_port(port)
-			if png then pinfo = rtr.port_info(png)
-			if pinfo then r_buf.push(i+" "+port+": "+pinfo)
-		else
-			pinfo = rtr.kernel_version
-			if pinfo then r_buf.push(i+" router: "+pinfo)
-		end if
-	end for
-	if r_buf == [] then r_buf.push("Porter: No_results_found.")
-	print(colorLightBlue+"Porter: task complete in "+colorOrange+(time - time_s)+colorLightBlue+" seconds."+CT)
-	save = "y"//user_input("Send results to clipb? [y/N] "+char(10)+"||: ",0,1)
-	if save.lower == "y" then command.clipb(r_buf.join(char(10)))
-	return colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
 end function
 command.code = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("input type: "+typeof(@arg1))
@@ -1882,10 +1967,10 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			colorLightBlue+"</b>-- keep in mind there is a game limit of 15 <u>nested</u> uses of shell.launch"+char(10)+
 			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning <b>do 1000 dig -s</b> is completely valid"+char(10)+
 			colorGold+"Advanced: Resource Configuration"+char(10)+
-			colorCyan+"You may place a file named "+colorWhite+"do.rc</color> in your "+colorWhite+"rkit</color> and/or "+ColorWhite+"Config folder"+char(10)+
+			colorCyan+"You may place a file named "+colorWhite+"do.rc</color> in your "+colorWhite+"rkit</color> and/or "+colorWhite+"Config folder"+char(10)+
 			colorLightBlue+"</b>-- the contents of the file should look like a standard <b>do</b> script and will be executed on launch"+char(10)+
 			colorLightBlue+"</b>-- unlike launching with <b>5hell do 1 -f do.rc</b>, this method will not exit on completion"+char(10)+
-			colorLightBlue+"</b>-- do.rc in <b>Config</b> will take priority over do.rc in <b>rkit</b>. This allows a 'home' and 'away' do.rc"
+			colorLightBlue+"</b>-- do.rc in <b>Config</b> will take priority over do.rc in <b>rkit</b>. This allows a 'home' and 'away' do.rc"+char(10)+
 			char(10)+
 			colorCyan+"Early Termination:"+char(10)+
 			colorLightBlue+"</b>If the final return value of a line in a do script is: <b>@STOP</b>, then:"+char(10)+
@@ -2300,7 +2385,7 @@ bios_info.push("<mark=red><u>===================================================
 return bios_info.join(char(10))
 end function
 command.cname = function(arg1,arg2,arg3,arg4)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: cname -- returns the name of the currently active copmuter_object"
+	if arg1 == "help" or arg1 == "-h" then return "Usage: cname -- returns the name of the currently active computer_object"
 	return localmachine.get_name
 end function
 command.whoami = function(arg1,arg2,arg3,arg4)
