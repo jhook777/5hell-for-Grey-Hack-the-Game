@@ -1309,7 +1309,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
       end for
       print(colorWhite+"__________________________________")
       selection = null
-      if go_to_selection == true then selection = BUFFER.len-1 else user_input(colorWhite+"Select an object to access:> "+CT).to_int
+      if go_to_selection == true then selection = BUFFER.len-1 else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
       go_to_selection = false
       if selection >= BUFFER.len or selection < 0 or typeof(selection) != "number" then continue
       if BUFFER.hasIndex(selection) and @BUFFER[selection] then
