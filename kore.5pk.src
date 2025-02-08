@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.7...(154.368)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.8...(157.135)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -1523,7 +1523,7 @@ command.calc = function(arg1="0", arg2="0", arg3="0", arg4=0)
 			if DEBUG then print("par1: "+@par1+char(10)+"par2: "+@par2+char(10))
 			return str(c(@par1,@par2))
 		else
-			return calc_help
+			return "calc: <b>invalid input</b>"
 		end if
 	end if
 end function
@@ -2703,7 +2703,11 @@ command.zap = function(arg1, arg2, arg3, arg4)
 		else
 			result = globals.metaLib.overflow( arg1, arg2 )
 		end if
-		if result and result != 1 then globals.BUFFER.push(result)
+		if result and result != 1 then 
+			print "malp: sending "+typeof(result)+" to "+colorOrange+" BUFFER..."
+			globals.BUFFER.push(result)
+		end if
+		print colorRed+"</b>zap: "+colorWhite+"</b>returning..."
 		return result
 	end if
 	return globals.select_attack(arg1)
@@ -3236,4 +3240,70 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	  return 0
 	end if
 	return 0
+end function
+command.rnip = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "Usage: rnip [iter] [optional: delimiter] -- produce [iter] random ip addressses and"+char(10)+"return as a string with optional [delimiter] (default newline)"+char(10)+"e.g. rnip 100 ,  -- returns a string of 100 ips seperated by a comma"
+	loop = 1
+	delimiter = char(10)
+	if arg1 then loop = arg1.to_int
+	if arg2 then delimiter = arg2
+	rng = range(1,223)
+	rnd = range(0,223)
+	rand_ip = []
+	if loop < 1 then return "rnip: iteration must be a positive integer."
+	for i in range(1,loop)
+		rng.shuffle
+		rnd.shuffle
+		sub = rnd[0]
+		rnd.shuffle
+		ito = rnd[0]
+		rnd.shuffle
+		rand_ip.push([rng[0], rnd[0], ito, sub].join("."))
+	end for
+	return rand_ip.join(delimiter)
+end function
+command.porter = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: porter [port] [comma,or,newline,separated,ip,list] --  print lib version of service on port, if any, for given ip address(es)"
+	if not localmachine.is_network_active then return "nsl: no network connection."
+	r_buf = []
+	ip = arg2
+	if ip.split(char(10)).len > 1 then
+		ip = ip.split(char(10))
+		ip = ip.join(",")
+	end if
+	array = false
+	if ip.indexOf(",") >= 0 then
+		ip = ip.split(",")
+		array = true
+	else
+		i = ip
+		ip = [i]
+	end if
+	a_size = 1
+	if array then a_size = ip.len
+	port = 0
+	if arg1 then port = arg1.to_int else port = 0
+	time_s = time
+	print(colorLightBlue+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+	print(colorLightBlue+"<align=center><b>(>|<)</b></align>"+CT)
+	for r in range(1, a_size)
+		i = ip[r-1]
+		if not localmachine.is_network_active then return "porter: no network connection found."
+		rtr = get_router(i)
+		if typeof(rtr) != "router" then continue
+		if port then
+			pinfo = null
+			png = rtr.ping_port(port)
+			if png then pinfo = rtr.port_info(png)
+			if pinfo then r_buf.push(i+" "+port+": "+pinfo)
+		else
+			pinfo = rtr.kernel_version
+			if pinfo then r_buf.push(i+" router: "+pinfo)
+		end if
+	end for
+	if r_buf == [] then r_buf.push("Porter: No_results_found.")
+	print(colorLightBlue+"Porter: task complete in "+colorOrange+(time - time_s)+colorLightBlue+" seconds."+CT)
+	save = "y"//user_input("Send results to clipb? [y/N] "+char(10)+"||: ",0,1)
+	if save.lower == "y" then command.clipb(r_buf.join(char(10)))
+	return colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
 end function
