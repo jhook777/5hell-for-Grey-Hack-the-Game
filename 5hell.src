@@ -60,7 +60,7 @@ import_code("/root/src/5hell.5pk")
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
 //globals.HOME_SERVER = ["string: ip", "number: port", "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)"]
-globals.HOME_SERVER = ["ip.add.re.ss", 22, "root", "password", "ssh", "/root/pass"]
+globals.HOME_SERVER = ["ip.add.rr.ess", 22, "root", "password", "ssh", "/root/pass"]
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
   // @home will be replaced with your ip, no password needed in this case
@@ -187,6 +187,9 @@ command.shell = function(input=null,mute=null)
       //
       // ############################### begin customizables two ###########################
       // begin shortcuts
+      // macro replacement; do this before all other aliases as macros may contain aliases
+      if get_custom_object.hasIndex(prompt[0]) then prompt = ["macro"]+prompt
+      // end macro replacement
       if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f"]+prompt[1:]
       if prompt[0] == "set" or prompt[0] == "get" then prompt = ["cob"]+prompt
       if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!!
