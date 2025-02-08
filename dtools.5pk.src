@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.8...(150.302)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9...(150.313)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2859,14 +2859,14 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	"* Marco's are essentially 'on the fly' do scripts that are stored in the custom object."+char(10)+
 	"* You may retrieve a macro from the custom object (for piping, or whatever) with<b> get [macro_name]."+char(10)+
 	"* You may pipe a <b>do</b> script into a macro. A do script may execute a macro with: <b>do # @o [macro_name]."+char(10)+
-	"* This makes the two interchangeable, allowing you to choose the exact behavior you want performed."+char(10)+char(10)+
+	"* This makes the two interchangeable, allowing you to choose the exact behavior you want performed."+char(10)+
 	colorCyan+"</b>Usage: macro [name] [string] -- set a macro to the given string"+char(10)+
 	"-- eg: macro foo ""echo bar | clipa"""+char(10)+
 	colorCyan+"</b>Usage: macro [name] -- fire the named macro, the macro prepend is <b>optional"+char(10)+
 	colorGold+"</b>NOTE: All macros may be fired from the command line by typing the macro name"+char(10)+
 	"-- this includes using macros within a string of piped commands"+char(10)+
-	"--eg: |> <b>macro gotime "" echo it's go time """
-	"----: |> <b>echo three | echo two | echo one | gotime | echo "" what time is it? """
+	"--eg: |> <b>macro gotime "" echo it's go time """+char(10)+
+	"----: |> <b>echo three | echo two | echo one | gotime | echo "" what time is it? """+char(10)+
 	colorCyan+"</b>Usage: macro [-d|del] [name] -- delete the named macro"+char(10)+
 	char(10)+
 	"-- eg: macro -d foo"+char(10)+
