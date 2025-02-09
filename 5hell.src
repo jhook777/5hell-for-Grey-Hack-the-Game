@@ -367,6 +367,24 @@ if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
 // e.g. 5hell do 1
 // (the last one will open the editor where you may type out a list of commands)
 //
+//
+//////////////////////////set-pre-launch-conditions/////////////////////////////////////
+if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
+//if DEBUG then print("<size=75%>size_of_5hell["+globals.SHEBIG+"]")
+//if DEBUG then print("initializing portmap...")
+//if localmachine.is_network_active then command.probe("-q",pubip,"0","1")
+if DEBUG then print("<size=75%>verifying stack_pool...")
+sp = globals.stack_pool
+if DEBUG then print("<size=75%>stack_pool: ["+sp+"]") 
+if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib...")
+globals._export_metax // export our metaxploit on each startup
+if DEBUG then print("<size=75%>checking for tables/tp")
+itp = globals._import_tables // import tables/tp if it exists
+if DEBUG then print itp
+print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
+//////////////////END prelaunch-conditions///////////////////////////////////
+//
+/////BEGIN l_w_d CONTROL///////////////////////////////
 if params and params[0] == "do" then
   cmd = "do"
   if params.len >= 2 then cmd = cmd + " " + params[1]
