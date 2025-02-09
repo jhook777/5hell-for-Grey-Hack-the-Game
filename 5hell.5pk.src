@@ -1,7 +1,7 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.9_nightly_terrors"
+ver = "3.9.9.9.1_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -2871,19 +2871,3 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
-
-//////////////////////////set-pre-launch-conditions/////////////////////////////////////
-if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
-//if DEBUG then print("<size=75%>size_of_5hell["+globals.SHEBIG+"]")
-//if DEBUG then print("initializing portmap...")
-//if localmachine.is_network_active then command.probe("-q",pubip,"0","1")
-if DEBUG then print("<size=75%>verifying stack_pool...")
-sp = globals.stack_pool
-if DEBUG then print("<size=75%>stack_pool: ["+sp+"]") 
-if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib...")
-globals._export_metax // export our metaxploit on each startup
-if DEBUG then print("<size=75%>checking for tables/tp")
-itp = globals._import_tables // import tables/tp if it exists
-if DEBUG then print itp
-print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
-/////////////////////BEGIN MAIN////////////////////////////////////////////////
