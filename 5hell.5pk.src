@@ -1,7 +1,7 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.9.1_nightly_terrors"
+ver = "3.9.9.9.2_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "158.474"
+size_of_5hell = "157.567"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -284,7 +284,7 @@ command.passwd = function(arg1, arg2, arg3=0, arg4=0)
   if not pass then pass = user_input("passwd: select a new password for: "+user+":> ",1,0)
 	if pass == "" or pass == " " then return "aborting..."
   try = localmachine.change_password( user, pass)
-  if try == 1 then return "passwd: "+colorWhite+"password updated to: "+char(10)+pass
+  if try == 1 then return "passwd: "+colorWhite+"password for "+user+" updated to: "+char(10)+pass
   return try
 end function
 command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
