@@ -25,10 +25,97 @@
 //
 // todo: kraken
 // todo: probe
-// todo: tree, ls: colorize symlinks
 //
-// merged pr from muhahahahahe:
-// --: db: fixed inject value parameter/prompt
+// brutus: disabled while GLASSPOOL is active; brutus doesn't translate through glasspool it just ends up rooting your own machine; so now it wont
+// kore: -r will now create an empty database.csv if it doesn't exist
+// kore: -r will now highlight the path used to cp 5hell into rkit (as well as properly rename it to 5hell)
+// --NOTE: kore -r copies 5hell from the launch path of the instance of 5hell running the command
+// ----: mind your launch path to ensure the correct 5hell is copied
+// dig: will create an empty database.csv if it doesn't exist
+// dig: dig.bat is created on dig's first run or when you use: dig --edit (or manually create it, of course)
+// -- the default dig.bat is bare bones, please customize it to suit the behavior you desire
+// silentclean: nuke option (sc -n) will now require the override flag '--n' before executing on a machine running Xorg (aka a home pc)
+// -- this is to help protect you from nuking yourself on accident but still allow you to nuke yourself on purpose
+// rclean: -n will now properly nuke the filesystem
+// -- note, since rclean requires you to specify a shell/computer/file object, it does NOT have the same restriction as the above
+// -- please nuke responsibly
+// db: passing -i to a db -r call should now result in a prompt for an inject
+// db: will no longer use a default inject of 'password'
+// -- this is to avoid unintentional password changes
+// string: -r (replace): will use @[int] in order to specify a specific character code
+// --eg: string -r bob @32 " this is a string withbobin it " -- would replace 'bob' with a space
+// -- use @0 for a 'zero space' character; aka: ""
+//
+// changed malp and memory alpha to auto-open a piped value
+// moved rnip and porter to kore.5pk because 5hell.5pk ran out of room
+// macro: you may now run macro's WITHOUT the 'macro' prepend!!!!!!!!!
+// --i.e.: set a macro with: macro " [string of commands or whatever] "
+// -- then fire the macro with: |> [macro_name]
+// -- combining this with `do.rc` lets you set macro's at runtime
+// -- aka: easy way to add new commands!!
+// -- this change is a single line in 5hell.src, first entry for aliases
+// ---- at the time of this post, it's line 191 (may change in the future, of course)
+// ---- in case you want to easily add it to your custom 5hell.src
+// psudo: complete overhaul of function and usage info
+// -- hopefully how it works (and why to use it) is much clearer now
+// zap: will no longer offer to start terminal on a shell
+// -- instead it will buffer it as normal then offer to open that object in the BUFFER 
+// -- please note that executing zap without the menu does NOT result in a prompt
+// -- i.e.: zap [mem] [add] [inj] == no prompt || zap == prompt
+// -- both options will still return the shell object as normal
+// -- the default choice for opening the shell in the buffer is Y
+// -- if y'all would prefer N be the default, let me know and we'll switch it
+//
+// do: fixed typo causing crash when using do -h
+// cname: fixed typo in usage info
+// calc: will no longer spam usage info on bad input
+//
+// meta: fixed several places that the update from meta link -r|-l changing to meta load|link was missing
+// -- this affected zero chill and db/linkdb in edge cases
+// linkdb: will no longer return full usage info on no-input
+// hotfix: fixed missing newline in macro usage info
+// hotfix: removed accidental color codes from the database
+// bios: added line to report number of entries in custom object
+//
+// do.rc: 5hell will now look for do.rc in Config first, and rkit second, executing only the first one found
+// help: added entry: help alias
+// -- explains do and macro
+// credits: updated with new contributors
+// silentclean: updated how sc searches for rkit/5hell to avoid issues when cleaning through glasspool
+// dig: updated default dig.bat to include a dropping a root rshell
+// meta: fixed invalid file path check on metaxloitLib import
+// rsi: added check to prevent crash when rsi list is empty when refreshing the menu
+// scribus: added: @I - insert above line, @N - display noparse output without line numbers
+// scribus: fixed typo causing a crash when supplying incorrect line number to @i
+// string: fixed missing newlines that were preventing full usage info from printing
+// tree: symlinks will be colored yellow
+// ls: symlinks will be colored yellow
+// macro: added new command for making macros
+// -- they function similarly to do scripts
+// -- but different
+// -- depending on feedback, either macro or do may be changed to match the other
+// if: reduced spam by muting the return output of evaluated functions
+// -- print statements within the function will still be printed
+// string: changed -R flag; now indicates 'remove'
+// 5hell.src: added note that color palette may be overwritten by uncommenting the appropriate lines in 5hell.src
+// pwgen: added the words operator and feral to word seed list
+// echo: will no longer return usage information on no input
+// do: made return output smaller
+// do: attempting to put a gate clause to terminate script execution early
+// -- if the final return value of a line in a do script is @STOP
+// ---- the script will stop that iteration without completing further commands
+// ---- the next iteration will start; this is equivalent to a "continue" in a loop
+// -- if the final return value of a line in a do script is @RETURN
+// ---- the entire chain will cease and you will be returned to the command line
+// ---- this is equivalent to a "break" in a loop
+// -- an example gate clause: if " echo @STOP " " echo go " " echo 15 " " get stack_pool "
+// db: further refinements to the fixes added in the PR
+// -- fixed missing 'inject' in local lib databasing
+// -- will now detect firewall disable and password change exploits
+// -- will now dynamically assign a lan ip inject if not supplied
+// -- will now use "password" as default password change value
+// -- may pass -i as a param to be prompted for an inject value to use as password or lan ip
+// merged PR fixing incorrect inject logic in the db command
 //
 // kraken: hotfix to fix completely busted status
 //
