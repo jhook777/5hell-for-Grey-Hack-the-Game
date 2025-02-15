@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.7.7 by Plu70
+// Sphinx Hacking Interface v 2.7.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.7.8"
+sphinx_version = "2.7.9"
 malp_version = "1.4.3"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.1...(154.382kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.2...(154.977kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -2057,8 +2057,8 @@ globals.rclean = function(arg1, arg2=0)
       if not kit then print "rclean: "+colorOrange+" could not find rootkit or 5hell"
       if kit and kit.has_permission("w") then 
         kit.delete 
-        print "rclean: rkit/5hell deleted"+char(10)+"[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
         detection_factor = detection_factor + 1 
+        print "rclean: rkit/5hell deleted"+char(10)+"[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
       else 
         return colorRed+"rclean: cannot delete rkit/5hell: permission denied"
       end if
@@ -2074,7 +2074,8 @@ globals.rclean = function(arg1, arg2=0)
       if d == "-n" then 
         print "rclean: "+colorRed+"nuking filesystem..."
         boot = command.tree(f,"boot",1,"N")
-        if not boot then 
+        lib_fold = command.tree("f","lib",1,"N")
+        if boot then 
           important_shit = boot.get_files
           for shit in important_shit
             if shit.has_permission("w") then 
@@ -2084,6 +2085,16 @@ globals.rclean = function(arg1, arg2=0)
               print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
             end if
           end for
+        else 
+          print colorRed+"rclean: could not locat /boot"
+        end if
+        if lib_fold then 
+          for l in lib_fold.get_files
+            print "deleting: "+l.path
+            l.delete 
+            detection_factor = detection_factor + 1
+            print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+          end for 
         end if
       end if
     end if
@@ -2097,7 +2108,13 @@ globals.rclean = function(arg1, arg2=0)
         catch = sys.copy("/var", "system.log")
       end if
     end if
-    if catch == 1 then return "rclean: "+colorGreen+"Log Scrubbed..." else return colorRed+"rclean: failed: "+catch+char(10)+colorRed+"WARNING: we left "+ detection_factor + " log entries!"
+    if catch == 1 then 
+      detection_factor = 0
+      print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+      return "rclean: "+colorGreen+"Log Scrubbed..."
+    else 
+      return colorRed+"rclean: failed: "+catch+char(10)+colorRed+"WARNING: we left "+ detection_factor + " log entries!"
+    end if
   end function
   if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then // arg2 is shell, not called by user
     t_shell = arg1
