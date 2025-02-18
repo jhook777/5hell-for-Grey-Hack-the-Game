@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.3...(151.761)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.3...(151.733)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2549,9 +2549,8 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Symlink || symbolic link || file path"+char(10)+
 	"Usage: sl [path] -- returns true if path is a symlink, returns false otherwise"+char(10)+
 	"Usage: sl [path] [/new_path/new_name] -- create a symbolic link at path"+char(10)+
-	"-- returns 1 on success, string on fail"+char(10)+
-	"Note: this command is disabled outside of nightly"
-	if not NIGHTLY then return "sl: function disabled"
+	"-- returns 1 on success, string on fail"+char(10)
+	//if not NIGHTLY then return "sl: function disabled"
 	if typeof(arg1) == "file" then arg1 = arg1.path
 	if typeof(arg1) != "string" then return "sl: invalid path"
 	source_file = globals.get_file(arg1)
@@ -2902,9 +2901,9 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		// remove a macro
 		if get_custom_object.hasIndex(arg2) then return command.cob("del",arg2) else return "macro: no such macro"
 	end if
-	if arg2 then 
+	if arg1 == "set" or arg1 == "-s" then 
 		// create a macro
-		print command.cob("set",arg1,arg2)
+		print command.cob("set",arg2,arg3)
 	else 
 		//fire a macro
 		macmac = null
