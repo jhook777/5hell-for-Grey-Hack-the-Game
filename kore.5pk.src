@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.2...(159.314)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.3...(159.388)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -555,8 +555,9 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 					if DEBUG then print "hash is:"+hash+" and len is: "+hash.len
 					if hash.len != 32 then continue
 					print("["+hash+"]")
-					t_folder = localmachine.File("/root/tables/t5")
-					if not t_folder then return "/root/tables/t5 not found. run<b> pwgen hash </b>before continuing."
+					//t_folder = localmachine.File("/root/tables/t5")
+					t_folder = globals.get_file(globals.TABLES_DIR)
+					if not t_folder then return globals.TABLES_DIR+" not found\n-- run<b> pwgen hash\n-- or edit TABLES_DIR to resolve"
 					files = t_folder.get_files
 					for f in files
 						if found then continue
