@@ -1,7 +1,7 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.9.2_nightly_terrors"
+ver = "3.9.9.9.3_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "157.567"
+size_of_5hell = "157.586"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -77,7 +77,7 @@ globals.clip_board_gamma = ""
 globals.clip_board_delta = "" // for do
 globals.debug_username = ""
 globals.debug_password = "" // neurobox debug credentials
-
+globals.TABLES_DIR = globals.HOME_SERVER[6]
 globals.instance = globals.localmachine.File(program_path)
 
 // import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
@@ -2645,7 +2645,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"but not necessary. You may run silentclean, exit 5hell, exit the terminal, and you will not leave a disconnect log."+char(10)+
 	"-- be aware that taking any log-creating action after running sc, except exiting, may regenerate the log."+char(10)
 
-	help_alias = "<u><b>aliases || do script || shortcuts || macros || or is it Macro's ? || User Defined Behavior"+char(10)+
+	help_alias = "<u><b>aliases || do script || shortcuts || macros || User Defined Behavior"+char(10)+
 	"5hell can be very simple to use, or very, very complicated, depending on your goals."+char(10)+
 	"It isn't necessary to learn 100% of 5hell. Nor is it necessary to suffer through some of it's"+char(10)+
 	"more complex chains of commands. You can define your own behavior in a number of ways:"+char(10)+char(10)+
@@ -2684,7 +2684,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"-- as of 3.9.6 any command may use @B [index] as any parameter(s)"+char(10)+
 	"-- there are other ways to pipe objects around besides the clipboards, explore to learn more."+char(10)+
 	char(10)+
-	colorOlive+"Marco's and Automation: "+char(10)+
+	colorOlive+"Marcos and Automation: "+char(10)+
 	colorWhite+" </b>You may define custom macro's with the "+colorOrange+"</b>macro</color> command. A macro is a "+char(10)+
 	colorWhite+"</b>runtime-defined set of instructions executed by a single command. Think of it as an alias that performs"+char(10)+
 	colorWhite+"</b>commands for you. Additionally, you may execute batch commands either from a file or from memory. There are"+char(10)+
@@ -2738,7 +2738,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorLightBlue+"</b>line with: <b>5hell do 1 -f [path] </b>5hell will automatically execute the commands in the file and then exit."+char(10)+
 	colorLightBlue+"</b>If you do not wish 5hell to exit after completion, use a file named <b>do.rc</b> in your home_dir/Config or"+char(10)+
 	colorLightBlue+"</b>in rkit (executes only if ~/Config/do.rc does not exist). Note that <b>do</b> does not return a value other than"+char(10)+
-	colorLightBlue+"</b>it's completion time. Macro's, however, do return the final value. Additionally, the <b>dig</b> command makes"+char(10)+
+	colorLightBlue+"</b>it's completion time. Macros, however, do return the final value. Additionally, the <b>dig</b> command makes"+char(10)+
 	colorLightBlue+"</b>use of the <b>do</b> engine when executing <b>dig.bat</b> (which itself, may reference other do scripts). "+char(10)+
 	colorLightBlue+"</b>This allows 5hell to be fully automated throughout an arbitrary number of attacks. Cool stuff, right!?"+char(10)+
 	char(10)+
