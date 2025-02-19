@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.3...(159.388)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.4...(159.493)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -2132,8 +2132,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	"Note: the default 'inject' is '192.168.0.2' to avoid unintentional password changes"
 
 	// params: -h|-H -show help (same as run without params)
-	if not arg1 or (arg1 == "-h" or arg1 == "help") then return(db_usage)
-
+	if arg1 == "-h" or arg1 == "help" then return(db_usage)
+	if typeof(arg1) != "string" or ["-m","-r","-l"].indexOf(arg1) == null then return "db: invalid flag: expects -m|-r|-l"
 	if DEBUG then print("In command.db...")
 	inject = null
 	if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4)
