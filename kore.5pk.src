@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.4...(159.493)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.5...(154.830)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
@@ -21,9 +21,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		print("kore: copying: "+colorCyan+pro_path+CT+" to "+home_dir+"/rkit/5hell")
 		print(command.cp(pro_path, home_dir+"/rkit/5hell" ))
 		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print "kore: failed to copy 5hell: permission denied"
-		//if globals.metaxploit then
 		mpath = null
-		//if globals.mlib == true then
 		mpath = command.tree("/","metaxploit.so","1","N")
 		if mpath and mpath.parent.name == "rkit" then
 			mpath.move(mpath.parent.path,mpath.name+".bku")
@@ -45,16 +43,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
 			command.cp(mpath.path, home_dir+"/rkit")
 			if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print "kore: failed to copy metaxploit.so: permission denied"
 		end if
-			//end if
-		//else
-			 
-			//print "kore: metaxploit.so not found"
-		//end if
-		
-		//if globals.crypto then
-			cpath = null
-			//if globals.clib == true then
-				
+			cpath = null				
 				cpath = command.tree("/","crypto.so","1","N")
 				if cpath and cpath.parent.name == "rkit" then
 					cpath.move(cpath.parent.path,cpath.name+".bku")
@@ -73,13 +62,8 @@ command.kore = function(arg1,arg2,arg3,arg4)
 					command.cp(cpath.path, home_dir+"/rkit")
 					if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "kore: failed to copy crypto.so: permission denied"
 				end if 
-			//end if
-		//else
-			//return "kore: crypto.so not found"
-		//end if
 		print "kore: ensuring "+colorWhite+home_dir+"/rkit/database.csv"+CT+" exists..."
 		print command.poke(home_dir+"/rkit/database.csv")
-		//return "kore: task complete in "+time_f+" seconds."
 		return 0
 	end function
 
@@ -190,81 +174,12 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "<b>Transmit</b> -- t_buf transmission protocol"+char(10)+"Usage: transmit [opt: 1|0] --  transmit @t_buf to your @home server. "+char(10)+"-- set @home credentials in 5hell.src before building 5hell"+char(10)+"-- options: 1 == wait for reply, 0 (or blank) == don't wait for reply"+char(10)+"-- use with hashim running on the @home server"
 	return globals.transmit(arg1)
 end function
-// command.transmit = function(arg1, arg2, arg3=0, arg4=0)
-// 	if arg1 == "-h" or arg1 == "help" then return ("Usage: transmit [ip] [port] -- transmit text to remote file. Default port 22."+char(10)+"-- you may set ip with <b>target [ip] [port]</b> instead"+char(10)+"-- you may set ip with launch params: 5hell [ip] [port]"+char(10)+"-- simply type transmit without params if ip is set this way."+char(10)+"---- Enter data 1 line at a time. "+char(10)+"---- Send with @send on new line")+char(10)+"---- the contents of <b>@tbuf</b> are automatically added"+char(10)+char(10)+"Transmit is intended to write information to a remote text file."+char(10)+"While desinged for use with hashim and dbmon, you"+char(10)+" may use it to transmit standard text files if you find that useful."
-// 	if arg2 == 0 then arg2 = "22" // default ssh port for transmit
-// 	remote_ip = globals.targetIP
-// 	remote_port = globals.targetPort
-// 	pass_path = user_input("transmit_to_this_path (q=quit):> ")
-// 	if pass_path.lower == "q" or pass_path == "" then return ("aborting...")
-// 	if arg1 then
-// 		remote_ip = arg1
-// 		if arg2 then remote_port = arg2.val
-// 	end if
-// 	print("Establishing connection to "+remote_ip+" ... ")
-// 	skip_wait = true
-// 	if not is_valid_ip(remote_ip) then return ("transmit: invalid ip: "+remote_ip)
-// 	passwd = user_input("Remote password (not stored. leave blank to abort): ",1)
-// 	if passwd == "" then return ("aborting...")
-// 	remote = shell.connect_service(remote_ip, remote_port, "root", passwd)
-// 	if not remote then return "Unable to establish connection."
-// 	passfile = remote.host_computer.File(pass_path)
-// 	if not passfile then return("404: shared file: "+passfile+" not found. ")
-// 	t_buf = globals.T_BUF
-// 	transmit = ""
-// 	print("Connection established. "+char(10)+"<b>@tbuf</b> added to transmission."+char(10)+"Type <b>@send</b> on a newline to finish and transmit. "+char(10)+"Type <b>@clipb</b> on a newline to paste from clipboard 'b' "+char(10)+"Type @wait to await a response from hashim or dbmon. Will write response to clipb."+char(10)+"Type @q or @@ on newline to abort")
-// 	while t_buf[-1] != "@send"
-// 		transmit = user_input(":>") // line to send
-// 		if transmit == "@q" then return "aborting..."
-// 		if transmit == "@clipb" then
-// 			t_buf.push(command.clipb(0,0))
-// 		else
-// 			if transmit == "@wait" then
-// 				skip_wait = false
-// 			else
-// 				t_buf.push(transmit)
-// 			end if
-// 		end if
-// 	end while
-// 	t_buf = t_buf.join(char(10))
-// 	passfile.set_content(t_buf)
-// 	print(t_buf)
-// 	waiting = true
-// 	print("Transmission sent. Awaiting response...")
-// 	while waiting
-// 		//wait(2)
-// 		out = remote.host_computer.File("/virt/out.spc")
-// 		if not out then
-// 			print("/virt/out.spc not found")
-// 			skip_wait = true
-// 		end if
-// 		if passfile.get_content != t_buf or skip_wait then
-// 			if skip_wait then
-// 				//print(passfile.get_content)
-// 				waiting = false
-// 				print("...transmission complete.")
-// 			else
-// 				last_out = out.get_content
-// 				if last_out != out.get_content then
-// 					waiting = false
-// 					last_out = out.get_content
-// 					//print("Clipped: "+char(10)+last_out)
-// 					print("Receiving response...")
-// 					print(command.clipb(last_out))
-// 				end if
-// 			end if
-// 		end if
-// 	end while
-// 	globals.T_BUF = [(localip+"@"+pubip)]
-// 	return 0
-// end function
 command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor an output file"+char(10)+"Usage: outmon [path] [opt:interval]"+char(10)+"path -- path to file. default /virt/out.spc"+char(10)+"interval -- refresh rate. default 2 seconds, range(.1, 300)"+char(10)+"-- prints changes to a text file every [interval] seconds"
 	out_space = localmachine.File("/virt/out.spc")
 	if arg1 then out_space = globals.get_file(arg1)
 	if not out_space then return "outmon: "+ arg1 + ": file not found."
 	last_read = "-EMPTY-" // out_space.get_content
-	//print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
 	interval = arg2 // refresh interval, may be float in range .1, 300
 	if interval and typeof(interval) == "string" then interval = interval.val
 	if typeof(interval) != "number" or interval < .1 or interval > 300 then interval = 2
@@ -314,15 +229,12 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 		end if
 		print(colorLightBlue+"<size=85%><mark=blue>======================================================================</mark></size>"+CT)
 		print("<u>BUFFER contains: "+temp_buf.len+" glass objects. ["+colorWhite+"0"+CT+"] == localhost "+colorCyan+"*"+CT+" == "+colorCyan+"active shell"+CT+"</u>"+char(10)+"<size=75%><u>"+colorLightBlue+" rshells "+CT+"are listed after"+colorOrange+" BUFFER "+CT+"shells. rshells in BUFFER will be listed twice.</size></u>")
-		
 		ti = 0
 		color_shelle = colorOrange
 		she_buf = []
 		active_icon = "<b> - </b>"
-
 		for tb in temp_buf
 			if ti >= r_index then color_shelle = colorLightBlue // color rshells blue
-			
 			if typeof(tb) == "shell" or typeof(tb) == "ftpshell" then
 				if tb.host_computer.public_ip == globals.shell.host_computer.public_ip and tb.host_computer.local_ip == globals.shell.host_computer.local_ip then active_icon = colorCyan+" * "+CT
 				p_ip = tb.host_computer.public_ip
@@ -331,15 +243,11 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 				p_ip = tb.public_ip
 				l_ip = tb.local_ip
 			end if
-			
 			she_buf.push("["+colorWhite+ti+CT+"]"+active_icon+""+color_shelle+"["+checkUser(tb)+":"+typeof(tb)+"] "+CT+l_ip+" @ <b>"+p_ip+"</b>") 
-			
 			active_icon = "<b> - </b>" // reset active icon
 			ti = ti + 1
 		end for
-	
 		print(she_buf.join(char(10)))
-	
 		slect = user_input("select a <b>target</b> shell (q=quit): ").to_int
 		if typeof(slect) != "number" then return "aborting..."
 		if slect >= 0 and slect < temp_buf.len then
@@ -446,255 +354,8 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			print(colorOrange+"glasspool: error: failed to initialize."+CT)
 		end if
 	end if
-
-	// done
 	return 0
 end function
-// command.dbmon = function(arg1, arg2, arg3=0, arg4=0)
-// 	if arg1 == "help" or arg1 == "-h" then return "dbmon: database daemon for use with KORE"+char(10)+"Usage: dbmon [/path -- default /root/pass] [interval -- default 2 seconds, range(.1, 300)]"+char(10)+"-- vulnerability database daemon. Write ip addresses to the given path and dbmon will database the ip."+char(10)+"Usage: use transmit, poke, scribus, etc to write to the pass file."+char(10)+"-- as ips are added to the pass file dbmon will run the databaser (command.db) on the ip (and port, if supplied.)"+char(10)+"-- add ips one per line to the pass file."+char(10)+"-- adjust interval to increase or decrease sample rate."+char(10)+"-- outputs to database.csv (wherever that file may be on the machine)"
-// 	db_file = command.tree("/","database.csv",1,"N")
-// 	if not db_file then return "dbmon: missing database.csv"
-// 	shar = globals.get_file("/root/pass")
-// 	if arg1 then shar = globals.get_file(arg1)
-// 	if not shar then return "dbmon: "+arg1+": file not found"
-// 	int = arg2 // interval (ntbcw integer), may be float in range .1, 300
-// 	if int != 0 then int = int.val
-// 	if typeof(int) != "number" or int < .1 or int > 300 then int = 2
-// 	running = true
-// 	last_check = ""
-// 	clear_me = false
-// 	print(colorWhite+"Listening on:"+shar.path+" for connections..."+CT)
-// 	while running
-// 		if last_check == shar.get_content or shar.get_content == "" then
-// 			// skip
-// 		else
-// 			last_check = shar.get_content
-// 			//print(last_check)
-// 			buf = last_check.split(char(10))
-// 			for b in buf
-// 				bs = b.split(" ")
-// 				if is_valid_ip(bs[0].trim)  then
-// 					//print(bs[0]+"__"+bs[1]+"__"+bs.len)
-// 					if bs.hasIndex(1) then
-// 						command.db("-r", bs[0].trim, bs[1].to_int)
-// 					else
-// 	        	command.db("-r", bs[0].trim)
-// 					end if
-// 				end if
-// 				if bs.indexOf("@clear") >= 0 then clear_me = true
-// 			end for
-// 	    if clear_me then
-// 				db_file.set_content("-empty-")
-// 				shar.set_content(db_file.get_content)
-// 				clear_me = false
-// 			else
-// 				shar.set_content(db_file.get_content)
-// 			end if
-// 	    last_check = shar.get_content
-// 			print(colorWhite+"Listening on:"+shar.path+" for connections..."+CT)
-// 		end if
-// 		wait(int)
-// 	end while
-// 	return 0
-// end function
-command.hashim = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then
-		if arg2 and arg2 == "extra" then
-			return "Files required: /root/tables/t5/XX (XX is all files from<b> pwgen hash </b>, ascii), 5hell (bin)."+char(10)+"Files created: /root/dump.txt (ascii) -- the output file with cracked passwords"+char(10)+"Input format: "+char(10)+"   user:hash "+char(10)+"Once per line in /root/pass or specified path (see also <b>transmit</b>). "+char(10)+"May be of type bank, mail, passwd."
-		else
-			return "hashim: hash daemon"+char(10)+"Usage: hashim [-d|-f] [path] -- listen on [path] and decipher contents using tables/t5"+char(10)+"-- default path is /root/pass"+char(10)+"-- -f == run once on specified path"+char(10)+"-- -d == run as daemon on specified path"+char(10)+"N.B. Please run <b> pwgen hash </b> to setup resources for hashim."+char(10)+"n.b.b This command requires root access and it is recommended to use, along with pwgen, on a dedicated server due to the number of files involved. ie try not to spam hashim servers. a single one works wonders."+char(10)+"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
-		end if
-	end if
-	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [path] -- -f == run once on specified path, -d == run in daemon mode on specified path. Default path: /root/pass."
-	if not crypto then print(colorOrange+"WARNING: crypto.so not found"+CT)
-	dump = globals.get_file("dump.txt")
-	if not dump then print localmachine.touch(currentPath, "dump.txt")
-	dump = globals.get_file("dump.txt")
-	if not dump then return "hashim: dump.txt not found in current path."+char(10)+"hashim: unable to write dump.txt"
-	if arg2 then swap_path = arg2 else swap_path = "/root/pass"//params[0]
-	swap_file = globals.get_file(swap_path)
-	if not swap_file then return("hashim: "+swap_path+" not found.")
-	//out_path = "/virt/out.spc"
-	//out_file = localmachine.File(out_path)
-	//if not out_file then return("404: "+out_path+" not found"+char(10)+"type<b> kore </b>without params to create (you may skip adding an ip)")
-	cache = []
-	found = false
-	daemon = true
-	if arg1 == "false" or arg1 == "-f" then daemon = false
-	hashim = function(daemon,swap_file)
-		wait(.05)
-		//if not daemon then swap_path = "/root/pass"
-		//swap_file = globals.get_file(swap_path)
-		if not swap_file then return "404: "+swap_path+" not found."
-		last_read = "" //swap_file.get_content
-		running = true
-		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
-		while running
-			found = false
-			hash = ""
-			user = ""
-			if last_read == swap_file.get_content or swap_file.get_content == "" then
-				// skip
-			else
-				time_s = time
-				last_read = swap_file.get_content.split(char(10))
-				for hash in last_read
-					found = false
-					if DEBUG then print "hash is: "+hash
-					if hash.indexOf(":") >= 0 then
-						user = hash.split(":")[0]
-						hash = hash.split(":")[1]
-					else
-						if hash.len == 32 then 
-							user = "unknown"
-						else
-							continue
-						end if
-					end if
-					hash = hash.trim
-					if DEBUG then print "hash is:"+hash+" and len is: "+hash.len
-					if hash.len != 32 then continue
-					print("["+hash+"]")
-					//t_folder = localmachine.File("/root/tables/t5")
-					t_folder = globals.get_file(globals.TABLES_DIR)
-					if not t_folder then return globals.TABLES_DIR+" not found\n-- run<b> pwgen hash\n-- or edit TABLES_DIR to resolve"
-					files = t_folder.get_files
-					for f in files
-						if found then continue
-						lines = f.get_content.split(char(10))
-						for line in lines
-							if found then continue
-							if line == lines[0] then continue
-							spl = line.split("=")
-							h = spl[0]
-							p = spl[1]
-							if h == hash then
-								print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
-								cache.push(user + ":" + p)
-								found = true
-								continue
-								if h.len != 32 then print(colorRed+"hashim: t5 table error: entry is not 32 characters"+char(10)+line+char(10)+"Line: "+lines.indexOf(line))
-							end if
-						end for
-					end for
-					if found == true then continue
-					if crypto then
-						password = null
-						password = crypto.decipher(hash)
-						if password then
-							print("Hashim: " + user + ":" + colorWhite + password + CT + " found in " + (time-time_s) + " seconds.")
-							cache.push(user + ":" + password)
-							found = true
-							continue
-						end if
-					end if
-					print(colorRed+"Hash not found: unknown: "+hash+CT)
-					cache.push(user+":unknown")
-				end for
-				last_read = cache.join(char(10))
-				if daemon then print("Sending: "+char(10)+last_read)
-				if daemon then swap_file.set_content(last_read)
-				print("Saving to dump.txt...")
-				dump.set_content(dump.get_content+char(10)+last_read)
-				cache = []
-				print(colorLightBlue+"Hashim: completed task in "+(time-time_s)+" seconds."+CT)
-				wait(1)
-				if daemon then
-					print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
-				else
-					return 0
-				end if
-			end if
-			wait(.05)
-		end while
-		return 0
-	end function
-	return hashim(daemon,swap_file)
-end function
-command.tdump = function(arg1,arg2,arg3,arg4)
-	if arg1 == "-h" or arg1 == "help" then return "Transmission Buffer Dump"+char(10)+"Usage: tdump [opt: path] -- dump tbuf (transmission buffer) to file"+char(10)+"-- writes to specified path or default path of home_directory+/pass"
-	if globals.T_BUF.len <= 1 then return "Transmission buffer is empty."
-	tpath = arg1 
-	if not tpath then 
-		if currentPath != "/" then tpath = currentPath + "/pass" else tpath = currentPath+"pass"
-	end if
-	print colorLightBlue+"dumping t_buf to: "+colorWhite+tpath
-	passfile = globals.get_file(tpath)
-	if not passfile then 
-		print "tdump: "+tpath+" not found"
-		print "poke: creating "+tpath
-		print command.poke(tpath)
-		passfile = globals.get_file(tpath)
-		if not passfile then return "tdump: write permission denied"
-	end if
-	if typeof(passfile) != "file" then return "tdump: "+tpath+" not found. "+char(10)+"-- check path and glasspool status and try again."
-	if not passfile.has_permission("w") then return "tdump: write permission denied"
-	tcatch = passfile.set_content( globals.T_BUF.join(char(10)) ) 
-	if DEBUG then print "debug: tcatch: "+tcatch+" is a "+ typeof(tcatch)
-	if typeof(tcatch) == "string" then return tcatch else print colorLightBlue+"tdump: task complete..."
-	globals.T_BUF = [(localip+"@"+pubip)]
-	//globals.T_BUF = []
-	print "tdump: returning file object for "+passfile.path
-	return passfile
-end function
-// command.filemon = function(arg1=0, arg2=0, arg3=0, arg4=0)
-// 	if arg1 == "-h" or arg1 == "help" then return "Usage: filemon [opt:interval] -- monitor /virt/share.spc for transmissions (see transmit/TxBUF) "+char(10)+"-- and decipher using Gopher (interval default: 1 second) "+char(10)+"Usage: filemon -nl [interval] -- same as above but disables logging to /var/filemon.log "+char(10)+"Usage: filemon [opt:interval] <b>-p [path_to_shared_file]<b> -- monitor given file (default: /virt/share.spc)]"+char(10)+"n.b. since this command uses gopher isntead of the pwgen tables it is an alternative to running a hashim server since you may run cerebrum before running filemon, getting the same effect as hashim, with only a 2-3 minute setup."+char(10)+"N.B. filemon writes to /var/filemon.log"+char(10)+"-- the log will contain the incoming ip when command.transmit is used"+char(10)+"-- the log will contain the hashed lines."+char(10)+"-- cracked passwords are written to dump.txt"+char(10)+"N.B. if not using transmit, simply paste or pipe lines to the indicated path and filemon will act automatically."
-// 	logging = true
-// 	SWAPSPACE = []
-// 	interval = 1 // how long to wait between checks
-// 	if arg1 and arg1 != "-nl" and arg1 != "-p" and arg1.val > 1 then interval = arg1.val
-// 	if arg2 and arg2 != "-nl" and arg1 != "-p" and arg2.val > 1 then interval = arg2.val
-// 	if arg1 == "-nl" or arg2 == "-nl" then logging = false
-// 	v = localmachine.File("/virt")
-// 	if not v then localmachine.create_folder("/virt")
-// 	localmachine.touch("/virt/share.spc")
-// 	pass_path = "/virt/share.spc" // path to shared file
-// 	if arg1 == "-p" and typeof(arg2) == "string" then pass_path = arg2
-// 	out_path = "/virt/out.spc" // path to output from custom decipher
-// 	localmachine.touch("/virt", "out.spc")
-// 	out = localmachine.File(out_path)
-// 	if not out then return(colorRed+"outfile: check write permissions")
-// 	swap_path = "/root/rkit/swap.spc"
-// 	localmachine.touch("/root/rkit","swap.spc")
-// 	swap_file = localmachine.File(swap_path)
-// 	if not swap_file then return(colorRed+"Swap: check write permissions"+CT)
-// 	pass_file = localmachine.File(pass_path)
-// 	if not pass_file then return(colorRed+"404: shared file not found"+CT)
-// 	log_path = "/var/filemon.log"
-// 	localmachine.touch("/var", "filemon.log")
-// 	log_file = localmachine.File(log_path)
-// 	if not log_file then return(colorRed+"Log: check write permission")
-// 	SWAPSPACE = pass_file.get_content.split(char(10))
-// 	running = true
-// 	print(colorWhite+"waiting for updates on "+pass_file.path+"..."+CT)
-// 	while running
-// 		new_content = pass_file.get_content.split(char(10))
-// 		if SWAPSPACE == new_content then
-// 			//skip
-// 		else
-// 			SWAPSPACE = new_content
-// 			last_ip = SWAPSPACE.pull
-// 			//last_ip = SWAPSPACE[0]
-// 			print(colorOrange+last_ip+" has connected..."+CT)
-// 			print(colorLightBlue+"Communication detected... "+CT)
-// 			swap_file.set_content(SWAPSPACE.join(char(10)))
-// 			globals.Gopher(swap_file)
-// 			dump = localmachine.File(currentPath+"/dump.txt")
-// 			if not dump then return(colorRed+"404: dump.txt not found"+CT)
-// 			pass_file.set_content(dump.get_content)
-// 			SWAPSPACE = pass_file.get_content.split(char(10))
-// 			//self.merge("/root/rkit/dump.txt", "/virt/out.spc")
-// 			out.set_content(dump.get_content)
-// 			print(colorLightBlue+"Response sent."+CT)
-// 			print(colorOrange+last_ip+" has closed connection."+CT)
-// 			if logging then log_file.set_content(log_file.get_content +char(10)+swap_file.get_content +":"+ last_ip + char(10)+time+char(10))
-// 			print(colorWhite+"waiting for updates..."+CT)
-// 		end if
-// 		wait(interval)
-// 		//clear_screen
-// 	end while
-// 	return 0
-// end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "<b><u>Reverse Shell Interface || RSI Daemon || Install rshell server"+char(10)+
 	"Usage: rsi [opt: -d|-i|install|start|stop] [opt: -r|# ] [opt: #]"+char(10)+
@@ -744,7 +405,6 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		if rc then return colorGreen+"rsi: service installed"+CT else return colorRed + "rsi: failed to install service" + CT
 	end if
 	print(colorLightBlue+"Listening for upcoming connections...")
-	//locals.shells = metaxploit.rshell_server
 	locals.shells = []
 	one_loop = true
 	while shells.len == 0
@@ -884,27 +544,10 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 		paths.push(0)
 		globals.tagged_for_scp = paths[0]
 		target_path = paths[1]
-		//if target_path then direction = 0 // force upload, skip confirmation
 	end if
 	if DEBUG then print "debug: in scpm middle"+char(10)+"debug: tagged4scp: "+ globals.tagged_for_scp
 	if DEBUG then print "debug: dir: "+direction+ " skip: "+skip
 	if direction == 1 and skip == 1 then return "scpm: invalid inputs cannot mix -d and -u"
-	// if typeof(arg1) == "string" then
-	// 	//tag = globals.get_file(arg1)
-	// 	//if tag then globals.tagged_for_scp = tag.path
-	// 	globals.tagged_for_scp = arg1
-	// end if
-	// if typeof(arg1) == "file" then
-	// 	//if globals.get_file(arg1.path) then globals.tagged_for_scp = arg1.path else return "scpm: "+arg1.path+" is not local to this shell. Check glasspool status."
-	// 	globals.tagged_for_scp = arg1.path
-	// end if
-	// if typeof(arg1) == "computer" then
-	// 	return "scpm: computer object is an invalid input."+char(10)+"  valid inputs: string_path, shell, file"
-	// end if
-	// if typeof(arg1) == "shell" or typeof(arg1) == "pshell" or typeof(arg1) == "ftpshell" then
-
-	// 	if p_validate(arg1,"scp") then target_shell = arg1 else return "scpm: error, scp function not found in object."
-	//else
 		// the pick a shell menu
 	if not target_shell then
 		temp_buf = []
@@ -975,7 +618,6 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		output = localmachine.connect_ethernet(device, address, gateway)
 		return output
 	end if
-	//if arg1 == 0 then dat.push(localip)
 	if arg1 == 0 and arg2 == 0 then //dat.push(pubip)
 		if localmachine.is_network_active then
 			router = get_router(localmachine.network_gateway)
@@ -1060,7 +702,6 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				if typeof(rw) != "router" then continue
 				if DEBUG then print(rw.local_ip)
 				if rw.local_ip == router.local_ip then continue
-				//if rw.__isa.indexOf("essid_name") == null then continue
 				if DEBUG then 
 					for r in rw 
 						print r 
@@ -1181,7 +822,6 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	end if
 	while scw
 		scw = scan_wifi(arg1,scw)
-		//wait(1)
 	end while
 	return "air: exiting..."
 end function
@@ -1262,7 +902,6 @@ command.nsl = function(arg1, arg2, arg3=0, arg4=0)
 	if typeof(address) != "string" then return "nsl: expects string"
 	print "Address: "+address//+char(10)
 	if is_valid_ip(address) then 
-		//if set_targ == true then print command.target("ip",address,"router")
 		if DEBUG then print "debug: reverse nsl lookup"
 		who_string = whois(address) 
 		if DEBUG then print "debug: who_string: "+who_string
@@ -1620,7 +1259,6 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	if arg1 and typeof(arg1) != "string" then print colorOrange+"silentclean: unsupported type"+char(10)+"-- use rclean [opt:-d|-n] instead"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"
 	if arg2 then print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
-	//cleaner = localmachine.File(program_path)
 	cleaner = command.tree("/","5hell","1","N")
 	if cleaner then 
 		if cleaner.parent.name == "rkit" then cleaner = cleaner.parent
@@ -1657,7 +1295,6 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		end if
 		try = syslogbak.move("/var", "system.log")
 		syslog = globals.get_file("/var/system.log")
-		//if syslog and try == 1 then syslog.chmod("o-rwx")// i don't think we need this autolocking
 		return try
 	else
 		return "silentclean: write failed; permission denied"
@@ -1990,7 +1627,6 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 		print colorWhite+"<u>liber: running command.bios -i "+arg2+CT+"</u>"
 		return command.bios(arg1,arg2)
 	end if
-	//if arg1 == "-l" and not arg2 then l_path = "/lib"
 	if arg1 == "-l" or arg1 == "-lr" then 
 		if arg1 == "-lr" then color_on = false 
 		if arg1 == "-lr" then arg1 = "-l"
@@ -2035,8 +1671,6 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 			db_buf.push(db_entry)
 		end for
 		dbase_data = db_buf
-		//print "liber: database.csv found; "
-		//print "-- checking database..."
 		if DEBUG then print "debug: buf: "+char(10)+buf
 		if DEBUG then print "debug: buf size: "+buf.len
 		if DEBUG then print "debug: dat size: "+dbase_data.len
@@ -2046,29 +1680,10 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 		color_unkwn = colorOrange+"</b>"
 		for entry in buf 
 			if DEBUG then print "debug: entry: "+entry
-			// if entry == "liber found:" then 
-			// 	if DEBUG then print "debug: skipping line 0"
-			// 	b_index = b_index + 1
-			// 	continue	
-			// end if
 			if DEBUG then 
 				print "-- B["+b_index+"] -- "
 				print "-- B["+buf[b_index]+"]"
 			end if
-			// for line in dbase_data
-			// 	if DEBUG then 
-			// 		print "-- D["+d_index+"] -- "
-			// 		print "-- D["+dbase_data[d_index]+"]"
-			// 		print "-- <b>line: "+line
-			// 	end if
-			// 	if entry == line then 
-			// 		if DEBUG then print colorGold+"debug: found a match"
-			// 		buf[b_index] = colorCyan+"</b>"+entry+CT 
-			// 	else 
-			// 		buf[b_index] = colorOrange+"</b>"+entry+CT 
-			// 	end if
-			// 	d_index = d_index + 1
-			// end for
 			if color_on then 
 				if dbase_data.indexOf(entry) != null then buf[b_index] = color_known+entry+CT else buf[b_index] = color_unkwn+entry+CT 
 			end if
@@ -2091,7 +1706,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
     inject = null
     lib_path = ""
 
-	//globals.metaLib = null // this is an obstacle to using mutliple metalibs/metaxploitlibs
 	db_usage = "<b><u>DB || dbaser || Databaser</u>"+char(10)+
 	colorLightBlue+"</b>Automated remote port and local lib scanning and databasing."+char(10)+
 	colorLightBlue+"</b>Results are sent to the BUFFER."+char(10)+
@@ -2131,7 +1745,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	"Note: It is not possible exploit/database libs that are not in the /lib folder"+char(10)+
 	"Note: the default 'inject' is '192.168.0.2' to avoid unintentional password changes"
 
-	// params: -h|-H -show help (same as run without params)
 	if arg1 == "-h" or arg1 == "help" then return(db_usage)
 	if typeof(arg1) != "string" or ["-m","-r","-l"].indexOf(arg1) == null then return "db: invalid flag: expects -m|-r|-l"
 	if DEBUG then print("In command.db...")
@@ -2362,7 +1975,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 				result = globals.metaLib.overflow(mem, value, lan_inject)
 				if result then
 					DATA.push("Hooked: " + globals.checkUser(result) + " " + _object_color(typeof(result)) + ":bounce with " + mem + " " + value)
-					//print(DATA[-1])
 					print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(typeof(result)) + colorOrange+":bounce</color></b> with " + mem + " " + value)
 					globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result)+":bounce")
 					globals.BUFFER.push(result)
@@ -2378,7 +1990,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 				end if
 			end if
 			DATA.push("Hooked: " + globals.checkUser(result) + " " + result_type + " with " + mem + " " + value)
-			//print(DATA[-1])
 			print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(result_type) + " with " + mem + " " + value)
 			globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + result_type)
 			if result then globals.BUFFER.push(result)
@@ -2565,7 +2176,6 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 			"-- run db or meta scan"
 		end if
 	end if
-	//print( "Database: link failed"+char(10)+"-- check database path or permissions and try again." )
 	print "linkdb: database.csv not found"+char(10)+"-- run db to create it" // print this, do NOT return this or everything breaks
 	return 0
 end function
@@ -2622,7 +2232,6 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	"eg: <b>meta -i @o myx1 | meta link net.so | meta -i @o myx0 | meta scan"+char(10)+
 	"-- a library from the machine connected to myx1 will be scanned using"+char(10)+
 	"---- the hardware of the machine connected to myx0"
-	//if not globals.metaxploit then return "metaxploit.so not found"
 	if arg1 then
 
 		if typeof(arg1) == "MetaLib" then 
@@ -2687,8 +2296,6 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				return command.linkdb(arg2.lib_name+" v "+arg2.version,"-y")
 			end if
 			arg = "L"
-			//scan_this_lib = null
-			//if arg3 and typeof(arg3) == "string" then scan_this_lib = arg3 
 			scan_this_lib = arg2
 			return command.linkdb(get_lib(arg,scan_this_lib),"-y") //else return "meta: invalid metaLib"// edit get_lib to take 3rd param: auto link
 		end if
@@ -2781,7 +2388,6 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if not confirm then confirm = user_input("Clear T_BUF: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then
 			globals.T_BUF = [(localip+"@"+pubip)]
-			//globals.T_BUF = []
 			return "T_BUF purged."
 		else
 			return "aborting..."
@@ -2850,7 +2456,6 @@ end function
 // cobble, get_custom_object interface by Plu70
 if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
 
-  //command={}
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
 	colorCyan+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+
@@ -2991,9 +2596,9 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	end if
 	if arg1 == "set" then
 		if @arg3 then
-			//if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
-			//if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
-			//if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
+			if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
+			if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
+			if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
 			return cob.set( @arg2, @arg3 )
 		else
 			return usage_info
@@ -3003,7 +2608,6 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		if @arg2 then
 			g = @cob.get
 			return g( @arg2 )
-		//if cobble.hasIndex( arg2 ) != null then return cobble[arg2] else return null
 		else
 			return usage_info
 		end if
@@ -3017,25 +2621,6 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	if arg1 == "sign" then return cob.sign(signature)
 	if arg1 == "search" then
 		if @arg2 then return cob.search( @arg2 ) else return usage_info
-	end if
-	if arg1 == "export" then
-	//   cob.set("dictionary",globals.dict_a)
-	//   return "Exported "+cobble.dictionary.len+" password(s) from onbaord dictionary to custom_object.dictionary"
-		return "cob: export depricated"
-	end if
-	if arg1 == "import" then
-	//   if cobble.hasIndex("dictionary") then
-	//     globals.dict_a = cob.get("dictionary")
-	//   else
-	//     return "cob: dictionary not found in index. set with <b>cob export</b>"
-	//   end if
-	//   if typeof(globals.dict_a) == "list" and globals.dict_a.len > 0 then 
-	//     globals.BIGBRAIN = true
-	//     return "Imported "+globals.dict_a.len+" passwords from custom_object.dictionary to onboard dictionary." 
-	//   else 
-	//     return "cerebrum: invalid dictionary"+char(10)+"cob: import error"
-	//   end if
-		return "cob: import depricated"
 	end if
 	if arg1 == "del" then
 		if @arg2 then return cob.del( @arg2 ) else return usage_info
@@ -3060,7 +2645,6 @@ command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
 	print colorGreen+"smtp: pulling from "+CT+colorWhite+tar_ip+colorGreen+": "+CT+tar_port+CT+"..."
 	ml = globals.mail_user_list(tar_ip,tar_port)
 	if not ml then return "smtp: mail server not found" else return ml
-	//return ml.join(char(10))
 end function
 command.osint = function(option_flags, octet_rules, user_name, spool)
     if not option_flags or option_flags == "help" or option_flags == "-h" then return " osint || open source information || OSINT || fuzzer"+char(10)+
@@ -3332,4 +2916,403 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	save = "y"//user_input("Send results to clipb? [y/N] "+char(10)+"||: ",0,1)
 	if save.lower == "y" then command.clipb(r_buf.join(char(10)))
 	return colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
+end function
+command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
+	Error = function(msg) //This is up to implementation to decide.
+		return print("<color=red><noparse>" + msg + "</noparse></color>") //5hell Glosure ignore all error and continue, bad idea but asked by plu70. 
+	end function
+
+	tree = function(anyObject, depth = 5) //basically str() with custom depth limit, this walk the tree with recursion until everything is consumed.
+		if depth == 0 then return "..."
+		if @anyObject isa map then
+			if hasIndex(anyObject, "classID") then return @anyObject.classID //doesnt unfold Grey Hack object anymore
+			ret = []
+			for pair in anyObject
+				ret.push(tree(@pair.key, depth - 1) + ": " + tree(@pair.value, depth - 1))
+			end for
+			return "{" + ret.join(", ") + "}"
+		else
+			if @anyObject isa funcRef or anyObject isa number then return "" + @anyObject
+			if anyObject isa string then return """" + anyObject + """"
+			if anyObject isa list then
+				ret = []
+				for item in anyObject
+					ret.push(tree(@item, depth - 1))
+				end for
+				return "[" + ret.join(", ") + "]"
+			end if
+			if anyObject == null then return "null"
+			return "" + anyObject 
+		end if
+	end function
+
+	reader = function(codeStr) //code string to s-expression
+		codeStr = values(codeStr)
+		stack = [[]]
+		while len(codeStr)
+			token = []
+			c = codeStr.pull
+			if (", " + char(9) + char(10) + char(13)).indexOf(c) != null then //ignore whitespace
+				continue
+			else if c == "(" then //parse a new list
+				stack.push([])
+			else if c == ")" then //end a list
+				curr = stack.pop
+				stack[-1].push(curr)
+			else if indexOf("0123456789.", c) != null then //tokenize number
+				token.push(c)
+				while len(codeStr) and indexOf("0123456789.", codeStr[0]) != null
+					token.push(codeStr.pull)
+				end while
+				stack[-1].push(val(token.join("")))
+			else if c == "'" then //tokenize string
+				token.push(c)
+				while len(codeStr) and codeStr[0] != "'"
+					c = codeStr.pull
+					if c == "\" then //"
+						if codeStr[0] == "t" then
+							token.push(char(9))
+							codeStr.pull
+						else if codeStr[0] == "n" then
+							token.push(char(10))
+							codeStr.pull
+						else if codeStr[0] == "r" then
+							token.push(char(13))
+							codeStr.pull
+						else
+							token.push(codeStr.pull)
+						end if
+					else
+						token.push(c)
+					end if
+				end while
+				codeStr.pull
+				stack[-1].push(token.join(""))
+			else if c == ";" then //ignore comment
+				while len(codeStr) and codeStr[0] != char(10)
+					codeStr.pull
+				end while
+			else //tokenize symbol
+				token.push(c)
+				while len(codeStr) and (" .'();" + char(9) + char(10) + char(13)).indexOf(codeStr[0]) == null
+					token.push(codeStr.pull)
+				end while
+				stack[-1].push(token.join(""))
+			end if
+		end while
+		return ["begin"] + stack[0]
+	end function
+
+	Env = function(__outer) //environment for Glosure, only build new environment when calling lambda.
+		env = {}
+		env.classID = "env"
+		env.__outer = __outer
+		env.__local = {}
+		env.get = function(symbol)
+			if self.__local.hasIndex(symbol) then return @self.__local[symbol]
+			if self.__outer then return @self.__outer.get(symbol)
+			return Error("Glosure: Unknown symbol '" + symbol + "'.")
+		end function
+		env.set = function(symbol, value)
+			self.__local[symbol] = @value
+			return @value
+		end function
+		return env
+	end function
+
+	eval = function(expr, env) //evaluate Glosure s-expression
+		if not @expr isa list then
+			if not @expr isa string then return @expr
+			if expr[0] == "'" then return expr[1:] else return env.get(expr)
+		end if
+		if not len(expr) then return null
+		first = expr[0]
+		if first == "def" then //bind value to symbol
+			return env.set(expr[1], eval(expr[2], env))
+		else if first == "if" then //if statement
+			if eval(expr[1], env) then return eval(expr[2], env)
+			if expr.len > 3 then return eval(expr[3], env) else return null
+		else if first == "while" then //while loop, with no break keyword.
+			result = null
+			while eval(expr[1], env)
+				result = eval(expr[2], env)
+			end while
+			return @result
+		else if first == "lambda" then //lambda statement
+			return {
+				"classID": "lambda",
+				"params": expr[1],
+				"body": expr[2:],
+				"env": env,
+			}
+		else if first == "begin" then //evaluate each argument and return the last one.
+			result = null
+			for stmt in expr[1:]
+				result = eval(stmt, env)
+			end for
+			return @result
+		else if first == "exec" then //interpret a string as Glosure code.
+			return execute(eval(expr[1], env), env)
+		else if first == "eval" then //evaluate a list as Glosure code.
+			return eval(eval(expr[1], env), env)
+		else if first == "glosure" then //wrap Glosure value to "glosure"(host function), advanced feature, extremely dangerous
+			value = eval(expr[1], env)
+			if value isa map and value.hasIndex("classID") and value.classID == "lambda" then
+				__eval = @eval
+				__env = @env
+				buildGlosure = function
+					__eval = @outer.__eval
+					__env = @outer.__env
+					lambda = @outer.value
+					glosure0 = function()
+						return __eval([lambda], __env)
+					end function
+					glosure1 = function(arg0)
+						return __eval([lambda, @arg0], __env)
+					end function
+					glosure2 = function(arg0, arg1)
+						return __eval([lambda, @arg0, @arg1], __env)
+					end function
+					glosure3 = function(arg0, arg1, arg2)
+						return __eval([lambda, @arg0, @arg1, @arg2], __env)
+					end function
+					glosure4 = function(arg0, arg1, arg2, arg3)
+						return __eval([lambda, @arg0, @arg1, @arg2, arg3], __env)
+					end function
+					glosure5 = function(arg0, arg1, arg2, arg3, arg4)
+						return __eval([lambda, @arg0, @arg1, @arg2, arg3, arg4], __env)
+					end function
+					if len(lambda.params) == 0 then return @glosure0
+					if len(lambda.params) == 1 then return @glosure1
+					if len(lambda.params) == 2 then return @glosure2
+					if len(lambda.params) == 3 then return @glosure3
+					if len(lambda.params) == 4 then return @glosure4
+					return @glosure5
+				end function
+				return buildGlosure
+			else
+				return @value
+			end if
+		else if first == "reflect" then //reflect Glosure value to host env, advanced feature, extremely dangerous.
+			value = eval(@expr[1], env)
+			routes = []
+			for route in expr[2:]
+				routes.push(eval(@route, env))
+			end for
+			target = globals
+			for route in routes[:-1]
+				target = target[@route]
+			end for
+			target[@routes[-1]] = @value
+			return @value
+		else if first == "dot" then
+			args = []
+			for arg in expr[1:]
+				args.push(eval(@arg, env))
+			end for
+			length = []
+			length.push(function(object, method, args))
+				method = @object[@method]
+				return method(object)
+			end function 
+			length.push(function(object, method, args))
+				method = @object[@method]
+				return method(object, args[0])
+			end function
+			length.push(function(object, method, args))
+				method = @object[@method]
+				return method(object, args[0], args[1])
+			end function
+			length.push(function(object, method, args))
+				method = @object[@method]
+				return method(object, args[0], args[1], args[2])
+			end function
+			length.push(function(object, method, args))
+				method = @object[@method]
+				return method(object, args[0], args[1], args[2], args[3])
+			end function
+			length.push(function(object, method, args))
+				method = @object[@method]
+				return method(object, args[0], args[1], args[2], args[3], args[4])
+			end function
+			object = @args[0]
+			method = @args[1]
+			args = args[2:]
+			run = @length[len(args)]
+			return run(@object, @method, args)
+		else if first == "list" then
+			args = []
+			for arg in expr[1:]
+				args.push(eval(@arg, env))
+			end for
+			return args
+		else if first == "map" then
+			args = []
+			for arg in expr[1:]
+				args.push(eval(@arg, env))
+			end for
+			ret = {}
+			for i in range(0, args.len - 1, 2)
+				ret[@args[i]] = @args[i + 1]
+			end for
+			return ret
+		else
+			func = eval(first, env)
+			args = expr[1:]
+			evaluatedArgs = []
+			for arg in args
+				evaluatedArgs.push(eval(@arg, env))
+			end for
+			if @func isa map and hasIndex(func, "classID") and func.classID == "lambda" then
+				newEnv = Env(func.env)
+				for i in indexes(func.params)
+					newEnv.set(func.params[i], @evaluatedArgs[i])
+				end for
+				result = null
+				for bodyExpr in func.body
+					result = eval(@bodyExpr, newEnv)
+				end for
+				return @result
+			else if @func isa funcRef then
+				length = []
+				length.push(function(args, func))
+					return func()
+				end function
+				length.push(function(args, func))
+					return func(args[0])
+				end function
+				length.push(function(args, func))
+					return func(args[0], args[1])
+				end function
+				length.push(function(args, func))
+					return func(args[0], args[1], args[2])
+				end function
+				length.push(function(args, func))
+					return func(args[0], args[1], args[2], args[3])
+				end function
+				length.push(function(args, func))
+					return func(args[0], args[1], args[2], args[3], args[4])
+				end function
+				run = @length[len(evaluatedArgs)]
+				return run(evaluatedArgs, @func)
+			end if
+		end if
+	end function
+
+	globalEnv = Env(null) //global and general methods do not have access to environment. those are for keywords.
+		globalEnv.__local["true"] = function()
+			return true
+		end function
+		globalEnv.__local["false"] = function()
+			return false
+		end function
+		globalEnv.__local["null"] = function() // WARNING: only use null for interacting with miniscript.
+			return null
+		end function
+		globalEnv.__local["&"] = function(a, b)
+			return @a and @b
+		end function
+		globalEnv.__local["|"] = function(a, b)
+			return @a or @b
+		end function
+		globalEnv.__local["!"] = function(a)
+			return not @a
+		end function
+		globalEnv.__local["=="] = function(a, b)
+			return a == b
+		end function
+		globalEnv.__local["!="] = function(a, b)
+			return @a != @b
+		end function
+		globalEnv.__local[">="] = function(a, b)
+			return @a >= @b
+		end function
+		globalEnv.__local["<="] = function(a, b)
+			return @a <= @b
+		end function
+		globalEnv.__local[">"] = function(a, b)
+			return @a > @b
+		end function
+		globalEnv.__local["<"] = function(a, b)
+			return @a < @b
+		end function
+		globalEnv.__local["*"] = function(a, b)
+			return @a * @b
+		end function
+		globalEnv.__local["/"] = function(a, b)
+			return @a / @b
+		end function
+		globalEnv.__local["+"] = function(a, b)
+			return @a + @b
+		end function
+		globalEnv.__local["-"] = function(a, b)
+			return @a - @b
+		end function
+		globalEnv.__local["^"] = function(a, b)
+			return @a ^ (@b)
+		end function
+		globalEnv.__local["%"] = function(a, b)
+			return @a % @b
+		end function
+		globalEnv.__local.at = function(a, b)
+			return @a[@b]
+		end function
+
+	general = {"active_user": @active_user, "bitwise": @bitwise, "clear_screen": @clear_screen, "command_info": @command_info, "current_date": @current_date, "current_path": @current_path, "exit": @exit, "format_columns": @format_columns, "get_ctf": @get_ctf, "get_custom_object": @get_custom_object, "get_router": @get_router, "get_shell": @get_shell, "get_switch": @get_switch, "home_dir": @home_dir, "include_lib": @include_lib, "is_lan_ip": @is_lan_ip, "is_valid_ip": @is_valid_ip, "launch_path": @launch_path, "mail_login": @mail_login, "nslookup": @nslookup, "parent_path": @parent_path, "print": @print, "program_path": @program_path, "reset_ctf_password": @reset_ctf_password, "typeof": @typeof, "user_bank_number": @user_bank_number, "user_input": @user_input, "user_mail_address": @user_mail_address, "wait": @wait, "whois": @whois, "to_int": @to_int, "time": @time, "abs": @abs, "acos": @acos, "asin": @asin, "atan": @atan, "ceil": @ceil, "char": @char, "cos": @cos, "floor": @floor, "log": @log, "pi": @pi, "range": @range, "round": @round, "rnd": @rnd, "sign": @sign, "sin": @sin, "sqrt": @sqrt, "str": @str, "tan": @tan, "yield": @yield, "slice": @slice, "params": @params}
+
+	for method in general + string + list + map
+		globalEnv.__local[method.key] = @method.value
+	end for
+
+	execute = function(codeStr, env)
+		return eval(reader(codeStr), env)
+	end function
+
+	repl = function(env)
+		while true
+			codeStr = user_input("</> ")
+			if codeStr == ";quit" then break
+			result = eval(reader(codeStr), env)
+			if @result isa string then print(result) else print(tree(result))
+		end while
+	end function
+
+	prepareCode = "" //This one is hardcoded code you can run at start up.
+	if not hasIndex(globals, "glosureEnv") then
+		globals.glosureEnv = Env(globalEnv)
+		glosureEnv.set("BUFFER", globals.BUFFER)
+		execute(prepareCode, glosureEnv)
+	end if
+
+	helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
+Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
+Glosure interpreter version: e327f82. For more details read https://github.com/rocketorbit/Glosure
+<b>Warning: This command is a programming language! Your error may result in crash!</b>
+
+Language Docs:
+(function arg1 arg2 argn) essentially behaves like function(arg1, arg2, argn) in miniscript
+This language has no data types of its own and therefore cannot even be called a language. It interacts with the host GreyScript environment through an API.
+Use 'hi' to repersent a string ""hi""
+Use 42 to repersent a number 42
+Use (list 1 2 'a') to repersent a list [1, 2, ""a""]
+Use (map 'a' 1 'b' 2) to repersent a map {""a"": 1, ""b"": 2}
+(true) is a function evaluates to true, you should use 1 instead.
+(false) is a function evaluates to false, you should use 0 instead.
+(null) is a function evaluates to null, this is dangerous and can cause unexpected crash. You should only use this when you have to, for example a Grey Hack API requires you to pass null as arguments.
+Use (def name 'value') to define a variable name with a value ""value""
+Use (lambda (arguments) (body)) to define an anonymous lambda expression(aka function), you can bind it to a variable name with syntax like (def square (lambda (x) (* x x))). this is the only native datatype and you should NEVER pass this through API.
+Use (while expression statement) to loop without recursion.
+Use (if expression statement optional_else_statement) to use if or if-else statement.
+Use (function_name argument_1 argument_2 argument_N) to call a binded lambda or a Grey Hack general function on Manual.exe(import_code isn't a function).
+Use (dot object method_name argument_1 argument_2 argument_N) to access a method under a grey hack object. This is dangerous and can cause crash if used incorrectly, read Manual.exe while using it.
+(at name index) essentially works like name[index], you can use it on any container.
+
+Advanced features:
+reflect: reflect glosure value to host environment, very dangerous feature, do not use if you dont know what you are doing. (reflect value name1 name2) basically works like globals.name1.name2 = value
+glosure: build a ""glosure"", which is a host function of a Glosure lambda. (glosure (lambda (x) (+ x x))) will return a greyscript function that behaves like function(x); return x + x; end function
+<b>Warning: Advanced feature are not for people who dont know what they are doing! Your error will very likely result in crash!</b>
+"
+	if arg1 == "help" or arg1 == "-h" then return helpMsg
+	if arg1 == "-e" or arg1 == "exec" then return execute(arg2, glosureEnv)
+	return repl(glosureEnv)
 end function
