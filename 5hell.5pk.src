@@ -2428,7 +2428,35 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
 		execute(prepareCode, glosureEnv)
 	end if
 
-	if arg1 == "help" or arg1 == "-h" then return "Usage: glosure -- invoke Glosure REPL, type ;quit to quit."+char(10)+"Usage: glosure [-e|exec] ""code""  -- execute Glosure code."+char(10)+"Glosure interpreter version: e327f82. For more details read https://github.com/rocketorbit/Glosure"
+	helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
+Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
+Glosure interpreter version: e327f82. For more details read https://github.com/rocketorbit/Glosure
+<b>Warning: This command is a programming language! Your error may result in crash!</b>
+
+Language Docs:
+(function arg1 arg2 argn) essentially behaves like function(arg1, arg2, argn) in miniscript
+This language has no data types of its own and therefore cannot even be called a language. It interacts with the host GreyScript environment through an API.
+Use 'hi' to repersent a string ""hi""
+Use 42 to repersent a number 42
+Use (list 1 2 'a') to repersent a list [1, 2, ""a""]
+Use (map 'a' 1 'b' 2) to repersent a map {""a"": 1, ""b"": 2}
+(true) is a function evaluates to true, you should use 1 instead.
+(false) is a function evaluates to false, you should use 0 instead.
+(null) is a function evaluates to null, this is dangerous and can cause unexpected crash. You should only use this when you have to, for example a Grey Hack API requires you to pass null as arguments.
+Use (def name 'value') to define a variable name with a value ""value""
+Use (lambda (arguments) (body)) to define an anonymous lambda expression(aka function), you can bind it to a variable name with syntax like (def square (lambda (x) (* x x))). this is the only native datatype and you should NEVER pass this through API.
+Use (while expression statement) to loop without recursion.
+Use (if expression statement optional_else_statement) to use if or if-else statement.
+Use (function_name argument_1 argument_2 argument_N) to call a binded lambda or a Grey Hack general function on Manual.exe(import_code isn't a function).
+Use (dot object method_name argument_1 argument_2 argument_N) to access a method under a grey hack object. This is dangerous and can cause crash if used incorrectly, read Manual.exe while using it.
+(at name index) essentially works like name[index], you can use it on any container.
+
+Advanced features:
+reflect: reflect glosure value to host environment, very dangerous feature, do not use if you dont know what you are doing. (reflect value name1 name2) basically works like globals.name1.name2 = value
+glosure: build a ""glosure"", which is a host function of a Glosure lambda. (glosure (lambda (x) (+ x x))) will return a greyscript function that behaves like function(x); return x + x; end function
+<b>Warning: Advanced feature are not for people who dont know what they are doing! Your error will very likely result in crash!</b>
+"
+	if arg1 == "help" or arg1 == "-h" then return helpMsg
 	if arg1 == "-e" or arg1 == "exec" then return execute(arg2, glosureEnv)
 	return repl(glosureEnv)
 end function
