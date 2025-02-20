@@ -1,7 +1,7 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.9.3_nightly_terrors"
+ver = "3.9.9.9.5_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
@@ -10,7 +10,7 @@ globals.NIGHTLY = false
 f = get_shell.host_computer.File("/")
 if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "157.586"
+size_of_5hell = "150.970"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -311,7 +311,7 @@ command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 command.clear = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Clear Screen || Terminal Wipe || clearscreen"+char(10)+"Usage: clear -- clears the terminal of all text"
-	clear_screen
+	print("",1)
 	return 0
 end function
 command.ps = function(arg1, arg2, arg3=0, arg4=0)
@@ -414,82 +414,6 @@ command.pwd = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: pwd -- print working directory"+char(10)+"-- returns the current path as a string"
 	return currentPath
 end function
-// command.psudo = function(arg1, arg2, arg3=0, arg4=0)
-// 	// if arg1 == "-h" or arg1 == "help" then return "Usage: psudo -- shell session management; without args prompts user for input:"+char(10)+
-// 	// 	"-- 'y' to open current active shell, 'c' to enter credentials (ie escalate privileges)"+char(10)+
-// 	// 	"Usage: psudo -s [opt:password] -- get root a shell and send it to BUFFER (prompts for password if not supplied)"+char(10)+
-// 	// 		"Usage: [shell_returned_by_function] | psudo -- open piped shell"+char(10)+
-// 	// 		"Example: ssh root@pass 1.1.1.1 | psudo  -- to be prompted to open terminal immediately instead of sending shell to buffer."+char(10)+
-// 	// 		"N.B. psudo may be used to 'go live' from glasspool (ie open the shell) but running a binary via glasspool"+char(10)+
-// 	// 		"i.e. glasspool >> run 5hell"+char(10)+
-// 	// 		"(shell.launch(5hell))... running psudo will end the shell.launch session and return you to the glasspool session."+char(10)+
-// 	// 		"This is not something I can control."+char(10)+
-// 	// 		"Advanced: psudo -- answer 'y' at prompt. Pipes current session, useful for hiding the ip of your previous connection."
-	
-
-// 	if arg1 == "help" or arg1 == "-h" then return "<u>PSUDO || sudo || shell switcher || escalate"+char(10)+char(10)+
-// 	colorWhite+"</b>Usage: "+colorCyan+"</b>psudo</color> -- display psudo menu and perform selected action"+char(10)+
-// 	colorWhite+"</b>-- allows selecting the below options from a menu"+char(10)+char(10)+
-// 	colorWhite+"</b>Usage: psudo ["+colorCyan+"-s</b></color>] [opt:password] -- escalate"+char(10)+
-// 	"-- attempt get_shell(""root"", ""password"") and BUFFER result"+char(10)+
-// 	"-- prompts for password if not provided"+char(10)+
-// 	"-- simplest way to escalate privileges "+char(10)+char(10)+
-// 	colorWhite+"</b>Usage: psudo [<b>-u</b>] [opt:user] [opt:pass] -- switch user"+char(10)+
-// 	"-- attempt get_shell(""user"",""password"") and BUFFER result"+char(10)+
-// 	"-- prompts for user and/or password if not supplied"+char(10)+
-// 	"--note: "+char(10)+char(10)+
-// 	colorWhite+"</b>Usage: psudo [<b>-l|-y</b>] [opt:shell_object] -- ""loop"" shell session"+char(10)+
-// 	"-- supplying a shell object results in running shell_object.start_terminal"+char(10)+
-// 	"-- omitting a shell object results in running get_shell.start_terminal"+char(10)+
-// 	"---- running get_shell.start_terminal is ""looping"" your current shell connection"+char(10)+
-// 	"---- the direct result of this is two-fold:"+char(10)+
-// 	"---- first, your active trace time limit is increased (each use of start_terminal does this)"+char(10)+
-// 	"---- second, the IP left with file deleted logs will be the IP of the looped connection"+char(10)+
-// 	"---- the IP left with file deleted logs is that of the shell that did start_terminal"+char(10)+
-// 	"------ NOT the started terminal; looping solves this issue"+char(10)+
-// 	"--note: supplying a shell object is better referred to as pivoting, not looping"+char(10)+
-// 	"---- but I'm not gonna add another flag for that when this will do"+char(10)+char(10)+
-// 	"N.B.: psudo will no longer offer to run start_terminal when it obtains a shell"+char(10)+
-// 	"-- running start_terminal is not recommended unless strictly necessary"+char(10)+
-// 	"-- doing so ends 5hell and therefore is worth the extra effort to initiate"
-
-// 	origin_shell = globals.shell 
-// 	user = null 
-// 	pass = null
-// 	if not arg1 then return globals._shell_prompt(origin_shell,"-m")
-
-// 	if arg1 and typeof(arg1) != "string" and arg1 != "-m" and arg1 != "-s" and arg1 != "-u" and arg1 != "-l" then return "psudo: invalid flag"
-// 	flag = arg1
-// 	if flag == "-l" and typeof(arg2) == "shell" then origin_shell = arg2 
-
-// 	if typeof(arg3) == "string" then locals.user = arg3 
-// 	if typeof(arg4) == "string" then locals.pass = arg4
-	
-// 	return globals._shell_prompt(origin_shell,flag,user,pass)
-	
-	
-// 	//	psl = globals.shell
-// 	//	if arg1 and arg1 == "-s" and not arg2 then
-// 	//		psl = user_input("root pass:> ",1,0)
-// 	//	end if
-// 	//	if arg2 and arg1 == "-s" then
-// 	//		psl = arg2
-// 	//	else
-// 	//		if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell") then psl = arg1
-// 	//	end if
-
-
-// 	//return globals.shell_prompt( psl )
-// end function
-// psudo 2.0 by Plu70
-// conditions:
-// 
-// psudo -- show menu
-// psudo [shell] -- prompt to start terminal on shell
-// psudo [-l] -- start terminal on current active shell
-// psudo [-y|-l] [shell] -- same as psudo [shell] but does not prompt
-// psudo [-u] [user] [pass] -- get_shell(user,pass)
-// psudo [-s] [pass] -- get_shell("root",pass)
 command.psudo = function(operation, arg2, arg3, arg4)
     if operation == "help" or operation == "-h" then return "PSUDO || sudo || get shell || get_shell || start terminal"+char(10)+
 	colorCyan+"<u>Start_terminal options:"+char(10)+"--"+char(10)+
@@ -597,7 +521,6 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 then 
 		if arg1.indexOf("-") == 0 then // we have flags
 			if arg2 then folderPath = arg2
-			//if arg1.indexOf("a") != null then showHide = 1
 			if arg1.indexOf("l") != null then showDetails = 1
 			if arg1.indexOf("a") != null then a_order = 1
 			if arg1.indexOf("s") != null then s_order = 1
@@ -609,7 +532,6 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	folder = globals.get_file(folderPath)
 	if not folder then return "ls: No such file or directory"
 	if DEBUG then print("folder: "+folder.path+" is a: "+typeof(folder))
-	//if not folder.has_permission("r") then return "ls: permission denied"
 	if folder.is_folder then 
 		subFiles = folder.get_folders + folder.get_files
 		if DEBUG then print "debug: pre alpha sort"
@@ -645,29 +567,16 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		if subFile.is_folder then line_color = colorLightBlue + "</b>"
 		if NIGHTLY == true and subFile.is_symlink then nameFile = colorGold+"</b>"+nameFile
 		if raw_output then line_color = ""
-		//if showHide or nameFile.indexOf(".") != 0 then
 		if showDetails then
 			output = output + char(10) + line_color + permission + " " + owner + " " + group + " "+ size + " bin["+is_bin+"] " + nameFile
 		else
 			output = output + char(10) + line_color + nameFile
 		end if
-		//end if
 	end for
 
 	output = output.trim
 	output = output.split(char(10))
-	//i = 0
-	// for line in output
-	// 	if line.values[0] == "d" then 
-	// 		output[i] = colorLightBlue+"</b>"+line
-	// 	else
-	// 		output[i] = colorWhite+"</b>"+line
-	// 		if line.indexOf("bin[1]") != 0 then output[i] = colorCyan+"</b>"+line
-	// 	end if
-	// 	i = i + 1
-	// end for
 	return format_columns(output.join(char(10)).trim)
-	//return output
 end function
 command.cd = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: cd [path] -- change current working directory to path"+char(10)+"Usage: cd .. -- go back to parent directory."+char(10)+"Usage: cd -- return to home directory."+char(10)+"Returns: 0 on success or string on failure."
@@ -1106,12 +1015,10 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	file = arg1
 	if typeof(file) != "file" then file = globals.get_file(arg1)
 	if not file then return "run: "+arg1+" not found."
-	//globals.stack_pool = globals.stack_pool - 1
 	parameters = ""
 	if arg2 and typeof(arg2) == "string" then parameters = arg2
 	if arg3 and typeof(arg3) == "string" then parameters = parameters + " " + arg3 
 	if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
-	//if arg5 and typeof(arg5) == "string" then parameters = parameters + " " + arg5 
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	globals.stack_pool("up")
 	cc = shell.launch(file.path, parameters)
@@ -1456,17 +1363,12 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 				arg3 = arg4 
 			end if
 		end if
-		//if typeof(@arg1) == "function" then
 		if @arg1 then 
-			//if DEBUG then print("function detected...")
 			globals.BUFFER.push(@arg1)
 			open_entry = true
-		//else
-			//if arg1 then globals.BUFFER.push(arg1)
 		end if
 	end if
 	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"-- oe: "+open_entry)
-	//if open_buffer then globals.memory_alpha(true) else globals.memory_alpha(false)
 	return globals.memory_alpha(open_buffer,open_entry)
 end function
 command.fwr = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
@@ -1763,9 +1665,7 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		print(colorLightBlue+"<mark=black>M</mark>unin<mark=black>C</mark>iphering: "+cipher_input.join(" "))
 		/////////////////////////////////////
 		if enc_dec == "dec" then
-			//input_split = Encode("enc", cipher_input[0])
 			input_split = cipher_input[0].split(char(40001))
-			//if input_split.len <= 1 then return "code: invalid format for MC decode"
 			ci_sli_dex = cipher_input[0].split(char(40001))[1]
 			ci_sli_txt = cipher_input[0].split(char(40001))[0]
 			cipher_size = ci_sli_dex.values
@@ -1779,10 +1679,10 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 				last_space = spaces[-1]
 			end for
 			buf = []
-			//print("debug:<b>indexed</b>"+char(10)+"debug:spacing")
+			if DEBUG then print("debug:<b>indexed</b>"+char(10)+"debug:spacing")
 			spaces.pop
 			for ci in range(0, cipher_size)
-				//print("debug: ci = "+ci)
+				if DEBUG then print("debug: ci = "+ci)
 				if spaces.len and spaces[0] == ci+1 then
 					buf.push(char(32))
 					spaces.pull
@@ -1817,8 +1717,6 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 			cipher_output.push(char(leng))
 			cipher_output.push(char(40001))
 			cipher_output = cipher_output.join("")
-
-			//cipher_output = Encode("dec", cipher_output)
 		end if
 		/////////////////////////////////////
 		print(colorLightBlue+"<u><mark=black>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
@@ -1865,11 +1763,9 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 		if DEBUG then print "debug: code: string buf: "+buf
 		return buf.join(", ")
 	end if
-	//if typeof(@@arg1) == "function" then return globals.decompiler(@@arg1)
 	if typeof(@arg1) == "shell" or typeof(@arg1) == "ftpshell" or typeof(@arg1) == "file" or typeof(@arg1) == "computer" or typeof(@arg1) == "map" or typeof(@arg1) == "custom_object" or typeof(@arg1) == "list" then return globals.decompiler(@arg1)
 	if typeof(@arg1) == "pshell" or typeof(@arg1) == "pcomputer" or typeof(@arg1) == "pfile" or typeof(@arg1) == "prouter" then return globals.decompiler(@arg1)
 	if @arg1.hasIndex("__isa") then return globals.decompiler(@arg1)
-	//if typeof(@arg1) == "list" or "map" then return globals.decompiler(@arg1)	
 	check = new @arg1 
 	if typeof(@check) == "map" then return globals.decompiler(@arg1)
 	return "code: unkown type"
@@ -2060,405 +1956,6 @@ command.cc = function(arg1, arg2, arg3=0, arg4=0)
 		return "cc: invalid index"	
 	end if
 	return 0
-end function
-command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
-	Error = function(msg) //This is up to implementation to decide.
-		return print("<color=red><noparse>" + msg + "</noparse></color>") //5hell Glosure ignore all error and continue, bad idea but asked by plu70. 
-	end function
-
-	tree = function(anyObject, depth = 5) //basically str() with custom depth limit, this walk the tree with recursion until everything is consumed.
-		if depth == 0 then return "..."
-		if @anyObject isa map then
-			if hasIndex(anyObject, "classID") then return @anyObject.classID //doesnt unfold Grey Hack object anymore
-			ret = []
-			for pair in anyObject
-				ret.push(tree(@pair.key, depth - 1) + ": " + tree(@pair.value, depth - 1))
-			end for
-			return "{" + ret.join(", ") + "}"
-		else
-			if @anyObject isa funcRef or anyObject isa number then return "" + @anyObject
-			if anyObject isa string then return """" + anyObject + """"
-			if anyObject isa list then
-				ret = []
-				for item in anyObject
-					ret.push(tree(@item, depth - 1))
-				end for
-				return "[" + ret.join(", ") + "]"
-			end if
-			if anyObject == null then return "null"
-			return "" + anyObject 
-		end if
-	end function
-
-	reader = function(codeStr) //code string to s-expression
-		codeStr = values(codeStr)
-		stack = [[]]
-		while len(codeStr)
-			token = []
-			c = codeStr.pull
-			if (", " + char(9) + char(10) + char(13)).indexOf(c) != null then //ignore whitespace
-				continue
-			else if c == "(" then //parse a new list
-				stack.push([])
-			else if c == ")" then //end a list
-				curr = stack.pop
-				stack[-1].push(curr)
-			else if indexOf("0123456789.", c) != null then //tokenize number
-				token.push(c)
-				while len(codeStr) and indexOf("0123456789.", codeStr[0]) != null
-					token.push(codeStr.pull)
-				end while
-				stack[-1].push(val(token.join("")))
-			else if c == "'" then //tokenize string
-				token.push(c)
-				while len(codeStr) and codeStr[0] != "'"
-					c = codeStr.pull
-					if c == "\" then //"
-						if codeStr[0] == "t" then
-							token.push(char(9))
-							codeStr.pull
-						else if codeStr[0] == "n" then
-							token.push(char(10))
-							codeStr.pull
-						else if codeStr[0] == "r" then
-							token.push(char(13))
-							codeStr.pull
-						else
-							token.push(codeStr.pull)
-						end if
-					else
-						token.push(c)
-					end if
-				end while
-				codeStr.pull
-				stack[-1].push(token.join(""))
-			else if c == ";" then //ignore comment
-				while len(codeStr) and codeStr[0] != char(10)
-					codeStr.pull
-				end while
-			else //tokenize symbol
-				token.push(c)
-				while len(codeStr) and (" .'();" + char(9) + char(10) + char(13)).indexOf(codeStr[0]) == null
-					token.push(codeStr.pull)
-				end while
-				stack[-1].push(token.join(""))
-			end if
-		end while
-		return ["begin"] + stack[0]
-	end function
-
-	Env = function(__outer) //environment for Glosure, only build new environment when calling lambda.
-		env = {}
-		env.classID = "env"
-		env.__outer = __outer
-		env.__local = {}
-		env.get = function(symbol)
-			if self.__local.hasIndex(symbol) then return @self.__local[symbol]
-			if self.__outer then return @self.__outer.get(symbol)
-			return Error("Glosure: Unknown symbol '" + symbol + "'.")
-		end function
-		env.set = function(symbol, value)
-			self.__local[symbol] = @value
-			return @value
-		end function
-		return env
-	end function
-
-	eval = function(expr, env) //evaluate Glosure s-expression
-		if not @expr isa list then
-			if not @expr isa string then return @expr
-			if expr[0] == "'" then return expr[1:] else return env.get(expr)
-		end if
-		if not len(expr) then return null
-		first = expr[0]
-		if first == "def" then //bind value to symbol
-			return env.set(expr[1], eval(expr[2], env))
-		else if first == "if" then //if statement
-			if eval(expr[1], env) then return eval(expr[2], env)
-			if expr.len > 3 then return eval(expr[3], env) else return null
-		else if first == "while" then //while loop, with no break keyword.
-			result = null
-			while eval(expr[1], env)
-				result = eval(expr[2], env)
-			end while
-			return @result
-		else if first == "lambda" then //lambda statement
-			return {
-				"classID": "lambda",
-				"params": expr[1],
-				"body": expr[2:],
-				"env": env,
-			}
-		else if first == "begin" then //evaluate each argument and return the last one.
-			result = null
-			for stmt in expr[1:]
-				result = eval(stmt, env)
-			end for
-			return @result
-		else if first == "exec" then //interpret a string as Glosure code.
-			return execute(eval(expr[1], env), env)
-		else if first == "eval" then //evaluate a list as Glosure code.
-			return eval(eval(expr[1], env), env)
-		else if first == "glosure" then //wrap Glosure value to "glosure"(host function), advanced feature, extremely dangerous
-			value = eval(expr[1], env)
-			if value isa map and value.hasIndex("classID") and value.classID == "lambda" then
-				__eval = @eval
-				__env = @env
-				buildGlosure = function
-					__eval = @outer.__eval
-					__env = @outer.__env
-					lambda = @outer.value
-					glosure0 = function()
-						return __eval([lambda], __env)
-					end function
-					glosure1 = function(arg0)
-						return __eval([lambda, @arg0], __env)
-					end function
-					glosure2 = function(arg0, arg1)
-						return __eval([lambda, @arg0, @arg1], __env)
-					end function
-					glosure3 = function(arg0, arg1, arg2)
-						return __eval([lambda, @arg0, @arg1, @arg2], __env)
-					end function
-					glosure4 = function(arg0, arg1, arg2, arg3)
-						return __eval([lambda, @arg0, @arg1, @arg2, arg3], __env)
-					end function
-					glosure5 = function(arg0, arg1, arg2, arg3, arg4)
-						return __eval([lambda, @arg0, @arg1, @arg2, arg3, arg4], __env)
-					end function
-					if len(lambda.params) == 0 then return @glosure0
-					if len(lambda.params) == 1 then return @glosure1
-					if len(lambda.params) == 2 then return @glosure2
-					if len(lambda.params) == 3 then return @glosure3
-					if len(lambda.params) == 4 then return @glosure4
-					return @glosure5
-				end function
-				return buildGlosure
-			else
-				return @value
-			end if
-		else if first == "reflect" then //reflect Glosure value to host env, advanced feature, extremely dangerous.
-			value = eval(@expr[1], env)
-			routes = []
-			for route in expr[2:]
-				routes.push(eval(@route, env))
-			end for
-			target = globals
-			for route in routes[:-1]
-				target = target[@route]
-			end for
-			target[@routes[-1]] = @value
-			return @value
-		else if first == "dot" then
-			args = []
-			for arg in expr[1:]
-				args.push(eval(@arg, env))
-			end for
-			length = []
-			length.push(function(object, method, args))
-				method = @object[@method]
-				return method(object)
-			end function 
-			length.push(function(object, method, args))
-				method = @object[@method]
-				return method(object, args[0])
-			end function
-			length.push(function(object, method, args))
-				method = @object[@method]
-				return method(object, args[0], args[1])
-			end function
-			length.push(function(object, method, args))
-				method = @object[@method]
-				return method(object, args[0], args[1], args[2])
-			end function
-			length.push(function(object, method, args))
-				method = @object[@method]
-				return method(object, args[0], args[1], args[2], args[3])
-			end function
-			length.push(function(object, method, args))
-				method = @object[@method]
-				return method(object, args[0], args[1], args[2], args[3], args[4])
-			end function
-			object = @args[0]
-			method = @args[1]
-			args = args[2:]
-			run = @length[len(args)]
-			return run(@object, @method, args)
-		else if first == "list" then
-			args = []
-			for arg in expr[1:]
-				args.push(eval(@arg, env))
-			end for
-			return args
-		else if first == "map" then
-			args = []
-			for arg in expr[1:]
-				args.push(eval(@arg, env))
-			end for
-			ret = {}
-			for i in range(0, args.len - 1, 2)
-				ret[@args[i]] = @args[i + 1]
-			end for
-			return ret
-		else
-			func = eval(first, env)
-			args = expr[1:]
-			evaluatedArgs = []
-			for arg in args
-				evaluatedArgs.push(eval(@arg, env))
-			end for
-			if @func isa map and hasIndex(func, "classID") and func.classID == "lambda" then
-				newEnv = Env(func.env)
-				for i in indexes(func.params)
-					newEnv.set(func.params[i], @evaluatedArgs[i])
-				end for
-				result = null
-				for bodyExpr in func.body
-					result = eval(@bodyExpr, newEnv)
-				end for
-				return @result
-			else if @func isa funcRef then
-				length = []
-				length.push(function(args, func))
-					return func()
-				end function
-				length.push(function(args, func))
-					return func(args[0])
-				end function
-				length.push(function(args, func))
-					return func(args[0], args[1])
-				end function
-				length.push(function(args, func))
-					return func(args[0], args[1], args[2])
-				end function
-				length.push(function(args, func))
-					return func(args[0], args[1], args[2], args[3])
-				end function
-				length.push(function(args, func))
-					return func(args[0], args[1], args[2], args[3], args[4])
-				end function
-				run = @length[len(evaluatedArgs)]
-				return run(evaluatedArgs, @func)
-			end if
-		end if
-	end function
-
-	globalEnv = Env(null) //global and general methods do not have access to environment. those are for keywords.
-		globalEnv.__local["true"] = function()
-			return true
-		end function
-		globalEnv.__local["false"] = function()
-			return false
-		end function
-		globalEnv.__local["null"] = function() // WARNING: only use null for interacting with miniscript.
-			return null
-		end function
-		globalEnv.__local["&"] = function(a, b)
-			return @a and @b
-		end function
-		globalEnv.__local["|"] = function(a, b)
-			return @a or @b
-		end function
-		globalEnv.__local["!"] = function(a)
-			return not @a
-		end function
-		globalEnv.__local["=="] = function(a, b)
-			return a == b
-		end function
-		globalEnv.__local["!="] = function(a, b)
-			return @a != @b
-		end function
-		globalEnv.__local[">="] = function(a, b)
-			return @a >= @b
-		end function
-		globalEnv.__local["<="] = function(a, b)
-			return @a <= @b
-		end function
-		globalEnv.__local[">"] = function(a, b)
-			return @a > @b
-		end function
-		globalEnv.__local["<"] = function(a, b)
-			return @a < @b
-		end function
-		globalEnv.__local["*"] = function(a, b)
-			return @a * @b
-		end function
-		globalEnv.__local["/"] = function(a, b)
-			return @a / @b
-		end function
-		globalEnv.__local["+"] = function(a, b)
-			return @a + @b
-		end function
-		globalEnv.__local["-"] = function(a, b)
-			return @a - @b
-		end function
-		globalEnv.__local["^"] = function(a, b)
-			return @a ^ (@b)
-		end function
-		globalEnv.__local["%"] = function(a, b)
-			return @a % @b
-		end function
-		globalEnv.__local.at = function(a, b)
-			return @a[@b]
-		end function
-
-	general = {"active_user": @active_user, "bitwise": @bitwise, "clear_screen": @clear_screen, "command_info": @command_info, "current_date": @current_date, "current_path": @current_path, "exit": @exit, "format_columns": @format_columns, "get_ctf": @get_ctf, "get_custom_object": @get_custom_object, "get_router": @get_router, "get_shell": @get_shell, "get_switch": @get_switch, "home_dir": @home_dir, "include_lib": @include_lib, "is_lan_ip": @is_lan_ip, "is_valid_ip": @is_valid_ip, "launch_path": @launch_path, "mail_login": @mail_login, "nslookup": @nslookup, "parent_path": @parent_path, "print": @print, "program_path": @program_path, "reset_ctf_password": @reset_ctf_password, "typeof": @typeof, "user_bank_number": @user_bank_number, "user_input": @user_input, "user_mail_address": @user_mail_address, "wait": @wait, "whois": @whois, "to_int": @to_int, "time": @time, "abs": @abs, "acos": @acos, "asin": @asin, "atan": @atan, "ceil": @ceil, "char": @char, "cos": @cos, "floor": @floor, "log": @log, "pi": @pi, "range": @range, "round": @round, "rnd": @rnd, "sign": @sign, "sin": @sin, "sqrt": @sqrt, "str": @str, "tan": @tan, "yield": @yield, "slice": @slice, "params": @params}
-
-	for method in general + string + list + map
-		globalEnv.__local[method.key] = @method.value
-	end for
-
-	execute = function(codeStr, env)
-		return eval(reader(codeStr), env)
-	end function
-
-	repl = function(env)
-		while true
-			codeStr = user_input("</> ")
-			if codeStr == ";quit" then break
-			result = eval(reader(codeStr), env)
-			if @result isa string then print(result) else print(tree(result))
-		end while
-	end function
-
-	prepareCode = "" //This one is hardcoded code you can run at start up.
-	if not hasIndex(globals, "glosureEnv") then
-		globals.glosureEnv = Env(globalEnv)
-		glosureEnv.set("BUFFER", globals.BUFFER)
-		execute(prepareCode, glosureEnv)
-	end if
-
-	helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
-Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
-Glosure interpreter version: e327f82. For more details read https://github.com/rocketorbit/Glosure
-<b>Warning: This command is a programming language! Your error may result in crash!</b>
-
-Language Docs:
-(function arg1 arg2 argn) essentially behaves like function(arg1, arg2, argn) in miniscript
-This language has no data types of its own and therefore cannot even be called a language. It interacts with the host GreyScript environment through an API.
-Use 'hi' to repersent a string ""hi""
-Use 42 to repersent a number 42
-Use (list 1 2 'a') to repersent a list [1, 2, ""a""]
-Use (map 'a' 1 'b' 2) to repersent a map {""a"": 1, ""b"": 2}
-(true) is a function evaluates to true, you should use 1 instead.
-(false) is a function evaluates to false, you should use 0 instead.
-(null) is a function evaluates to null, this is dangerous and can cause unexpected crash. You should only use this when you have to, for example a Grey Hack API requires you to pass null as arguments.
-Use (def name 'value') to define a variable name with a value ""value""
-Use (lambda (arguments) (body)) to define an anonymous lambda expression(aka function), you can bind it to a variable name with syntax like (def square (lambda (x) (* x x))). this is the only native datatype and you should NEVER pass this through API.
-Use (while expression statement) to loop without recursion.
-Use (if expression statement optional_else_statement) to use if or if-else statement.
-Use (function_name argument_1 argument_2 argument_N) to call a binded lambda or a Grey Hack general function on Manual.exe(import_code isn't a function).
-Use (dot object method_name argument_1 argument_2 argument_N) to access a method under a grey hack object. This is dangerous and can cause crash if used incorrectly, read Manual.exe while using it.
-(at name index) essentially works like name[index], you can use it on any container.
-
-Advanced features:
-reflect: reflect glosure value to host environment, very dangerous feature, do not use if you dont know what you are doing. (reflect value name1 name2) basically works like globals.name1.name2 = value
-glosure: build a ""glosure"", which is a host function of a Glosure lambda. (glosure (lambda (x) (+ x x))) will return a greyscript function that behaves like function(x); return x + x; end function
-<b>Warning: Advanced feature are not for people who dont know what they are doing! Your error will very likely result in crash!</b>
-"
-	if arg1 == "help" or arg1 == "-h" then return helpMsg
-	if arg1 == "-e" or arg1 == "exec" then return execute(arg2, glosureEnv)
-	return repl(glosureEnv)
 end function
 command.time = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: time -- returns current game time."+char(10)+"Usage: time [-d|date] -- returns current game time and date."+char(10)+"Usage: time [-t] -- returns time in seconds since script launch."
@@ -2675,7 +2172,6 @@ bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
 bios_info.push("<size=85%>[Custom_Object: "+get_custom_object.len+" indexes]")
 bios_info.push("<size=85%>[tagged4scp: "+globals.tagged_for_scp+"]</size>")
 bios_info.push("[tbuf:<size=60%>"+globals.T_BUF.join(" ")+"</size>]</size>")
-//bios_info.push("[clipa:<size=60%>"+@globals.clip_board_alpha+"</size>]"+char(10)+"[clipb:<size=60%>"+@globals.clip_board_beta+"</size>]"+char(10)+"[clipc:<size=60%>"+@globals.clip_board_gamma+"</size>]"+char(10)+"[enum:<size=60%>"+globals.enumerated.len+"</size>]")
 if typeof(@globals.clip_board_alpha) == "string" then
 	bios_info.push("[clipa:<size=60%>"+@globals.clip_board_alpha.replace(char(10),", ")+"</size>]")
 else
@@ -2793,6 +2289,7 @@ command.whoami = function(arg1,arg2,arg3,arg4)
 	"-- if GLASSPOOL is active; returns best guess at active user"
 	if GLASSPOOL then return checkUser(localmachine) else return active_user
 end function
+
 command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "credits"
 	logo = []
@@ -2818,7 +2315,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: Redit0")
 	print("5hell.src optimizations by: Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Deckard, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -3184,15 +2681,11 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 				found = false
 				if not invoke_regex then 
 					if c.indexOf(arg2) >= 0 then 
-						//h_buf.push(c.replace(arg2,colorRed+arg2+CT)+char(10)+colorGold+"<u>---</u>"+CT+char(10))
 						found = true
-						//if DEBUG then print("attempting regex: "+arg2+ " | " + c)
 					end if
 				else
 					for w in c.split(" ")
 						if globals.re.match(arg2.values, w.values) then 
-							//h_buf.push( c.replace(arg2, colorRed+arg2+CT) +char(10)+ colorBlack+"<u>---</u>"+ CT +char(10) )
-							//if DEBUG then print(h_buf[-1])
 							c = c.replace(w,colorRed+w+CT)
 							found = true
 						end if
@@ -3235,9 +2728,6 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 
 	num_commands = index.len
-	// for dex in index 
-	// 	index[index.indexOf(dex)] = dex+char(8203)
-	// end for
 	columns = 7 // # commands per line
 	if globals.DEBUG then print("commands: "+num_commands+" columns: "+columns)
 	rows = ceil(num_commands / columns)
@@ -3249,7 +2739,6 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		count = count + columns
 	end for
 	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
-	//print(format_columns(buf.join(char(10))).replace("sphinx", "<color=#FF0000FF><b>sphinx"+char(8482)+CT ) ) 
 	print(format_columns(buf.join(char(10))).replace("sphinx", "<color=#FF0000FF>sphinx</color>" ) )
 	print
 	print(":><b> help</b> -- print this page: lists commands alphabetically")
