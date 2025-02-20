@@ -26,6 +26,8 @@
 // todo: kraken
 // todo: probe
 //
+// merged glosure pull request
+//
 // brutus: disabled while GLASSPOOL is active; brutus doesn't translate through glasspool it just ends up rooting your own machine; so now it wont
 // kore: -r will now create an empty database.csv if it doesn't exist
 // kore: -r will now highlight the path used to cp 5hell into rkit (as well as properly rename it to 5hell)
