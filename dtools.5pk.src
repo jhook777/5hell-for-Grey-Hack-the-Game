@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.3...(151.733)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.5...(155.130)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2612,40 +2612,11 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
 	"Procedure: once <b>zc</b> and unit_testing are complete:"+char(10)+
 	"-- select the debugLibrary from the BUFFER (or <b>bios -m | code</b> if it is still linked)"+char(10)+
 	"-- select patch and enter the path to patch.zd"
-    // colorWhite+"Usage: zc [user] [password] [MetaLib_object|MetaLib_name]</color> -- autosolve debugLibrary unit_testing and produce patch"+char(10)+
-    // "-- [user] - should be a neurobox engineer username gleened from investigating a<b> zero day rumor"+char(10)+
-    // "-- [pass] - should be the debugging password for the above engineer, gained the same way"+char(10)+
-    // "-- [MetaLib] - should be either an object or the <u>name</u> of a lib.so in /lib"+char(10)+
-    // "--eg: zc foo bar net.so "+char(10)+
-    // "NOTE: zc foo bar /lib/net.so is not valid: libs must be in /lib to be exploited in the first place"+char(10)+char(10)+
-    // "Output:"+char(10)+
-    // "Zer0Chill will store all objects (MetaLib and debugLibrary) and strings recovered in the BUFFER."+char(10)+
-    // "Additionally, the original code will be trimmed of whitespace and line numbers and stored in /currentPath/orig, if possible."+char(10)+
-    // "   ""  ""   , the generated, corrected code will be stored in /currentPath/patch.zd, if possible."+char(10)+
-    // "   ""  ""   , both original and corrected code will be stored in the custom object under keys: original, corrected."+char(10)+
-    // "   ""  ""   , both original and corrected code will be stored in the BUFFER."+char(10)+
-    // "Any combination of these may be piped to <b>diff -l</b> to obtain a list of line numbers to use with debugLibrary unit testing."+char(10)+
-    // "Finally, the original code will be compared with the new code using <b>diff</b> with the resulting list placed in the BUFFER."+char(10)+
-    // "NOTE: this option will <b>not</b> automatically patch the debugLibrary! Use -p or -a for that."+char(10)+
-    // colorLightBlue+"- - - - - -"+char(10)+
-    // "Usage: zc [-s|--scan] [debugLibrary] -- run a scan on a debugLibrary and return the scan string"+char(10)+
-    // "Usage: zc [-s|--scan] [user] [pass] [MetaLib] -- obtain a debugLibrary, scan it, and return the scan string"+char(10)+
-    // "Usage: zc [-u|--unit-test] [list:line_nums|string:line_nums] [debugLibrary] -- run unit testing on the debug lib"+char(10)+
-    // "-- line_nums should be a list or string of line numbers containing mistakes in the original code snippet"+char(10)+
-    // "---- if a string is supplied it should be comma separated: 1,2,3,4"+char(10)+
-    // "-- returns the resulting zero-day string"+char(10)+
-    // "Usage: zc [-p|--patch] [/path|string] [debugLibrary] --  patch a debug lib using the code in the given string or file at path"+char(10)+
-    // colorGold+"Usage: zc [-a|--auto-patch] [MetaLib|string:lib.so] -- automatically patch a MetaLib object or the named lib in /lib"+char(10)+
-    // "--eg: zc -a net.so"
     if not neurobox_user or not neurobox_pass then return "zer0Chill: invalid parameters: expects [user] [pass] [metaLib]"
     if typeof(metalib) != "MetaLib" then 
         if typeof(metalib) == "string" then 
             if not globals.metaxploit then return "zer0Chill: metaxploit is required in order to load from path"
-            //file_path = metalib.trim
-            //if DEBUG then print "debug: file path: "+file_path
-            //metalib_file = globals.get_file(metalib)
-            //if not metalib_file then return "zer0Chill: "+metalib+" not found in /lib"+char(10)+"-- supply an object of type MetaLib or"+char(10)+"-- the name of a metalib.so in /lib. eg: net.so"+char(10)+"-- libs must be in /lib to be exploited"
-            print command.meta(metalib)        
+			print command.meta(metalib)        
             metalib = command.bios("-m")
             if typeof(metalib) != "MetaLib" then return "zer0Chill: error: that wasn't a MetaLib!" else globals.BUFFER.push(metalib)
         else 
@@ -2664,9 +2635,6 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
         command.meta(metalib)    
         globals.BUFFER.push(command.bios("-m"))
     end if
-
-
-
     handle = {}
     handle.output = []
     handle.some_var = ""
@@ -2720,10 +2688,6 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
         range_max = line1.split("from ")[1].split(" to ")[1] // 2
         var = line2.split(" by ")[0].split(" ")[1] // var_pkPc3t
         op = var+" = i * "+var
-
-        // for i in range(range_min, range_max)
-        //  var = i op var
-        // end for
         handle.output.push("for i in range("+range_min+", "+range_max+")")
         handle.output.push(op)
         handle.output.push("end for")
@@ -2774,7 +2738,6 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
         if st == "equal to" then return "== "+v
         if st == "not equal to" then return "!= "+v
         if op == "" then return "<b>unknown operation!</b> "+v
-        //return op+" "+v
     end function
     handle.write_patch = function( list, file )
         out = list.join(char(10))
@@ -2799,7 +2762,6 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
         return 1
     end function
     handle.export = function( string )
-        //command.cob("set","orig",string)
         print "zer0Chill: sending code snippet to BUFFER"
         globals.BUFFER.push(string)
         file = globals.get_file(currentPath+"/orig")
@@ -2913,4 +2875,144 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		return command.shell(macmac.replace(char(10)," |  | ")+" | return")		
 	end if
 	return 0
+end function
+command.hashim = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg1 or arg1 == "help" or arg1 == "-h" then
+		if arg2 and arg2 == "extra" then
+			return "Files required: /root/tables/t5/XX (XX is all files from<b> pwgen hash </b>, ascii), 5hell (bin)."+char(10)+"Files created: /root/dump.txt (ascii) -- the output file with cracked passwords"+char(10)+"Input format: "+char(10)+"   user:hash "+char(10)+"Once per line in /root/pass or specified path (see also <b>transmit</b>). "+char(10)+"May be of type bank, mail, passwd."
+		else
+			return "hashim: hash daemon"+char(10)+"Usage: hashim [-d|-f] [path] -- listen on [path] and decipher contents using tables/t5"+char(10)+"-- default path is /root/pass"+char(10)+"-- -f == run once on specified path"+char(10)+"-- -d == run as daemon on specified path"+char(10)+"N.B. Please run <b> pwgen hash </b> to setup resources for hashim."+char(10)+"n.b.b This command requires root access and it is recommended to use, along with pwgen, on a dedicated server due to the number of files involved. ie try not to spam hashim servers. a single one works wonders."+char(10)+"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
+		end if
+	end if
+	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [path] -- -f == run once on specified path, -d == run in daemon mode on specified path. Default path: /root/pass."
+	if not crypto then print(colorOrange+"WARNING: crypto.so not found"+CT)
+	dump = globals.get_file("dump.txt")
+	if not dump then print localmachine.touch(currentPath, "dump.txt")
+	dump = globals.get_file("dump.txt")
+	if not dump then return "hashim: dump.txt not found in current path."+char(10)+"hashim: unable to write dump.txt"
+	if arg2 then swap_path = arg2 else swap_path = "/root/pass"//params[0]
+	swap_file = globals.get_file(swap_path)
+	if not swap_file then return("hashim: "+swap_path+" not found.")
+	//out_path = "/virt/out.spc"
+	//out_file = localmachine.File(out_path)
+	//if not out_file then return("404: "+out_path+" not found"+char(10)+"type<b> kore </b>without params to create (you may skip adding an ip)")
+	cache = []
+	found = false
+	daemon = true
+	if arg1 == "false" or arg1 == "-f" then daemon = false
+	hashim = function(daemon,swap_file)
+		wait(.05)
+		//if not daemon then swap_path = "/root/pass"
+		//swap_file = globals.get_file(swap_path)
+		if not swap_file then return "404: "+swap_path+" not found."
+		last_read = "" //swap_file.get_content
+		running = true
+		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
+		while running
+			found = false
+			hash = ""
+			user = ""
+			if last_read == swap_file.get_content or swap_file.get_content == "" then
+				// skip
+			else
+				time_s = time
+				last_read = swap_file.get_content.split(char(10))
+				for hash in last_read
+					found = false
+					if DEBUG then print "hash is: "+hash
+					if hash.indexOf(":") >= 0 then
+						user = hash.split(":")[0]
+						hash = hash.split(":")[1]
+					else
+						if hash.len == 32 then 
+							user = "unknown"
+						else
+							continue
+						end if
+					end if
+					hash = hash.trim
+					if DEBUG then print "hash is:"+hash+" and len is: "+hash.len
+					if hash.len != 32 then continue
+					print("["+hash+"]")
+					//t_folder = localmachine.File("/root/tables/t5")
+					t_folder = globals.get_file(globals.TABLES_DIR)
+					if not t_folder then return globals.TABLES_DIR+" not found\n-- run<b> pwgen hash\n-- or edit TABLES_DIR to resolve"
+					files = t_folder.get_files
+					for f in files
+						if found then continue
+						lines = f.get_content.split(char(10))
+						for line in lines
+							if found then continue
+							if line == lines[0] then continue
+							spl = line.split("=")
+							h = spl[0]
+							p = spl[1]
+							if h == hash then
+								print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
+								cache.push(user + ":" + p)
+								found = true
+								continue
+								if h.len != 32 then print(colorRed+"hashim: t5 table error: entry is not 32 characters"+char(10)+line+char(10)+"Line: "+lines.indexOf(line))
+							end if
+						end for
+					end for
+					if found == true then continue
+					if crypto then
+						password = null
+						password = crypto.decipher(hash)
+						if password then
+							print("Hashim: " + user + ":" + colorWhite + password + CT + " found in " + (time-time_s) + " seconds.")
+							cache.push(user + ":" + password)
+							found = true
+							continue
+						end if
+					end if
+					print(colorRed+"Hash not found: unknown: "+hash+CT)
+					cache.push(user+":unknown")
+				end for
+				last_read = cache.join(char(10))
+				if daemon then print("Sending: "+char(10)+last_read)
+				if daemon then swap_file.set_content(last_read)
+				print("Saving to dump.txt...")
+				dump.set_content(dump.get_content+char(10)+last_read)
+				cache = []
+				print(colorLightBlue+"Hashim: completed task in "+(time-time_s)+" seconds."+CT)
+				wait(1)
+				if daemon then
+					print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
+				else
+					return 0
+				end if
+			end if
+			wait(.05)
+		end while
+		return 0
+	end function
+	return hashim(daemon,swap_file)
+end function
+command.tdump = function(arg1,arg2,arg3,arg4)
+	if arg1 == "-h" or arg1 == "help" then return "Transmission Buffer Dump"+char(10)+"Usage: tdump [opt: path] -- dump tbuf (transmission buffer) to file"+char(10)+"-- writes to specified path or default path of home_directory+/pass"
+	if globals.T_BUF.len <= 1 then return "Transmission buffer is empty."
+	tpath = arg1 
+	if not tpath then 
+		if currentPath != "/" then tpath = currentPath + "/pass" else tpath = currentPath+"pass"
+	end if
+	print colorLightBlue+"dumping t_buf to: "+colorWhite+tpath
+	passfile = globals.get_file(tpath)
+	if not passfile then 
+		print "tdump: "+tpath+" not found"
+		print "poke: creating "+tpath
+		print command.poke(tpath)
+		passfile = globals.get_file(tpath)
+		if not passfile then return "tdump: write permission denied"
+	end if
+	if typeof(passfile) != "file" then return "tdump: "+tpath+" not found. "+char(10)+"-- check path and glasspool status and try again."
+	if not passfile.has_permission("w") then return "tdump: write permission denied"
+	tcatch = passfile.set_content( globals.T_BUF.join(char(10)) ) 
+	if DEBUG then print "debug: tcatch: "+tcatch+" is a "+ typeof(tcatch)
+	if typeof(tcatch) == "string" then return tcatch else print colorLightBlue+"tdump: task complete..."
+	globals.T_BUF = [(localip+"@"+pubip)]
+	//globals.T_BUF = []
+	print "tdump: returning file object for "+passfile.path
+	return passfile
 end function
