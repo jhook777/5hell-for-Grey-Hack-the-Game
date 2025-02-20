@@ -26,7 +26,25 @@
 // todo: kraken
 // todo: probe
 //
-// merged glosure pull request
+// 5hell.5pk: removed unused code
+// dtools.5pk: removed unused code
+// dtools.5pk & kore.5pk: moved hashim and tdump from kore to dtools
+// kore.5pk: removed unused code
+// kore.5pk: added glosure as a new command
+// -- thanks rocketorbit!
+// -- be sure to check the usage info and follow the link found there for more info
+// credits: added credit to rocketorbit for glosure code
+// credits: added inspiration/idea credit to: Conner, STYX, Fear_Rua, Penelope
+// cob: reenabled @clipa/b/c replacement inputs
+//
+// 5hell.src: moved HOME_SERVER configuration to BEFORE the 5hell.5pk import line
+// -- be sure to update this to avoid an undefined identifier error
+// macro: now requires a [-s|set] flag in order to create a macro
+// -- this is to avoid overwriting a macro on accident with piped input when calling a macro
+// brutus: reverted disabling in glasspool; now it just warns
+// hashim: added TABLES_DIR global that hashim will use to find the hash tables
+// -- default is still /root/tables/t5
+// -- edit this in the globals.HOME_SERVER variable in 5hell.src, NOT the TABLES_DIR var in 5hell.5pk
 //
 // brutus: disabled while GLASSPOOL is active; brutus doesn't translate through glasspool it just ends up rooting your own machine; so now it wont
 // kore: -r will now create an empty database.csv if it doesn't exist
