@@ -26,6 +26,11 @@
 // todo: kraken
 // todo: probe
 //
+// glosure: bug fix
+// tree: removed unused code
+// grep: added -a option to return all matched files as a list // needs docs
+// kore: fixed infinite loop when kore doesn't have write permissions to Mail.txt/Bank.txt 
+//
 // 5hell.5pk: removed unused code
 // dtools.5pk: removed unused code
 // dtools.5pk & kore.5pk: moved hashim and tdump from kore to dtools
