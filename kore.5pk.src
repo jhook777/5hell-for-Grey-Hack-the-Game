@@ -1,12 +1,16 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.5...(154.830)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.6...(157.482)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
     "Usage: <b>kore [-r|--rkit]</b> -- automatic rkit generation"+char(10)+
-    "-- copies metaxploit.so, crypto.so, and 5hell to home_dir/rkit"+char(10)+char(10)+
+	"-- creates rkit folder if it doesn't exist"+char(10)+
+    "-- copies metaxploit.so, crypto.so, and 5hell to home_dir/rkit"+char(10)+
+	"-- creates database.csv within rkit if it doesn't exist "+char(10)+
     "Usage: <b>kore [-s|--secure]</b> -- automatic secure system:"+char(10)+
     "-- runs:<u> usr -r root / | grp -r root / | rm /etc/passwd"+char(10)+
-    "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | lock"+char(10)+char(10)+
+    "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | lock"+char(10)+
+	"NOTE: kore -s will remove <b>all</b> copies of Bank.txt and Mail.txt"+char(10)+
+	"-- please rename these files if you wish to keep them"+char(10)+char(10)+
     "Usage: <b>kore [--hdd]</b> -- prompts for hdd size in bytes"+char(10)+
     "-- writes size to /virt/hdd.io"+char(10)+
     "-- bios uses this to report remaining hdd space"
@@ -80,17 +84,18 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		print "<size=75%>kore: removing /etc/passwd..." 
 		print "<size=75%>"+ command.rm("/etc/passwd")
 		print "<size=75%>kore: removing *Bank.txt..."
-		working = true 
-		while working 
-			f = command.tree("/","Bank.txt","1","N")
-			if typeof(f) == "file" then print "<size=75%>"+ command.rm(f) else working = false
-		end while
+		bank_files = command.grep("-a","^Bank.txt$","/")
+		for f in bank_files 
+			if DEBUG and typeof(f) == "file" then print "debug: filename: "+f.name
+			if typeof(f) == "file" then print "<size=75%>" + command.rm(f)
+		end for
 		print "<size=75%>kore: removing *Mail.txt..."
-		working = true 
-		while working 
-			f = command.tree("/","Mail.txt","1","N") 
-			if typeof(f) == "file" then print "<size=75%>"+ command.rm(f) else working = false 
-		end while
+		mail_files = command.grep("-a","^Mail.txt$","/")
+		print mail_files
+		for f in mail_files 
+			if DEBUG and typeof(f) == "file" then print "debug: filename: "+f.name
+			if typeof(f) == "file" then print "<size=75%>" + command.rm(f) 
+		end for
 		print "<size=75%>kore: removing guest folder..."
 		print "<size=75%>"+command.rm("-r","/home/guest")
 		print "<size=75%>-- consider manually deleting /home"
