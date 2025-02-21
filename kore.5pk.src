@@ -2918,10 +2918,6 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	return colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
 end function
 command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
-	Error = function(msg) //This is up to implementation to decide.
-		return print("<color=red><noparse>" + msg + "</noparse></color>") //5hell Glosure ignore all error and continue, bad idea but asked by plu70. 
-	end function
-
 	tree = function(anyObject, depth = 5) //basically str() with custom depth limit, this walk the tree with recursion until everything is consumed.
 		if depth == 0 then return "..."
 		if @anyObject isa map then
@@ -3011,7 +3007,7 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
 		env.get = function(symbol)
 			if self.__local.hasIndex(symbol) then return @self.__local[symbol]
 			if self.__outer then return @self.__outer.get(symbol)
-			return Error("Glosure: Unknown symbol '" + symbol + "'.")
+			return print("<color=red><noparse>Glosure: Unknown symbol '" + symbol + "'.</noparse></color>")
 		end function
 		env.set = function(symbol, value)
 			self.__local[symbol] = @value
