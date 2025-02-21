@@ -28,7 +28,7 @@
 //
 // glosure: bug fix
 // tree: removed unused code
-// grep: added -a option to return all matched files as a list // needs docs
+// grep: added -a option to return all matched files as a list
 // kore: fixed infinite loop when kore doesn't have write permissions to Mail.txt/Bank.txt 
 //
 // 5hell.5pk: removed unused code
