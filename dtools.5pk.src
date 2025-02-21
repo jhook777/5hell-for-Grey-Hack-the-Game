@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.5...(155.130)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.6...(151.633)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -345,11 +345,13 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	find_file = false
 	return_name = false
 	return_path = false
+	return_list = false
 	globals.grepped_file = null
-	if a1 and a1 == "-f" or a1 == "-n" or a1 == "-fn" or a1 == "-p" or a1 == "-fp" then
+	if a1 and a1 == "-f" or a1 == "-n" or a1 == "-fn" or a1 == "-p" or a1 == "-fp" or a1 == "-a" or a1 == "-fa" then
 		find_file = true 
 		if a1 == "-n" or a1 == "-fn" then return_name = true
 		if a1 == "-p" or a1 == "-fp" then return_path = true
+		if a1 == "-a" or a1 == "-fa" then return_list = true
 		if DEBUG then print "debug: grep: findfile == true"
 		a1 = a2
 		a2 = arg3
@@ -382,6 +384,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 		"-- returns the <b>file path</b> as a string"+char(10)+
 		"-- uses same search method as -f"+char(10)+
 		"-- -fp option is equivalent to -p option"+char(10)+char(10)+
+		"Usage: grep [-a|-fa] [pattern] [path|object] -- return a <b>list of file objects</b> matching pattern"+char(10)+char(10)+
 		colorCyan+"<u>current regex tokens (more planned):</u>"+char(10)+
 		"c   matches any literal character 'c'"+char(10)+
 		"-- bob matches bob anywhere in the text."+char(10)+
@@ -412,32 +415,38 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				if use_re == true then
 					if re.match(grep_tar.values, sub.name.values) then 
 						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-					if NIGHTLY == true and sub.is_symlink then 
-						gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
-					else
-						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-					end if
+						if NIGHTLY == true and sub.is_symlink then 
+							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
+						else
+							gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
+						end if
 						if findfile == true then
+							greppy.grepped.push(sub)
+							print greppy.grepped[-1]["name"]
 							print gresult[-1]
 							globals.grepped_file = sub
 							gname = sub.name
 							if DEBUG then print "debug: found "+sub.path
-							return
+							if not return_list then return
 						end if
 					end if
 				else
 					if sub.name == grep_tar or sub.name.indexOf(grep_tar) then 
 						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-					if NIGHTLY == true and sub.is_symlink then 
-						gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
-					else 
-						gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path+CT)
-					end if
-					if findfile == true then
-						if DEBUG then print "debug: found "+sub.path
-						print gresult[-1]
-						globals.grepped_file = sub
-						return
+						if NIGHTLY == true and sub.is_symlink then 
+							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
+							
+						else 
+							gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path+CT)
+							
+						end if
+						if findfile == true then
+							greppy.grepped.push(sub)
+							print greppy.grepped[-1]["name"]
+							if DEBUG then print "debug: found "+sub.path
+							print gresult[-1]
+							globals.grepped_file = sub
+							if not return_list then return
 						end if
 					end if
 				end if
@@ -453,25 +462,26 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
 						end if
 						if findfile == true then
+							greppy.grepped.push(f)
 							if DEBUG then print "debug: found "+f.path
 							print gresult[-1]
 							globals.grepped_file = f
-							return
+							if not return_list then return
 						end if
           			end if
 				else
 					if f.name == grep_tar or f.name.indexOf(grep_tar) >= 0 then 
-						//gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
 						if NIGHTLY == true and f.is_symlink then 
 							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+f.name+CT+colorLightBlue+" linked to file in: "+ f.parent.path + CT+char(10)+colorGold+"               |<u>"+f.path)
 						else 
 							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
 						end if
 						if findfile == true then
+							greppy.grepped.push(f)
 							if DEBUG then print "debug: found "+f.path  
 							print gresult[-1]
 							globals.grepped_file = f
-							return
+							if not return_list then return
 						end if
           			end if
 				end if
@@ -486,14 +496,20 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 			words = line.split(" ")
 			for word in words
 				if use_re == true then
-					if re.match(grep_tar.values, word.values) then gresult.push(colorLightBlue+"Found: "+CT+colorWhite+word+CT+colorLightBlue+" on line "+lines.indexOf(line)+" word "+words.indexOf(word)+" in file: "+ t_f.path + CT)
+					if re.match(grep_tar.values, word.values) then 
+						gresult.push(colorLightBlue+"Found: "+CT+colorWhite+word+CT+colorLightBlue+" on line "+lines.indexOf(line)+" word "+words.indexOf(word)+" in file: "+ t_f.path + CT)
+					end if
 				else
-					if word == grep_tar or word.indexOf(grep_tar) >= 0 then gresult.push(colorLightBlue+"Found: "+CT+colorWhite+word+CT+colorLightBlue+" on line "+lines.indexOf(line)+" word "+words.indexOf(word)+" in file: "+ t_f.path + CT)
+					if word == grep_tar or word.indexOf(grep_tar) >= 0 then 
+						gresult.push(colorLightBlue+"Found: "+CT+colorWhite+word+CT+colorLightBlue+" on line "+lines.indexOf(line)+" word "+words.indexOf(word)+" in file: "+ t_f.path + CT)
+					end if
 				end if
 			end for
 		end for
   	end function
 	
+	greppy = {}
+	greppy.grepped = []
 	output = "No "+a1+" found."
 	t_f = null // target file or folder
 	grep_tar = a1.trim
@@ -518,78 +534,14 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	gp(grep_tar, t_f, invoke_regex, find_file)///////////////////////////////fire away!
   	if DEBUG then print "debug: ggf: "+typeof(globals.grepped_file)
   	if globals.grepped_file then 
-		if return_name then return globals.grepped_file.name
+		if return_name then return globals.grepped_file.name // change this to greppy.grepped_file
 		if return_path then return globals.grepped_file.path
+		if return_list then return greppy.grepped
  	 	return globals.grepped_file
 	end if
 	if gresult != [] then output = gresult.join(char(10))
 	return output
 end function
-// command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
-// 	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
-// 	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
-// 	"Usage: tree [path|object] -- view filesystem from path down"+char(10)+
-// 	"Usage: tree [opt: path(string)|object(object)] [opt: grep_target(string)] [quiet: 1|0] [opt: r|y|n]"+char(10)+
-// 	"-- [path] - path to descend"+char(10)+
-// 	"-- [object] - shell or computer: descends from / on object"+char(10)+
-// 	"-- [object] - file: descends from path of file object on said object"+char(10)+
-// 	"-- [grep_target] - search for target file by name"+char(10)+
-// 	"---- matches exact name (no regex)"+char(10)+
-// 	"---- <b>returns the file as an object if found</b>"+char(10)+
-// 	"-- [1|0] -  1 = quiet, supress output"+char(10)+
-// 	"-- [1|0] -  0 = verbose, print output"+char(10)+
-// 	"-- [r|n|y] - r = send to t_buf, n = ignore, y = decipher (default is <b>r</b>)"+char(10)+
-// 	"---- this option determines where bank.txt, mail.txt, passwd, and others are stored when encountered"+char(10)+
-// 	"---- see command.clipa|b|c for more (ie <b>clipb -h</b>)"+char(10)+
-// 	"-- e.g:<b> tree / database.csv 1 N | file -b</b> "+char(10)+
-// 	"---- find database.csv on filesystem, display properties, pipe to BUFFER"+char(10)+
-// 	"N.B. You may use @a, @b, @c or @clipa, @clipb, @clipc to reference [object]"+char(10)+
-// 	colorGreen+"-- -- -- -- -- --"+char(10)+
-// 	"<b>New: tree -f [path|object] [object|path] [opt: 1|0 ] - tree a directory or object and enumerate all files "+char(10)+
-// 	"-- omitting path|object (and opt) defaults to the / path"+char(10)+
-// 	"-- [opt: 1] - quiet mode. suppress output."+char(10)+
-// 	"-- [opt: 0] - print output. default"+char(10)+
-// 	"---- omitting this option will print output"+char(10)+
-// 	"-- enumerates to the enum buffer. see <b>enum -h</b> for instructions on how to use it"+char(10)+
-// 	"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "+char(10)+
-// 	"Usage: tree -f [path] -- tree from path, enumerate to enum, print output"+char(10)+
-// 	"Usage: tree -f [object] -- tree from object's <b>/</b> directory, enumerate, print output"+char(10)+
-// 	"Usage: tree -f [object|path] [1|0]-- performs as above but does <b>not</b> print output"+char(10)+
-// 	"Usage: tree -f [path|object] [object|path] -- tree from object's [path] directory, enumerate, print output"+char(10)+
-// 	"       -- this option will return the file or folder at path as an object if it exists"+char(10)+
-// 	"Usage: tree -f [param] [param] [1|0] -- performs as above but does <b>not</b> print output"+char(10)+
-// 	"N.B. tree -f [1] is ignored because it results in absolutely nothing happening"+char(10)+
-// 	"n.b. tree -f returns a string except as stated above"
-// 	tem = null
-// 	use_new_tree = false
-// 	if arg1 == "-f" then 
-// 		use_new_tree = true 
-// 		arg1 = arg2 
-// 		arg2 = arg3 
-// 		arg3 = arg4 
-// 		// new tree stuff goes here
-		
-
-// 	end if 
-// 	if arg1 then
-// 		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
-// 		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
-// 		if arg1 == "@clipc"  or arg1 == "@c" then arg1 = globals.clip_board_gamma
-// 		if typeof(arg1) == "string" then tem = localmachine.File(arg1)
-// 		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
-// 		if typeof(arg1) == "computer" then tem = arg1.File("/")
-// 		if typeof(arg1) == "file" then tem = arg1
-// 	else
-// 		tem = localmachine.File("/")
-// 	end if
-// 	if not tem or not p_validate(tem,"size") then return "tree: invalid path or file"
-// 	if arg3 == "0" then arg3 = 0
-// 	if use_new_tree == true then return globals.newtree(tem,arg2)
-// 	globals.grepped_file = null
-// 	globals.list_files(tem, arg2, arg3, arg4)
-// 	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
-// 	return 0
-// end function
 command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "<b><u>tree || list files || file grep"+char(10)+
 	"Usage: <b>tree</b> -- view filesystem tree (from / if no argument)"+char(10)+
