@@ -2760,19 +2760,19 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 
-command.top = function(arg1=0, arg2=0,arg3=0,arg4=0)
+command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
 	if @arg1 != 0 then
 		if ["string","number","shell","computer"].indexOf(typeof(@arg1)) == null then return "Invalid argument: "+typeof(@arg1)+": "+@arg1
-		top_usage = "top || actually top (but still not actually htop)"+char(10)+
-		"<b>Usage: top -- show processes running on the active host_computer."+char(10)+
+		top_usage = "htop || actually htop"+char(10)+
+		"<b>Usage: htop -- show processes running on the active host_computer."+char(10)+
 		"-- when glasspool is active:"+char(10)+
 		"-- the active shell/computer is the active host_computer"+char(10)+
-		"--eg: top"+char(10)+
-		"<b>Usage: top [#] -- show processes running on the buffer object at the specified index."+char(10)+
-		"--eg: top 1"+char(10)+
-		"<b>Usage: top [shell|computer] -- show processes running on the piped object."+char(10)+
-		"--eg: clipa @B 1 | top"+char(10)+
-		"--eg: rsi 1 7 | top"
+		"--eg: htop"+char(10)+
+		"<b>Usage: htop [#] -- show processes running on the buffer object at the specified index."+char(10)+
+		"--eg: htop 1"+char(10)+
+		"<b>Usage: htop [shell|computer] -- show processes running on the piped object."+char(10)+
+		"--eg: clipa @B 1 | htop"+char(10)+
+		"--eg: rsi 1 7 | htop"
 		if arg1 == "help" or arg1 == "-h" then return top_usage
 		if typeof(arg1) == "number" then arg1 = str(arg1)
 		if typeof(arg1) == "shell" then
