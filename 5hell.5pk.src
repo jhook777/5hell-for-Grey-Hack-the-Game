@@ -2763,7 +2763,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
-
+// htop by redit0
 command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
 	if @arg1 != 0 then
 		if ["string","number","shell","computer"].indexOf(typeof(@arg1)) == null then return "Invalid argument: "+typeof(@arg1)+": "+@arg1
