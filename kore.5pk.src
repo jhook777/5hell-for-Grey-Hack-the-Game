@@ -91,7 +91,6 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		end for
 		print "<size=75%>kore: removing *Mail.txt..."
 		mail_files = command.grep("-a","^Mail.txt$","/")
-		print mail_files
 		for f in mail_files 
 			if DEBUG and typeof(f) == "file" then print "debug: filename: "+f.name
 			if typeof(f) == "file" then print "<size=75%>" + command.rm(f) 
@@ -2922,6 +2921,7 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	if save.lower == "y" then command.clipb(r_buf.join(char(10)))
 	return colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
 end function
+// glosure by rocketorbit
 command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
 	Error = function(msg) //This is up to implementation to decide.
 		return print("<color=red><noparse>" + @msg + "</noparse></color>") //reference implementation simply panics. 
