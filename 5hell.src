@@ -54,9 +54,7 @@ globals.HOME_SERVER = ["ip.add.rr.ess", 22, "root", "password", "ssh", "/root/pa
 //
 /////////// IMPRT LINE /////////
 //////////// change the below line to the path where you placed 5hell.5pk //////
-// Do not remove the comments in the next two lines, they are necessary for Greybel support
-import_code("/root/src/5hell.5pk") // no-emit;no-eval;
-//include "5hell.5pk"
+import_code("/root/src/5hell.5pk")
 ///////////// END IMPRT LINE /////////
 // once built you may use the 'makfit' command to
 // build with a smaller filesize. see makfit -h
@@ -234,6 +232,10 @@ command.shell = function(input=null,mute=null)
           print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
           globals.DEBUG = not globals.DEBUG
           continue
+        end if
+        if prompt[1] == "--home" then 
+            if typeof(prompt[2]) == "string" and is_valid_ip(prompt[2]) then globals.HOME_SERVER[0] = prompt[2] else print globals.HOME_SERVER[0]
+          continue 
         end if
         print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
         print("["+colorCyan+command.indexes.len+CT+"] commands and")
