@@ -2759,3 +2759,124 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
+
+command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
+	if @arg1 != 0 then
+		if ["string","number","shell","computer"].indexOf(typeof(@arg1)) == null then return "Invalid argument: "+typeof(@arg1)+": "+@arg1
+		top_usage = "htop || actually htop"+char(10)+
+		"<b>Usage: htop -- show processes running on the active host_computer."+char(10)+
+		"-- when glasspool is active:"+char(10)+
+		"-- the active shell/computer is the active host_computer"+char(10)+
+		"--eg: htop"+char(10)+
+		"<b>Usage: htop [#] -- show processes running on the buffer object at the specified index."+char(10)+
+		"--eg: htop 1"+char(10)+
+		"<b>Usage: htop [shell|computer] -- show processes running on the piped object."+char(10)+
+		"--eg: clipa @B 1 | htop"+char(10)+
+		"--eg: rsi 1 7 | htop"
+		if arg1 == "help" or arg1 == "-h" then return top_usage
+		if typeof(arg1) == "number" then arg1 = str(arg1)
+		if typeof(arg1) == "shell" then
+			locals.top_comp = arg1.host_computer
+		else if typeof(arg1) == "computer" then
+			locals.top_comp = arg1
+		else if typeof(arg1.to_int) == "number" then
+			idx = arg1.to_int
+			if idx >= 0 and idx < globals.BUFFER.len then temp_comp = globals.BUFFER[idx] else return "BUFFER: invalid selection."
+			if typeof(temp_comp) == "shell" then
+				locals.top_comp = temp_comp.host_computer
+			else if typeof(temp_comp) == "computer" then
+				locals.top_comp = temp_comp
+			else
+				return "BUFFER: invalid object type: " + typeof(temp_comp)
+			end if
+		else
+			return "Invalid argument: "+typeof(arg1)+": "+arg1
+		end if
+	else
+		locals.top_comp = globals.localmachine
+	end if
+	while true
+		hostname = locals.top_comp.get_name
+        lines = locals.top_comp.show_procs.split("\n")[1:]
+        procs = []
+        users = []
+        memory = 0
+        cpu = 0
+        admin = 0
+        for line in lines
+            parts = line.split(" ")
+            process = {"user":parts[0], "pid":parts[1], "cpu":parts[2][:-1].val, "memory":parts[3][:-1].val, "command":parts[4].replace("5hell",colorRed+"5"+colorWhite+"hell")}
+            procs.push(process)
+        end for
+        for proc in procs
+            if proc.user == "root" and proc.command == "dsession" then admin = 1
+            if (proc.command == "dsession" or proc.command == "Xorg") and users.indexOf(proc.user) == null then users.push(proc.user)
+            memory = memory+proc.memory
+            cpu = cpu+proc.cpu
+        end for
+        if cpu > 95 then
+            cpu_color = "#c30000"
+        else if cpu > 90 then
+            cpu_color = "#ffa500"
+        else if cpu > 80 then
+            cpu_color = "#dbd700"
+        else
+            cpu_color = "#85b8ff"
+        end if
+        cpu_squares = ceil(20*(cpu/100))
+        cpu_blanks = 20-cpu_squares
+        cpu_bar = "<color="+cpu_color+">"+ "#"*cpu_squares + "</color><color=#ffffff00>" + "#"*cpu_blanks + "</color>"
+        if memory > 94 then
+            memory_color = "#c30000"
+        else if memory > 89 then
+            memory_color = "#ffa500"
+        else if memory > 79 then
+            memory_color = "#dbd700"
+        else
+            memory_color = "#85b8ff"
+        end if
+        memory_squares = ceil(20*(memory/100))
+        memory_blanks = 20-memory_squares
+        memory_bar = "<color=" + memory_color + ">" + "#"*memory_squares + "</color><color=#ffffff00>" + "#"*memory_blanks + "</color>"
+        output = "<color=#77aa33><b><size=120%>Monitoring: " + hostname + " [" + locals.top_comp.public_ip + "] [" + locals.top_comp.local_ip + "]</size></b></color>" + char(10)*2
+        output = output + "Running Processes: " + procs.len + char(10)
+        output = output + "Users Online: " + users.len + char(10)
+        output = output + "CPU Utilization: [" + cpu_bar + "]==[ <color=" + cpu_color + ">" + cpu + "%</color> ]" + char(10)
+        output = output + "RAM Utilization: [" + memory_bar + "]==[ <color=" + memory_color + ">" + memory + "%</color> ]" + char(10)*2
+        if admin then output = output + "<size=140%><mark=c3000099>" + " "*12 + "<b>ADMIN ONLINE</b>" + " "*12 + "</mark></size><color=#ffffff00>|</color>" + char(10)*2
+        procList = "<color=#666666><b><voffset=0.5em>USER<pos=130>PID<pos=210>CPU<pos=290>RAM<pos=370>COMMAND</voffset></b></color>" + char(10)
+        for proc in procs
+            if proc.user == "root" then
+                procList = procList + "<color=#c30000><b>root</b></color>"
+            else if proc.user == "guest" then
+                procList = procList + "<color=#666666><b>guest</b></color>"
+            else
+                procList = procList + "<color=#85b8ff><b>"+proc.user+"</b></color>"
+            end if
+            procList = procList + "<pos=130><color=#77aa33><b>" + proc.pid + "</b></color><pos=210>"
+            if proc.cpu > 95 then
+                procList = procList + "<color=#c30000><b>" + proc.cpu + "%</b></color>"
+            else if proc.cpu > 90 then
+                procList = procList + "<color=#ffa500><b>" + proc.cpu + "%</b></color>"
+            else if proc.cpu > 80 then
+                procList = procList + "<color=#dbd700><b>" + proc.cpu + "%</b></color>"
+            else
+                procList = procList + "<color=#85b8ff><b>" + proc.cpu + "%</b></color>"
+            end if
+            procList = procList + "<pos=290>"
+            if proc.memory > 94 then
+                procList = procList + "<color=#c30000><b>" + proc.memory + "%</b></color>"
+            else if proc.memory > 89 then
+                procList = procList + "<color=#ffa500><b>" + proc.memory + "%</b></color>"
+            else if proc.memory > 79 then
+                procList = procList + "<color=#dbd700><b>" + proc.memory + "%</b></color>"
+            else
+                procList = procList + "<color=#85b8ff><b>" + proc.memory + "%</b></color>"
+            end if
+            procList = procList + "<pos=370><color=#00709d><b>" + proc.command + "</b></color>" + char(10)
+        end for
+        output = output + procList
+        print(output, 1)
+        wait 0.5
+	end while
+end function
