@@ -81,7 +81,8 @@ globals.TABLES_DIR = globals.HOME_SERVER[6]
 globals.instance = globals.localmachine.File(program_path)
 
 // import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
-import_code("/root/src/5phinx.5pk")
+// Do not remove the comment in the next line, it is necessary for Greybel support
+import_code("/root/src/5phinx.5pk") // override=5phinx.5pk
 
 //
 // while importing a starting dictionary is still possible it is no longer supported
@@ -975,7 +976,8 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 	if no_parse then print file.get_content.noparse else return file.get_content
 	return 0
 end function
-import_code("/root/src/dtools.5pk")
+// Do not remove the comment in the next line, it is necessary for Greybel support
+import_code("/root/src/dtools.5pk") // override=dtools.5pk
 if DEBUG then 
 	if command.hasIndex("grep") then print "debug: dtools loaded"
 end if 
@@ -1063,7 +1065,8 @@ command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 end function
 command.games = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "games: battleship and blackjack and drugwars!"
-	import_code("/root/src/games.5pk")
+	// Do not remove the comment in the next line, it is necessary for Greybel support
+	import_code("/root/src/games.5pk") // override=games.5pk
 	return 0
 end function
 command.mail = function(arg1, arg2, arg3=0, arg4=0)
@@ -1385,7 +1388,8 @@ command.fwr = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if DEBUG then print "debug: router is a: "+typeof(router)
 	return router.firewall_rules
 end function
-import_code("/root/src/kore.5pk")
+// Do not remove the comment in the next line, it is necessary for Greybel support
+import_code("/root/src/kore.5pk") // override=kore.5pk
 if DEBUG then 
 	if command.hasIndex("kore") then print "debug: kore loaded"
 end if 
