@@ -3697,3 +3697,109 @@ main = function()
 end function
 //main
 //exit("Goodbye.")
+
+DaemonManager = {
+  "__comp": globals.localmachine,
+  "__file": null,
+  "__filePath": current_path + "/5hell.d",
+  "__initialized": 0,
+  "__type": {
+    "hashim": "hashim",
+    "htop": "htop",
+    "outmon": "outmon",
+    "rsi": "rsi"
+  }
+}
+
+DaemonManager.__getNext = function(type)
+  if not self.__initialized then return null
+  max = 0
+  lines = self.__file.get_content.split(char(10))
+  for line in lines
+    if line == "" then continue
+    if line.indexOf(self.__type[type]) != null then
+      identifier = line.split(" ")[0]
+      if identifier.indexOf("_") == null then continue
+      parts = identifier.split("_")
+      if parts.len != 2 then continue
+      if typeof(parts[1].to_int) != "number" then continue
+      test = parts[1].to_int
+      if test > max then max = test
+    end if
+  end for
+  return max + 1
+end function
+
+DaemonManager.Check = function(daemon)
+  if typeof(@daemon) != "string" then return
+  if not self.__initialized then return 0
+  content = self.__file.get_content
+  if not content then return 0
+  lines = content.split(char(10))
+  for line in lines
+    parts = @line.split(" ")
+    if parts[0] == daemon then return 1
+  end for
+  return 0
+end function
+
+DaemonManager.Init = function
+  file = self.__comp.File(self.__filePath)
+  if not file then
+    self.__comp.touch(current_path, "5hell.d")
+    file = self.__comp.File(self.__filePath)
+    if not file then
+      print("Error: could not create 5hell.d." )
+      return
+    end if
+  end if
+  self.__file = file
+  self.__initialized = 1
+end function
+
+DaemonManager.Start = function(type, note = "")
+  if not self.__type.hasIndex(@type) then
+    print("Error: invalid type: " + @type)
+    return
+  end if
+  if not self.__initialized then self.Init
+  if typeof(@note) != "string" then note = ""
+  if note.len > 0 then note = " "+note
+  next = "0" + self.__getNext(type)
+  daemon = self.__type[type]+"_"+next[-2:]
+  content = self.__file.get_content
+  if content.len > 0 then lines = content.split(char(10)) else lines = []
+  lines.push(daemon+note)
+  lines.sort
+  result = self.__file.set_content(lines.join(char(10)))
+  if result == 1 then return daemon
+  if result == 0 then
+    print("Error: could not write to 5hell.d.")
+  else if typeof(result) == "string" then
+    print("Error: " + result)
+  end if
+  self.__initialized = 0
+end function
+
+DaemonManager.Stop = function(daemon)
+  if typeof(@daemon) != "string" then return
+  if not self.__initialized then self.Init
+  lines = self.__file.get_content.split(char(10))
+  for idx in range(0,lines.len - 1)
+    line = lines[idx]
+    parts = @line.split(" ")
+    if parts[0] == daemon then
+      print("Removing: " + @line)
+      lines.remove(idx)
+      break
+    end if
+  end for
+  result = self.__file.set_content(lines.join(char(10)))
+  if result == 1 then return 1
+  if result == 0 then
+    print("Error: could not write to 5hell.d.")
+  else if typeof(result) == "string" then
+    print("Error: " + result)
+  end if
+  return 0
+end function
