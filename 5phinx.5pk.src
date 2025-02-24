@@ -3794,15 +3794,19 @@ DaemonManager.Stop = function(daemon)
   if typeof(@daemon) != "string" then return
   if not self.__initialized then self.Init
   content = self.__file.get_content
-  if content == "" then del(self.__file)
+  if content == "" then
+    if del(self.__file) then return 1
+  end if
   lines = content.split(char(10))
   for idx in range(0,lines.len - 1)
     line = lines[idx]
     parts = @line.split(" ")
     if parts[0] == daemon then
-      print("Removing: " + parts[0])
+      print("stopping " + parts[0])
       lines.remove(idx)
-      if lines.len == 0 then del(self.__file)
+      if lines.len == 0 then
+        if del(self.__file) then return 1
+      end if
       break
     end if
   end for

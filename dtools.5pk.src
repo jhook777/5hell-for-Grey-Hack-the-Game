@@ -2859,9 +2859,10 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		if not swap_file then return "404: "+swap_path+" not found."
 		last_read = "" //swap_file.get_content
 		running = true
-		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
 		manager = new DaemonManager
 		daemon = manager.Start("hashim")
+		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
+		print(colorWhite+"Daemon: "+daemon+CT)
 		while (daemon and manager.Check(daemon)) or not manager.__initialized
 			found = false
 			hash = ""

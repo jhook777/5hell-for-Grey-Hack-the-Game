@@ -194,7 +194,7 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	    //skip
 	  else
 	    last_read = out_space.get_content
-		print(colorWhite + "daemon: " + daemon + CT)
+		print(colorWhite+"daemon: "+daemon+CT)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
 	    print(last_read)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
@@ -2468,9 +2468,8 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 				if typeof(result) == "string" and result.len > 0 then return "Error deleting rshell.d: " + result
 				return "daemons stopped successfully."
 			else if typeof(confirm) == "string" and confirm.lower != "n" then
-				print "stopping " + confirm + "..."
 				result = manager.Stop(confirm)
-				if result then return confirm + " stopped successfully."
+				if result then return ""
 				return "failed to stop " + confirm
 			else if typeof(confirm) == "string" and confirm.lower == "n" then
 				return "aborting..."
