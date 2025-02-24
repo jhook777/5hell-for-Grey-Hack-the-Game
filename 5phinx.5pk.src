@@ -3746,7 +3746,7 @@ end function
 DaemonManager.Init = function
   file = self.__comp.File(self.__filePath)
   if not file then
-    self.__comp.touch(current_path, "5hell.d")
+    self.__comp.touch("/root", "5hell.d")
     file = self.__comp.File(self.__filePath)
     if not file then
       print("Error: could not create 5hell.d." )
@@ -3782,8 +3782,8 @@ DaemonManager.Start = function(type, note = "")
 end function
 
 DaemonManager.Stop = function(daemon)
-  del = function
-    result = self.__file.delete
+  del = function(file)
+    result = file.delete
     if result == "" then
       return 1
     else
@@ -3794,7 +3794,7 @@ DaemonManager.Stop = function(daemon)
   if typeof(@daemon) != "string" then return
   if not self.__initialized then self.Init
   content = self.__file.get_content
-  if content == "" then del
+  if content == "" then del(self.__file)
   lines = content.split(char(10))
   for idx in range(0,lines.len - 1)
     line = lines[idx]
@@ -3802,7 +3802,7 @@ DaemonManager.Stop = function(daemon)
     if parts[0] == daemon then
       print("Removing: " + parts[0])
       lines.remove(idx)
-      if lines.len == 0 then del
+      if lines.len == 0 then del(self.__file)
       break
     end if
   end for

@@ -2461,13 +2461,15 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if manager.__initialized and manager.__file then
 			if not confirm then confirm = user_input("Stop daemons: are you sure? [y/N]||: ",0,1)
 			if typeof(confirm) == "string" and confirm.lower == "y" then
-				print "Stopping daemons..."
+				print "stopping daemons..."
 				result = manager.__file.delete
 				if typeof(result) == "string" and result.len > 0 then return "Error deleting rshell.d: " + result
+				return "daemons stopped successfully."
 			else if typeof(confirm) == "string" and confirm.lower != "n" then
-				print "Stopping " + confirm + "..."
+				print "stopping " + confirm + "..."
 				result = manager.Stop(confirm)
-				if result then return confirm + " stopped successfully." else return "failed to stop " + confirm
+				if result then return confirm + " stopped successfully."
+				return "failed to stop " + confirm
 			else if typeof(confirm) == "string" and confirm.lower == "n" then
 				return "aborting..."
 			else
