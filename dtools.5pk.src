@@ -2860,7 +2860,9 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		last_read = "" //swap_file.get_content
 		running = true
 		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
-		while running
+		manager = new DaemonManager
+		daemon = manager.Start("hashim")
+		while (daemon and manager.Check(daemon)) or not manager.__initialized
 			found = false
 			hash = ""
 			user = ""
@@ -2932,6 +2934,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 				wait(1)
 				if daemon then
 					print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
+					print(colorWhite+"Daemon: " + daemon + CT)
 				else
 					return 0
 				end if
