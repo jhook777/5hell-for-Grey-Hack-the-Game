@@ -3701,7 +3701,7 @@ end function
 DaemonManager = {
   "__comp": globals.localmachine,
   "__file": null,
-  "__filePath": current_path + "/5hell.d",
+  "__filePath": "/root/5hell.d",
   "__initialized": 0,
   "__type": {
     "hashim": "hashim",
