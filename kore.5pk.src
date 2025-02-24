@@ -187,12 +187,15 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	interval = arg2 // refresh interval, may be float in range .1, 300
 	if interval and typeof(interval) == "string" then interval = interval.val
 	if typeof(interval) != "number" or interval < .1 or interval > 300 then interval = 2
-	running = true
+	manager = new DaemonManager
+	daemon = manager.Start("outmon", out_space.path)
+	running = (daemon and manager.Check(daemon)) or not manager.__initialized
 	while running
 	  if last_read == out_space.get_content then
 	    //skip
 	  else
 	    last_read = out_space.get_content
+		print(colorWhite + "daemon: " + CT)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
 	    print(last_read)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
