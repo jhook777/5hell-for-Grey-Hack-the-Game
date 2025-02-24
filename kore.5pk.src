@@ -194,7 +194,7 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	    //skip
 	  else
 	    last_read = out_space.get_content
-		print(colorWhite + "daemon: " + CT)
+		print(colorWhite + "daemon: " + daemon + CT)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
 	    print(last_read)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
