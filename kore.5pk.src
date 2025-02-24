@@ -189,8 +189,7 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	if typeof(interval) != "number" or interval < .1 or interval > 300 then interval = 2
 	manager = new DaemonManager
 	daemon = manager.Start("outmon", out_space.path)
-	running = (daemon and manager.Check(daemon)) or not manager.__initialized
-	while running
+	while (daemon and manager.Check(daemon)) or not manager.__initialized
 	  if last_read == out_space.get_content then
 	    //skip
 	  else
