@@ -179,7 +179,7 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.transmit(arg1)
 end function
 command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor an output file"+char(10)+"Usage: outmon [path] [opt:interval]"+char(10)+"path -- path to file. default /virt/out.spc"+char(10)+"interval -- refresh rate. default 2 seconds, range(.1, 300)"+char(10)+"-- prints changes to a text file every [interval] seconds"
+	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor an output file. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+"Usage: outmon [path] [opt:interval]"+char(10)+"path -- path to file. default /virt/out.spc"+char(10)+"interval -- refresh rate. default 2 seconds, range(.1, 300)"+char(10)+"-- prints changes to a text file every [interval] seconds"
 	out_space = localmachine.File("/virt/out.spc")
 	if arg1 then out_space = globals.get_file(arg1)
 	if not out_space then return "outmon: "+ arg1 + ": file not found."

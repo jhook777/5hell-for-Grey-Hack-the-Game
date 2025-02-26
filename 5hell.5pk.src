@@ -2778,7 +2778,7 @@ command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
 	if @arg1 != 0 then
 		if ["string","number","shell","computer"].indexOf(typeof(@arg1)) == null then return "Invalid argument: "+typeof(@arg1)+": "+@arg1
 		top_usage = "htop || actually htop"+char(10)+
-		"<b>Usage: htop -- show processes running on the active host_computer."+char(10)+
+		"<b>Usage: htop -- show processes running on the active host_computer. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+
 		"-- when glasspool is active:"+char(10)+
 		"-- the active shell/computer is the active host_computer"+char(10)+
 		"--eg: htop"+char(10)+
