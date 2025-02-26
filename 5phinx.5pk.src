@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.7.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.7.9"
-malp_version = "1.4.3"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.6...(154.977kb)</size>")
+sphinx_version = "2.8.0"
+malp_version = "1.4.4"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.7...(158.401kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
