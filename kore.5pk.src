@@ -179,7 +179,7 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.transmit(arg1)
 end function
 command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor an output file"+char(10)+"Usage: outmon [path] [opt:interval]"+char(10)+"path -- path to file. default /virt/out.spc"+char(10)+"interval -- refresh rate. default 2 seconds, range(.1, 300)"+char(10)+"-- prints changes to a text file every [interval] seconds"
+	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor an output file. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+"Usage: outmon [path] [opt:interval]"+char(10)+"path -- path to file. default /virt/out.spc"+char(10)+"interval -- refresh rate. default 2 seconds, range(.1, 300)"+char(10)+"-- prints changes to a text file every [interval] seconds"
 	out_space = localmachine.File("/virt/out.spc")
 	if arg1 then out_space = globals.get_file(arg1)
 	if not out_space then return "outmon: "+ arg1 + ": file not found."
@@ -187,12 +187,14 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	interval = arg2 // refresh interval, may be float in range .1, 300
 	if interval and typeof(interval) == "string" then interval = interval.val
 	if typeof(interval) != "number" or interval < .1 or interval > 300 then interval = 2
-	running = true
-	while running
+	manager = new DaemonManager
+	daemon = manager.Start("outmon", out_space.path)
+	while (daemon and manager.Check(daemon)) or not manager.__initialized
 	  if last_read == out_space.get_content then
 	    //skip
 	  else
 	    last_read = out_space.get_content
+		print(colorWhite+"daemon: "+daemon+CT)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
 	    print(last_read)
 	    print(colorGreen+"///////////////////////////////////////"+CT)
@@ -2369,7 +2371,7 @@ command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+"Usage: purge [-o] -- purge custom object"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #" 
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+"Usage: purge [-o] -- purge custom object"+char(10)+"Usage: purge [-m] -- purge monitors (daemons)"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #"+char(10)+"Advanced: purge -m [daemon_name] -- remove monitor process with the specified identifier" 
 	confirm = arg2
 	if arg1 == "-b" then
 		if confirm == "0" then return "purge: cannot purge the launch shell."
@@ -2455,7 +2457,30 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		end for
 		return "custom object purged..."
 	end if
-	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r"
+	if arg1 == "-m" then
+		manager = new DaemonManager
+		manager.Init
+		if manager.__initialized and manager.__file then
+			if not confirm then confirm = user_input("Stop daemons: are you sure? [y/N]||: ",0,1)
+			if typeof(confirm) == "string" and confirm.lower == "y" then
+				print "stopping daemons..."
+				result = manager.__file.delete
+				if typeof(result) == "string" and result.len > 0 then return "Error deleting rshell.d: " + result
+				return "daemons stopped successfully."
+			else if typeof(confirm) == "string" and confirm.lower != "n" then
+				result = manager.Stop(confirm)
+				if result then return ""
+				return "failed to stop " + confirm
+			else if typeof(confirm) == "string" and confirm.lower == "n" then
+				return "aborting..."
+			else
+				return "invalid entry: " + @confirm
+			end if
+		else
+			return "Error starting daemon manager"
+		end if
+	end if
+	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r OR -m"
 end function
 // cobble, get_custom_object interface by Plu70
 if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")

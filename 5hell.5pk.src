@@ -2767,10 +2767,18 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 end function
 // htop by redit0
 command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
+	colorize = function(num, v, perc = 0)
+		p = ""
+		if perc then p = "%"
+		if num > 94 then return "<color=#c30000><b>" + v + p + "</b></color>"
+        if num > 89 then return "<color=#ffa500><b>" + v + p + "</b></color>"
+        if num > 79 then return "<color=#dbd700><b>" + v + p + "</b></color>"
+		return "<color=#85b8ff><b>" + v + p + "</b></color>"
+	end function
 	if @arg1 != 0 then
 		if ["string","number","shell","computer"].indexOf(typeof(@arg1)) == null then return "Invalid argument: "+typeof(@arg1)+": "+@arg1
 		top_usage = "htop || actually htop"+char(10)+
-		"<b>Usage: htop -- show processes running on the active host_computer."+char(10)+
+		"<b>Usage: htop -- show processes running on the active host_computer. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+
 		"-- when glasspool is active:"+char(10)+
 		"-- the active shell/computer is the active host_computer"+char(10)+
 		"--eg: htop"+char(10)+
@@ -2801,8 +2809,10 @@ command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
 	else
 		locals.top_comp = globals.localmachine
 	end if
-	while true
-		hostname = locals.top_comp.get_name
+	hostname = locals.top_comp.get_name
+	manager = new DaemonManager
+	daemon = manager.Start("htop", hostname + " - " + locals.top_comp.public_ip + "::" + locals.top_comp.local_ip)
+	while (daemon and manager.Check(daemon)) or not manager.__initialized
         lines = locals.top_comp.show_procs.split("\n")[1:]
         procs = []
         users = []
@@ -2820,65 +2830,31 @@ command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
             memory = memory+proc.memory
             cpu = cpu+proc.cpu
         end for
-        if cpu > 95 then
-            cpu_color = "#c30000"
-        else if cpu > 90 then
-            cpu_color = "#ffa500"
-        else if cpu > 80 then
-            cpu_color = "#dbd700"
-        else
-            cpu_color = "#85b8ff"
-        end if
         cpu_squares = ceil(20*(cpu/100))
         cpu_blanks = 20-cpu_squares
-        cpu_bar = "<color="+cpu_color+">"+ "#"*cpu_squares + "</color><color=#ffffff00>" + "#"*cpu_blanks + "</color>"
-        if memory > 94 then
-            memory_color = "#c30000"
-        else if memory > 89 then
-            memory_color = "#ffa500"
-        else if memory > 79 then
-            memory_color = "#dbd700"
-        else
-            memory_color = "#85b8ff"
-        end if
+        cpu_bar = colorize(cpu,"#"*cpu_squares) + "<color=#ffffff00>" + "#"*cpu_blanks + "</color>"
         memory_squares = ceil(20*(memory/100))
         memory_blanks = 20-memory_squares
-        memory_bar = "<color=" + memory_color + ">" + "#"*memory_squares + "</color><color=#ffffff00>" + "#"*memory_blanks + "</color>"
-        output = "<color=#77aa33><b><size=120%>Monitoring: " + hostname + " [" + locals.top_comp.public_ip + "] [" + locals.top_comp.local_ip + "]</size></b></color>" + char(10)*2
-        output = output + "Running Processes: " + procs.len + char(10)
-        output = output + "Users Online: " + users.len + char(10)
-        output = output + "CPU Utilization: [" + cpu_bar + "]==[ <color=" + cpu_color + ">" + cpu + "%</color> ]" + char(10)
-        output = output + "RAM Utilization: [" + memory_bar + "]==[ <color=" + memory_color + ">" + memory + "%</color> ]" + char(10)*2
+        memory_bar = colorize(memory,"#"*memory_squares) + "<color=#ffffff00>" + "#"*memory_blanks + "</color>"
+        output = "<color=#eeeeee><b><size=110%>Monitoring: "+hostname+"</size><size=90%>"+char(10)+
+		"[" + locals.top_comp.public_ip + "] [" + locals.top_comp.local_ip + "]"+char(10)+
+		"Daemon: "+daemon+"</size></b></color>" + char(10)*2 +
+        "Running Processes: " + procs.len + char(10) +
+        "Users Online: " + users.len + char(10) +
+        "CPU Utilization: [" + cpu_bar + "]==[ "+colorize(cpu,cpu,1)+" ]" + char(10) +
+        "RAM Utilization: [" + memory_bar + "]==[ "+colorize(memory,memory,1)+" ]" + char(10)*2
         if admin then output = output + "<size=140%><mark=c3000099>" + " "*12 + "<b>ADMIN ONLINE</b>" + " "*12 + "</mark></size><color=#ffffff00>|</color>" + char(10)*2
         procList = "<color=#666666><b><voffset=0.5em>USER<pos=130>PID<pos=210>CPU<pos=290>RAM<pos=370>COMMAND</voffset></b></color>" + char(10)
         for proc in procs
             if proc.user == "root" then
-                procList = procList + "<color=#c30000><b>root</b></color>"
+                procList = procList+colorize(99,"root")
             else if proc.user == "guest" then
-                procList = procList + "<color=#666666><b>guest</b></color>"
+                procList = procList+"<color=#666666><b>guest</b></color>"
             else
-                procList = procList + "<color=#85b8ff><b>"+proc.user+"</b></color>"
+                procList = procList+colorize(1,proc.user)
             end if
-            procList = procList + "<pos=130><color=#77aa33><b>" + proc.pid + "</b></color><pos=210>"
-            if proc.cpu > 95 then
-                procList = procList + "<color=#c30000><b>" + proc.cpu + "%</b></color>"
-            else if proc.cpu > 90 then
-                procList = procList + "<color=#ffa500><b>" + proc.cpu + "%</b></color>"
-            else if proc.cpu > 80 then
-                procList = procList + "<color=#dbd700><b>" + proc.cpu + "%</b></color>"
-            else
-                procList = procList + "<color=#85b8ff><b>" + proc.cpu + "%</b></color>"
-            end if
-            procList = procList + "<pos=290>"
-            if proc.memory > 94 then
-                procList = procList + "<color=#c30000><b>" + proc.memory + "%</b></color>"
-            else if proc.memory > 89 then
-                procList = procList + "<color=#ffa500><b>" + proc.memory + "%</b></color>"
-            else if proc.memory > 79 then
-                procList = procList + "<color=#dbd700><b>" + proc.memory + "%</b></color>"
-            else
-                procList = procList + "<color=#85b8ff><b>" + proc.memory + "%</b></color>"
-            end if
+            procList = procList + "<pos=130><color=#77aa33><b>" + proc.pid + "</b></color><pos=210>"+colorize(proc.cpu,proc.cpu,1)
+            procList = procList + "<pos=290>"+colorize(proc.memory,proc.memory,1)
             procList = procList + "<pos=370><color=#00709d><b>" + proc.command + "</b></color>" + char(10)
         end for
         output = output + procList

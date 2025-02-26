@@ -2833,7 +2833,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		if arg2 and arg2 == "extra" then
 			return "Files required: /root/tables/t5/XX (XX is all files from<b> pwgen hash </b>, ascii), 5hell (bin)."+char(10)+"Files created: /root/dump.txt (ascii) -- the output file with cracked passwords"+char(10)+"Input format: "+char(10)+"   user:hash "+char(10)+"Once per line in /root/pass or specified path (see also <b>transmit</b>). "+char(10)+"May be of type bank, mail, passwd."
 		else
-			return "hashim: hash daemon"+char(10)+"Usage: hashim [-d|-f] [path] -- listen on [path] and decipher contents using tables/t5"+char(10)+"-- default path is /root/pass"+char(10)+"-- -f == run once on specified path"+char(10)+"-- -d == run as daemon on specified path"+char(10)+"N.B. Please run <b> pwgen hash </b> to setup resources for hashim."+char(10)+"n.b.b This command requires root access and it is recommended to use, along with pwgen, on a dedicated server due to the number of files involved. ie try not to spam hashim servers. a single one works wonders."+char(10)+"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
+			return "hashim: hash daemon. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+"Usage: hashim [-d|-f] [path] -- listen on [path] and decipher contents using tables/t5"+char(10)+"-- default path is /root/pass"+char(10)+"-- -f == run once on specified path"+char(10)+"-- -d == run as daemon on specified path"+char(10)+"N.B. Please run <b> pwgen hash </b> to setup resources for hashim."+char(10)+"n.b.b This command requires root access and it is recommended to use, along with pwgen, on a dedicated server due to the number of files involved. ie try not to spam hashim servers. a single one works wonders."+char(10)+"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
 		end if
 	end if
 	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [path] -- -f == run once on specified path, -d == run in daemon mode on specified path. Default path: /root/pass."
@@ -2859,8 +2859,11 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		if not swap_file then return "404: "+swap_path+" not found."
 		last_read = "" //swap_file.get_content
 		running = true
+		manager = new DaemonManager
+		daemon = manager.Start("hashim")
 		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
-		while running
+		print(colorWhite+"Daemon: "+daemon+CT)
+		while (daemon and manager.Check(daemon)) or not manager.__initialized
 			found = false
 			hash = ""
 			user = ""
@@ -2932,6 +2935,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 				wait(1)
 				if daemon then
 					print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
+					print(colorWhite+"Daemon: " + daemon + CT)
 				else
 					return 0
 				end if
