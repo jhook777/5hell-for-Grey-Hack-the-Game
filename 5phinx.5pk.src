@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.7.9 by Plu70
+// Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.8.0"
+sphinx_version = "2.8.1"
 malp_version = "1.4.4"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.7...(158.401kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.7...(158.480kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -3707,9 +3707,7 @@ DaemonManager = {
     "hashim": "hashim",
     "htop": "htop",
     "outmon": "outmon",
-    "rsi": "rsi"
-  }
-}
+    "rsi": "rsi"}}// greyscript doesn't like these closing braces on their own line for whatever reason
 
 DaemonManager.__getNext = function(type)
   if not self.__initialized then return null
