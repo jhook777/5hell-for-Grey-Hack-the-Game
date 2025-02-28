@@ -1,11 +1,11 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.7...(158.836)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.8...(159.703)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
-    kore_usage_info = "<u>"+colorGold+"KORE 3.0 || AUTOMATION || HELPER || GODDESS of the DEAD and GRAIN"+char(10)+char(10)+
+    kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
     "Usage: <b>kore [-r|--rkit]</b> -- automatic rkit generation"+char(10)+
-	"-- creates rkit folder if it doesn't exist"+char(10)+
-    "-- copies metaxploit.so, crypto.so, and 5hell to home_dir/rkit"+char(10)+
-	"-- creates database.csv within rkit if it doesn't exist "+char(10)+
+	"-- create rkit folder if it doesn't exist"+char(10)+
+    "-- copy metaxploit.so, crypto.so, and 5hell to home_dir/rkit"+char(10)+
+	"-- create database.csv within rkit if it doesn't exist "+char(10)+
     "Usage: <b>kore [-s|--secure]</b> -- automatic secure system:"+char(10)+
     "-- runs:<u> usr -r root / | grp -r root / | rm /etc/passwd"+char(10)+
     "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | lock"+char(10)+
@@ -13,7 +13,8 @@ command.kore = function(arg1,arg2,arg3,arg4)
 	"-- please rename these files if you wish to keep them"+char(10)+char(10)+
     "Usage: <b>kore [--hdd]</b> -- prompts for hdd size in bytes"+char(10)+
     "-- writes size to /virt/hdd.io"+char(10)+
-    "-- bios uses this to report remaining hdd space"
+    "-- bios uses this to report remaining hdd space"+char(10)+char(10)+
+	"NOTE: kore once had more functionality and will once again soon"
     if arg1 == "help" or arg1 == "-h" then return kore_usage_info
     
     make_rkit = function()
@@ -215,8 +216,21 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 	"Usage: <b>gp</b> [option] -- abreviation for glasspool, for qol"+char(10)+
 	"N.B. -- glasspool is the glassp option in rsi and malp"+char(10)+
 	"N.B. -- commands that are local only will not translate through glasspool"+char(10)+
-	"N.B. -- the term 'glass puddle' refers to glasspool in computer object mode"
+	"N.B. -- the term 'glass puddle' refers to glasspool in computer object mode"+char(10)+
+	"Usage: glasspool [-d] [command_string] [index|object]"+char(10)+
+	"-- execute a command or string of commands upon initialization"+char(10)+
+	"--eg: gp -d "" echo cleaning up | rclean @B 1 | return "" @B 1 "+char(10)+
+	"Usage: glasspool [-d] [command_string] [-r|-m] [index]"+char(10)+ 
+	"-- execute commands on initialization with -r|-m options"+char(10)+
+	"--eg: gp -d "" do 1 -f this.bat "" -r 1"+char(10)+
+	"--eg: macro -s bob ""echo burger "" |  | gp -d bob -m"
+	gp_do = false // do we need to initiate a do script when we start galsspool?
 	obj = arg1 
+	if arg1 == "-d" then
+		if arg2 then gp_do = arg2 else return "glasspool: -d expects string"
+		obj = arg3
+		arg2 = arg4
+	end if
 	// handle switches
 	// -m display menu
 	if typeof(obj) == "string" and typeof(obj.to_int) == "number" then 
@@ -305,7 +319,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 					globals.currentPath = "/home/"+uu
 				end if
 			end if
-			command.shell
+			command.shell(gp_do)
 			// restore previous state
 			globals.shell = hold_shell
 			globals.localmachine = globals.shell.host_computer
@@ -1238,7 +1252,7 @@ if DEBUG then
 	if command.hasIndex("sphinx") then print "debug: sphinx loaded!"
 end if
 command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if arg1 and (arg1 == "-h" or (arg1 != "-d" and arg1 != "-n" and arg1 != "--n")) then
+	if arg1 == "-h" or arg1 == "help" then
 		return "<u>SILENTCLEAN || silentclean || log wipe || scrubber || corrupt logs"+char(10)+
 		"Usage: silentclean [opt:-d|-n|--n] -- corrupt the system.log"+char(10)+
 		"-- operates on active computer/shell object (ie it respects glasspool)"+char(10)+
@@ -1263,7 +1277,7 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		"N.B. silentclean [-n|--n] will remove the following:"+char(10)+
 		colorOrange+"</b>-- /lib, /boot, /sys, 5hell, rkit"
 	end if
-	if arg1 and typeof(arg1) != "string" then print colorOrange+"silentclean: unsupported type"+char(10)+"-- use rclean [opt:-d|-n] instead"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"
+	if arg1 and typeof(arg1) != "string" and arg1 != "-d" and arg1 != "-n" then print colorOrange+"silentclean: <b>ignoring</b> unsupported input"+char(10)+"-- instead: use rclean [opt:-d|-n] [piped_object]"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"+char(10)+"--eg: <b>gp -d "" sc -d """
 	if arg2 then print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
 	cleaner = command.tree("/","5hell","1","N")
 	if cleaner then 
