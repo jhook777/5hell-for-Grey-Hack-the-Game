@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "2.8.1"
 malp_version = "1.4.4"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.7...(158.480kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.8...(159.021kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -450,7 +450,7 @@ globals.p_exe = function( obj, f_name=null ) // obj is either game object or fun
     if DEBUG then print("typeof "+ar+": "+typeof(ar))
     if str(ar) == "self" then 
       if typeof(@obj) == "function" then 
-        self_param = user_input("Use @a|@b|@c to use an object from the clipboard. (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
+        self_param = user_input("Use @a|@b|@c to use an object from the clipboard, (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
         if typeof(self_param) == "string" then 
           print "error: expected object, got string"
           return 0
@@ -461,13 +461,25 @@ globals.p_exe = function( obj, f_name=null ) // obj is either game object or fun
       a.push(obj)
       continue 
     end if
-    inp = user_input("(Use @a|@b|@c for clipboard, ints are cast as ints, <b>enter</b>="""", q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
+    def = ar.split("=")
+    def_act=""""
+    if def.len > 1 then def = def[0] else def = 0
+    if def then 
+      print "<b>code: the following argument may not be omitted</b>"
+      def_act = "quit"
+    end if
+    inp = user_input("(Use @a|@b|@c for the clipboard"+char(10)+"-- ints are cast as ints, use 'int' to cast as string"+char(10)+"<b>enter="+def_act+"</b>, null=null,  q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
     if inp == "q" then return "aborting..."
-    //if inp == "" or inp == " " then return "aborting..."
+    if inp == "" or inp == " " then
+      if def then inp = def else return "code: invalid input: this argument cannot be blank"
+    end if
+    if inp == "null" then inp = null
     if inp == "@a" or inp == "@clipa" then inp = @globals.clip_board_alpha
     if inp == "@b" or inp == "@clipb" then inp = @globals.clip_board_beta
     if inp == "@c" or inp == "@clipc" then inp = @globals.clip_board_gamma
+    tint = inp.remove("'")
     if typeof(inp) == "string" and typeof(inp.to_int) == "number" then inp = inp.to_int // assume integers are to be cast as integers
+    if typeof(tint).to_int == "number" then inp = tint // if it's wrapped in ' then it's a string
     if DEBUG then print "debug: p_exe_: input is "+@inp+" and is a "+typeof(@inp)
     a.push(@inp)
     i = i + 1
