@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.8...(159.703)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 3.9.9.9.9...(159.659)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -489,10 +489,11 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if st == "0" or st.lower == "q" then return 0
 	if st.lower == "k" then print(ts.host_computer.close_program(user_input("kill pid:> ").to_int ) )
 	if st == "1" then
-		command.glasspool(ts)
+		return command.glasspool(ts)
 	end if
 	if st == "2" then 
-		ts.start_terminal
+		get_custom_object.return_value = "#!#CASCADE#!#"
+		exit ts.start_terminal
 		exit colorWhite+"Starting terminal..."
 	end if
 	if st == "3" then
@@ -501,19 +502,20 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 			print(colorWhite+globals.shell.host_computer.local_ip+"@"+globals.shell.host_computer.public_ip+CT)
 			print("Upload from / Download to the linked filesystem:")
 		end if
-		globals.secure_copy(ts)
+		return globals.secure_copy(ts)
 	end if
 	if st == "4" then
 		BUFFER.push(ts)
-		print("Shell sent to BUFFER.")
+		return "Shell sent to "+colorOrange+"BUFFER"
 	end if
-	if st == "5" then globals.rclean(ts)
+	if st == "5" then return globals.rclean(ts)
 	if st == "6" then
 		cpath = user_input("command_path:> ",0,0)
 		if cpath == "" then return "rsi: aborting..."
 		para = user_input("params:> ",0,0)
 		globals.stack_pool("up")
 		print(ts.launch( cpath,para ))
+		_cascade // exit if cascade
 		globals.stack_pool("down")
 	end if
 	if st == "7" then  
@@ -1268,7 +1270,8 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		"N.B. run sc as root since /var is usually write protected."+char(10)+char(10)+
 		"<b>Important: silentclean does not support piped objects"+char(10)+
 		"-- use rclean [-d|-n] [piped object] instead"+char(10)+
-		"-- or open the object with "+colorLightBlue+"</b>glasspool"+CT+" and run sc [-d|-n]"+char(10)+char(10)+
+		"-- or open the object with "+colorLightBlue+"</b>glasspool"+CT+" and run sc [-d|-n]"+char(10)+
+		"-- or be fancy and use: <b>gp -d sc @B [#] </b>"+char(10)+
 		"NOTE: if silentclean detects "+colorLightBlue+"Xorg "+CT+"as a running process on the machine:"+char(10)+
 		"-- it will determine you are on a home pc and require an override to execute"+char(10)+
 		"-- this is to help prevent accidentally nuking yourself"+char(10)+
@@ -1587,6 +1590,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 			if pwf then pwf.delete
 			if arg2 == "-s" or arg3 == "-s" then
 				catch = BUFFER[o].launch("/root/rkit/silentclean")
+				_cascade // exit if cascade
 				if catch then
 					print(catch)
 				else
@@ -1604,7 +1608,10 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end for
 	print(colorCyan+"Kraken: task complete in </b>"+colorOrange+(time - time_s)+colorCyan+"<b> seconds."+CT)
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
-	if connect then exit remote.start_terminal
+	if connect then 
+		get_custom_object.return_value = "#!#CASCADE#!#"
+		exit remote.start_terminal
+	end if
 	return 0
 end function
 
@@ -1717,15 +1724,13 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if DEBUG then print "debug: buf: "+char(10)+buf
 	return format_columns(buf.join(char(10)))
 end function
-command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABASER/////////////////
-	
+//////////////////BEGIN DATABASER/////////////////
+command.db = function(arg1, arg2, arg3=0, arg4=0)
     if not globals.metaxploit then return colorRed+"</b>db: error: metaxploit is not loaded"
-	
     remote = false
     pre_load = false
     inject = null
     lib_path = ""
-
 	db_usage = "<b><u>DB || dbaser || Databaser</u>"+char(10)+
 	colorLightBlue+"</b>Automated remote port and local lib scanning and databasing."+char(10)+
 	colorLightBlue+"</b>Results are sent to the BUFFER."+char(10)+
@@ -1764,13 +1769,11 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	"Note: Use <b>meta link</b> and <b>meta scan</b> to scan without databasing"+char(10)+
 	"Note: It is not possible exploit/database libs that are not in the /lib folder"+char(10)+
 	"Note: the default 'inject' is '192.168.0.2' to avoid unintentional password changes"
-
 	if arg1 == "-h" or arg1 == "help" then return(db_usage)
 	if typeof(arg1) != "string" or ["-m","-r","-l"].indexOf(arg1) == null then return "db: invalid flag: expects -m|-r|-l"
 	if DEBUG then print("In command.db...")
 	inject = null
 	if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4)
-
     // params: -m -metaLib (scan linked metaLib or piped metaLib)
 	if arg1.lower == "-m" then 
 		pre_load = true
@@ -1789,7 +1792,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"<size=75%></b>db: custom scan ready"
 	end if
 	if not globals.metaxploit then return "metaxploit.so not found"
-
     // params: -r|-R -remote (scan remote target)
 	if arg1.lower == "-r" then
 		remote = true
@@ -1845,7 +1847,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
             globals.targetPort = "router"
         end if
 	end if
-
 	// params: -l|-L -local_libs (/lib) (scan local lib)
 	if arg1 == "-l" or arg1 == "-L" then
 		remote = false
@@ -1867,15 +1868,12 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			if DEBUG then print("lib_path "+lib_path)
 		end if
 	end if
-
 	// arg: -f|-F -path_to_file (add file or folder to db)
 	if arg1.lower == "-f" then
 		return "depricated function"
 	end if
-
 	// params: -i -inject (inject value)
     if arg2 == "-i" or arg3 == "-i" or arg4 == "-i" then inject = user_input("enter a lan ip or password for injects:> ")
-
 	command.purge("-d", "y")
 	DATA = []
 	lib_info = function()
@@ -2042,7 +2040,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 	else
 		print "db: rkit not detected."
 		if datafile then 
-			//if datafile.has_permission("w") then print "db: writing to: "+datafile.path else return "db: write error: permission denied."
 			print "db: found "+datafile.path
 		else
 			print "db: creating database.csv in current path..."
@@ -2051,16 +2048,13 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 			if not datafile then return "db: write error: permission denied."
 		end if	
 	end if
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//////////////////////////////////////
 	if not datafile then return("db: database.csv not found")
 	if datafile.has_permission("w") then print "db: writing database to: "+datafile.path else return "db: write error: permission denied."
 	current_data = "test"
 	if DEBUG then print command.file(datafile.path)
 	if datafile.has_permission("r") then current_data = datafile.get_content.trim.split(char(10)) else return "db: read error: permission denied."
 	if DEBUG then print "debug: database before splice: "+current_data.join(char(10)).len
-
 	//prepare the output
 	while current_data.indexOf(lib_info) >= 0
 		buf_top = current_data[:current_data.indexOf(lib_info)]
@@ -2089,13 +2083,11 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)//////////////////BEGIN DATABAS
 		if DEBUG then print "debug: database size is: "+current_data.join(char(10)).len + DATA.join(char(10)).len
 	end while
 	catch = datafile.set_content(current_data.join(char(10)).trim+char(10)+DATA.join(char(10)).trim)
-	//catch = datafile.set_content(current_data.trim+char(10)+DATA.join(char(10)).trim)
 	if DEBUG then print command.file(datafile.path)
 	if DEBUG then print datafile.get_content
 	if catch then return(catch)
 	return 0
 end function///////////////END DATABASER//////////////////
-
 command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Link Database"+char(10)+
 	"Uasage: linkdb [target_lib] [optional:path_to_database] "+char(10)+
@@ -2385,7 +2377,7 @@ command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp bufer"+char(10)+"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+"Usage: purge [-o] -- purge custom object"+char(10)+"Usage: purge [-m] -- purge monitors (daemons)"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #"+char(10)+"Advanced: purge -m [daemon_name] -- remove monitor process with the specified identifier" 
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp buffer"+char(10)+"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+"Usage: purge [-o] -- purge custom object"+char(10)+"Usage: purge [-m] -- purge monitors (daemons)"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #"+char(10)+"Advanced: purge -m [daemon_name] -- remove monitor process with the specified identifier" 
 	confirm = arg2
 	if arg1 == "-b" then
 		if confirm == "0" then return "purge: cannot purge the launch shell."
@@ -2879,6 +2871,7 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	print colorGold+"</b>-- launching payload..."
 	globals.stack_pool("up")
 	arg1.launch("/home/guest/.")
+	_cascade // exit if cascade
 	globals.stack_pool("down")
 	print colorGold+"</b>-- spotting source files..."
 	imp.set_content("")
