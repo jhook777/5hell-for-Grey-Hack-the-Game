@@ -26,6 +26,7 @@
 // todo: kraken
 // todo: probe
 //
+// 5hell.src: added more info to display when typing 'shell'
 // db: added a warning about mismatched files when loading a local lib with a remote metaxploit object
 // -- this is until i can figure out a smarter way to handle that case
 // 5phinx.5pk: added _cascade function which will cascade exit if start_terminal is called
