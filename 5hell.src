@@ -236,17 +236,27 @@ command.shell = function(input=null,mute=null)
           continue
         end if
         if prompt[1] == "--home" then 
-            if typeof(prompt[2]) == "string" and is_valid_ip(prompt[2]) then globals.HOME_SERVER[0] = prompt[2] else print globals.HOME_SERVER[0]
+          if typeof(prompt[2]) == "string" and is_valid_ip(prompt[2]) then 
+            print("shell: updating @home to: "+prompt[2])
+            globals.HOME_SERVER[0] = prompt[2] 
+          else 
+            print globals.HOME_SERVER[0]
+          end if
           continue 
         end if
         print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
-        print("["+colorCyan+command.indexes.len+CT+"] commands and")
-        print("["+colorGold+globals.dict_a.len+CT+"] passwords loaded.")
+        print(colorOlive+"[HOME_SERVER: "+colorWhite+globals.HOME_SERVER[0]+CT+"] ")
+        print(colorOlive+"[COMMANDS   : "+colorCyan+command.indexes.len+CT+"] ")
+        print(colorOlive+"[PASSWORDS  : "+colorGold+globals.dict_a.len+CT+"] ")
+        print(colorOlive+"[PUBLIC_IP  : "+colorWhite+shell.host_computer.public_ip+CT+"]")
+        print(colorOlive+"[LOCAL_IP   : "+colorWhite+shell.host_computer.local_ip+CT+"]")
+        print(colorOlive+"[STACK_POOL : "+colorRed+get_custom_object.stack_pool+CT+"]")
         state = "in"
         if globals.GLASSPOOL then state = ""
         gp = " " + state + "active "
-        print("["+colorLightBlue+"GLASSPOOL:"+CT+colorOrange+gp+CT+"]")
-        print("["+colorWhite+shell.host_computer.local_ip+CT+colorLightBlue+" <size=75%>@</size> "+CT+colorWhite+shell.host_computer.public_ip+CT+"]")
+        print(colorOlive+"["+colorLightBlue+"GLASSPOOL  "+CT+":"+colorOrange+gp+CT+"]")
+        print("<size=65%>--: use<b> shell --home [ip]</b> to change home_server")
+        print("<size=65%>--: use<b> shell --debug</b> to toggle debug mode")
         continue 
       end if
 
