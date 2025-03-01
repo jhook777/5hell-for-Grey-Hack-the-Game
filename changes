@@ -26,6 +26,15 @@
 // todo: kraken
 // todo: probe
 //
+// db: added a warning about mismatched files when loading a local lib with a remote metaxploit object
+// -- this is until i can figure out a smarter way to handle that case
+// 5phinx.5pk: added _cascade function which will cascade exit if start_terminal is called
+// -- this is to solve the need to manually exit 5hell if using psudo in a nested launch
+// removed NIGHTLY global references
+// removed more commented code
+// adjusted usage info of diff and zc
+// usr: added missing -a/-d flags for add and delete
+//
 // silentclean: will no longer spam usage info on bad input
 // --: remember that now you can: gp -d " sc | return " @B [index]
 // --: or lazy bones it with: gp -d sc -m
