@@ -26,6 +26,26 @@
 // todo: kraken
 // todo: probe
 //
+// silentclean: will no longer spam usage info on bad input
+// --: remember that now you can: gp -d " sc | return " @B [index]
+// --: or lazy bones it with: gp -d sc -m
+// --: will print a warning and continue to scrub locally
+// glasspool: corrected typoe in help info: glaspool -> glasspool
+// glasspool: added ability to specify a command or macro when initializing glasspool
+// --eg: glasspool -d " echo bob " @B [index]
+// code: fixed hard crash when passing invalid (or no) input to functions in the generic object handler
+// -- will now warn the user if a function is required; ie no default
+// -- the function will now return if the argument is required 
+// -- arguments with defaults are parsed as the default if no input
+// -- ints wrapped in ' will be cast as strings; eg '1' == string, 1 == number
+// -- you may now type null to specify the null character in this context
+//
+// added daemon control!!
+// -- hashim, rsi, and outmon will now make use of a daemon control system
+// -- when running in daemon mode a file named 5hell.d will be created in /root
+// -- individual lines in this file can be removed to end a daemon without using ctrl+c
+// -- cool stuff! thanks redit0!
+//
 // updated credits
 // added greybel support
 //
