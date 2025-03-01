@@ -1,16 +1,13 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.9.8_nightly_terrors"
+ver = "3.9.9.9.9_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
 /////// set to true if playing nightly, false if playing public
-globals.NIGHTLY = false
-f = get_shell.host_computer.File("/")
-if f and f.__isa.hasIndex("symlink") then globals.NIGHTLY = true
 ////// end check for nightly
-size_of_5hell = "156.876"
+size_of_5hell = "156.927"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -458,6 +455,7 @@ command.psudo = function(operation, arg2, arg3, arg4)
         if user_input(colorGold+"</b>psudo: "+colorOrange+"warning; start_terminal ends the script!"+char(10)+
             colorGold+"psudo: "+colorOrange+"warning; start_terminal may result in an active trace"+char(10)+
             colorGold+"</b>Continue? ["+colorWhite+"y"+CT+colorGold+"</b>/"+CT+colorWhite+"N"+CT+colorGold+"</b>] ||: "+colorWhite,0,1).lower == "y" then
+				get_custom_object.return_value = "#!#CASCADE#!#"
                 exit locals.sh.start_terminal
                 exit "starting_terminal on target shell..."
                 return char(10)+
@@ -566,7 +564,7 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		is_bin = subFile.is_binary
 		if is_bin then line_color = colorCyan + "</b>"
 		if subFile.is_folder then line_color = colorLightBlue + "</b>"
-		if NIGHTLY == true and subFile.is_symlink then nameFile = colorGold+"</b>"+nameFile
+		if subFile.is_symlink then nameFile = colorGold+"</b>"+nameFile
 		if raw_output then line_color = ""
 		if showDetails then
 			output = output + char(10) + line_color + permission + " " + owner + " " + group + " "+ size + " bin["+is_bin+"] " + nameFile
@@ -773,7 +771,7 @@ command.usr = function(arg1, arg2, arg3=0, arg4=0)
 		" |><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
 		"-- or <b> kore -s</b> for optimal security"
 	is_recursive = false 
-	if arg1 == "add" then
+	if arg1 == "add" or arg1 == "-a" then
 		if not arg2 then arg2 = user_input("new_user:> ")
 		if not arg3 then arg3 = user_input(arg2+" password:> ")
 		if arg2 == "" then return "usr: aborting..."
@@ -781,7 +779,7 @@ command.usr = function(arg1, arg2, arg3=0, arg4=0)
 		uc = localmachine.create_user(arg2, arg3)
 		if uc == 1 then return "-- user created" else return uc 
 	end if
-	if arg1 == "del" then
+	if arg1 == "del" or arg1 == "-d" then
 		d_user = null
 		if not arg2 then d_user = user_input("del_user:> ") else d_user = arg2
 		del_home = null
@@ -794,7 +792,7 @@ command.usr = function(arg1, arg2, arg3=0, arg4=0)
 		ud = localmachine.delete_user(d_user, del_home)
 		if ud == 1 then return "usr: deleted user: "+d_user else return ud
 	end if
-	if arg1 == "-r" or arg1 == "-R" then 
+	if arg1.lower == "-r" then 
 		arg1 = 1
 	end if
 	if typeof(arg1) == "string" then // check owner of string: /file/path
@@ -991,12 +989,14 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg1) == "string" then 
 			globals.stack_pool("up")
 			cc = arg2.launch(arg1, parameters)
+			_cascade // exit if cascade
 			globals.stack_pool("down")
 			return cc
 		end if
 		if typeof(arg1) == "file" then 
 			globals.stack_pool("up")
 			cc = arg2.launch(arg1.path, parameters)
+			_cascade // exit if cascade
 			globals.stack_pool("down")
 			return cc
 		end if
@@ -1011,6 +1011,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
 		globals.stack_pool("up")
 		cc = arg3.launch(run_path, parameters)
+		_cascade // exit if cascade
 		globals.stack_pool("down")
 		return cc
 	end if
@@ -1024,6 +1025,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	globals.stack_pool("up")
 	cc = shell.launch(file.path, parameters)
+	_cascade // exit if cascade
 	globals.stack_pool("down")
 	return cc
 end function
