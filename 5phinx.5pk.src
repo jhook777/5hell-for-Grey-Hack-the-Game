@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.8.1"
-malp_version = "1.4.4"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.8...(159.021kb)</size>")
+sphinx_version = "2.8.2"
+malp_version = "1.4.5"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.9...(158.733kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -34,6 +34,9 @@ globals.exit = function(msg)
   eob = get_custom_object // end of business, if you were wondering
   eob.return_value = msg 
   _exit(msg)
+end function
+globals._cascade = function()
+  if get_custom_object.hasIndex("return_value") and get_custom_object.return_value == "#!#CASCADE#!#" then exit "#!#CASCADE#!#" else return 0
 end function
 
 // make this more better good by searching the whole filesystem
@@ -638,6 +641,7 @@ globals.trythis = function(function_reference, function_name)
   try.evaluate = function( fname )
     globals.stack_pool("up")
     get_shell.launch( fname )
+    _cascade // exit if cascade
     globals.stack_pool("down")
     return self.success
   end function
@@ -1594,6 +1598,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
             print(colorWhite+"<size=75%><u>Injecting process "+l_path+" into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
             globals.stack_pool("up")
             print(buffer_selection.launch( l_path, l_para ) )
+            _cascade // exit if cascade
             globals.stack_pool("down")
             globals.update_path
             continue
@@ -1673,6 +1678,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               print(colorWhite+"<size=75%><u>Injecting process /home/guest/rkit/5hell into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
               globals.stack_pool("up")
               catch = buffer_selection.launch("/home/guest/rkit/5hell",par)
+              _cascade // exit if cascade
               globals.stack_pool("down")
               if catch then print(catch)
               globals.update_path
@@ -1687,7 +1693,8 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
             else
               print(colorWhite+"-ftp---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
             end if
-            command.quit(exit(buffer_selection.start_terminal))
+            get_custom_object.return_value = "#!#CASCADE#!#"
+            exit buffer_selection.start_terminal
             continue
           end if
           if choice == "2" then 
@@ -1932,7 +1939,7 @@ globals.newtree = function(a_file,quiet=0)
   for i in system_map.indexes
       for f in system_map[i].values
           s = ""
-          if globals.NIGHTLY and f.is_symlink then s="<color=yellow>"
+          if f.is_symlink then s="<color=yellow>"
           if f.is_folder then 
               outprint.push( "<size=85%><b><color=#2382FFFF>"+f.permissions+" "+s+f.path )
           else 
@@ -1958,11 +1965,11 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
   //if not quiet then print("Expanding: " + colorLightBlue+result.path)
   if not quiet then 
     s = ""
-    if globals.NIGHTLY and result.is_symlink then s="<color=yellow>"
+    if result.is_symlink then s="<color=yellow>"
     if result.is_binary then 
       if not result.is_folder then 
         s = ""
-        if globals.NIGHTLY and result.is_symlink then s="<color=yellow>"
+        if result.is_symlink then s="<color=yellow>"
         print "<size=80%><color=blue>|..<color=#00FFFF>"+result.permissions+" "+s+result.path 
       end if 
     else 
@@ -2368,15 +2375,17 @@ globals.shell_prompt = function(passShell, waitFor=null)
   if typeof(passShell) == "shell" then
     waitFor = user_input("Open shell? [c/y/N] "+char(10)+"||: ",0,1)
     
-    if waitFor == "y" or waitFor == "Y" then
+    if waitFor.lower == "y" then
       if globals.GLASSPOOL then
         print("Opening shell: "+passShell.host_computer.local_ip+"@"+passShell.host_computer.public_ip+"...")
+        get_custom_object.return_value = "#!#CASCADE#!#"
         exit passShell.start_terminal
         globals.update_path
       else
         print("Piping shell connection...")
+        get_custom_object.return_value = "#!#CASCADE#!#"
         exit passShell.start_terminal
-        print(colorWhite+"Terminal session queued. Exit 5hell manually to begin.")
+        print(colorWhite+"Terminal session queued. Exit 5hell manually to begin.") //  shouldn't need this anymore
         globals.update_path
       end if
     else
@@ -2390,7 +2399,10 @@ globals.shell_prompt = function(passShell, waitFor=null)
           if c_shell then
             globals.BUFFER.push(c_shell)
             ch = user_input("New shell sent to BUFFER. Open it? [y/N] ")
-            if ch == "Y" or ch == "y" then exit c_shell.start_terminal
+            if ch.lower == "y" then 
+              get_custom_object.return_value = "#!#CASCADE#!#"
+              exit c_shell.start_terminal
+            end if
           else
             print("Failed to open shell. Check credentials and try again.")
           end if
@@ -2412,9 +2424,7 @@ globals.shell_prompt = function(passShell, waitFor=null)
     if typeof(try) == "shell" then
       globals.BUFFER.push(try)
       ch = user_input(colorLightBlue+"malp:</b> new shell sent to "+colorOrange+"BUFFER"+char(10)+colorLightBlue+"-- open object in "+colorOrange+"</b>malp? [y/<b>N</b>] ||: ",0,1)
-      //if ch == "Y" or ch == "y" then exit try.start_terminal
       if ch.lower != "y" then return try else return globals.memory_alpha(str(globals.BUFFER.len - 1))
-      //globals.update_path
     end if
     if try then print(try)
     if DEBUG then print "passShell is a: "+typeof(passShell)
@@ -2441,6 +2451,7 @@ globals._shell_prompt = function( input_shell=null, confirm=null, uu=null, pw=nu
     
   if confirm == "y" or confirm == "-y" or confirm == "-l" or confirm == "l" then 
     print colorGold+"</b>psudo: "+CT+" runnning start_terminal on this shell connection"+char(10)
+    get_custom_object.return_value = "#!#CASCADE#!#"
     exit input_shell.start_terminal
     print colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
     colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
@@ -2471,8 +2482,6 @@ globals._shell_prompt = function( input_shell=null, confirm=null, uu=null, pw=nu
       if typeof(c_shell) == "shell" then 
         if ch == "y" then exit globals._shell_prompt(c_shell,"-l")
         globals.BUFFER.push(c_shell)
-        //ch = user_input("New shell sent to BUFFER. Open it? [y/N] ")
-        //if ch == "Y" or ch == "y" then exit c_shell.start_terminal
         print colorLightBlue+"malp:</b> new shell sent to "+colorOrange+"BUFFER"
         if ch != "-m" then ch = user_input(colorLightBlue+"-- open object in "+colorOrange+"</b>malp? [y/<b>N</b>] ||: ",0,1)
         if ch.lower != "y" then return c_shell else return globals.memory_alpha(str(globals.BUFFER.len - 1))
@@ -2678,6 +2687,7 @@ secure_connect = function(shll)
     print(            "[4] glasspool ")
     todo = user_input("[1] run [2] start terminal [3] scp"+char(10)+"[0|q] quit ||: ",0,1)
     if todo == "2" then
+      get_custom_object.return_value = "#!#CASCADE#!#"
       exit remote.start_terminal
     end if
     if todo == "0" then
@@ -2689,6 +2699,7 @@ secure_connect = function(shll)
       b = user_input("parameters:> ")
       globals.stack_pool("up")
       print remote.launch(a, b)
+      _cascade // exit if cascade
       globals.stack_pool("down")
     end if
     if todo == "3" then
@@ -2862,45 +2873,6 @@ zap_it = function()
     end for
   end for
 end function
-
-// kraken = function()
-//  user1 = active_user
-//  user2 = "root"
-//  passWd = user_input("Enter root passwd (leave blank to abort): ",1)
-//  if passWd == "" or passWd == " " then
-//    print("aborting...")
-//    return
-//  end if
- //  user_home = null
-//  if user1 == user2 then
-//    user_home = "/root"
-//  else
-//    user_home = "/home/" + user1
-//  end if
-//  rootKit_path = user_home + "/rkit"
-//  rootKit_dest = "/" + user2
-
-//  remoteShell = shell.connect_service(targetIP, targetPort, user2, passWd)
-//  if remoteShell then
-//    check = shell.host_computer.File(rootKit_path)
-//    if check then
-//      shell.scp(rootKit_path, rootKit_dest, remoteShell)
-//    else
-//      print("error 404")
-//      return "/root/rkit not found"
-//    end if
-//    rrt = remoteShell.host_computer.File("/root")
-//    nl = null
-//    if rrt then list_files(rrt, nl, 0, "N")
-//    print("Scrubbing trail...")
-//    print(rclean(remoteShell))
-//    if user1 == "root" then silentclean
-//    print("Starting Terminal...")
-//    remoteShell.start_terminal
-//  else
-//    print("Failed to connect.")
-//  end if
-//end function
 
 update_port_info = function()
   if DEBUG then print("Updating port info..." )
@@ -3082,8 +3054,10 @@ end function
 load_lib = function(lib_path)
   if DEBUG then print "load_lib_path: "+lib_path
   if lib_path.len < 1 then return
-  new_lib = metaxploit.load(lib_path)
+  print "meta: clearing metaLib and net_session..."
+  globals.metaLib = null 
   globals.net_session = null // clear out net_session since we are working with a local lib
+  new_lib = metaxploit.load(lib_path)
   if new_lib then
     print "metaLib: linking "+colorLightBlue+new_lib.lib_name+"<color=blue> v </color>"+new_lib.version+char(10)
     // if waitFor == "n" or waitFor == "N" then
@@ -3092,7 +3066,7 @@ load_lib = function(lib_path)
     // end if
     globals.metaLib = new_lib
   else
-    print("load_lib: File not found. ")
+    print colorOrange+"load_lib: File not found. "
     return 0
   end if
   print metaLib.lib_name + " v " + metaLib.version
@@ -3119,11 +3093,14 @@ get_lib = function(waitFor=0,this_lib=null)
       end if
       lib_list = lib_folder.get_files
       i = 0
+      print colorGold+"</b>load_lib: displaying contents of /lib on <u>active shell:"
+      print colorGold+"</b>-- note: if importing a metaxploit object via "+colorWhite+"meta -i"+CT+":"
+      print colorWhite+"</b>--: the list shown may not match the target's actual files"
       for l in lib_list
-        print("["+i+"] " + l.name)
+        print(colorGold+"</b>["+colorWhite+i+CT+"] " + l.name)
         i = i + 1
       end for
-      selection = user_input("Select a lib.so to load: ").val
+      selection = user_input(colorGold+"load_lib:"+colorWhite+" select a lib.so to load: "+CT).val
       if selection >= 0 and selection < i then
         return load_lib(lib_list[selection].path)
       else
