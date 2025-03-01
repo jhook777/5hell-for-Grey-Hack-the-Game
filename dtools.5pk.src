@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.8...(152.114)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.9...(151.400)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -415,7 +415,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				if use_re == true then
 					if re.match(grep_tar.values, sub.name.values) then 
 						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-						if NIGHTLY == true and sub.is_symlink then 
+						if sub.is_symlink then 
 							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
 						else
 							gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
@@ -433,7 +433,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				else
 					if sub.name == grep_tar or sub.name.indexOf(grep_tar) then 
 						//gresult.push(colorLightBlue+"Found folder: "+CT+colorOrange+sub.name+CT+colorLightBlue+" in: "+ sub.parent.path + CT)
-						if NIGHTLY == true and sub.is_symlink then 
+						if sub.is_symlink then 
 							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+sub.name+CT+colorLightBlue+" linked to folder in: "+ sub.parent.path + CT+char(10)+colorGold+"               |<u>"+sub.path)
 							
 						else 
@@ -456,7 +456,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				if use_re == true then
 					if re.match(grep_tar.values, f.name.values) then 
             			//gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
-						if NIGHTLY == true and f.is_symlink then 
+						if f.is_symlink then 
 							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+f.name+CT+colorLightBlue+" linked to file in: "+ f.parent.path + CT+char(10)+colorGold+"               |<u>"+f.path)
 						else 
 							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
@@ -471,7 +471,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
           			end if
 				else
 					if f.name == grep_tar or f.name.indexOf(grep_tar) >= 0 then 
-						if NIGHTLY == true and f.is_symlink then 
+						if f.is_symlink then 
 							gresult.push(colorLightBlue+"Found symlink: "+CT+colorOrange+f.name+CT+colorLightBlue+" linked to file in: "+ f.parent.path + CT+char(10)+colorGold+"               |<u>"+f.path)
 						else 
 							gresult.push(colorLightBlue+"Found file: "+CT+colorOrange+f.name+CT+colorLightBlue+" in: "+ f.parent.path + CT)
@@ -977,6 +977,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
           end if
 		  globals.stack_pool("up")
           try = shell.launch(selected.path, user_input("params for: "+char(10)+selected.path+" "))
+		  _cascade // exit if cascade
 		  globals.stack_pool("down")
           if try then print(try)
         end if
@@ -1240,7 +1241,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
     	imp_stat = null
 		if DEBUG then print "checking for symlink"
 		sym_stat = null 
-		if NIGHTLY == true then sym_stat = arg1.is_symlink
+		sym_stat = arg1.is_symlink
 		if sym_stat then 
 			sym_stat = "yes"+char(10)+"parent: "+arg1.parent.path
 			imp_stat = "symlink"
@@ -1647,6 +1648,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   print "launching 5hell remotely..."
   globals.stack_pool("up")
   dig_this.launch("/home/guest/rkit/5hell", "do 1 -f /home/guest/rkit/dig.bat") // let's make this configurable instead of putting ppl on rails
+  _cascade // exit if cascade
   globals.stack_pool("down")
   // rclean and exit
   // repeat if necessary
@@ -1944,15 +1946,8 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 			print "brutus: "+colorGreen+"saving root password as index in custom object. access via <b>cob</b> command"
 			if DEBUG then print("brutus: debug: calling cob: adding "+gotcha+" to index <b>"+d)
 			print command.cob("set",d,gotcha)
-			//print("brutus: writing to dump.txt")
-			//command.poke("dump.txt",char(10)+"root:"+d+char(10))
-			
 			globals.BUFFER.push(root)
 			print("<b>Shell sent to "+colorOrange+"BUFFER</color>."+char(10)+"-- access via Memory Alpha (<u>malp</u> command)</b>")
-			//go = user_input("Start terminal? [y/N]"+char(10)+"||: ",0,1)
-			//if go.lower == "y" then
-			//	root.start_terminal
-			//end if
 			return root
 		end if
 	end for
@@ -2351,24 +2346,12 @@ command.diff = function(input_1,input_2,arg3,arg4)
         j = 0
         lines1 = block_1.split(char(10))
         lines2 = block_2.split(char(10))
-		// if DEBUG then print "debug: len_1: "+lines1.len+" len_2: "+lines2.len
-		// if DEBUG then print "debug: in diff: trimming input"
-		// buf = []
-		// for line in lines1 
-		// 	if line != "" then buf.push(line.trim)
-		// end for
-		// lines1 = buf
-		// buf = []
-		// for line in lines2 
-		// 	if line != "" then buf.push(line.trim)
-		// end for
-		// lines2 = buf
 		leng1 = lines1.len 
         leng2 = lines2.len 
 		if DEBUG then print "debug: len_1_1: "+lines1.len+" len_2_2: "+lines2.len
         while i < leng1 or j < leng2 
             if i < leng1 and j < leng2 then 
-				//if DEBUG then print "top of loop"
+				if DEBUG then print "debug: diff: top of loop"
                 if lines1[i] == lines2[j] then 
 
                     print_buffer.push((i+1)+"<color=#00ff88ff>"+char(177)+(j+1)+" "+lines1[i])
@@ -2380,14 +2363,11 @@ command.diff = function(input_1,input_2,arg3,arg4)
 					diff_list.push(i+1)
 					j = j + 1
 					if j < lines2.len then 
-						if lines1[i] != lines2[j] then i = i + 1// else diff_list.pop // this is a hack for compatibility with zero day stuff, make it better
+						if lines1[i] != lines2[j] then i = i + 1 // this is a hack for compatibility with zero day stuff, make it better
 					else 
 						i = i + 1
 						if DEBUG then print "processed line "+ i
-					end if
-					//if lines2[j] != lines1[i] then j = j + 1
-					//i = i + 1
-            		
+					end if            		
                 end if  
             else 
                 if i < leng1 then 
@@ -2404,9 +2384,7 @@ command.diff = function(input_1,input_2,arg3,arg4)
 				i = i + 1
             	j = j + 1
             end if
-			//i = i + 1
-            //j = j + 1
-			//if DEBUG then print "bottom of loop"
+			if DEBUG then print "debug: diff: bottom of loop"
         end while
         if ret_type == "string" then 
 			return print_buffer.join(char(10))
@@ -2425,7 +2403,8 @@ command.diff = function(input_1,input_2,arg3,arg4)
 		arg3 = arg4
 	end if
     // usage info
-    if not input_1 or not input_2 or input_1 == "-h" or input_1 == "help" then return "<u><b>DIFF || DIFFERENCES || FILE COMPARE || TEXT COMPARE"+char(10)+char(10)+
+	if not input_1 or not input_2 then return "Usage: diff [opt] [input_1] [input_2]"
+    if input_1 == "-h" or input_1 == "help" then return "<u><b>DIFF || DIFFERENCES || FILE COMPARE || TEXT COMPARE"+char(10)+char(10)+
     "Usage: diff [input_1] [input_2] -- standard diff tool"+char(10)+
     "Usage: diff [file_1_path|file_1_object|text_block_1] [file_2_path|file_2_object|text_block_2]"+char(10)+
     "-- compares <b>text</b> of input_1 to input_2 and prints output"+char(10)+
@@ -2436,7 +2415,7 @@ command.diff = function(input_1,input_2,arg3,arg4)
     ":: if input_1 or input_2 are single words they are processed as <b>paths to a file"+char(10)+
     ":: if input_2 or input_2 are more than one word (ie piped text) they are processed as strings"+char(10)+
     ":: does not process binary files or lists"+char(10)+
-	":: -- for lists pipe the output of <b>string [yourlist]"+char(10)+
+	":: -- for lists pipe the output of <b>string [yourlist]"+char(10)+char(10)+
 	"Advanced: diff [-l] [input1] [input2] -- returns a list of ints corresponding to line numbers with differences"+char(10)+
 	"-- useful for <b>unit_testing</b> a debugLibrary"
     // postprocess input
@@ -2502,7 +2481,6 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	"Usage: sl [path] -- returns true if path is a symlink, returns false otherwise"+char(10)+
 	"Usage: sl [path] [/new_path/new_name] -- create a symbolic link at path"+char(10)+
 	"-- returns 1 on success, string on fail"+char(10)
-	//if not NIGHTLY then return "sl: function disabled"
 	if typeof(arg1) == "file" then arg1 = arg1.path
 	if typeof(arg1) != "string" then return "sl: invalid path"
 	source_file = globals.get_file(arg1)
@@ -2535,7 +2513,6 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	return source_file.symlink(sym_parent_path, sym_name)
 end function
 command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
-	if not NIGHTLY then return "zc: disabled outside of nightly"
     if neurobox_user == "h" or neurobox_user == "help" then return "Zer0Chill || Zeroday || zero day || autopatcher || autosolver"+char(10)+
 	colorWhite+"Usage: zc [neurobox_username] [neurobox_password] [opt:metaLib_name|metaLib_object]"+char(10)+
 	"-- if a MetaLib is not supplied, zc will use the currently linked MetaLib"+char(10)+
@@ -2562,8 +2539,10 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
 	"-- select [s] - save and enter a filename for the zeroday data"+char(10)+
 	colorLightBlue+"MetaLib Patching:"+char(10)+
 	"Procedure: once <b>zc</b> and unit_testing are complete:"+char(10)+
-	"-- select the debugLibrary from the BUFFER (or <b>bios -m | code</b> if it is still linked)"+char(10)+
-	"-- select patch and enter the path to patch.zd"
+	"-- select the debugLibrary from the BUFFER "+char(10)+
+	"-- select patch and enter the path to patch.zd"+char(10)+
+	"-- you may also use the <b>code</b> command: "+char(10)+
+	"--eg: <b>code @B [#]</b> -- where # is the index of the debugLibrary in the BUFFER"
     if not neurobox_user or not neurobox_pass then return "zer0Chill: invalid parameters: expects [user] [pass] [metaLib]"
     if typeof(metalib) != "MetaLib" then 
         if typeof(metalib) == "string" then 
