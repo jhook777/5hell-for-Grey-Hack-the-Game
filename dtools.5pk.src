@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.9...(151.400)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.9...(151.409)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2777,7 +2777,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	"* You may retrieve a macro from the custom object (for piping, or whatever) with<b> get [macro_name]."+char(10)+
 	"* You may pipe a <b>do</b> script into a macro. A do script may execute a macro with: <b>do # @o [macro_name]."+char(10)+
 	"* This makes the two interchangeable, allowing you to choose the exact behavior you want performed."+char(10)+
-	colorCyan+"</b>Usage: macro [name] [string] -- set a macro to the given string"+char(10)+
+	colorCyan+"</b>Usage: macro [-s|set] [name] [string] -- set a macro to the given string"+char(10)+
 	"-- eg: macro foo ""echo bar | clipa"""+char(10)+
 	colorCyan+"</b>Usage: macro [name] -- fire the named macro, the macro prepend is <b>optional"+char(10)+
 	colorGold+"</b>NOTE: All macros may be fired from the command line by typing the macro name"+char(10)+
