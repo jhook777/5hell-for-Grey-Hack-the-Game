@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.9...(151.409)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.9.1...(151744)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2792,10 +2792,19 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	if not arg1 then return "Usage: macro [name] [opt:string]"
 	if arg1 == "del" or arg1 == "-d" then 
 		// remove a macro
-		if get_custom_object.hasIndex(arg2) then return command.cob("del",arg2) else return "macro: no such macro"
+		if get_custom_object.hasIndex(arg2) then 
+			print "marco: unregistering macro..."
+			get_custom_object.macros.indexOf(arg2).remove
+			return command.cob("del",arg2)
+		else 
+			return "macro: no such macro"
+		end if
 	end if
 	if arg1 == "set" or arg1 == "-s" then 
 		// create a macro
+		print "macro: registering macro..."
+		if get_custom_object.macros.indexOf(arg2) != null then print colorCyan+"</b>macro:"+colorOrange+"</b> macro already exists; overwriting"
+		get_custom_object.macros.arg2 = "1"
 		print command.cob("set",arg2,arg3)
 	else 
 		//fire a macro
