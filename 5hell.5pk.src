@@ -1,13 +1,13 @@
 // 5hell v 3.9.9 by Plu70
 // released v 3.9.9
 // imports .5pk files from /root/src
-ver = "3.9.9.9.9_nightly_terrors"
+ver = "3.9.9.9.9.1_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 /////// check for nightly, we don't want certain functions called if we are on public
 /////// set to true if playing nightly, false if playing public
 ////// end check for nightly
-size_of_5hell = "156.927"
+size_of_5hell = "156.929"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
