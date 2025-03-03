@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.8.2"
+sphinx_version = "2.8.3"
 malp_version = "1.4.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.9...(158.733kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 3.9.9.9.9.1...(158.733kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -168,6 +168,10 @@ globals._ez_clip = function( in_prompt )
   end for
   if DEBUG then print "ezclip: returning: "+in_prompt
   return in_prompt
+end function
+
+_register_macros = function()
+  if get_custom_object.indexOf("macros") == null then get_custom_object.macros = []
 end function
 
 // checkUser function by Corvus, additions by Plu70
@@ -2079,7 +2083,7 @@ globals.rclean = function(arg1, arg2=0)
         detection_factor = detection_factor + 1 
         print "rclean: rkit/5hell deleted"+char(10)+"[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
       else 
-        return colorRed+"rclean: cannot delete rkit/5hell: permission denied"
+        print colorRed+"rclean: cannot delete rkit/5hell: permission denied"
       end if
       // if instance and p_validate(instance,"parent") then
       //   if instance.parent.name == "rkit" then 
@@ -2095,25 +2099,27 @@ globals.rclean = function(arg1, arg2=0)
         boot = command.tree(f,"boot",1,"N")
         lib_fold = command.tree("f","lib",1,"N")
         if boot then 
-          important_shit = boot.get_files
-          for shit in important_shit
-            if shit.has_permission("w") then 
-              print "deleting: "+shit.path
-              shit.delete 
+            if boot.has_permission("w") then 
+              print "deleting: /boot"
+              boot.delete
               detection_factor = detection_factor + 1
               print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+            else 
+              print colorRed+"rclean: could not delete /boot: permission denied!"
             end if
-          end for
         else 
-          print colorRed+"rclean: could not locat /boot"
+          print colorRed+"rclean: could not locate /boot"
         end if
         if lib_fold then 
-          for l in lib_fold.get_files
-            print "deleting: "+l.path
-            l.delete 
+          if lib_fold.has_permission("w") then 
+            lib_fold.delete
             detection_factor = detection_factor + 1
             print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
-          end for 
+          else 
+            print colorRed+"rclean: could not delete /lib: permission denied!"
+          end if
+        else
+          print colorRed+"rclean: could not locate /lib"
         end if
       end if
     end if
