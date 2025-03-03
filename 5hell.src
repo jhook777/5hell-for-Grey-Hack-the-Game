@@ -192,7 +192,7 @@ command.shell = function(input=null,mute=null)
       // ############################### begin customizables two ###########################
       // begin shortcuts
       // macro replacement; do this before all other aliases as macros may contain aliases
-      if get_custom_object.hasIndex(prompt[0]) then prompt = ["macro"]+prompt
+      if get_custom_object.macros.indexOf(prompt[0]) != null then prompt = ["macro"]+prompt
       // end macro replacement
       if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f"]+prompt[1:]
       if prompt[0] == "set" or prompt[0] == "get" then prompt = ["cob"]+prompt
@@ -399,6 +399,9 @@ globals._export_metax // export our metaxploit on each startup
 if DEBUG then print("<size=75%>checking for tables/tp")
 itp = globals._import_tables // import tables/tp if it exists
 if DEBUG then print itp
+if DEBUG then print("<size=75%>registering macros...")
+rm = _register_macros
+if DEBUG then print rm
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
 //////////////////END prelaunch-conditions///////////////////////////////////
 //
