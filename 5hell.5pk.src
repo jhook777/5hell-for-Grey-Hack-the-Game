@@ -1,13 +1,10 @@
-// 5hell v 3.9.9 by Plu70
-// released v 3.9.9
+// 5hell v 4.0.0 by Plu70
+// released v 4.0.0
 // imports .5pk files from /root/src
-ver = "3.9.9.9.9.1_nightly_terrors"
+ver = "4.0.0_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-/////// check for nightly, we don't want certain functions called if we are on public
-/////// set to true if playing nightly, false if playing public
-////// end check for nightly
-size_of_5hell = "156.929"
+size_of_5hell = "152.057"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -46,6 +43,11 @@ globals.pubip = function()
 	return localmachine.public_ip
 end function
 
+// register macros
+if DEBUG then print("<size=75%>registering macros...")
+if get_custom_object.indexOf("macros") == null then get_custom_object.macros = {}
+
+// globals
 globals.BIGBRAIN = false
 globals.GLASSPOOL = 0
 globals.command_buffer = []
@@ -80,6 +82,8 @@ globals.instance = globals.localmachine.File(program_path)
 // import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/5phinx.5pk") // override=5phinx.5pk
+// import contrib -- this contains shared functions and commands contributed by the community
+import_code("/root/src/contrib.5pk") // override=contrib.5pk
 
 //
 // while importing a starting dictionary is still possible it is no longer supported
@@ -1069,6 +1073,16 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "games: battleship and blackjack and drugwars!"
 	// Do not remove the comment in the next line, it is necessary for Greybel support
 	import_code("/root/src/games.5pk") // override=games.5pk
+	print("[0] Battleship")
+	print("[1] Battleship - AI vs AI")
+	print("[2] Blackjack  - jokers wild")
+	print("[3] Drugawars")
+	print("[4] Back")
+	pick = user_input("||: ",0,1)
+	if pick == "0" then return bat("")
+	if pick == "1" then return bat("-s")
+	if pick == "2" then return g2
+	if pick == "3" then return g3
 	return 0
 end function
 command.mail = function(arg1, arg2, arg3=0, arg4=0)
@@ -2766,101 +2780,4 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(":> prompt -- toggle full_prompt on and off")
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
-end function
-// htop by redit0
-command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
-	colorize = function(num, v, perc = 0)
-		p = ""
-		if perc then p = "%"
-		if num > 94 then return "<color=#c30000><b>" + v + p + "</b></color>"
-        if num > 89 then return "<color=#ffa500><b>" + v + p + "</b></color>"
-        if num > 79 then return "<color=#dbd700><b>" + v + p + "</b></color>"
-		return "<color=#85b8ff><b>" + v + p + "</b></color>"
-	end function
-	if @arg1 != 0 then
-		if ["string","number","shell","computer"].indexOf(typeof(@arg1)) == null then return "Invalid argument: "+typeof(@arg1)+": "+@arg1
-		top_usage = "htop || actually htop"+char(10)+
-		"<b>Usage: htop -- show processes running on the active host_computer. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+
-		"-- when glasspool is active:"+char(10)+
-		"-- the active shell/computer is the active host_computer"+char(10)+
-		"--eg: htop"+char(10)+
-		"<b>Usage: htop [#] -- show processes running on the buffer object at the specified index."+char(10)+
-		"--eg: htop 1"+char(10)+
-		"<b>Usage: htop [shell|computer] -- show processes running on the piped object."+char(10)+
-		"--eg: clipa @B 1 | htop"+char(10)+
-		"--eg: rsi 1 7 | htop"
-		if arg1 == "help" or arg1 == "-h" then return top_usage
-		if typeof(arg1) == "number" then arg1 = str(arg1)
-		if typeof(arg1) == "shell" then
-			locals.top_comp = arg1.host_computer
-		else if typeof(arg1) == "computer" then
-			locals.top_comp = arg1
-		else if typeof(arg1.to_int) == "number" then
-			idx = arg1.to_int
-			if idx >= 0 and idx < globals.BUFFER.len then temp_comp = globals.BUFFER[idx] else return "BUFFER: invalid selection."
-			if typeof(temp_comp) == "shell" then
-				locals.top_comp = temp_comp.host_computer
-			else if typeof(temp_comp) == "computer" then
-				locals.top_comp = temp_comp
-			else
-				return "BUFFER: invalid object type: " + typeof(temp_comp)
-			end if
-		else
-			return "Invalid argument: "+typeof(arg1)+": "+arg1
-		end if
-	else
-		locals.top_comp = globals.localmachine
-	end if
-	hostname = locals.top_comp.get_name
-	manager = new DaemonManager
-	daemon = manager.Start("htop", hostname + " - " + locals.top_comp.public_ip + "::" + locals.top_comp.local_ip)
-	while (daemon and manager.Check(daemon)) or not manager.__initialized
-        lines = locals.top_comp.show_procs.split("\n")[1:]
-        procs = []
-        users = []
-        memory = 0
-        cpu = 0
-        admin = 0
-        for line in lines
-            parts = line.split(" ")
-            process = {"user":parts[0], "pid":parts[1], "cpu":parts[2][:-1].val, "memory":parts[3][:-1].val, "command":parts[4].replace("5hell",colorRed+"5"+colorWhite+"hell")}
-            procs.push(process)
-        end for
-        for proc in procs
-            if proc.user == "root" and proc.command == "dsession" then admin = 1
-            if (proc.command == "dsession" or proc.command == "Xorg") and users.indexOf(proc.user) == null then users.push(proc.user)
-            memory = memory+proc.memory
-            cpu = cpu+proc.cpu
-        end for
-        cpu_squares = ceil(20*(cpu/100))
-        cpu_blanks = 20-cpu_squares
-        cpu_bar = colorize(cpu,"#"*cpu_squares) + "<color=#ffffff00>" + "#"*cpu_blanks + "</color>"
-        memory_squares = ceil(20*(memory/100))
-        memory_blanks = 20-memory_squares
-        memory_bar = colorize(memory,"#"*memory_squares) + "<color=#ffffff00>" + "#"*memory_blanks + "</color>"
-        output = "<color=#eeeeee><b><size=110%>Monitoring: "+hostname+"</size><size=90%>"+char(10)+
-		"[" + locals.top_comp.public_ip + "] [" + locals.top_comp.local_ip + "]"+char(10)+
-		"Daemon: "+daemon+"</size></b></color>" + char(10)*2 +
-        "Running Processes: " + procs.len + char(10) +
-        "Users Online: " + users.len + char(10) +
-        "CPU Utilization: [" + cpu_bar + "]==[ "+colorize(cpu,cpu,1)+" ]" + char(10) +
-        "RAM Utilization: [" + memory_bar + "]==[ "+colorize(memory,memory,1)+" ]" + char(10)*2
-        if admin then output = output + "<size=140%><mark=c3000099>" + " "*12 + "<b>ADMIN ONLINE</b>" + " "*12 + "</mark></size><color=#ffffff00>|</color>" + char(10)*2
-        procList = "<color=#666666><b><voffset=0.5em>USER<pos=130>PID<pos=210>CPU<pos=290>RAM<pos=370>COMMAND</voffset></b></color>" + char(10)
-        for proc in procs
-            if proc.user == "root" then
-                procList = procList+colorize(99,"root")
-            else if proc.user == "guest" then
-                procList = procList+"<color=#666666><b>guest</b></color>"
-            else
-                procList = procList+colorize(1,proc.user)
-            end if
-            procList = procList + "<pos=130><color=#77aa33><b>" + proc.pid + "</b></color><pos=210>"+colorize(proc.cpu,proc.cpu,1)
-            procList = procList + "<pos=290>"+colorize(proc.memory,proc.memory,1)
-            procList = procList + "<pos=370><color=#00709d><b>" + proc.command + "</b></color>" + char(10)
-        end for
-        output = output + procList
-        print(output, 1)
-        wait 0.5
-	end while
 end function
