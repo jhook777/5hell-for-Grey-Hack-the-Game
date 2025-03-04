@@ -26,6 +26,30 @@
 // todo: kraken
 // todo: probe
 //
+// games.5pk: is no more, it has been changed to contrib.5pk
+// contrib.5pk: will contain functions and commands contributed by the community
+// -- this is mainly because the other .5pks were running out of room and games.5pk had plenty of space
+// --note: glosure, the daemon manager, the regex engine, htop, and check user have been moved to contrib.5pk 
+// -- the three games are still in contrib.5pk
+// -- the import code line has been moved to just under the import 5phinx line in 5hell.5pk
+// -- formerly this line was located within the command.games function
+// This marks the beginning of the great 5hell refactoring where code will be consolidated, objectified and organized
+//
+// macro: moved all macros to the macro registry
+// --: this is a map within the custom object
+// macro: added macro [-l|list]
+// --: this will return a string with all macros and their definitions
+// --: cob get macros (or just 'get macros') will return the macros map
+// macro: added macro [-g|get] [name] to return a given macro's string
+// macro: fixed hard crash in usage info
+//
+// do.rc: removed wildly counter-productive line from _resource_configuration
+// rclean: hopefully won't shit itself anymore when using -n
+// macro: added macro registry
+// macro: corrected usage info
+// --: creating a macro requires -s|set flag: macro [-s|set] [name] [value]
+// cob: will no longer spam usage info on bad input
+//
 // 5hell.src: added more info to display when typing 'shell'
 // db: added a warning about mismatched files when loading a local lib with a remote metaxploit object
 // -- this is until i can figure out a smarter way to handle that case
