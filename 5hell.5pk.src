@@ -4,7 +4,7 @@
 ver = "4.0.0_nightly_terrors"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "152.057"
+size_of_5hell = "151.913"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -1071,8 +1071,6 @@ command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 end function
 command.games = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "games: battleship and blackjack and drugwars!"
-	// Do not remove the comment in the next line, it is necessary for Greybel support
-	import_code("/root/src/games.5pk") // override=games.5pk
 	print("[0] Battleship")
 	print("[1] Battleship - AI vs AI")
 	print("[2] Blackjack  - jokers wild")
