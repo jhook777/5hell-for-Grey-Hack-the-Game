@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.9.2...(151.730)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 3.9.9.9.9.2...(152.408)</size>")
 // regex engine for greyscript
 // useage: re.match( String: regex pattern, Char Array (list): text to parse )
 // returns 1 if match and 0 if no match
@@ -2773,45 +2773,62 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	if arg1 == "help" or arg1 == "-h" then return "<u>macro || alias || auto || variable || global"+char(10)+
 	"* A macro allows you to define a set of actions commands to execute using a single command."+char(10)+
 	"* Use floating quotes to wrap the chain of commands and type them as you would normally on the CLI."+char(10)+
-	"* Marco's are essentially 'on the fly' do scripts that are stored in the custom object."+char(10)+
+	"* Macro's are essentially 'on the fly' do scripts that are stored in the custom object."+char(10)+
 	"* You may retrieve a macro from the custom object (for piping, or whatever) with<b> get [macro_name]."+char(10)+
 	"* You may pipe a <b>do</b> script into a macro. A do script may execute a macro with: <b>do # @o [macro_name]."+char(10)+
 	"* This makes the two interchangeable, allowing you to choose the exact behavior you want performed."+char(10)+
 	colorCyan+"</b>Usage: macro [-s|set] [name] [string] -- set a macro to the given string"+char(10)+
-	"-- eg: macro foo ""echo bar | clipa"""+char(10)+
+	"-- eg: macro -s foo ""echo bar | clipa"""+char(10)+
 	colorCyan+"</b>Usage: macro [name] -- fire the named macro, the macro prepend is <b>optional"+char(10)+
 	colorGold+"</b>NOTE: All macros may be fired from the command line by typing the macro name"+char(10)+
 	"-- this includes using macros within a string of piped commands"+char(10)+
-	"--eg: |> <b>macro gotime "" echo it's go time """+char(10)+
+	"--eg: |> <b>macro -s gotime "" echo it's go time """+char(10)+
 	"----: |> <b>echo three | echo two | echo one | gotime | echo "" what time is it? """+char(10)+
 	colorCyan+"</b>Usage: macro [-d|del] [name] -- delete the named macro"+char(10)+
-	char(10)+
 	"-- eg: macro -d foo"+char(10)+
-	colorGreen+"See Also: do -h, help conventions, help alias"
-
+	colorCyan+"</b>Usage: macro [-l|list] -- show all macros and their definitions"+char(10)+
+	"-- all macros are stored in the macro registry map: get_custom_object.macros"+char(10)+
+	colorCyan+"Usage: macro [-g|get] [macro] -- return the macro string of the given macro"+char(10)+char(10)+
+	colorGreen+"See Also: do -h, help conventions, help alias, help automation"
 	if not arg1 then return "Usage: macro [name] [opt:string]"
+	print colorCyan+"<size=75%><u>==========macro=========="
+	gm = get_custom_object.macros
+	nsm = "-- no such macro"
+	if arg1 == "-g" or arg1 == "get" then 
+		if arg2 and gm.hasIndex(arg2) then 
+			return gm[arg2]
+		else 
+			return nsm
+		end if
+	end if		
+	if arg1 == "-l" or arg1 == "list" then 
+		mbuf = []
+		for kv in gm 
+			mbuf.push(colorCyan+kv.key+" </color>>> "+colorWhite+kv.value)
+		end for
+		return format_columns(mbuf.join(char(10)))
+	end if 
 	if arg1 == "del" or arg1 == "-d" then 
 		// remove a macro
-		if get_custom_object.hasIndex(arg2) then 
-			print "marco: unregistering macro..."
-			get_custom_object.macros.remove(arg2)
-			return command.cob("del",arg2)
+		if arg2 and gm.hasIndex(arg2) then 
+			gm.remove(arg2)
+			return colorCyan+"-- deleted: "+colorWhite+arg2
+			//return command.cob("del",arg2)
 		else 
-			return "macro: no such macro"
+			return nsm
 		end if
 	end if
 	if arg1 == "set" or arg1 == "-s" then 
 		// create a macro
-		print "macro: registering macro..."
-		if get_custom_object.macros.hasIndex(arg2) then print colorCyan+"</b>macro:"+colorOrange+"</b> macro already exists; overwriting"
-		get_custom_object.macros[arg2] = "1"
-		print command.cob("set",arg2,arg3)
+		if not arg3 then return "-- [-s] flag expects [name] [value]"
+		if gm.hasIndex(arg2) then print colorCyan+"</b>--"+colorOrange+"</b> macro already exists; overwriting"
+		gm[arg2] = arg3
+		return colorCyan+"-- registered: "+colorWhite+arg2+CT+" as "+colorWhite+arg3//print command.cob("set",arg2,arg3)
 	else 
 		//fire a macro
 		macmac = null
-		if get_custom_object.hasIndex(arg1) then macmac = get_custom_object[arg1] else return "macro: no such macro"
-		if typeof(macmac) != "string" then return "macro: invalid macro; this looks more like an alias"
-		print colorCyan+"<size=75%><u>==========macro==========="
+		if gm.hasIndex(arg1) then macmac = gm[arg1] else return nsm
+		if typeof(macmac) != "string" then return "-- invalid macro; this looks more like an alias"
 		return command.shell(macmac.replace(char(10)," |  | ")+" | return")		
 	end if
 	return 0
