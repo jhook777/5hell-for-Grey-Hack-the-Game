@@ -25,7 +25,7 @@ Copy the following .src files into the CodeEditor inside the Game:
 ***Make sure that the tickbox that says: "Importable" is ticked for each file!***
 
 <pre>
- games.5pk.src        -->  games.5pk
+ contrib.5pk.src      -->  contrib.5pk
  
  kore.5pk.src         -->  kore.5pk
 
@@ -41,7 +41,7 @@ Each file goes to /root/src
 **/root/src should now have the following built, importable files:**
 
 <pre>
-games.5pk
+contrib.5pk
 
 dtools.5pk
 
