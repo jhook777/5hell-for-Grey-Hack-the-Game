@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "2.8.5"
 malp_version = "1.4.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.0...(153.721kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.0...(153.752kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -31,7 +31,7 @@ end function
 
 _exit = @exit
 globals.exit = function(msg)
-  if not msg then return colorRed+"quit: invalid exit call; aborting shutdown"
+  //if not msg then return colorRed+"quit: invalid exit call; aborting shutdown" // nope, this was a bad idea
   eob = get_custom_object // end of business, if you were wondering
   eob.return_value = msg 
   _exit(msg)
