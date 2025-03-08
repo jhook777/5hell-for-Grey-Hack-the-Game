@@ -2377,7 +2377,20 @@ command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+"Usage: purge [-t] -- clear transmit buffer "+char(10)+"Usage: purge [-d] -- clear mx_database buffer "+char(10)+"Usage: purge [-c] -- clear CC command buffer "+char(10)+"Usage: purge [-e] -- clear enum buffer"+char(10)+"Usage: purge [-s] -- clear tagged4scp buffer"+char(10)+"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+"Usage: purge [-o] -- purge custom object"+char(10)+"Usage: purge [-m] -- purge monitors (daemons)"+char(10)+"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+"Advanced: purge -b [#] -- remove BUFFER entry at #"+char(10)+"Advanced: purge -m [daemon_name] -- remove monitor process with the specified identifier" 
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+
+	"Usage: purge [-t] -- clear transmit buffer (tbuf)"+char(10)+
+	"Usage: purge [-x] -- clear XPLOITS buffer "+char(10)+
+	"Usage: purge [-c] -- clear CC command buffer "+char(10)+
+	"Usage: purge [-e] -- clear enum buffer"+char(10)+
+	"Usage: purge [-s] -- clear tagged4scp buffer"+char(10)+
+	"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+
+	"Usage: purge [-o] -- purge custom object  (excludes macro registry)"+char(10)+
+	"Usage: purge [-m] -- purge macro registry"+char(10)+
+	"Usage: purge [-d] -- purge monitors (daemons)"+char(10)+
+	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
+	"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+
+	"Advanced: purge -b [#] -- remove BUFFER entry at #"+char(10)+
+	"Advanced: purge -d [daemon_name] -- remove monitor process with the specified identifier" 
 	confirm = arg2
 	if arg1 == "-b" then
 		if confirm == "0" then return "purge: cannot purge the launch shell."
@@ -2414,7 +2427,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 			return "aborting..."
 		end if
 	end if
-	if arg1 == "-d" then
+	if arg1 == "-x" then
 		if not confirm then confirm = user_input("Clear XPLOITS: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then
 			globals.MEMORY = null
@@ -2459,11 +2472,18 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if DEBUG then print "debug: printing gco indexes..."
 		for index in gco.indexes
 			if DEBUG then print index
-			if index != "__isa" and index != "classID" then gco.remove(index)
+			if index != "__isa" and index != "classID" and index != "macros" then gco.remove(index)
 		end for
 		return "custom object purged..."
 	end if
-	if arg1 == "-m" then
+	if arg1 == "-m" then 
+		if not confirm then confirm = user_input("Clear all rshells: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then print "purging macro registry..."
+		if DEBUG then print "debug: macros: "+char(10)+get_custom_object.macros
+		get_custom_object.macros = {}
+		return "macros purged..."
+	end if
+	if arg1 == "-d" then
 		manager = new DaemonManager
 		manager.Init
 		if manager.__initialized and manager.__file then
@@ -2486,7 +2506,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 			return "Error starting daemon manager"
 		end if
 	end if
-	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r OR -m"
+	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r OR -m OR -x OR -o"
 end function
 // cobble, get_custom_object interface by Plu70
 if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
