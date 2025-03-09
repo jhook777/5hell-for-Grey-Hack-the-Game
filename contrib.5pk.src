@@ -2366,7 +2366,7 @@ command.htop = function(arg1=0, arg2=0,arg3=0,arg4=0)
 		if ["string","number","shell","computer"].indexOf(typeof(@arg1)) == null then return "Invalid argument: "+typeof(@arg1)+": "+@arg1
 		top_usage = "htop || actually htop"+char(10)+
 		"<b>Usage: "+colorGold+"htop</color> -- show processes running on the active host_computer"+char(10)+
-    "-- to end the running process, use the command:<b> purge -m [opt:name]"+char(10)+
+    "-- to end the running process, use the command:<b> purge -d [opt:name]"+char(10)+
     "---- or note the daemon name printed on the screen and "+char(10)+
     "---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
     "---- or delete the file entirely"+char(10)+
