@@ -2812,7 +2812,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 			"<b>Usage: hashim [-f] [opt:path] -- run once on specified path"+char(10)+
 			"-- uses /root/pass if not specified"+char(10)+
 			"<b>Usage: hashim [-d] [opt:path]-- run as a daemon on /root/pass or specified path"+char(10)+
-			"-- to end the daemon process, use the command:<b> purge -m [opt:name]"+char(10)+
+			"-- to end the daemon process, use the command:<b> purge -d [opt:name]"+char(10)+
    	 		"---- or note the daemon name printed on the screen and "+char(10)+
     		"---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
     		"---- or delete the file entirely"+char(10)+
