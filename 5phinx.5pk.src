@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "2.8.5"
 malp_version = "1.4.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.0...(153.752kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.1...(153.879kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -91,6 +91,8 @@ globals._ez_clip = function( in_prompt )
     if @e == "@c" then in_prompt[e_indx] = @globals.clip_board_gamma
     if @e == "@home" then in_prompt[e_indx] = globals.HOME_SERVER[0]
     if @e == "@tbuf" then in_prompt[e_indx] = @globals.T_BUF.join(char(10))
+    if @e == "@t" then in_prompt[e_indx] = @globals.targetIP 
+    if @e == "@p" then in_prompt[e_indx] = @globals.targetPort
     if @e == "@o" then // this is getting out of hand...
       if in_prompt.hasIndex(e_indx+1) and typeof(in_prompt[e_indx+1]) == "string" and get_custom_object.hasIndex(in_prompt[e_indx+1]) then 
           in_prompt[e_indx+1] = command.cob("get",in_prompt[e_indx+1])
