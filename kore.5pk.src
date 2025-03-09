@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.1...(143.069)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.2...(143.116)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -1885,7 +1885,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	// params: -i -inject (inject value)
     if arg2 == "-i" or arg3 == "-i" or arg4 == "-i" then inject = user_input("enter a lan ip or password for injects:> ")
-	command.purge("-d", "y")
+	if DEBUG then print "debug: purging xploits"
+	command.purge("-x", "y")
 	DATA = []
 	lib_info = function()
 		if typeof(globals.metaLib) != "MetaLib" then return "MetaLib: error 266"
