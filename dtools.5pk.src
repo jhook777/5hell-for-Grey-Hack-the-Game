@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.0...(151.216)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.1...(151.669)</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -2767,7 +2767,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	if arg1 == "-l" or arg1 == "list" then 
 		mbuf = []
 		for kv in gm 
-			mbuf.push(colorCyan+kv.key+" </color>>> "+colorWhite+kv.value)
+			mbuf.push(colorCyan+"</b>"+kv.key+" </color>>> "+colorWhite+"</b>"+kv.value)
 		end for
 		return format_columns(mbuf.join(char(10)))
 	end if 
@@ -2786,7 +2786,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		if not arg3 then return "-- [-s] flag expects [name] [value]"
 		if gm.hasIndex(arg2) then print colorCyan+"</b>--"+colorOrange+"</b> macro already exists; overwriting"
 		gm[arg2] = arg3
-		return colorCyan+"-- registered: "+colorWhite+arg2+CT+" as "+colorWhite+arg3//print command.cob("set",arg2,arg3)
+		return colorCyan+"</b>-- registered: "+colorWhite+"</b>"+arg2+CT+" as "+colorWhite+"</b>"+arg3//print command.cob("set",arg2,arg3)
 	else 
 		//fire a macro
 		macmac = null
@@ -2799,9 +2799,29 @@ end function
 command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then
 		if arg2 and arg2 == "extra" then
-			return "Files required: /root/tables/t5/XX (XX is all files from<b> pwgen hash </b>, ascii), 5hell (bin)."+char(10)+"Files created: /root/dump.txt (ascii) -- the output file with cracked passwords"+char(10)+"Input format: "+char(10)+"   user:hash "+char(10)+"Once per line in /root/pass or specified path (see also <b>transmit</b>). "+char(10)+"May be of type bank, mail, passwd."
+			return "Files required: /root/tables/t5/XX (XX is all files from<b> pwgen hash </b>, ascii), 5hell (bin)."+char(10)+
+			"Files created: /root/dump.txt (ascii) -- the output file with cracked passwords"+char(10)+
+			"Input format: "+char(10)+
+			"<b>user:hash "+char(10)+
+			"Once per line in /root/pass or specified path (see also <b>transmit</b>). "+char(10)+
+			"May be of type bank, mail, password."
 		else
-			return "hashim: hash daemon. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+"Usage: hashim [-d|-f] [path] -- listen on [path] and decipher contents using tables/t5"+char(10)+"-- default path is /root/pass"+char(10)+"-- -f == run once on specified path"+char(10)+"-- -d == run as daemon on specified path"+char(10)+"N.B. Please run <b> pwgen hash </b> to setup resources for hashim."+char(10)+"n.b.b This command requires root access and it is recommended to use, along with pwgen, on a dedicated server due to the number of files involved. ie try not to spam hashim servers. a single one works wonders."+char(10)+"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
+			return "hash || decipher || passwords || tables || md5"+char(10)+
+			colorLightBlue+"</b>Usage: hashim [-d|-f] [path] --<color=white> listen on [path] and decipher contents using tables/t5"+char(10)+
+			"-- default path is /root/pass"+char(10)+
+			"<b>Usage: hashim [-f] [opt:path] -- run once on specified path"+char(10)+
+			"-- uses /root/pass if not specified"+char(10)+
+			"<b>Usage: hashim [-d] [opt:path]-- run as a daemon on /root/pass or specified path"+char(10)+
+			"-- to end the daemon process, use the command:<b> purge -m [opt:name]"+char(10)+
+   	 		"---- or note the daemon name printed on the screen and "+char(10)+
+    		"---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
+    		"---- or delete the file entirely"+char(10)+
+    		"-- if the file cannot be created, then the process must be exited with <b>ctrl+c"+char(10)+char(10)+
+			"N.B. Please run <b>pwgen hash</b> to setup resources for hashim."+char(10)+
+			"n.b.b This command requires root access and it is recommended to use, along with pwgen,"+char(10)+
+			"-- on a dedicated server due to the number of files involved"+char(10)+
+			"-- ie try not to spam hashim servers; a single one works wonders"+char(10)+char(10)+
+			"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
 		end if
 	end if
 	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [path] -- -f == run once on specified path, -d == run in daemon mode on specified path. Default path: /root/pass."
