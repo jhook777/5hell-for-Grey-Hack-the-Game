@@ -187,7 +187,7 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	"-- path is the path to the file to monitor; default /virt/out.spc"+char(10)+
 	"-- interval is the refresh rate; default 2 seconds, range(.1, 300)"+char(10)+
 	"-- prints changes to a text file every [interval] seconds"+char(10)+char(10)+
-	"-- to end the running process, use the command:<b> purge -m [opt:name]"+char(10)+
+	"-- to end the running process, use the command:<b> purge -d [opt:name]"+char(10)+
    	"---- or note the daemon name printed on the screen and "+char(10)+
     "---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
     "---- or delete the file entirely"+char(10)+
