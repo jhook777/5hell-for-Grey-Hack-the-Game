@@ -26,6 +26,23 @@
 // todo: kraken
 // todo: probe
 //
+// htop: reformatted usage info
+// outmon: reformatted usage info
+// hashim: reformatted usage info
+// macro: removed bold tag from output
+// purge: -o option will no longer remove the stack_pool 
+//
+// purge: -o option will no longer remove the macros registry
+// purge: added -m; clear macros
+// purge: changed -m; clear daemons to -d; clear daemons
+// purge: changed -d; purge xploits to -x; purge xploits
+// purge: updated usage info
+// ez_clip: added @t for target ip and @p for target port
+// eg: meta link @t @p
+//
+// exit: removed msg check as it was a bad idea
+// removed the import line for games.5pk
+//
 // games.5pk: is no more, it has been changed to contrib.5pk
 // contrib.5pk: will contain functions and commands contributed by the community
 // -- this is mainly because the other .5pks were running out of room and games.5pk had plenty of space
