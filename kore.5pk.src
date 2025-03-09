@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.0...(142.094)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.1...(143.069)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -180,7 +180,18 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.transmit(arg1)
 end function
 command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "outmon: monitor an output file. To end the running process, use the purge command, or note the daemon name printed on the screen and remove the corresponding line from /root/5hell.d (or delete the file entirely.)  If the file can't be created, then the process must be exited by ending the script."+char(10)+"Usage: outmon [path] [opt:interval]"+char(10)+"path -- path to file. default /virt/out.spc"+char(10)+"interval -- refresh rate. default 2 seconds, range(.1, 300)"+char(10)+"-- prints changes to a text file every [interval] seconds"
+	if arg1 == "help" or arg1 == "-h" then return "monitor || file monitor || output monitor"+char(10)+
+	"Outmon is a not very useful daemon that will monitor a given file for a change."+char(10)+
+	"When a change is detected, it will print the file contents, then resume monitoring."+char(10)+char(10)+
+	"<b>Usage: outmon [path] [opt:interval]"+char(10)+
+	"-- path is the path to the file to monitor; default /virt/out.spc"+char(10)+
+	"-- interval is the refresh rate; default 2 seconds, range(.1, 300)"+char(10)+
+	"-- prints changes to a text file every [interval] seconds"+char(10)+char(10)+
+	"-- to end the running process, use the command:<b> purge -m [opt:name]"+char(10)+
+   	"---- or note the daemon name printed on the screen and "+char(10)+
+    "---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
+    "---- or delete the file entirely"+char(10)+
+    "-- if the file cannot be created, then the process must be exited by with <b>ctrl+c"+char(10)
 	out_space = localmachine.File("/virt/out.spc")
 	if arg1 then out_space = globals.get_file(arg1)
 	if not out_space then return "outmon: "+ arg1 + ": file not found."
@@ -2472,7 +2483,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if DEBUG then print "debug: printing gco indexes..."
 		for index in gco.indexes
 			if DEBUG then print index
-			if index != "__isa" and index != "classID" and index != "macros" then gco.remove(index)
+			if index != "__isa" and index != "classID" and index != "macros" and index != "stack_pool" then gco.remove(index)
 		end for
 		return "custom object purged..."
 	end if
