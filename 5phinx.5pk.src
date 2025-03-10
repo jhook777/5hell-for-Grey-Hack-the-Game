@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.8.5"
+sphinx_version = "2.8.6"
 malp_version = "1.4.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.1...(153.879kb)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.2...(154.550kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -167,7 +167,20 @@ globals._ez_clip = function( in_prompt )
         end if
       end if
     end if
-    if DEBUG then print("b: "+@e)
+    // process escapes
+    // hi clover, if you see this, feel free to make it magic
+    if @e == "\@STOP" then in_prompt[e_indx] = "@STOP"
+    if @e == "\@a" then in_prompt[e_indx] = "@a"
+    if @e == "\@b" then in_prompt[e_indx] = "@b"
+    if @e == "\@c" then in_prompt[e_indx] = "@c"
+    if @e == "\""" then in_prompt[e_indx] = """"
+    if @e == "\@home" then in_prompt[e_indx] = "@home"
+    if @e == "\@tbuf" then in_prompt[e_indx] = "@tbuf"
+    if @e == "\@t" then in_prompt[e_indx] = "@t"
+    if @e == "\@p" then in_prompt[e_indx] = "@p"
+    if @e == "\@o" then in_prompt[e_indx] = "@o"
+    if @e == "\@B" then in_prompt[e_indx] = "@B"
+    if DEBUG then print("b: "+ in_prompt[e_indx])
   end for
   if DEBUG then print "ezclip: returning: "+in_prompt
   return in_prompt
@@ -3291,7 +3304,7 @@ sphinx_switch = function(resolve,tt)
     return true
   end if
   if resolve == "-" then
-    print(command.purge("-d"))
+    print(command.purge("-x"))
     return true
   end if
   if resolve == "+" or resolve == "=" then
