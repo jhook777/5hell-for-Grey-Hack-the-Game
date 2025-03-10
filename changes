@@ -25,6 +25,12 @@
 //
 // todo: kraken
 // todo: probe
+// 
+// ez_clip: all ez clips can be escaped with \
+// --eg: \@a , \" , \@o, \@home, etc... 
+// -- this will help with using variables in macros
+// -- allowing them to be set when the macro is run, not when it's made
+// purge: changed over two legacy "purge -d" internal calls to "purge -x"
 //
 // htop: reformatted usage info
 // outmon: reformatted usage info
