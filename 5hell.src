@@ -157,7 +157,7 @@ command.shell = function(input=null,mute=null)
     // remove/comment this line if you dont want the command buffer
     globals.command_buffer.push(prompt.join(" ").remove(" | return")) 
 
-    // process piping
+     // process piping
     if DEBUG then print "debug: pre_pipe prompt is: "+prompt
     // begin pipe control, edit with extreme caution.
     if prompt.indexOf("|") >= 0 then  
