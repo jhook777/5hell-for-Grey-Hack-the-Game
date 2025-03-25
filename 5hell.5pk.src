@@ -4,7 +4,7 @@
 ver = "4.0.3_falling_skies"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "152.538"
+size_of_5hell = "152.539"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
