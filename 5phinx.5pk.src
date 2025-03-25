@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.8.6"
-malp_version = "1.4.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.2...(154.550kb)</size>")
+sphinx_version = "2.8.7"
+malp_version = "1.4.6"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.3...(156.901kb)</size>")
 //localhost = get_shell
 //localmachine = get_shell.host_computer
 // localip = function()
@@ -40,38 +40,104 @@ globals._cascade = function()
   if get_custom_object.hasIndex("return_value") and get_custom_object.return_value == "#!#CASCADE#!#" then exit "#!#CASCADE#!#" else return 0
 end function
 
-// make this more better good by searching the whole filesystem
-hot_swap_libs = function()
-  globals.metaxploit = null
-  globals.apt_get = include_lib("/lib/aptclient.so")
-  if not globals.apt_get then globals.apt_get = include_lib(current_path+"/aptclient.so")
-  if not globals.apt_get then print("WARNING: aptclient.so not found in /lib")
-  globals.mlib = true
-  globals.metaxploit = include_lib("/lib/metaxploit.so")
-  if not globals.metaxploit then
-    globals.mlib = false
-    globals.metaxploit = include_lib(current_path+"/metaxploit.so")
-  end if
-  if not globals.metaxploit then print("WARNING: metaxploit.so not found")
-  globals.clib = true
-  globals.crypto = include_lib("/lib/crypto.so")
-  if not globals.crypto then
-    globals.clib = false
-    globals.crypto = include_lib(current_path+"/crypto.so")
-  end if
-  if not globals.crypto then print("WARNING: crypto.so not found")
+// // make this more better good by searching the whole filesystem
+hot_swap_libs = function() 
+    return globals.super_import
+//   globals.metaxploit = null
+//   globals.apt_get = include_lib("/lib/aptclient.so")
+//   if not globals.apt_get then globals.apt_get = include_lib(current_path+"/aptclient.so")
+//   if not globals.apt_get then print("WARNING: aptclient.so not found in /lib")
+//   globals.mlib = true
+//   globals.metaxploit = include_lib("/lib/metaxploit.so")
+//   if not globals.metaxploit then
+//     globals.mlib = false
+//     globals.metaxploit = include_lib(current_path+"/metaxploit.so")
+//   end if
+//   if not globals.metaxploit then print("WARNING: metaxploit.so not found")
+//   globals.clib = true
+//   globals.crypto = include_lib("/lib/crypto.so")
+//   if not globals.crypto then
+//     globals.clib = false
+//     globals.crypto = include_lib(current_path+"/crypto.so")
+//   end if
+//   if not globals.crypto then print("WARNING: crypto.so not found")
 
-  globals.meta_path = "/lib/metaxploit.so"
-  if globals.mlib == false then globals.meta_path = current_path+"/metaxploit.so"
-  globals.cryp_path = "/lib/crypto.so"
-  if globals.clib == false then globals.cryp_path = current_path+"/crypto.so"
+//   globals.meta_path = "/lib/metaxploit.so"
+//   if globals.mlib == false then globals.meta_path = current_path+"/metaxploit.so"
+//   globals.cryp_path = "/lib/crypto.so"
+//   if globals.clib == false then globals.cryp_path = current_path+"/crypto.so"
 
-  globals.metaLibVersion = "0.0.0"
-  globals.cryptoLibVersion = "0.0.0"
-  if globals.metaxploit then globals.metaLibVersion = globals.metaxploit.load(globals.meta_path).version
-  if globals.crypto and globals.metaxploit then globals.cryptoLibVersion = globals.metaxploit.load(globals.cryp_path).version
-  return 0
+//   globals.metaLibVersion = "0.0.0"
+//   globals.cryptoLibVersion = "0.0.0"
+//   if globals.metaxploit then globals.metaLibVersion = globals.metaxploit.load(globals.meta_path).version
+//   if globals.crypto and globals.metaxploit then globals.cryptoLibVersion = globals.metaxploit.load(globals.cryp_path).version
+   return 0
 end function
+
+// get_lib and super import! to replace hot swap libs. this version makes sure to use the highest version
+globals.import_lib = function(grep, filepath) // String: lib_name, File: search_path
+  if filepath.is_binary and not filepath.is_folder then
+    v = "?.?.?"
+    lib = null 
+    lib = include_lib(filepath.path)
+    if typeof(lib) == grep then 
+      if globals.hasIndex("MetaxploitLib") then 
+        v = globals.MetaxploitLib.lib.load(filepath.path).version 
+      else 
+        if typeof(lib) == "MetaxploitLib" then v = lib.load(filepath.path).version
+      end if
+      if DEBUG then print "found: "+lib+" v "+v
+      if globals.hasIndex(grep) then 
+        t = [v,globals[grep]["version"]]
+        t.sort
+        if v == t[-1] then globals[grep] = {"version":v,"lib":lib}
+      else 
+        globals[grep] = {"version":v,"lib":lib}
+      end if
+    end if
+  else
+    if filepath.is_folder then
+      folders = filepath.get_folders
+      files = folders + filepath.get_files
+      for file in files
+        import_lib(grep, file)
+      end for
+    end if
+  end if
+end function
+globals.super_import = function(import_this=0) // String: name; import requested lib instead of defaults
+	start_here = get_shell.host_computer.File("/") 
+	//
+  if import_this then 
+    lib_types = [import_this]
+  else 
+  	lib_types = [ "MetaxploitLib", "cryptoLib", "aptclientLib" ]
+  end if
+	for lib_type in lib_types
+		if DEBUG then print("Searching for: "+lib_type)
+		import_lib( lib_type, start_here ) 
+	end for
+	//
+	if DEBUG then print " - - - - - - - "
+	//
+	for lib in lib_types
+		if not globals.hasIndex(lib) then 
+			globals[lib] = {"version":"-.-.-","lib":null}
+			print "WARNING: "+lib+" not found!"
+		end if
+		if DEBUG then print globals[lib]["version"]+" v "+globals[lib]["lib"]
+	end for
+	//
+	globals.metaxploit = globals.MetaxploitLib.lib 
+	globals.metaLibVersion = globals.MetaxploitLib.version
+	//
+	globals.crypto = globals.cryptoLib.lib 
+	globals.cryptoLibVersion = globals.cryptoLib.version
+	//
+	globals.apt_get = globals.aptclientLib.lib 
+  return globals[lib_types[0]]
+end function
+// end super import
 
 globals._ez_clip = function( in_prompt )
   for e in in_prompt 
@@ -683,11 +749,11 @@ end function
 
 secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0) 
   glass_stat = "inactive"
-  active_s = colorCyan+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
+  active_s = colorCyan+"</b>"+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
   target_s = colorOrange+"pshell"+CT
   if p_validate(shl, "host_computer") then
     target_s = colorOrange+shl.host_computer.local_ip+"</b> @ <b>"+shl.host_computer.public_ip+CT
-    if shl.host_computer.local_ip == localmachine.local_ip and shl.host_computer.public_ip == localmachine.public_ip then active_s = colorOrange+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
+    if shl.host_computer.local_ip == localmachine.local_ip and shl.host_computer.public_ip == localmachine.public_ip then active_s = colorOrange+"</b>"+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
   end if
   if globals.GLASSPOOL then glass_stat = "active"
   print(char(10)+colorLightBlue+"<u>GLASSPOOL: "+CT+colorOrange+glass_stat+CT+"<b> Active Shell</b>: "+active_s+"</u>")
@@ -3083,6 +3149,7 @@ get_lib = function(waitFor=0,this_lib=null)
     print(colorOrange+"No network connection!")
     return "no_network"
   end if
+  if DEBUG then print "debug: calling net_use"
   if port == "router" then
     globals.net_session = metaxploit.net_use( address )
     if typeof(globals.net_session) == "netsession" then globals.routerLib = globals.net_session.dump_lib
