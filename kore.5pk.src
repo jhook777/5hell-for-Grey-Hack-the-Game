@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.2...(143.116)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.3...(143.687)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -11,6 +11,8 @@ command.kore = function(arg1,arg2,arg3,arg4)
     "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | lock"+char(10)+
 	"NOTE: kore -s will remove <b>all</b> copies of Bank.txt and Mail.txt"+char(10)+
 	"-- please rename these files if you wish to keep them"+char(10)+char(10)+
+	"Usage: <b>kore [-S],/b> -- paranoid secure; works as above plus:"+char(10)+
+	"-- removes /bin, /usr, and /home"+char(10)+
     "Usage: <b>kore [--hdd]</b> -- prompts for hdd size in bytes"+char(10)+
     "-- writes size to /virt/hdd.io"+char(10)+
     "-- bios uses this to report remaining hdd space"+char(10)+char(10)+
@@ -19,7 +21,9 @@ command.kore = function(arg1,arg2,arg3,arg4)
     
     make_rkit = function()
 		
-		if globals.instance then pro_path = globals.instance.path else return "kore: 5hell instance deleted. Unable to automate rkit construction."+char(10)+"kore: run 5hell from the latest version to build rkit"+char(10)+"kore: please do not delete the binary until kore -r is complete"
+		if globals.instance then pro_path = globals.instance.path else return "kore: 5hell instance deleted. Unable to automate rkit construction."+char(10)+
+		"kore: run 5hell from the latest version to build rkit"+char(10)+
+		"kore: please do not delete the binary until kore -r is complete"
 		print("Validating "+home_dir+"/rkit...")
 		print(command.mkdir(home_dir+"/rkit"))
 		if not globals.get_file(home_dir+"/rkit") then return "kore: failed to create rkit: permission denied"
@@ -72,7 +76,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		return 0
 	end function
 
-    secure_it = function()
+    secure_it = function(a)
         print colorGold+"<size=75%>kore: "+colorGreen+"running secure protocol..."
         print colorGold+"<size=75%>kore: "+colorGreen+"</b>changing ownership of all files to root..."
 		c = null
@@ -96,9 +100,18 @@ command.kore = function(arg1,arg2,arg3,arg4)
 			if DEBUG and typeof(f) == "file" then print "debug: filename: "+f.name
 			if typeof(f) == "file" then print "<size=75%>" + command.rm(f) 
 		end for
-		print "<size=75%>kore: removing guest folder..."
-		print "<size=75%>"+command.rm("-r","/home/guest")
-		print "<size=75%>-- consider manually deleting /home"
+		if a == "-S" then 
+			print colorRed+"<size=75%></b>kore</color>: removing home folder... "
+			print "<size=75%>"+command.rm("-r","/home")
+			print colorRed+"<size=75%></b>kore</color>: removing bin folder..."
+			print "<size=75%>"+command.rm("-r","/bin")
+			print colorRed+"<size=75%></b>kore:</color> removing usr folder..."
+			print "<size=75%>"+command.rm("-r","/usr")
+		else 
+			print "<size=75%>kore: removing guest folder..."
+			print "<size=75%>"+command.rm("-r","/home/guest")
+			print "<size=75%>-- consider manually deleting /home if it is not in use"
+		end if
 		print "<size=75%>kore: locking system..."
         print "<size=75%>" + command.perms("lock","all")
         return 0
@@ -118,10 +131,10 @@ command.kore = function(arg1,arg2,arg3,arg4)
         return 0
     end function
 
-    switch(arg1)
+    switch(arg1.lower)
         case("-r",@make_rkit)
         case("--rkit",@make_rkit)
-        case("-s",@secure_it)
+        case("-s",@secure_it(arg1))
         case("--secure",@secure_it)
         case("--hdd",@report_hdd)
     default(@usage)
