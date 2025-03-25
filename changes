@@ -15,7 +15,7 @@
 // add custom theme config
 // connect_service increases trace time: add something for that
 // add a way to tell grep to ignore specific folders
-// expand tree -f to take both path and object as params (jk have to start over)
+// expand tree -f to take both path and object as params (jk have to start over) 
 // -- kinda fixed this in the regular tree command...
 // update 5phinx F1 help info: remove or correct outdated info
 // scp falsely reports failure sometimes: track this down
@@ -25,6 +25,25 @@
 //
 // todo: kraken
 // todo: probe
+//
+// 5hell.5pk: changed the load order of globals and 5phinx/contrib to accommodate the super_import change
+// 5hell.5pk/5phinx.5pk: will now use globals.super_import (located in 5phinx.5pk) to import libs
+// -- this replaces hot_swap_libs used by aptm
+// -- this will ensure the latest lib version is loaded on startup
+// -- this will load metaxploit, crypto, and aptclient from any directory with any filename
+// -- the latest version will be used if multiples are detected
+// -- this will also be implemented into: meta -i and meta restore
+// -- the old globals.metaxploit, et al., will eventually be deprecated and replaced by the above
+// aptm: changed error text
+// help: added help daemon
+// -- updated help alias and help convention
+// ---- added information about escaping quotes and @-aliases
+// if: returns reference when result is a raw (non command) function
+// chop: fixed missing char(10) that was preventing full usage info from printing
+// scpm: removed blod tag from local ip in trajectory prompt to make it a little easier to read
+// -- hopefully :\
+// kore: added -S for a more paranoid secure routine
+// kore: fixed weird bug that was causing kore -s to run twice in some cases
 // 
 // ez_clip: all ez clips can be escaped with \
 // --eg: \@a , \" , \@o, \@home, etc... 
