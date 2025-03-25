@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.2...(151.669)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.3...(153.167)</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -56,8 +56,8 @@ command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if not output then return "poke: write error"
 	if arg2 and output.has_permission("w") then
     	if arg2 == "!!nullify!!23tqg43qg34g!!" then arg2 = ""
-    		if output.is_binary then
-      		return "poke: can't poke a binary file."
+    	if output.is_binary then 
+			return "poke: can't poke a binary file."
     	else
       		output.set_content(arg2)
     	end if
@@ -141,7 +141,7 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	"-- default: char(32) aka a sapce"+char(10)+
 	"-- to use char(10) as a delimiter pass ""/n"" or a piped newline for the delimiter parameter"+char(10)+
 	"-- one way to pipe a newline is: <b>code -c 10 | clipa</b> -- this will place a newline in the clipboard"+char(10)+
-	"---- then:<b> chop [path] [index] @a [outpath]"
+	"---- then:<b> chop [path] [index] @a [outpath]"+char(10)+
 	"<color=green>param: <color=white>output_filename</color> -- name for outfile"+char(10)+
 	"-- prompts for output filename if not supplied"+char(10)+
 	"-- outputs to current path with filename: output_filename "+char(10)+
@@ -719,8 +719,31 @@ command.make = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
-	if arg1 == "-h" or arg1 == "help" then return "<u>Apt-Get Menu</u>"+char(10)+"Usage: aptm -- apt-get menu: "+char(10)+"-- manage apt functions"+char(10)+"-- add/remove/search repositories."+char(10)+"Usage: aptm [piped_aptclientLib] -- change scope of aptm to supplied lib"+char(10)+"-- eg: bios -a | cob set apt | exit"+char(10)+"-- when used on a remote 'silent launch' of 5hell"+char(10)+"---- pipes aptclientLib to the custom object then exits back to original 5hell"+char(10)+"-- cob get apt | aptm"+char(10)+"---- pipes aptclientLib to aptm and changes scope of aptm to remote"+char(10)+"Advanced: press [7] hot_swap_libs in aptm "+char(10)+"-- reloads meta/crypto/apt to use latest versions after updating"
-  	if not globals.apt_get then return colorRed+"Error:aptclient.so not found in /lib or current_path"+CT
+	if arg1 == "-h" or arg1 == "help" then return "<u>Apt-Get Menu</u>"+char(10)+"Usage: aptm -- apt-get menu: "+char(10)+
+	"-- manage apt functions"+char(10)+
+	"-- add/remove/search repositories."+char(10)+
+	"Usage: aptm [piped_aptclientLib] -- change scope of aptm to supplied lib"+char(10)+
+	"-- eg: bios -a | cob set apt | exit"+char(10)+
+	"-- when used on a remote 'silent launch' of 5hell"+char(10)+
+	"---- pipes aptclientLib to the custom object then exits back to original 5hell"+char(10)+
+	"-- cob get apt | aptm"+char(10)+
+	"---- pipes aptclientLib to aptm and changes scope of aptm to remote"+char(10)+
+	"Advanced: press [7] hot_swap_libs in aptm "+char(10)+
+	"-- reloads meta/crypto/apt to use latest versions after updating"+char(10)+char(10)+
+	"APT command line options (skips the menu):"+char(10)+
+	"Usage: <b>aptm [-i] [filename] [opt: path] </b>-- install filename, if it exists"+char(10)+
+	"-- if not provided, the install path will be the repository's default"+char(10)+
+	"-- this is usually /bin or /lib or /usr/bin"+char(10)+char(10)+
+	"Usage: <b>aptm [-a] [repo_ip] </b>-- add a repository's ip to /etc/apt/sources.txt"+char(10)+char(10)+
+	"Usage: <b>aptm [-d] [repo_ip] </b>-- remove a repository's ip from /etc/apt/sources.txt"+char(10)+char(10)+
+	"Usage: <b>aptm [-u] [/path/filename] </b>-- check for a new version of a file"+char(10)+char(10)+
+	"Usage: <b>aptm [-s] [opt:filename] </b>-- search repositorys for filename"+char(10)+
+	"-- shows all available files if no filename is provided"+char(10)+char(10)+
+	"Usage: <b>aptm [--hotswap] </b>-- reload metaxploit.so, crypto.so, and aptclient.so from disk"+char(10)+
+	"-- searches for and loads the latest version of each lib <b>on disk"+char(10)+
+	"---- does not run aptm upgrade"+char(10)+
+	"-- this is the same include_lib routine executed at launch"
+  	if not globals.apt_get then return "aptm: "+colorRed+"Error: no aptclientLib loaded"+CT
   	if GLASSPOOL then print(colorOrange+"Ignores Glasspool."+CT)
 	// apt menu by Plu70
 	if arg1 and typeof(arg1) == "aptclientLib" then
@@ -732,34 +755,34 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		return 0
 	end function
 	apt.check_upgrade = function()
-    chk_upg = function(check)
-      if apt_get.check_upgrade(check) then
-        sp = check.split("/")
-        nm = sp.pop
-        if sp != [] then
+		chk_upg = function(check)
+			if apt_get.check_upgrade(check) then
+				sp = check.split("/")
+				nm = sp.pop
+				if sp != [] then
 					print("__")
-          apt_get.install(nm, sp.join("/"))
-        else
+					apt_get.install(nm, sp.join("/"))
+				else
 					print("__")
-          apt_get.install(nm)
-        end if
-        return "apt-get: "+check+" upgrade complete"
-      else
-        return "apt-get: "+check+" no upgrades found"
-      end if
-    end function
-	  cup = user_input("upgrade file_name or /path"+char(10)+":> ")
-    if not cup or cup == "" or cup == " " then return
-    f = get_shell.host_computer.File(cup)
-    if f and f.is_folder then
-      files = f.get_files
-			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
-      for sub in files
-        print(chk_upg(sub.path))
-      end for
-      return "Batch complete."
-    end if
-    return chk_upg(cup)
+					apt_get.install(nm)
+				end if
+				return "apt-get: "+check+" upgrade complete"
+			else
+				return "apt-get: "+check+" no upgrades found"
+			end if
+		end function
+	  	cup = user_input("upgrade file_name or /path"+char(10)+":> ")
+    	if not cup or cup == "" or cup == " " then return
+		f = get_shell.host_computer.File(cup)
+		if f and f.is_folder then
+		files = f.get_files
+				print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
+		for sub in files
+			print(chk_upg(sub.path))
+		end for
+		return "Batch complete."
+		end if
+    	return chk_upg(cup)
 	end function
 	apt.add_repo = function()
 	  return apt_get.add_repo(user_input("add repo ip:> "))
@@ -788,23 +811,44 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	apt.update = function()
 	  return apt_get.update
 	end function
-	apting = true
+	
+	// check for cli launch args
+// switch(variable)
+// 	case( condition, @action )
+//  case( condition, ( action ) )
+//  case(...)
+// default( @action )
+	apting = false 
+	paf = function()
+		outer.apting = true 
+	end function
+	switch(arg1)
+		case("-u", @apt.check_upgrade)
+		case("-i", @apt.install)
+		case("-a", @apt.add_repo)
+		case("-d", @apt.del_repo)
+		case("-s", @apt.search)
+		case("--hotswap", @apt.hot_swap)
+	default( @paf )
+	
+
+	//apting = true
 	while apting
-	  apt.update
-	  i = 0
-	  for c in apt.indexes
-		 print("["+colorWhite+i+CT+"] - apt-get."+"<b>"+c+"</b>")
-	    i = i + 1
-	  end for
-	  //print("["+colorWhite+i+CT+"] - Exit")
+		apt.update
+		i = 0
+		for c in apt.indexes
+			print("["+colorWhite+i+CT+"] - apt-get."+"<b>"+c+"</b>")
+			i = i + 1
+		end for
+		//print("["+colorWhite+i+CT+"] - Exit")
 		a_choice = user_input("(q=quit)||: ",0,1).to_int
-	  if a_choice == 0 or a_choice == "q" then return 0
-	  if typeof(a_choice) != "number" or a_choice >= i or a_choice < 0 then continue
-	  print(apt.indexes[a_choice])
-	  catch = apt[apt.indexes[a_choice]]
-	  print(catch)
-	  print("_____________________________________________")
-	  print
+		if a_choice == 0 or a_choice == "q" then return 0
+		if typeof(a_choice) != "number" or a_choice >= i or a_choice < 0 then continue
+		print(apt.indexes[a_choice])
+		catch = apt[apt.indexes[a_choice]]
+		print(catch)
+		print("_____________________________________________")
+		print
 	end while
 	return 0
 end function
@@ -2437,7 +2481,7 @@ command["if"] = function(arg1,arg2,arg3,arg4)
 	else 
 		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then res = s(arg2+" | return",1)
 	end if
-	if @res isa string then return res.trim else return res
+	if @res isa string then return res.trim else return @res
 end function
 command.sl = function(arg1,arg2,arg3,arg4)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Symlink || symbolic link || file path"+char(10)+
