@@ -26,6 +26,17 @@
 // todo: kraken
 // todo: probe
 //
+// string: fixed crash in -N no_parse option: p_str -> sp_str
+// chop: added 'split' search param to usage info so ppl looking for 'split' can find it
+// -- why did a command that is all about split not have split in the usage info? fiik
+// aptm: finished command line options for aptm
+// aptm: will correctly check for updates and not update up-to-date libs
+// -- remember that you can give aptm update a path to any file or directory
+// -- passing a directory updates all libs in that directory
+// kore: will run silentclean as part of [-s|-S] secure routine
+// -- seriously, this whole time I thought it already was :/
+// kore: will no longer run kore -s before kore -r
+//
 // 5hell.5pk: changed the load order of globals and 5phinx/contrib to accommodate the super_import change
 // 5hell.5pk/5phinx.5pk: will now use globals.super_import (located in 5phinx.5pk) to import libs
 // -- this replaces hot_swap_libs used by aptm
