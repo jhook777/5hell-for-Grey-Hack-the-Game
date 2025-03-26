@@ -1,21 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.8.7"
-malp_version = "1.4.6"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.3...(156.901kb)</size>")
-//localhost = get_shell
-//localmachine = get_shell.host_computer
-// localip = function()
-//   return localmachine.local_ip
-// end function
-// pubip = function()
-//   return localmachine.public_ip
-// end function
-//shell = get_shell // compatibility with plugins
-//currentPath = current_path
-
-//cryptools = globals.crypto
+sphinx_version = "2.8.8"
+malp_version = "1.4.7"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.4...(153.713kb)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -40,38 +28,9 @@ globals._cascade = function()
   if get_custom_object.hasIndex("return_value") and get_custom_object.return_value == "#!#CASCADE#!#" then exit "#!#CASCADE#!#" else return 0
 end function
 
-// // make this more better good by searching the whole filesystem
+// // make this more better good by searching the whole filesystem // done
 hot_swap_libs = function() 
     return globals.super_import
-//   globals.metaxploit = null
-//   globals.apt_get = include_lib("/lib/aptclient.so")
-//   if not globals.apt_get then globals.apt_get = include_lib(current_path+"/aptclient.so")
-//   if not globals.apt_get then print("WARNING: aptclient.so not found in /lib")
-//   globals.mlib = true
-//   globals.metaxploit = include_lib("/lib/metaxploit.so")
-//   if not globals.metaxploit then
-//     globals.mlib = false
-//     globals.metaxploit = include_lib(current_path+"/metaxploit.so")
-//   end if
-//   if not globals.metaxploit then print("WARNING: metaxploit.so not found")
-//   globals.clib = true
-//   globals.crypto = include_lib("/lib/crypto.so")
-//   if not globals.crypto then
-//     globals.clib = false
-//     globals.crypto = include_lib(current_path+"/crypto.so")
-//   end if
-//   if not globals.crypto then print("WARNING: crypto.so not found")
-
-//   globals.meta_path = "/lib/metaxploit.so"
-//   if globals.mlib == false then globals.meta_path = current_path+"/metaxploit.so"
-//   globals.cryp_path = "/lib/crypto.so"
-//   if globals.clib == false then globals.cryp_path = current_path+"/crypto.so"
-
-//   globals.metaLibVersion = "0.0.0"
-//   globals.cryptoLibVersion = "0.0.0"
-//   if globals.metaxploit then globals.metaLibVersion = globals.metaxploit.load(globals.meta_path).version
-//   if globals.crypto and globals.metaxploit then globals.cryptoLibVersion = globals.metaxploit.load(globals.cryp_path).version
-   return 0
 end function
 
 // get_lib and super import! to replace hot swap libs. this version makes sure to use the highest version
@@ -749,11 +708,11 @@ end function
 
 secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0) 
   glass_stat = "inactive"
-  active_s = colorCyan+"</b>"+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
+  active_s = colorCyan+"</b>"+localmachine.local_ip+" @ <b>"+localmachine.public_ip+CT
   target_s = colorOrange+"pshell"+CT
   if p_validate(shl, "host_computer") then
-    target_s = colorOrange+shl.host_computer.local_ip+"</b> @ <b>"+shl.host_computer.public_ip+CT
-    if shl.host_computer.local_ip == localmachine.local_ip and shl.host_computer.public_ip == localmachine.public_ip then active_s = colorOrange+"</b>"+localmachine.local_ip+"</b> @ <b>"+localmachine.public_ip+CT
+    target_s = colorOrange+"</b>"+shl.host_computer.local_ip+" @ <b>"+shl.host_computer.public_ip+CT
+    if shl.host_computer.local_ip == localmachine.local_ip and shl.host_computer.public_ip == localmachine.public_ip then active_s = colorOrange+"</b>"+localmachine.local_ip+" @ <b>"+localmachine.public_ip+CT
   end if
   if globals.GLASSPOOL then glass_stat = "active"
   print(char(10)+colorLightBlue+"<u>GLASSPOOL: "+CT+colorOrange+glass_stat+CT+"<b> Active Shell</b>: "+active_s+"</u>")
@@ -1555,10 +1514,11 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
                                                             "[1] open    [2] redirect   [3] upload rkit"+char(10)+
                                                             "[0] to cob  [d] decompile  [b] fetch binaries"
           if typeof(buffer_selection) == "ftpshell" then 
-            print "[disabled, pending adjustment...]"
-            print "[g] get [p] put [c] host computer"
-            fselect = user_input("[s] start (ftp) terminal ||:",0,1)
-            print "stub"
+            //print "[disabled, pending adjustment...]"
+            //print "[g] get [p] put [c] host computer"
+            //fselect = user_input("[s] start (ftp) terminal ||:",0,1)
+            //print "stub"
+            print command.code(buffer_selection)
             continue
           end if
           choice = user_input("(<<b>enter</b>>|q=quit)||: ",0,1)
@@ -1624,7 +1584,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               l_path = command.grep("-p","5hell",buffer_selection)
               if l_path == "No 5hell found, aborting..." then continue else print colorCyan+"located 5hell in "+l_path
             end if
-            l_para = user_input(colorWhite+"Optional launch parameters: "+char(10)+"@a=clipa, @b=clipb, @c=clipc "+"<b><enter></b>=skip):> "+colorWhite)
+            l_para = user_input(colorWhite+"</b>Optional launch parameters: "+char(10)+"(@a=clipa, @b=clipb, @c=clipc, <b><enter></b>=skip)"+char(10)+":> "+colorWhite)
             if l_para == "@a" then l_para = globals.clipboard_alpha
             if l_para == "@b" then l_para = globals.clipboard_beta
             if l_para == "@c" then l_para = globals.clipboard_gamma
@@ -1649,27 +1609,6 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
           if choice == "4" then
             command.glasspool(buffer_selection)
             continue
-            // print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
-            // hold_shell = globals.shell
-            // globals.shell = buffer_selection
-            // globals.localmachine = shell.host_computer
-            // if globals.localmachine and globals.shell then
-            //   globals.GLASSPOOL = globals.GLASSPOOL + 1
-            //   print(colorLightBlue+"GLASSPOOL:"+CT+colorWhite+" initialization successful. "+CT+char(10)+colorOrange+"Type <u>return</u></b> to deactivate (exit or quit to terminate program)"+CT)
-            //   print(colorOrange+"Warning: filesys mirroring - many commands may work differently than expected or not at all."+CT)
-            //   if typeof(shell) == "ftpshell" then print(colorOrange+"Warning: many, many commands will not work at all with ftpshells!"+CT)
-            //   print("Type: <b><u>return</u></b> to deactivate and return to memory alpha.")
-            //   command.shell
-            //   globals.shell = hold_shell
-            //   globals.localmachine = globals.shell.host_computer
-            //   globals.GLASSPOOL = globals.GLASSPOOL - 1
-            //   print(colorLightBlue+"GLASSPOOL: "+colorOrange+" deactivating..."+CT)
-            //   globals.update_path
-            //   continue
-            // else
-            //   print(colorOrange+"...glasspool failed to initialize. Check permissions."+CT)
-            //   continue
-            // end if
           end if
           if choice == "7" then 
             secure_copy(buffer_selection)
@@ -1707,7 +1646,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
             if go.lower == "n" then
               continue
             else
-              par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 "" cerebrum | brutus """+char(10)+":> ").trim // add preset options
+              par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 brutus"+char(10)+":> "+colorWhite).trim // add preset options
               print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
               print(colorWhite+"<size=75%><u>Injecting process /home/guest/rkit/5hell into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
               globals.stack_pool("up")
