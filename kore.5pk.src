@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.3...(143.687)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.4...(143.768)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -76,7 +76,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		return 0
 	end function
 
-    secure_it = function(a)
+    secure_it = function()
         print colorGold+"<size=75%>kore: "+colorGreen+"running secure protocol..."
         print colorGold+"<size=75%>kore: "+colorGreen+"</b>changing ownership of all files to root..."
 		c = null
@@ -100,7 +100,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
 			if DEBUG and typeof(f) == "file" then print "debug: filename: "+f.name
 			if typeof(f) == "file" then print "<size=75%>" + command.rm(f) 
 		end for
-		if a == "-S" then 
+		if outer.arg1 == "-S" then 
 			print colorRed+"<size=75%></b>kore</color>: removing home folder... "
 			print "<size=75%>"+command.rm("-r","/home")
 			print colorRed+"<size=75%></b>kore</color>: removing bin folder..."
@@ -112,6 +112,8 @@ command.kore = function(arg1,arg2,arg3,arg4)
 			print "<size=75%>"+command.rm("-r","/home/guest")
 			print "<size=75%>-- consider manually deleting /home if it is not in use"
 		end if
+		print "<size=75%>kore: running silentclean..."
+		print command.silentclean
 		print "<size=75%>kore: locking system..."
         print "<size=75%>" + command.perms("lock","all")
         return 0
@@ -134,7 +136,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
     switch(arg1.lower)
         case("-r",@make_rkit)
         case("--rkit",@make_rkit)
-        case("-s",@secure_it(arg1))
+        case("-s",@secure_it)
         case("--secure",@secure_it)
         case("--hdd",@report_hdd)
     default(@usage)
