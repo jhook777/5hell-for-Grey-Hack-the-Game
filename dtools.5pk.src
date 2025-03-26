@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.3...(153.167)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.4...(154.170)</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -129,7 +129,7 @@ command.dfit = function(arg1, arg2, arg3=0, arg4=0)
 	return (char(10)+"File "+outFileName+" saved. ")
 end function
 command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<u><b>CHOP || DELIMITER || FILE TOOLS || clipboard tools"+char(10)+
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<u><b>CHOP || DELIMITER || FILE TOOLS || clipboard tools || split"+char(10)+
 	"Usage: chop [input] [index] [delimiter] [output]"+char(10)+
 	colorGreen+"Usage: chop [path_to_file|@clipa|b|c] [index] [delimiter] [output_filename] -- chop a file"+char(10)+
 	"<color=green>param: <color=white>path_to_file</color> -- file to chop"+char(10)+
@@ -153,7 +153,7 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	"* and: index is 1, delimiter is: 'da'"+char(10)+
 	"* the output would be:"+char(10)+char(10)+
 	"boom"+char(10)+
-	"dy"+char(10)+
+	"ddy"+char(10)+
 	"bra"+char(10)
 	if DEBUG then print "debug: in chop"
 	file = null
@@ -755,8 +755,11 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		return 0
 	end function
 	apt.check_upgrade = function()
+		apt.update
 		chk_upg = function(check)
-			if apt_get.check_upgrade(check) then
+			need_up = apt_get.check_upgrade(check)
+			if need_up == check+" does not exist in this filesystem" and check.split("/").len == 1 then need_up = apt_get.check_upgrade("/lib/"+check)
+			if need_up == 1 then
 				sp = check.split("/")
 				nm = sp.pop
 				if sp != [] then
@@ -768,60 +771,70 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 				end if
 				return "apt-get: "+check+" upgrade complete"
 			else
-				return "apt-get: "+check+" no upgrades found"
+				return "apt-get: "+check+" no upgrades found"+char(10)+"-- "+need_up
 			end if
 		end function
-	  	cup = user_input("upgrade file_name or /path"+char(10)+":> ")
-    	if not cup or cup == "" or cup == " " then return
-		f = get_shell.host_computer.File(cup)
+		if typeof(arg2) == "string" and arg2 != "" then cup = arg2 else cup = user_input("upgrade file_name or /path"+char(10)+":> ")
+    	if not cup or cup == "" or cup == " " then return print("aborting...")
+		if DEBUG then print "debug: aptm: searching for: "+cup
+		//f = get_shell.host_computer.File(cup)
+		f = globals.get_file(cup)
 		if f and f.is_folder then
-		files = f.get_files
-				print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
-		for sub in files
-			print(chk_upg(sub.path))
-		end for
-		return "Batch complete."
+			files = f.get_files
+			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
+			for sub in files
+				print(chk_upg(sub.path))
+			end for
+			return print("Batch complete.")
 		end if
-    	return chk_upg(cup)
+    	if f then return print(chk_upg(f.path)) else return print(chk_upg(cup)) // when using a remote aptclientlib, a file may be on the target that is not on the attacking machine
 	end function
 	apt.add_repo = function()
-	  return apt_get.add_repo(user_input("add repo ip:> "))
+		apt.update
+	  	if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = user_input("add repo ip:> ")
+		  return print(apt_get.add_repo(a))
 	end function
 	apt.del_repo = function()
 		apt.update
-	  return apt_get.del_repo(user_input("del repo ip:> "))
+		if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = user_input("del repo ip:> ")
+		return print(apt_get.del_repo(a)) 
 	end function
 	apt.install = function()
-	  return apt_get.install( user_input("install:> "), user_input("directory:> ") )
+		if typeof(arg2) == "string" and arg2 != "" then return print(apt_get.install(arg2,arg3)) else return print(apt_get.install(user_input("install:> "), user_input("directory:> ")))
 	end function
 	apt.search = function()
 		apt.update
-	  return apt_get.search(user_input("search:> "))
+		if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = (user_input("search:> "))
+		return print(apt_get.search(a))
 	end function
 	apt.show = function()
 		apt.update
 		print("_____________________________________________"+char(10))
 		rb = apt_get.show(user_input("show repo:> "))
-	  return char(10)+rb
+	  return print(char(10)+rb)
 	end function
 	apt.hot_swap = function()
-		hot_swap_libs
-		return "Libraries hot_swapped."
+		globals.super_import
+		print "Libraries hot_swapped."
+		return 1
 	end function
 	apt.update = function()
-	  return apt_get.update
+	  return print(apt_get.update)
 	end function
 	
 	// check for cli launch args
-// switch(variable)
-// 	case( condition, @action )
-//  case( condition, ( action ) )
-//  case(...)
-// default( @action )
 	apting = false 
+	if not arg2 then arg2 = ""
+	if not arg3 then arg3 = ""
 	paf = function()
 		outer.apting = true 
+		outer.arg2 = 0
 	end function
+	// switch(variable)
+		// 	case( condition, @action )
+		//  case( condition, @action )
+		//  case(...)
+	// default( @action )
 	switch(arg1)
 		case("-u", @apt.check_upgrade)
 		case("-i", @apt.install)
@@ -831,7 +844,6 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		case("--hotswap", @apt.hot_swap)
 	default( @paf )
 	
-
 	//apting = true
 	while apting
 		apt.update
@@ -845,8 +857,8 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		if a_choice == 0 or a_choice == "q" then return 0
 		if typeof(a_choice) != "number" or a_choice >= i or a_choice < 0 then continue
 		print(apt.indexes[a_choice])
-		catch = apt[apt.indexes[a_choice]]
-		print(catch)
+		ap = apt[apt.indexes[a_choice]]
+		ap
 		print("_____________________________________________")
 		print
 	end while
@@ -2289,7 +2301,7 @@ command.string = function(arg1,arg2,arg3,arg4)
 	end function
 	_no_parse_input = function( instring )
 		if typeof( instring ) != "string" then return "string: expects [-N] [string_input]"
-		p_str = instring.split(char(10))
+		sp_str = instring.split(char(10))
 		output = []
 		for line in sp_str 
 			output.push("<noparse>"+line)
