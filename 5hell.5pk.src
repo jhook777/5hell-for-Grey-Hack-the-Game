@@ -1,7 +1,7 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.0.3_falling_skies"
+ver = "4.0.4_falling_skies"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
 size_of_5hell = "152.539"
