@@ -26,6 +26,29 @@
 // todo: kraken
 // todo: probe
 //
+// malp: fixed crash in file handler copy routine
+// mail: added command line login
+// -- mail [email] [opt:password]
+// mail: added command line brutus login
+// -- mail [email] -brutus
+// mail: added command line spool option
+// -- mail spool [opt:path]
+// -- must be logged in to spool mail
+// ez_clip: fixed a crashed when when using @B on a bad index; missing b_err
+// 5hell.src: changed load order of prelaunch stuffs:
+// -- stack_pool now loads before do.rc to prevent a negative stackpool when do.rc calls 'run'
+// meta: load (and load_lib) will take a full_path as well as a filename
+// -- previously it only loaded libs in /lib, now you can load any lib
+// -- be aware you may only EXPLOIT libs in /lib
+// -- but checking things like version and patched status they don't need to be
+// meta: updated usage info for the above
+// rclean: updated usage info regarding using a premade 'silentclean' scrub file
+// -- poorly documented feature needed more attention
+// -- will now copy the scrub file over the log instead of moving it
+// silentclean: added the above to silentclean
+// -- will now search for a file named 'silentclean' and use it if it finds it
+// -- will move the scrub file over the log instead of copying it
+//
 // string: fixed crash in -N no_parse option: p_str -> sp_str
 // chop: added 'split' search param to usage info so ppl looking for 'split' can find it
 // -- why did a command that is all about split not have split in the usage info? fiik
