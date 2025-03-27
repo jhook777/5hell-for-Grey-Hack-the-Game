@@ -1,10 +1,10 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.0.4_falling_skies"
+ver = "4.0.5_falling_skies"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "152.539"
+size_of_5hell = "153.633"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -41,7 +41,7 @@ globals.tagged_for_scp = ""
 globals.backup_meta = null
 //globals.services = {}
 
-targ = {"ip":"0.0.0.0", "pt":0} // edit this to match your server or pass ip and port when calling transmit or target ip and port
+targ = {"ip":"0.0.0.0", "pt":0} // legacy crap, targetIP and targetPort and HOME_SERVER make this superfluous. also pretty sure it's not documented
 if params and params.len > 0 then targ.ip = params[0]
 if params and params.len > 1 then targ.pt = params[1].to_int
 //globals.localip = localmachine.local_ip
@@ -113,7 +113,9 @@ CT = "</color></b>"
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/5phinx.5pk") // override=5phinx.5pk
 
-globals.super_import // located in 5phinx.5pk; import all libs
+globals.super_import // located in 5phinx.5pk; include_lib latest of: metaxloit, crypto, aptclient
+// -- sets globals.metaxploit, globals.crypto, globals.apt_get 
+// -- this will be consolidated soon(tm)
 //
 // import contrib -- this contains shared functions and commands contributed by the community
 import_code("/root/src/contrib.5pk") // override=contrib.5pk
@@ -974,15 +976,15 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg1) == "string" then 
 			globals.stack_pool("up")
 			cc = arg2.launch(arg1, parameters)
-			_cascade // exit if cascade
 			globals.stack_pool("down")
+			_cascade // exit if cascade
 			return cc
 		end if
 		if typeof(arg1) == "file" then 
 			globals.stack_pool("up")
-			cc = arg2.launch(arg1.path, parameters)
-			_cascade // exit if cascade
+			cc = arg2.launch(arg1.path, parameters)			
 			globals.stack_pool("down")
+			_cascade // exit if cascade
 			return cc
 		end if
 		return "run: arg1 should be file or path to file"
@@ -996,8 +998,8 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
 		globals.stack_pool("up")
 		cc = arg3.launch(run_path, parameters)
-		_cascade // exit if cascade
 		globals.stack_pool("down")
+		_cascade // exit if cascade
 		return cc
 	end if
 	file = arg1
@@ -1010,8 +1012,8 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	globals.stack_pool("up")
 	cc = shell.launch(file.path, parameters)
-	_cascade // exit if cascade
 	globals.stack_pool("down")
+	_cascade // exit if cascade
 	return cc
 end function
 command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
@@ -1064,7 +1066,7 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 	if pick == "3" then return g3
 	return 0
 end function
-command.mail = function(arg1, arg2, arg3=0, arg4=0)
+command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return colorGreen+"<u></color>"+colorGold+"Mail || metaMail || herme5 || hermes || mail client"+char(10)+
 	"herme5 mail client: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+
 	"-- name your function<b> command.mail </b> to overwrite this one."+char(10)+
@@ -1088,19 +1090,18 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
             if globals.inbox then mail.user = globals.mail_user
             mail.pass = null
             if globals.inbox then mail.pass = true
+			mail.a1 = outer.arg1 
+			mail.a2 = outer.arg2
           
             mail.pwn = function(arg)
               dsize = globals.dict_a.len
-              mode = user_input("[<b>0</b>] Onboard Dictionary -- [1] /root/tables/tp ")
+              mode = user_input("[<b>0</b>] Onboard Dictionary -- [1] /root/tables/tp "+char(10)+"||: ",0,1)
               if mode == "0" or mode == "" then
-                reverse_it = user_input("[0] start at dict_a[0]  --  [1] start at dict_a[-1] "+char(10)+"(type anything else to abort) ||:",0,1 )
-                if reverse_it == "1" or reverse_it == "0" then
-                  reverse_it = reverse_it.to_int
-                else
-                  return 0
-                end if
-                show_count = user_input("Show the count? ["+dsize+"] [y/N] ||: ",0,1)
-                show_pass = user_input("Show passwords? [y/N] ||: ",0,1)
+                reverse_it = user_input("[<b>0</b>] start at dict_a[0]  --  [1] start at dict_a[-1] "+char(10)+"(type [q] abort) ||: ",0,1 )
+                if reverse_it.lower == "q" then return "aborting..."
+				if reverse == "1" then reverse_it = 1 else reverse_it = 0
+                show_count = user_input("Show the count? ["+dsize+"] [y/<b>N</b>] ||: ",0,1)
+                show_pass = user_input("Show passwords? [y/<b>N</b>] ||: ",0,1)
                 if show_pass.lower == "y" then show_pass = true else show_pass = false
                 if show_count.lower == "y" then show_count = true else show_count = false
                 print(colorGold+"Accessing onboard dictionary..."+CT+char(10)+"<align=center><<>></align>")
@@ -1143,20 +1144,25 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
               return 0
             end function
           
+			_is_mail = function(strng)
+				if typeof(strng) == "string" and strng.indexOf("@") != null then return 1 else return 0 
+			end function
             mail.Login = function()
               if globals.inbox then
                 mail.meta = globals.inbox
                 return mail.user+" is already logged in."
               end if
-              mail.user = user_input("email:> ")
+              if _is_mail(mail.a1) then mail.user = mail.a1 else mail.user = user_input("email:> ")
               if mail.user == "" or mail.user == " " then mail.user = user_mail_address
               if not mail.user then return "Invalid mail address."
               print("Enter <b>-brutus</b> to crack password with brutus.")
-              mail.pass = user_input(mail.user+" pass:> ", 1)
+              if _is_mail(mail.a1) and mail.a2 then mail.pass = mail.a2 else mail.pass = user_input(mail.user+" pass:> ", 1)
               if mail.pass == "" or mail.pass == " " then return "Invalid login credentials."
               if mail.pass == "-brutus" then
+				print "herme5: calling brutus..."
                 mail.meta = mail.pwn(mail.user)
               else
+				print "herme5: loging in: "+mail.user+"..."
                 mail.meta = mail_login(mail.user, mail.pass)
               end if
           
@@ -1164,6 +1170,8 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
                 globals.inbox = mail.meta
                 globals.mail_user = mail.user
                 return "Login complete."
+			  else 
+				print mail.meta
               end if
               return "Invalid login credentials."
             end function
@@ -1183,7 +1191,8 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
               if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
               print(mail.Fetch)
               print(mail.data_stream(mail.data))
-              r = user_input("Enter an index to read or type <b>spool</b> to dump to a file :> ").to_int
+			  r = null 
+			  if mail.a1 == "spool" then r = "spool" else r = user_input("Enter an index to read or type <b>spool</b> to dump to a file :> ").to_int
               print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
 			  if mail.data.len < 1 then return "herme5: mailbox is empty"
 			  spool_buf = []
@@ -1207,7 +1216,7 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
 			  end while
 			  if spooling then 
 			  	st = time
-			  	spool_file_path = user_input( colorGold+"herme5: please enter a path for the spool file: "+char(10)+"[/path, <<b>enter</b>=home_dir/spool.txt, </b>q</b>=quit]:> " )
+			  	if typeof(mail.a2) == "string" then spool_file_path = mail.a2 else spool_file_path = user_input( colorGold+"herme5: please enter a path for the spool file: "+char(10)+"[/path, <<b>enter</b>=home_dir/spool.txt, </b>q</b>=quit]:> " )
 				if spool_file_path.lower == "q" or spool_file_path.lower == "quit" then return "aborting..."
 				if spool_file_path == "" or spool_file_path == " " then spool_file_path = homePath+"/spool.txt"
 				spool_file = globals.get_file(spool_file_path)
@@ -1304,18 +1313,27 @@ command.mail = function(arg1, arg2, arg3=0, arg4=0)
               mailing = true
               menu_options = ["Exit", "Login", "Fetch", "Read", "Write", "Widget", "Delete"]
               while mailing
-                print(colorGold+"- - - - - - - Herme5 v 0.4.4 by Plu70 - - - - - - - - "+CT)
-                print(mail.data_stream(menu_options))
-                opt = user_input("(q=quit)||: ",0,1).to_int
+                print(colorGold+"- - - - - - - Herme5 v 0.4.5 by Plu70 - - - - - - - - "+CT)
+				print colorGold+"- - - - - - [ </b><u>"+colorWhite+mail.user+"</color></u> ]</b> - - - - - -"
+				opt = 0
+				if _is_mail(mail.a1) then opt = 1 
+				if mail.a1 == "spool" then opt = 3
+				if not opt then 
+					mail.a1 = 0
+					print(mail.data_stream(menu_options))
+					opt = user_input("(q=quit)||: ",0,1).to_int
+			  	end if
                 print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
-                if opt == "q" then return 0
+                if opt == "q" then opt = 0
                 if opt < 0 or opt > menu_options.len-1 or typeof(opt) != "number" then continue
                 mm = @mail[menu_options[opt]]
                 print(mm)
+				if mail.a1 != 0 then return "herme5: returning..."
                 mailing = opt
               end while
               return mailing
             end function
+
             return mail.menu
           end function
           // end Herme5
@@ -1540,6 +1558,8 @@ command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 	"-- However you may use silentclean or rclean for local log scrubbing"+char(10)+
 	"-- if rclean detects a file named <b>silentclean</b> it will use that file to scrub the log"+char(10)+
 	"-- for this reason it is a good idea to include an empty file named silentclean in the rkit"+char(10)+
+	"-- or, rename an empty system.log file to silentclean"+char(10)+
+	"---- or, a not so empty system.log file..."+char(10)+
 	"Usage: rclean -d [#|shell|file|computer] -- run rclean as above and delete rkit and/or 5hell, if present"+char(10)+
 	"Usage: rclean -n [#|shell|file|computer] -- run rclean as above and delete the contents of /boot, if present"
 	if arg1 and arg1 == "-d" then 
