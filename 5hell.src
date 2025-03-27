@@ -157,7 +157,7 @@ command.shell = function(input=null,mute=null)
     // remove/comment this line if you dont want the command buffer
     globals.command_buffer.push(prompt.join(" ").remove(" | return")) 
 
-    // process piping
+     // process piping
     if DEBUG then print "debug: pre_pipe prompt is: "+prompt
     // begin pipe control, edit with extreme caution.
     if prompt.indexOf("|") >= 0 then  
@@ -361,16 +361,11 @@ if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
     exit("frag off, chumba")
   end if
 /////////////////END SECURITY///////////////////
+// 
 //
-//
-if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
-// auto 'do' a batch file on startup
-// unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
-// only executes if 5hell.rc is located in a folder named rkit
-dorc = globals._startup_resource_configuration
-if DEBUG then print dorc 
-//
+if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
 if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
+//BEGIN AUTOMATION SETUP//
 ///////////////BEGIN launch_with_do CONTROL /////////////////////////
 /////////do not edit the below section (especially do not remove the | return !!)//////////
 //// not kidding, it causes an infinite loop ////
@@ -387,13 +382,15 @@ if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
 //
 //
 //////////////////////////set-pre-launch-conditions/////////////////////////////////////
-if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
-//if DEBUG then print("<size=75%>size_of_5hell["+globals.SHEBIG+"]")
-//if DEBUG then print("initializing portmap...")
-//if localmachine.is_network_active then command.probe("-q",pubip,"0","1")
 if DEBUG then print("<size=75%>verifying stack_pool...")
 sp = globals.stack_pool
 if DEBUG then print("<size=75%>stack_pool: ["+sp+"]") 
+if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
+// auto 'do' a batch file on startup
+// unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
+// only executes if 5hell.rc is located in a folder named rkit
+dorc = globals._startup_resource_configuration
+if DEBUG then print dorc
 if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib...")
 globals._export_metax // export our metaxploit on each startup
 if DEBUG then print("<size=75%>checking for tables/tp")
