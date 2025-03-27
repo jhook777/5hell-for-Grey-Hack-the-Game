@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.4...(143.768)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.5...(145.397)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -1304,7 +1304,16 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		"-- the override flag is <b>--n</b>"+char(10)+
 		"--ie: <b>silentclean --n</b>"+char(10)+char(10)+
 		"N.B. silentclean [-n|--n] will remove the following:"+char(10)+
-		colorOrange+"</b>-- /lib, /boot, /sys, 5hell, rkit"
+		colorOrange+"</b>-- /lib, /boot, /sys, 5hell, rkit"+char(10)+
+		char(10)+
+		colorGold+"Advanced: "+char(10)+
+		"By default, silentclean will create the file /var/system.bak and move it over /var/system.log."+char(10)+
+		"While this works wonders for preventing traces, when the log regenerates (as it eventually will) it will"+char(10)+
+		"generate with guest-readable permissions. To combat this, or to engage in other creative shenanigans, you"+char(10)+
+		"may create a file called 'silentclean' or rename an empty log file, or other file, as silentclean, and this"+char(10)+
+		"command (as well as rclean) will select that file to move over system.log. In this manner, the log is not"+char(10)+
+		"actually corrupted, and thus retains it's permissions when the next log write occurs."+char(10)+
+		"Naturally, this allows you to leave 'custom' log files behind in addition to just covering your tracks."
 	end if
 	if arg1 and typeof(arg1) != "string" and arg1 != "-d" and arg1 != "-n" then print colorOrange+"silentclean: <b>ignoring</b> unsupported input"+char(10)+"-- instead: use rclean [opt:-d|-n] [piped_object]"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"+char(10)+"--eg: <b>gp -d "" sc -d """
 	if arg2 then print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
@@ -1326,12 +1335,16 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		print("Files nuked. Reboot when ready.")
 	end function
 
-	if syslog and syslog.has_permission("w") then
-		localmachine.touch("/var","system.bak")
-		syslogbak = globals.get_file("/var/system.bak")
-		if syslogbak then
-			syslog.delete
-			syslogbak.set_content("No IPs Today :D")
+	if syslog and syslog.has_permission("w") and syslog.parent.has_permission("w") then
+		// check for file named silentclean
+		syslogbak = command.tree("/","silentclean","1","N")
+		if not syslogbak then 
+			localmachine.touch("/var","system.bak")
+			syslogbak = globals.get_file("/var/system.bak")
+		end if
+		if typeof(syslogbak) == "file" then
+			//syslog.delete
+			if not syslogbak.is_binary then syslogbak.set_content("No IPs Today :D")
 		else
 			return "silentclean: write failed; permission denied"
 		end if
@@ -1344,6 +1357,7 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		end if
 		try = syslogbak.move("/var", "system.log")
 		syslog = globals.get_file("/var/system.log")
+		// add code to give the new file the same permissions as the original log
 		return try
 	else
 		return "silentclean: write failed; permission denied"
@@ -2240,6 +2254,12 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	"--- the "+colorOrange+"</b>metaxploitLib"+CT+" object loads from the lib folder of it's native machine"+char(10)+
 	"----- use the command while in glasspool to get the correct contents of /lib "+char(10)+
 	"------- if you have an available shell/computer that matches the metaxploitLib"+char(10)+
+	colorCyan+"Usage: meta load ["+colorLightBlue+"</b>/full/path</color>] -- load a local "+colorLightBlue+"</b>metaLib</color> from path"+char(10)+
+	"-- only libs in /lib may be exploited"+char(10)+
+	"-- libs loaded from outside of /lib may not not"+char(10)+
+	"---- they may still have their name, version, and patch status checked"+char(10)+
+	"-- full paths only"+char(10)+
+	"---- the file checked is on the machine linked to the metaxploit object"+char(10)+
 	colorCyan+"Usage: meta link [opt:"+colorLightBlue+"</b>ip</color>] [opt:"+colorLightBlue+"</b>port</color>] -- link a remote net_session "+char(10)+
 	"-- dumps the "+colorLightBlue+"</b>metaLib"+CT+" from the net_session and loads it"+char(10)+
 	"-- uses global targetIP and targetPort if ip and port are not passed"+char(10)+
