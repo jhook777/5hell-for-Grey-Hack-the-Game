@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.8.9"
-malp_version = "1.4.8"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.5...(154.053kb)</size>")
+sphinx_version = "2.9.0"
+malp_version = "1.4.9"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.5...(155.596)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -1377,8 +1377,8 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
           print("[a] to clipa|b|c...")
           print("[f] - felix file explorer [w] website.html (curl)")
           print("[r] rename     [m] move   [c] copy")
-          if not buffer_selection.is_binary then print("[7] open text  [8] edit  [9] save text ")
-          file_menu = user_input("[4] tag 4 scp  [5] rclean [6] swap "+char(10)+"[1] root file  [2] remove [3] perms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
+          if not buffer_selection.is_binary then print("[7] open text  [8] edit   [9] save text ")
+          file_menu = user_input("[4] tag 4 scp  [5] rclean [6] spam "+char(10)+"[1] root file  [2] remove [3] perms"+char(10)+"[0] exit  [d] decompiler (q=quit)||: ",0,1 )
           if file_menu == "a" then
             print "["+colorWhite+"a"+CT+"] - to clipa, ["+colorWhite+"b"+CT+"] - to clipb, ["+colorWhite+"c"+CT+"] - to clipc"
             tc = user_input("(<<b>enter</b>>=quit)||: ",0,1)
@@ -1392,27 +1392,21 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
             continue 
           end if
           if file_menu == "r" then 
-            newname = user_input("enter a new filename:> ").trim
-            if newname == "" then print "aborting..." else print buffer_selection.rename(newname)
+            newname = user_input("Enter a new filename:> ").trim
+            if newname == "" then print "aborting..." else print buffer_selection.move(buffer_selection.parent.path,newname)
             continue
           end if
-          if file_menu == "m" then 
-            new_path = user_input("move_to_path (<<b>enter></b>=quit):> "+colorWhite)
-            if new_path == "" then 
-              print "aborting..."
-              continue
-            else 
-              print command.mv(buffer_selection.path,new_path)
-              continue
-            end if 
-          end if
-          if file_menu == "c" then 
-            copy_to_path = user_input("copy_to_path (<<b>enter></b>=quit):> "+colorWhite)
-            if copy_to_path == "" or " " then 
+          if file_menu == "c" or file_menu == "m" then 
+            act = "Copy"
+            if file_menu == "m" then act = "Move"
+            new_path = user_input(act+" file to this <b>folder</b> (<<b>enter></b>=abort):"+char(10)+":> "+colorLightBlue)
+            if new_path == "" or new_path == " " then 
               print "aborting..."
               continue 
             end if
-            print command.copy(buffer_selection.path,copy_to_path)
+            final_name = user_input("Enter a new <b>filename</b> or press enter to keep the current one:"+char(10)+":> "+colorCyan+"</b>")
+            if final_name == "" or final_name == " " then final_name = buffer_selection.name
+            if act == "Move" then print buffer_selection.move(new_path,final_name) else print buffer_selection.copy(new_path,final_name)
             continue
           end if
           if file_menu == "d" then 
@@ -1449,13 +1443,31 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               continue
             end if
           end if
-          if file_menu == "6" then
+          if file_menu == "5" then
             spoof = buffer_selection
             print command.rclean(spoof)
             continue
           end if
-          if file_menu == "5" then 
-
+          if file_menu == "6" then 
+            print colorCyan+"</b>Create numbered copies of a file in a given directory"+char(10)+
+            "-- usefule for annoying someone or degrading hardware"
+            copies = user_input("Enter a number of copies to spam: "+char(10)+":> "+colorRed).to_int
+            if typeof(copies) != "number" or copies < 1 then 
+              print "aborting..."
+            else 
+              dest = user_input("Enter a <b>folder</b> to spam (<b>enter</b>=abort):"+char(10)+":> "+colorRed)
+              if dest.trim == "" then continue
+              for i in range(1,copies) 
+                print colorRed+"Spamming: "+colorWhite+dest+"/"+buffer_selection.name+i
+                c = buffer_selection.copy(dest,buffer_selection.name+i)
+                if c != 1 then 
+                  print c
+                  print colorRed+"Error: write failed; aborting..."
+                  break 
+                end if
+              end for 
+            end if
+            print 
             continue 
           end if
           if file_menu == "1" then
@@ -1514,177 +1526,182 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
         end if
         ///////////////////// SHELL HANDLER ///////////////////////////
         if typeof(buffer_selection) == "shell" or typeof(buffer_selection) == "ftpshell" then
-          print(colorOrange+"<mark=orange><u>= = = = = = = = = = = = = = =</u></mark>"+CT)
-          print(format_columns(buffer_selection.host_computer.show_procs)+char(10)+char(10)+checkUser(buffer_selection)+"@"+buffer_selection.host_computer.local_ip+char(10)+buffer_selection.host_computer.public_ip)
-          print(colorOrange+"<size=65%><mark=orange><u>= = = = = = = = = = = = = = = = = = = =</u></mark></size>"+CT)
-          if typeof(buffer_selection) == "shell" then print "[f] felix   [c] curl       [p] purge from buffer"+char(10)+
-                                                            "[7] scp     [8] run        [9] fetch meta" +char(10)+
-                                                            "[4] glassp  [5] rclean     [6] get computer "+char(10)+
-                                                            "[1] open    [2] redirect   [3] upload rkit"+char(10)+
-                                                            "[0] to cob  [d] decompile  [b] fetch binaries"
-          if typeof(buffer_selection) == "ftpshell" then 
-            //print "[disabled, pending adjustment...]"
-            //print "[g] get [p] put [c] host computer"
-            //fselect = user_input("[s] start (ftp) terminal ||:",0,1)
-            //print "stub"
-            print command.code(buffer_selection)
-            continue
-          end if
-          choice = user_input("(<<b>enter</b>>|q=quit)||: ",0,1)
-          if choice == "0" then 
-            print colorOrange+"cobbling..."
-            keyword = user_input("Enter custom_object key  for shell [q=quit]:> ")
-            if keyword.lower == "q" then 
-              print "aborting..."
+          shelling = true 
+          while shelling == true
+            print(colorOrange+"<mark=orange><u>= = = = = = = = = = = = = = =</u></mark>"+CT)
+            print(format_columns(buffer_selection.host_computer.show_procs)+char(10)+char(10)+checkUser(buffer_selection)+"@"+buffer_selection.host_computer.local_ip+char(10)+buffer_selection.host_computer.public_ip)
+            print(colorOrange+"<size=65%><mark=orange><u>= = = = = = = = = = = = = = = = = = = =</u></mark></size>"+CT)
+            if typeof(buffer_selection) == "shell" then print "[f] felix   [c] curl       [p] purge from buffer"+char(10)+
+                                                              "[7] scp     [8] run        [9] fetch meta" +char(10)+
+                                                              "[4] glassp  [5] rclean     [6] get computer "+char(10)+
+                                                              "[1] open    [2] redirect   [3] upload rkit"+char(10)+
+                                                              "[0] to cob  [d] decompile  [b] fetch binaries"
+            if typeof(buffer_selection) == "ftpshell" then 
+              //print "[disabled, pending adjustment...]"
+              //print "[g] get [p] put [c] host computer"
+              //fselect = user_input("[s] start (ftp) terminal ||:",0,1)
+              //print "stub"
+              print command.code(buffer_selection)
+              continue
+            end if
+            choice = user_input("(q=quit)||: ",0,1)
+            if choice == "0" then 
+              print colorOrange+"cobbling..."
+              keyword = user_input("Enter custom_object key  for shell [q=quit]:> ")
+              if keyword.lower == "q" then 
+                print "aborting..."
+                continue 
+              else 
+                print command.cob("set",keyword,buffer_selection)
+                continue
+              end if
+            end if 
+            if choice == "9" then 
+              ccc = command.fetch(buffer_selection)
+              if typeof(ccc) == "MetaxploitLib" then 
+                print "-- "+colorOrange+"BUFFERING MetaxploitLib..."
+                globals.BUFFER.push(ccc)
+              else 
+                print "fetch: task failed"
+              end if
+            end if 
+            if choice == "f" then  
+              print("Buffering filesystem..." )
+              buffered_filesys = buffer_selection.host_computer.File("/")
+              print("<u>Buffered filesystem ready. Accessing with <b>felix</b>.</u>")
+              command.felix(buffered_filesys)
+              continue
+            end if
+            if choice == "p" then 
+              print command.purge("-b",str(selection))
+              print colorOrange+"Shell object purged from BUFFER"
               continue 
-            else 
-              print command.cob("set",keyword,buffer_selection)
+            end if
+            if choice == "d" then 
+              d=(globals.decompiler(buffer_selection))
+              print colorOrange+"BUFFERING..."+char(10)+d 
+              globals.BUFFER.push(d)
               continue
             end if
-          end if 
-          if choice == "9" then 
-            ccc = command.fetch(buffer_selection)
-            if typeof(ccc) == "MetaxploitLib" then 
-              print "-- "+colorOrange+"BUFFERING MetaxploitLib..."
-              globals.BUFFER.push(ccc)
-            else 
-              print "fetch: task failed"
+            if choice == "b" then 
+              dest_folder = user_input(colorCyan+"Destination folder (currentPath=default,q=quit)"+char(10)+":> <u>"+colorWhite)
+                if dest_folder == "q" then continue 
+                if dest_folder == "" then dest_folder = currentPath
+                print globals.get_binaries(buffer_selection,globals.get_file(dest_folder))
+              continue 
             end if
-          end if 
-          if choice == "f" then  
-            print("Buffering filesystem..." )
-            buffered_filesys = buffer_selection.host_computer.File("/")
-            print("<u>Buffered filesystem ready. Accessing with <b>felix</b>.</u>")
-            command.felix(buffered_filesys)
-            continue
-          end if
-          if choice == "p" then 
-            print command.purge("-b",str(selection))
-            print colorOrange+"Shell object purged from BUFFER"
-            continue 
-          end if
-          if choice == "d" then 
-            d=(globals.decompiler(buffer_selection))
-            print colorOrange+"BUFFERING..."+char(10)+d 
-            globals.BUFFER.push(d)
-            continue
-          end if
-          if choice == "b" then 
-            dest_folder = user_input(colorCyan+"Destination folder (currentPath=default,q=quit)"+char(10)+":> <u>"+colorWhite)
-              if dest_folder == "q" then continue 
-              if dest_folder == "" then dest_folder = currentPath
-              print globals.get_binaries(buffer_selection,globals.get_file(dest_folder))
-            continue 
-          end if
-          if choice == "q" then
-            buffered_filesys = buffer_selection.host_computer.File("/")
-            print("Buffering filesystem of computer object..." )
-            print(colorLightBlue+"<u>Buffered filesystem ready. Access with [</b>4<b>]</u>"+CT)
-            continue
-          end if
-          if choice == "c" then
-            print( globals.curl(buffer_selection) )
-            continue
-          end if
-          if choice == "8" and typeof(buffer_selection) == "shell" then
-            l_path = user_input(colorLightBlue+"Enter launch_path</color></b> (<b>enter</b>=abort, 5hell=launch_first_5hell_found)"+char(10)+colorCyan+":> </b><size=75%><u>"+colorWhite)
-            if l_path == "" then continue
-            if l_path == "5hell" then 
-              l_path = command.grep("-p","5hell",buffer_selection)
-              if l_path == "No 5hell found, aborting..." then continue else print colorCyan+"located 5hell in "+l_path
-            end if
-            l_para = user_input(colorWhite+"</b>Optional launch parameters: "+char(10)+"(@a=clipa, @b=clipb, @c=clipc, <b><enter></b>=skip)"+char(10)+":> "+colorWhite)
-            if l_para == "@a" then l_para = globals.clipboard_alpha
-            if l_para == "@b" then l_para = globals.clipboard_beta
-            if l_para == "@c" then l_para = globals.clipboard_gamma
-            print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
-            print(colorWhite+"<size=75%><u>Injecting process "+l_path+" into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
-            globals.stack_pool("up")
-            print(buffer_selection.launch( l_path, l_para ) )
-            _cascade // exit if cascade
-            globals.stack_pool("down")
-            globals.update_path
-            continue
-          end if
-          if choice == "6" then
-            print("Buffering computer from shell_object..."+char(10)+"...computer_object sent to BUFFER")
-            BUFFER.push(buffer_selection.host_computer)
-            continue
-          end if
-          if choice == "5" then
-            print(rclean(buffer_selection))
-            continue
-          end if
-          if choice == "4" then
-            command.glasspool(buffer_selection)
-            continue
-          end if
-          if choice == "7" then 
-            secure_copy(buffer_selection)
-            continue 
-          end if
-          if choice == "3" then
-            kit = null
-            kit = command.tree("/","rkit","1","N")
-            if not kit or typeof(kit) != "file" then
-              print(colorRed+"<b>Error: rkit not found."+CT)
+            if choice == "q" then
+              buffered_filesys = buffer_selection.host_computer.File("/")
+              print("Buffering filesystem of computer object..." )
+              print(colorLightBlue+"<u><size=75%>Buffered filesystem ready. Access with [</b>4<b>]</u>"+CT)
+              shelling = false
               continue
             end if
-            kperms = kit.permissions.values
-            kpx = kperms[-1]
-            kpw = kperms[-2]
-            kpr = kperms[-3]
-            print("Changing rkit permissions to <b>o+rwx</b> for upload...")
-            print(command.perms("-r","o+rwx", kit.path))
-            copytrue = shell.scp(kit.path,"/home/guest",buffer_selection)
-            print("Restoring permissions...")
-            if kpx == "-" and kpw == "-" and kpr == "-" then
-              print(command.perms("-r","o-rwx", kit.path))
-            else
-              if kpx == "-" then kpx = "x" else kpx = ""
-              if kpw == "-" then kpw = "w" else kpw = ""
-              if kpr == "-" then kpr = "r" else kpr = ""
-              print(command.perms("-r", "o-"+kpr+kpw+kpx, kit.path))
-            end if
-            print(kit.permissions+" "+kit.owner+" "+kit.group+" "+kit.size+" "+kit.permissions+" "+kit.path)
-            if typeof(copytrue) == "string" then
-              print(copytrue)
+            if choice == "c" then
+              print( globals.curl(buffer_selection) )
               continue
             end if
-            go = user_input("Successfully uploaded rootkit: "+kit.path+char(10)+"To: /home/guest"+char(10)+"Would you like to run 5hell silently on the target? [<b>Y</b>/n]"+char(10)+"||: ",0,1)
-            if go.lower == "n" then
-              continue
-            else
-              par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 brutus"+char(10)+":> "+colorWhite).trim // add preset options
+            if choice == "8" and typeof(buffer_selection) == "shell" then
+              l_path = user_input(colorLightBlue+"Enter launch_path</color></b> (<b>enter</b>=abort, 5hell=launch_first_5hell_found)"+char(10)+colorCyan+":> </b><size=75%><u>"+colorWhite)
+              if l_path == "" then continue
+              if l_path == "5hell" then 
+                l_path = command.grep("-p","5hell",buffer_selection)
+                if l_path == "No 5hell found, aborting..." then continue else print colorCyan+"located 5hell in "+l_path
+              end if
+              l_para = user_input(colorWhite+"</b>Optional launch parameters: "+char(10)+"(@a=clipa, @b=clipb, @c=clipc, <b><enter></b>=skip)"+char(10)+":> "+colorWhite)
+              if l_para == "@a" then l_para = globals.clipboard_alpha
+              if l_para == "@b" then l_para = globals.clipboard_beta
+              if l_para == "@c" then l_para = globals.clipboard_gamma
               print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
-              print(colorWhite+"<size=75%><u>Injecting process /home/guest/rkit/5hell into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
+              print(colorWhite+"<size=75%><u>Injecting process "+l_path+" into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
               globals.stack_pool("up")
-              catch = buffer_selection.launch("/home/guest/rkit/5hell",par)
+              print(buffer_selection.launch( l_path, l_para ) )
               _cascade // exit if cascade
               globals.stack_pool("down")
-              if catch then print(catch)
               globals.update_path
               continue
             end if
-          end if
-          if choice == "1" then
-            print("Opening a terminal will exit "+CT+colorRed+"5hell"+CT+". Continue? ")
-            if user_input("[<b>Y</b>/n] :>").lower == "n" then continue
-            if typeof(buffer_selection) == "shell" then
-              print(colorWhite+"-ssh---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
-            else
-              print(colorWhite+"-ftp---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
+            if choice == "6" then
+              print("Buffering computer from shell_object..."+char(10)+"...computer_object sent to BUFFER")
+              BUFFER.push(buffer_selection.host_computer)
+              continue
             end if
-            get_custom_object.return_value = "#!#CASCADE#!#"
-            exit buffer_selection.start_terminal
-            continue
-          end if
-          if choice == "2" then 
-            if user_input("Redirect shell to internal ssh/ftp? [<b>Y</b>/n] :> ").lower != "n" then secure_connect(buffer_selection)
-            continue
-          end if
+            if choice == "5" then
+              print(rclean(buffer_selection))
+              continue
+            end if
+            if choice == "4" then
+              command.glasspool(buffer_selection)
+              continue
+            end if
+            if choice == "7" then 
+              secure_copy(buffer_selection)
+              continue 
+            end if
+            if choice == "3" then
+              kit = null
+              kit = command.tree("/","rkit","1","N")
+              if not kit or typeof(kit) != "file" then
+                print(colorRed+"<b>Error: rkit not found."+CT)
+                continue
+              end if
+              kperms = kit.permissions.values
+              kpx = kperms[-1]
+              kpw = kperms[-2]
+              kpr = kperms[-3]
+              print("Changing rkit permissions to <b>o+rwx</b> for upload...")
+              print(command.perms("-r","o+rwx", kit.path))
+              copytrue = shell.scp(kit.path,"/home/guest",buffer_selection)
+              print("Restoring permissions...")
+              if kpx == "-" and kpw == "-" and kpr == "-" then
+                print(command.perms("-r","o-rwx", kit.path))
+              else
+                if kpx == "-" then kpx = "x" else kpx = ""
+                if kpw == "-" then kpw = "w" else kpw = ""
+                if kpr == "-" then kpr = "r" else kpr = ""
+                print(command.perms("-r", "o-"+kpr+kpw+kpx, kit.path))
+              end if
+              print(kit.permissions+" "+kit.owner+" "+kit.group+" "+kit.size+" "+kit.permissions+" "+kit.path)
+              if typeof(copytrue) == "string" then
+                print(copytrue)
+                continue
+              end if
+              go = user_input("Successfully uploaded rootkit: "+kit.path+char(10)+"To: /home/guest"+char(10)+"Would you like to run 5hell silently on the target? [<b>Y</b>/n]"+char(10)+"||: ",0,1)
+              if go.lower == "n" then
+                continue
+              else
+                par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 brutus"+char(10)+":> "+colorWhite).trim // add preset options
+                print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
+                print(colorWhite+"<size=75%><u>Injecting process /home/guest/rkit/5hell into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
+                globals.stack_pool("up")
+                catch = buffer_selection.launch("/home/guest/rkit/5hell",par)
+                _cascade // exit if cascade
+                globals.stack_pool("down")
+                if catch then print(catch)
+                globals.update_path
+                continue
+              end if
+            end if
+            if choice == "1" then
+              print("Opening a terminal will exit "+CT+colorRed+"5hell"+CT+". Continue? ")
+              if user_input("[<b>Y</b>/n] :>").lower == "n" then continue
+              if typeof(buffer_selection) == "shell" then
+                print(colorWhite+"-ssh---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
+              else
+                print(colorWhite+"-ftp---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
+              end if
+              get_custom_object.return_value = "#!#CASCADE#!#"
+              exit buffer_selection.start_terminal
+              continue
+            end if
+            if choice == "2" then 
+              if user_input("Redirect shell to internal ssh/ftp? [<b>Y</b>/n] :> ").lower != "n" then secure_connect(buffer_selection)
+              continue
+            end if
+          end while
           continue
         end if // end shell handler
+
         if buffer_selection.hasIndex("__isa") then print(globals.decompiler(buffer_selection))
       end if
       continue
