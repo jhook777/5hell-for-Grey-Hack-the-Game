@@ -26,7 +26,15 @@
 // todo: kraken
 // todo: probe
 //
-// malp: fixed crash in file handler copy routine
+// malp: hotfix: copy and move in the file handler will actually work now
+// malp: file handler fixes:
+// --: fixed crash in copy routine
+// --: combined copy and move routine 
+// --: fixed rename routine 
+// --: removed duplicate curl routine
+// --: added spam routine: fill a folder with a bunch of copies
+// malp: shell handler will now loop until exited the same way the computer handler does
+//
 // mail: added command line login
 // -- mail [email] [opt:password]
 // mail: added command line brutus login
