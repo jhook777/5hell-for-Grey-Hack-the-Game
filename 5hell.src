@@ -43,7 +43,7 @@ command = {} // default
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
 //globals.HOME_SERVER = ["string: ip", number: ssh_port, "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/tables/t5)", number:rshell_port]
-globals.HOME_SERVER = ["ip.add.rr.ess", 22, "root", "password", "ssh", "/root/pass","/root/tables/t5", 1222]
+globals.HOME_SERVER = ["ip.add.rr.ess", 22, "root", "password", "ssh", "/root/pass","/root/rkit/tables/t5", 1222]
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
   // @home will be replaced with your ip, no password needed in this case
@@ -395,21 +395,10 @@ if DEBUG then print itp
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
 //////////////////END prelaunch-conditions///////////////////////////////////
 //
-/////BEGIN l_w_d CONTROL///////////////////////////////
-// if params and params[0] == "do" then
-//   cmd = "do"
-//   if params.len >= 2 then cmd = cmd + " " + params[1]
-//   if params.len >= 3 then cmd = cmd + " " + params[2]
-//   if params.len > 3 then
-//     if params[2] == "-f" then
-//       cmd = cmd + " " + params[3]
-//     else
-//       cmd = cmd + " " + params[3:5].join(" ")
-//     end if
-//   end if
-//   command.quit(command.shell(cmd + " | return"))
-// end if
-cmd = null
+/////BEGIN launch_with_do CONTROL///////////////////////////////
+//
+cmd = params.join(" ") // start out as though we are not using do
+// if 'do' then we exit when we are done
 if params and params[0] == "do" then
   cmd = "do"
   if params.len >= 2 then cmd = cmd + " " + params[1]
@@ -428,7 +417,7 @@ end if
 //
 ///begin main///
 while true
-command.quit(command.shell,cmd)
+command.quit(command.shell(cmd))
 end while
 ////end main////
 //////////end of do not edit section//////////////
