@@ -1,10 +1,10 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.0.5_falling_skies"
+ver = "4.0.6_falling_skies"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "153.633"
+size_of_5hell = "155.765"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -339,7 +339,7 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 			continue 
 		end if
 		line = colorCyan+"</b>"+line
-		line = line.replace("dsession",colorRed+"</b>dsession").replace("Xorg",colorLightBlue+"</b>Xorg").replace("kernel_task",colorLightBlue+"</b>kernel_task").replace("ps",colorRed+"</b>ps(suspicious!)").replace("5hell",colorRed+"5"+colorWhite+"hell")//.replace("root",colorOrange+"<b>root</color>").replace("guest",colorWhite+"<b>guest</color>")
+		line = line.replace("dsession",colorRed+"</b>dsession").replace("Xorg",colorLightBlue+"</b>Xorg").replace("kernel_task",colorLightBlue+"</b>kernel_task").replace("ps",colorRed+"</b>ps").replace("5hell",colorRed+"5"+colorWhite+"hell")//.replace("root",colorOrange+"<b>root</color>").replace("guest",colorWhite+"<b>guest</color>")
 		p_buf[i] = line
 		i = i + 1
 	end for
@@ -712,7 +712,8 @@ command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
   "-- poke haha |  | grep -p syst / | cp haha"+char(10)+
   "---- create file haha, grep for (system.log) and return file_path, overwrite /var/system.log with haha"
   print "<u>"+colorGreen+"= = = = ="
-  file = globals.get_file(arg1)
+  file = null
+  if typeof(arg1) == "file" then file = arg1 else file = globals.get_file(arg1) // taking a file as arg1 isn't quite finished/tested yet; i'll likely rewrite cp instead
   if not file then return("cp: can't find " + arg1)
   destination = null
   final_name = null
@@ -1881,6 +1882,16 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			colorGold+"This allows 5hell to launch 5hell with instructions to launch 5hell with instructions to..."+char(10)+
 			colorLightBlue+"</b>-- keep in mind there is a game limit of 15 <u>nested</u> uses of shell.launch"+char(10)+
 			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning <b>do 1000 dig -s</b> is completely valid"+char(10)+
+			colorLightBlue+"</b>-- please note that the game does not allow the use of <b>""</b> in launch parameters"+char(10)+
+			colorLightBlue+"</b>----<b> 5hell do 1 echo three | echo two | echo one"+char(10)+
+			colorLightBlue+"</b>---- will result in 5hell running the three echoes at launch "+char(10)+
+			colorLightBlue+"</b>---- if this line were typed at runtime, it would have to be:"+char(10)+
+			colorLightBlue+"</b>----<b> do 1 "" echo three | echo two | echo one """+char(10)+
+			colorLightBlue+"</b>Note: launching 5hell with <b>do</b> results in 5hell exiting on completion"+char(10)+
+			colorCyan+"</b>However:"+char(10)+
+			colorLightBlue+"</b>-- you may launch 5hell with params, without do:"+char(10)+
+			colorLightBlue+"</b>----<b> 5hell echo three | echo two | echo one"+char(10)+
+			colorLightBlue+"</b>---- will result in the same behavior, but 5hell will <b>not exit</b> on completion"+char(10)+char(10)+
 			colorGold+"Advanced: Resource Configuration"+char(10)+
 			colorCyan+"You may place a file named "+colorWhite+"do.rc</color> in your "+colorWhite+"rkit</color> and/or "+colorWhite+"Config folder"+char(10)+
 			colorLightBlue+"</b>-- the contents of the file should look like a standard <b>do</b> script and will be executed on launch"+char(10)+
@@ -1893,8 +1904,18 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			"----: equivalent to a <b>continue</b>"+char(10)+
 			colorLightBlue+"</b>If the final return value of a line in a do script is: <b>@RETURN</b>, then:"+char(10)+
 			"-- the do script will terminate; no further iterations will run"+char(10)+
-			"----: equivalent to a <b>break</b>"+char(10)+
-			colorGreen+"See Also: macro -h, help conventions, help alias"
+			"----: equivalent to a <b>break</b>"+char(10)+char(10)+
+			colorCyan+"Comments:"+char(10)+
+			colorLightBlue+"</b>You may add comments to <b>do</b> scripts. The comment character must be placed"+char(10)+
+			colorLightBlue+"</b>on it's own line. Comments place within command strings or at the end will error."+char(10)+
+			colorLightBlue+"</b>Valid comment characters are: <b>#, /, and -</b>"+char(10)+
+			colorLightBlue+"</b><size=75%>While <b>|</b> will technically work, it might break things down the road if"+char(10)+ 
+			colorLightBlue+"5hell.src changes. If a comment character is the first character on a line, <b>do</b> will skip that line."+char(10)+
+			colorLightBlue+"Please note that because macros are done in-line, they may not include comments. Please"+char(10)+
+			colorLightBlue+"keep this in mind if piping the contents of a do script into a macro definition."
+
+			colorGreen+"As you can see, 5hell is designed to be (almost*) completely automated."+char(10)
+			colorGreen+"See Also: macro -h, help conventions, help alias, help automation"
 		end if
 	end if
 	iter = 0
@@ -2336,7 +2357,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, bakeneko, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -2784,6 +2805,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(":> help [-p|prompt|-c|conventions] -- information about 5hell prompt conventions")
 	print(":> help [-t|tools] -- a short list of the main tools")
 	print(":> help [-a|automation] -- print information about automating tasks")
+	print(":> help [-d|daemon|daemons] -- information about daemon control")
 	print(":> help [-A|alias] -- a list of the current default aliases in 5hell.src")
 	print(colorOrange+":> help [-b|buffer] -- buffer, clipboard, and custom_object info")
 	print(":> help [-l|logs] -- information regarding system.log")
