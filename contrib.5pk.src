@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.0.5...(106.500kb)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.0.6...(106.661kb)</size>)")
 // start games made by Plu70
 bat = function(s)
     // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -1592,57 +1592,57 @@ g3 = function()
     
     downtown = new neighborhood
     downtown.name = "Downtown"
-    downtown.wealth = 1000
-    downtown.population = 100
+    downtown.wealth = 10000
+    downtown.population = 1000
     downtown.drug_modifiers =    {"cannabis":"medium","mushrooms":"medium","molly":"medium","cocaine":"high","heroin":"high","lean":"medium","crack":"medium","acid":"medium"}
     downtown.sprite = downTownSprite
     
     villa = new neighborhood
     villa.name = "Greyton's Villa"
-    villa.wealth = 5000
-    villa.population = 10
+    villa.wealth = 50000
+    villa.population = 100
     villa.drug_modifiers =      {"cannabis":"low","mushrooms":"low","molly":"low","cocaine":"high","heroin":"high","lean":"medium","crack":"low","acid":"medium"}
     villa.sprite = villaSprite
     
     gccc = new neighborhood
     gccc.name = "Grey County Community College"
-    gccc.wealth = 500
-    gccc.population = 300
+    gccc.wealth = 5000
+    gccc.population = 3000
     gccc.drug_modifiers =       {"cannabis":"high","mushrooms":"high","molly":"medium","cocaine":"medium","heroin":"medium","lean":"medium","crack":"medium","acid":"low"}
     gccc.sprite = gcccSprite
     
     shabbytown = new neighborhood
     shabbytown.name = "Shabbytown"
-    shabbytown.wealth = 200
-    shabbytown.population = 100
+    shabbytown.wealth = 2000
+    shabbytown.population = 1000
     shabbytown.drug_modifiers = {"cannabis":"medium","mushrooms":"medium","molly":"medium","cocaine":"low","heroin":"medium","lean":"high","crack":"high","acid":"medium"}
     shabbytown.sprite = shabbyTownSprite
     
     district = new neighborhood
     district.name = "District 108"
-    district.wealth = 350
-    district.population = 50
+    district.wealth = 3500
+    district.population = 500
     district.drug_modifiers =  {"cannabis":"low","mushrooms":"medium","molly":"low","cocaine":"medium","heroin":"high","lean":"high","crack":"high","acid":"medium"}
     district.sprite = districtSprite
     
     shady = new neighborhood
     shady.name = "Shady Acres"
-    shady.wealth = 800
-    shady.population = 75
+    shady.wealth = 8000
+    shady.population = 750
     shady.drug_modifiers =    {"cannabis":"high","mushrooms":"low","molly":"high","cocaine":"medium","heroin":"low","lean":"medium","crack":"medium","acid":"medium"}
     shady.sprite = shadyAcresSprite
     
     greygas = new neighborhood
     greygas.name = "Las Greygas"
-    greygas.wealth = 1000
-    greygas.population = 300
+    greygas.wealth = 10000
+    greygas.population = 3000
     greygas.drug_modifiers =  {"cannabis":"low","mushrooms":"high","molly":"high","cocaine":"high","heroin":"low","lean":"low","crack":"medium","acid":"high"}
     greygas.sprite = lasGreygasSprite
     
     capitol = new neighborhood
     capitol.name = "Capitol Heights"
-    capitol.wealth = 1000
-    capitol.population = 150
+    capitol.wealth = 10000
+    capitol.population = 1500
     capitol.drug_modifiers =  {"cannabis":"medium","mushrooms":"medium","molly":"medium","cocaine":"high","heroin":"medium","lean":"low","crack":"medium","acid":"low"}
     capitol.sprite = capitolSprite
     
@@ -1758,8 +1758,9 @@ g3 = function()
             if DEBUG then 
                 player.event_status = event.names.pop 
             else 
-                if e == 9 then player.event_status = event.names.pop
+                if e > 7 then player.event_status = event.names.pop // 20% chance
             end if
+            if player.event_status == "Rabbit" then event.names.push("Rabbit") // make sure there's always a chance to up capacity
         end if 
         return status
     end function 
