@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.5...(145.397)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.6...(146.317)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -1238,14 +1238,30 @@ command.sniff = function(arg1=0, arg2=0, arg3=0, arg4=0)
 end function
 command.rshell = function(arg1, arg2, arg3=0, arg4=0)
 	if (arg1 == "help" or arg1 == "-h") and arg2=="extra" then return "An <b>rshell</b> will require the following:"+char(10)+"* a server running <b>rshell-server</b>, available from most hack shops."+char(10)+"* rshell-interface software running on the above server (see: <b>rsi -h</b>)"+char(10)+"* running this command (<b>rshell</b>) as follows:"+char(10)+"<b> rshell [ip.of.your.server] [process_name] </b>-- where proces_name is the desired name for the rshell. "+char(10)+"Once connected, access the rshell from the rshell-interface (rsi command)"+char(10)+"n.b. it is recommended to add rshells to the BUFFER and interact with them there, but it is not required, to do so press [4] after selecting a shell from rsi then acces<b> malp</b> and press [5]."
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "rshell [rshell_server_ip] [stealthy_process_name] [opt:port default:1222] "+char(10)+"[ip] is the ip of your rshell server."+char(10)+"process_name cannot be dsession, Xorg or kernel_task as these are protected."+char(10)+"supply a port number after process name if different than 1222"+char(10)+"e.g. rshell 123.4.5.06 ps 1337 -- while <u>on</u> the victim computer and ip is your rshell server with port 1337 forwarded."+char(10)+"Extra:<b> rshell [-h|help] extra -- display extra help page for general rshell information."
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "REVERSE SHELL || rshell || reverse shell || back door || backdoor"+char(10)+
+	colorWhite+"Usage: rshell [rshell_server_ip] [opt:stealthy_process_name] [opt:port] "+char(10)+
+	colorCyan+"</b>Required: [rshell_server_ip] -- the ip of your rshell server"+char(10)+
+	"-- use <b>@home</b> to indicate the ip in 5hell.src >> HOME_SERVER[0] "+char(10)+
+	"-- @home server is currently: ["+colorGold+HOME_SERVER[0]+CT+"]"+char(10)+char(10)+
+	colorCyan+"</b>Opt: [stealthy_process_name] -- name of the rshell; appears in ps"+char(10)+
+	"-- process_name cannot be: dsession, Xorg or kernel_task"+char(10)+
+	"-- default name: ps"+char(10)+char(10)+
+	colorCyan+"</b>Opt: [port] -- the port on which your rshell server listens"+char(10)+
+	"-- default is set in 5hell.src >> HOME_SERVER[7]"+char(10)+
+	"-- default is currently: ["+colorGold+HOME_SERVER[7]+CT+"]"+char(10)+char(10)+
+	"E.G: <b>rshell 123.4.5.06 ps 1337</b> -- while <u>on</u> the victim computer"+char(10)+
+	"-- and ip is your rshell server with port 1337 forwarded"+char(10)+
+	"E.G: <b>rshell @home not_a_virus</b> -- use default ip and port "+char(10)+
+	"E.G: <b>rshell @home</b> -- use default ip, port, name"+char(10)+char(10)+
+	"See also: rsi -h"+char(10)+
+	"Extra:<b> rshell [-h|help] extra -- display extra help page for general rshell information."
 	if not arg2 then arg2 = "ps"
-	if not arg3 then arg3 = "1222"
-	if typeof(arg3.to_int) != "number" then
-		print("rshell: invalid port, defaulting to 1222")
-		arg3 = "1222"
+	if not arg3 or typeof(arg3) != "string" then arg3 = HOME_SERVER[7] else arg3 = arg3.to_int
+	if typeof(arg3) != "number" then
+		print("rshell: invalid port, defaulting to "+HOME_SERVER[7])
+		arg3 = HOME_SERVER[7]
 	end if
-	if globals.metaxploit then return metaxploit.rshell_client(arg1,arg3.to_int,arg2) else return "rshell: metaxploit.so not found"
+	if globals.metaxploit then return metaxploit.rshell_client(arg1,arg3,arg2) else return "rshell: metaxploit.so not found"
 end function
 command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return colorRed+"<u>5phinx:</color> network penetration test tool"+char(10)+
@@ -2899,8 +2915,9 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	"-- returns the MetaxploitLib as an object"+char(10)+
 	"NOTE: This is not a jump file. It is a spot file. That is all."
 	if typeof(arg1) != "shell" then return 0
-	print colorGold+"</b>fetch: fetching MetaxploitLib from "+colorWhite+"</b>"+arg1.host_computer.public_ip+ " <b>:</b> "+arg1.host_computer.local_ip
-	my_x = globals.get_file(meta_path)
+	print colorGold+"</b>fetch: fetching MetaxploitLib from: "+char(10)+colorWhite+"</b>"+arg1.host_computer.public_ip+ " <b>:</b> "+arg1.host_computer.local_ip
+	//my_x = globals.get_file(meta_path)
+	my_x = globals.get_file(MetaxploitLib.path)
 	if not my_x then my_x = command.grep("-f","metaxploit.so")
 	if typeof(my_x) != "file" then return "fetch: failed: metaxploit.so not found" 
 	my_perms = my_x.permissions.values 
