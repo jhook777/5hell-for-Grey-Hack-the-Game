@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.0"
+sphinx_version = "2.9.2"
 malp_version = "1.4.9"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.5...(155.596)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.6...(156.170)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -38,20 +38,21 @@ globals.import_lib = function(grep, filepath) // String: lib_name, File: search_
   if filepath.is_binary and not filepath.is_folder then
     v = "?.?.?"
     lib = null 
-    lib = include_lib(filepath.path)
+    fp = filepath.path
+    lib = include_lib(fp)
     if typeof(lib) == grep then 
       if globals.hasIndex("MetaxploitLib") then 
-        v = globals.MetaxploitLib.lib.load(filepath.path).version 
+        v = globals.MetaxploitLib.lib.load(fp).version 
       else 
-        if typeof(lib) == "MetaxploitLib" then v = lib.load(filepath.path).version
+        if typeof(lib) == "MetaxploitLib" then v = lib.load(fp).version
       end if
       if DEBUG then print "found: "+lib+" v "+v
       if globals.hasIndex(grep) then 
         t = [v,globals[grep]["version"]]
         t.sort
-        if v == t[-1] then globals[grep] = {"version":v,"lib":lib}
+        if v == t[-1] then globals[grep] = {"version":v,"lib":lib,"path":fp}
       else 
-        globals[grep] = {"version":v,"lib":lib}
+        globals[grep] = {"version":v,"lib":lib,"path":fp}
       end if
     end if
   else
@@ -81,14 +82,15 @@ globals.super_import = function(import_this=0) // String: name; import requested
 	//
 	for lib in lib_types
 		if not globals.hasIndex(lib) then 
-			globals[lib] = {"version":"-.-.-","lib":null}
+			globals[lib] = {"version":"-.-.-","lib":null,"path":"null"}
 			print "WARNING: "+lib+" not found!"
 		end if
-		if DEBUG then print globals[lib]["version"]+" v "+globals[lib]["lib"]
+		if DEBUG then print globals[lib]["version"]+" v "+globals[lib]["lib"]+" path: "+globals[lib]["path"]
 	end for
 	//
 	globals.metaxploit = globals.MetaxploitLib.lib 
 	globals.metaLibVersion = globals.MetaxploitLib.version
+  globals.meta_path = globals.MetaxploitLib.path //  legacy, deprecated
 	//
 	globals.crypto = globals.cryptoLib.lib 
 	globals.cryptoLibVersion = globals.cryptoLib.version
@@ -679,7 +681,8 @@ fw_rules = function()
   print(get_router(targetIP).firewall_rules)
 end function
 
-curl = function(hacked_thing)
+// takes object, returns file object or string; sends file object and string to buffer
+curl = function(hacked_thing) 
   html = null
   html_content = null
   print(colorWhite+"<size=50%><u>curl GET #?object?:/Public/htdocs/website.html...</u></size>"+CT)
@@ -706,9 +709,20 @@ curl = function(hacked_thing)
   end if
   if not html then return "curl: failed to GET website.html"
   globals.BUFFER.push(html)
-  print("curl:<b> website.html added to BUFFER</b>")
+  print("curl:<b> "+html.path+" added to BUFFER</b>")
   if html.has_permission("r") then html_content = html.get_content.split(char(10))
-  if html_content then return html_content.join(char(10)) else return "curl: read error. check permissions."
+  if html_content then 
+    colorWhite+"- - - "+colorLightBlue+"</b>Displaying Raw HTML</b></color> - - -"
+    for ln in html_content
+      print "<noparse>"+ln 
+    end for
+    print colorWhite+" - - - - - - - - - - - - - - - - - - "
+    globals.BUFFER.push(html_content.join(char(10)))
+    print colorOrange+"curl: added website.html contents to BUFFER"
+    return html 
+  else 
+    return "curl: cannot read website.html; check permissions"
+  end if
 end function
 
 secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0) 
