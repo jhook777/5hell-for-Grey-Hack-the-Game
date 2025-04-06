@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.6...(146.317)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.6.1...(146.317)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -113,7 +113,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
 			print "<size=75%>-- consider manually deleting /home if it is not in use"
 		end if
 		print "<size=75%>kore: running silentclean..."
-		print command.silentclean
+		print command.rclean(globals.localmachine)
 		print "<size=75%>kore: locking system..."
         print "<size=75%>" + command.perms("lock","all")
         return 0
