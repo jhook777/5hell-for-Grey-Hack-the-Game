@@ -121,7 +121,7 @@ command.shell = function(input=null,mute=null)
     ////////// end prompt preperation
 
     // get user input unless command.shell was called internally (do, cc, glasspool...) // do not edit
-    if input then prompt = input.split(" ") else prompt = user_input(bang).split(" ") 
+    if input then prompt = input.split(" ") else prompt = user_input(bang).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
     // flow control, edit with care
     // add or remove comment characters to/from the string below
     if input and indexOf("|#-/", input[0]) != null then // thanks clover!
@@ -131,6 +131,10 @@ command.shell = function(input=null,mute=null)
     end if
     if prompt[0] == "|" then continue // catch stray pipes in input prompt but not comment lines bc why would you type a comment into a one shot line? like for real?
     // end flow control
+
+    // remove/comment this line if you dont want the command buffer
+    globals.command_buffer.push(prompt.join(" ").remove(" | return"))
+
     // #####################################################################
     // ####################### end customizables one ############################
 
@@ -153,9 +157,6 @@ command.shell = function(input=null,mute=null)
         end if
     end while
     // end floating quote processing
-
-    // remove/comment this line if you dont want the command buffer
-    globals.command_buffer.push(prompt.join(" ").remove(" | return")) 
 
      // process piping
     if DEBUG then print "debug: pre_pipe prompt is: "+prompt
@@ -306,16 +307,18 @@ end function
 //
 // 5hell uses the following color palette, changing these values will OVERWRITE the defaults:
 // GLOBAL       DEFINITION
-//colorRed = "<color=red><b>"
-//colorGreen = "<color=green><b>"
-//colorWhite = "<color=white><b>"
-//colorCyan = "<color=#00FFFF><b>"
-//colorGold = "<color=#CCCC00FF><b>"
-//colorBlack = "<color=#000000FF><b>"
-//colorOrange = "<color=#FF8400FF><b>"
-//colorMagenta = "<color=#FF00C8FF><b>"
-//colorLightBlue = "<color=#2382FFFF><b>"
-//CT = "</color></b>"
+colorRed = "<color=#FF0000FF>"
+colorGreen = "<color=#00FF00FF>"
+colorOlive = "<color=#048004FF>"
+colorWhite = "<color=#FFFFFFFF>"
+colorCyan = "<color=#00FFFFFF>"
+colorGold = "<color=#CCCC00FF>"
+colorBlack = "<color=#000000FF>"
+colorOrange = "<color=#FF8400FF>"
+colorViolet = "<color=#8821FDFF>"
+colorMagenta = "<color=#FF00C8FF>"
+colorLightBlue = "<color=#2382FFFF>"
+CT = "</color></b>"
 //
 // (reference the above for your own commands)
 // (of course you can also add your own!)
