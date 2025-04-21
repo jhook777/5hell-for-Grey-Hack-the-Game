@@ -1,10 +1,10 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.0.6_falling_skies"
+ver = "4.0.7_falling_skies"
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "155.765"
+size_of_5hell = "156.171"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -54,7 +54,6 @@ globals.clip_board_gamma = ""
 globals.clip_board_delta = "" // for do
 globals.debug_username = ""
 globals.debug_password = "" // neurobox debug credentials
-globals.TABLES_DIR = globals.HOME_SERVER[6]
 globals.instance = globals.localmachine.File(program_path)
 //
 // while importing a starting dictionary is still possible it is no longer supported
@@ -851,7 +850,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		"---- if at home add g+x to: sudo, ssh, Terminal.exe, Chat.exe, Mail.exe"+char(10)+
 		"Usage: perms lock down -- force locking down, bypassing anti-brick technology"+char(10)+		
 		"Usage: perms unlock all -- add o+rwx to all files"+char(10)+
-		"<b>Shortcut:</b> lock -- alias for <b>perms lock all</b>"+char(10)+
+		"<b>Shortcut:</b> "+colorRed+"lock"+CT+"-- alias for <b>perms lock all</b>"+char(10)+
 		"-- it is good practice to run:"+char(10)+
 		"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
 		"--for optimal security."+char(10)+
@@ -885,7 +884,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 			command.perms("g+x","/usr/bin/Chat.exe")
 			command.perms("g+x","/usr/bin/Mail.exe")
 			print("<b><size=75%>perms: setting critical binaries to <b>g+x</b>...")
-			print("<size=75%>perms: rerun with <b>perms lock all</b> to force full lockdown")
+			print("<size=75%>perms: rerun with <b>perms lock down</b> to force full lockdown")
 		end if
 		if arg2 == "partial" then command.perms("-R","g+x", "/")
 		return "perms: lockdown complete"
@@ -1815,7 +1814,13 @@ command.md5 = function(arg1, arg2, arg3=0, arg4=0)
 	if typeof(arg1) == "string" then return md5(arg1) else return "md5: string required"
 end function
 command.pipe = function(arg1, arg2, arg3=0, arg4=0)
-	return "pipe usage: place | between sets of commands to pipe output of command on left of | to command on right."+char(10)+"Max string size is 1 million characters."+char(10)+"Examples: "+char(10)+"lanpro | enum"+char(10)+"ls -la /root | clipb | enum | poke file.txt | lock |  | clipb | append file.txt"+char(10)+"chain commands and use two empty spaces between the | to <b>drop</b> piped output while continuing the chain."+char(10)+"-- eg: command1 |  | command2 -- output from command1 is NOT passed to command 2"+char(10)+"-- remember: it is two spaces between the bars."
+	return "pipe usage: place <b>|</b> between sets of commands to pipe a commands output"+char(10)+
+	"The output of a command can be piped to the input of the following command using a pipe."+char(10)+
+	"Examples: "+char(10)+
+	"lanpro | enum"+char(10)+
+	"ls -la /root | clipb | enum | poke file.txt | lock || clipb | append file.txt"+char(10)+
+	"You may chain commands without piping by using <b>||</b> instead"+char(10)+
+	"-- eg: command1 || command2 -- output from command1 is NOT passed to command2"
 end function
 command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then
@@ -2069,7 +2074,12 @@ if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"
 "---- note: cannot include_lib net.so, init.so, kernel_module.so"+char(10)+
 "------ only libs with API's may use include_lib"+char(10)+
 "------ use meta link to load those with the metaxploitLib"+char(10)+
-"Usage: bios --stack -- return the global stack_pool value (as a string numeral)"
+"Usage: bios --stack -- return the global stack_pool value (as a string numeral)"+char(10)+
+"-- this value is incremented by one with each use of <B>run</b> (shell.launch)"+char(10)+
+"-- this value is decremented on return from <b>run</b>"+char(10)+
+"-- current stack_pool: <b>"+globals.stack_pool
+"Usage: bios --home -- return the globals.HOME_SERVER list"+char(10)+
+"-- current HOME_SERVER: <size=75%><b>"+globals.HOME_SERVER
 if arg1 == "--stack" then return str(globals.stack_pool)
 if arg1 == "-a" then return globals.apt_get 
 if arg1 == "-x" then return globals.metaxploit 
@@ -2083,6 +2093,7 @@ if arg1 == "-s" then return globals.meta_scan
 if arg1 == "-X" then return globals.XPLOITS 
 if arg1 == "-M" then return globals.MEMORY
 if arg1 == "-B" then return globals.BUFFER
+if arg1 == "--home" then return globals.HOME_SERVER
 if arg1 == "-r" then 
 	if arg2 then
 		if is_valid_ip(arg2) then return get_router(arg2)
@@ -2098,6 +2109,8 @@ if arg1 == "-i" then
 	tf = globals.get_file(arg2)
 	if not tf then return "bios: "+colorRed+"</b>target file not found!"
 	inc = include_lib(arg2)
+	if inc then globals.BUFFER.push(inc)
+	print "bios: sending "+inc+" to "+colorOrange+"BUFFER..."
 	if not inc then return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+colorGreen+"kore: helper:</b> perhaps try<b> meta link -l [libname] </b>instead"+char(10)+"-- if you meant metax.load("+arg2+")" else return inc
 end if
 
