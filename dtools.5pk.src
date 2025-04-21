@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.6...(154.285)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.7...(156.270)</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -754,7 +754,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	apt.exit = function()
 		return 0
 	end function
-	apt.check_upgrade = function()
+	apt.check_upgrade = function(override=0)
 		apt.update
 		chk_upg = function(check)
 			need_up = apt_get.check_upgrade(check)
@@ -787,7 +787,15 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 			end for
 			return print("Batch complete.")
 		end if
-    	if f then return print(chk_upg(f.path)) else return print(chk_upg(cup)) // when using a remote aptclientlib, a file may be on the target that is not on the attacking machine
+    	if f then 
+			return print(chk_upg(f.path)) 
+		else 
+			return "aptm: warning: file not found on system at given path"+char(10)+
+			"-- if the lib is not located in /lib, you must use an absolute path"+char(10)+
+			"-- if you are using a remote aptclientlib.so;"+char(10)+
+			"---- rerun with <b>aptm -U [libname|path]</b> to force the upgrade"
+		end if
+			return print(chk_upg(cup)) // when using a remote aptclientlib, a file may be on the target that is not on the attacking machine
 	end function
 	apt.add_repo = function()
 		apt.update
@@ -1678,7 +1686,7 @@ end function
 // original pwgen by usespython, additions by Plu70
 if DEBUG then print("<size=75%>loading ...pwgen.5pk...(31.479kb)</size>")
 command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "pwgen: generate a friggin lot of passwords with hashes."+char(10)+"Usage: pwgen -- generate tables/tp/ and files with one password per line"+char(10)+"Usage: pwgen hash -- generate tables/t5 and files with hash=pw one per line"+char(10)+"Use cerebrum to expand onboard dictionary."
+	if arg1 == "help" or arg1 == "-h" then return "pwgen: generate a friggin lot of passwords with hashes."+char(10)+"Usage: pwgen -- generate ~/rkit/tables/tp/ and files with one password per line"+char(10)+"Usage: pwgen hash -- generate ~/rkit/tables/t5 and files with hash=pw one per line"+char(10)+"Use cerebrum to expand onboard dictionary."+char(10)+"NOTE: the tables folder does not need to be in rkit to be used"+char(10)+"-- including it in rkit allows you to upload it with rkit to targets"+char(10)+"---- move it to a different folder if this is not desired behavior"
 
 	// pwgen v0.4 by usespython, modifications by Plu70
 	PASSWORDSB="belagio,balencia,ibiza,3k4l23ll,4567adee,bees,Bee123,hobo,heebeejeebee,geronimo69,Es1,day,abcd,abc1,baby,mayday,today,yesterday,fifteen,abgDw32fhGu58k,69696969,sfuzzer,111,1111,222,2222,3333,333,00000,000,4444,444,5555,555,55555555,4fb426abgDw32fHG,666,6666,thx1138,7777,777,8888,888,9999,999,0000,oicu812,1337,8008,4hpu79htgbr,80085,007007,43110,69696969,t23t49k21af3,evkfdhgbv78ery,6h057,h4ck,h4ckg4m3,g01ng,p0st4l,g01ngp0st4l,81rd,7074g,35sk1m0,pr0n,n00b,nu8,suxor,hazorz,5uxzorz,owned,pwnd,0wnd,p0wn3d,w00t,woo7,woot,w007,10100111001,teh,meh,lol,brb,afk,wyd,gtfo,lmao,lmfao,gitgud,lawl,troll,bawl,epic,54321,987654321,88888888,555555,1234567890,1973,147147,151515,1515,101010,202020,21122112,12341234,74lk,dir7y,53nP4I,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0,le375p34k,420420,11111111,112233,h4f4jf53fk74,123abc,1234qwer,123321,5y4hpu79htgbrub,ncc1701e,7777777,51505150,000000,5150,222222,999999,252525,77777777,98765432,poop,polyamorous,zelda,password,6gtr43,123456,12345678,1234,qwerty,12345,dragon,baseball,football,letmein,monkey,696969,abc123,mustang,michael,shadow,master,jennifer,111111,2000,jordan,superman,harley,1234567,hunter,trustno1,ranger,buster,thomas,tigger,robert,soccer,batman,test,pass,hockey,george,charlie,andrew,michelle,love,sunshine,jessica,6969,pepper,daniel,access,123456789,654321,joshua,maggie,starwars,silver,william,dallas,yankees,123123,ashley,666666,hello,amanda,orange,biteme,freedom,computer,sexy,thunder,nicole,ginger,heather,hammer,summer,corvette,taylor,swift,austin,1111,merlin,matthew,121212,golfer,cheese,princess,martin,chelsea,patrick,richard,diamond,yellow,bigdog,secret,asdfgh,sparky,cowboy,camaro,anthony,matrix,falcon,iloveyou,bailey,guitar,jackson,purple,scooter,phoenix,aaaaaa,morgan,tigers,porsche,mickey,maverick,cookie,nascar,peanut,justin,131313,money,horny,samantha,panties,steelers,joseph,snoopy,boomer,whatever,iceman,smokey,gateway,dakota,cowboys,eagles,chicken,black,zxcvbn,please,pharoa,andrea,ferrari,knight,hardcore,porn,ass,love,sex,hooker,blow,coke,melissa,compaq,coffee,booboo,bitch,johnny,bulldog,xxxxxx,welcome,james,player,ncc1701,wizard,scooby,charles,junior,internet,mike,brandy,tennis,banana,monster,spider,lakers,miller,rabbit,enter,mercedes,brandon,steven,fender,john,yamaha,diablo,chris,boston,tiger,marine,chicago,rangers,gandalf,winter,bigtits,barney,edward,raiders,porn,badboy,blowme,spanky,bigdaddy,johnson,chester,london,midnight,blue,fishing,hannah,slayer,rachel,sexsex,redsox,asdf,marlboro,panther,zxcvbnm,arsenal,oliver,qazwsx,mother,victoria,jasper,angel,david,winner,crystal,golden,butthead,viking,jack,iwantu,shannon,murphy,angels,prince,cameron,girls,madison,wilson,carlos,hooters,willie,startrek,captain,maddog,jasmine,butter,booger,angela,golf,lauren,rocket,tiffany,theman,dennis,liverpoo,flower,forever,green,jackie,muffin,turtle,sophie,danielle,redskins,toyota,jason,sierra,winston,debbie,giants,packers,newyork,jeremy,casper,bubba,dracula,sandra,lovers,mountain,united,cooper,driver,tucker,helpme,pookie,lucky,maxwell,8675309,bear,suckit,gators,shithead,jaguar,monica,fred,happy,hotdog,tits,gemini,lover,xxxxxxxx,777777,canada,nathan,victor,florida,nicholas,rosebud,metallic,doctor,trouble,success,stupid,tomcat,warrior,peaches,apples,fish,qwertyui,magic,buddy,dolphins,rainbow,gunner,987654,freddy,alexis,braves,2112,1212,xavier,dolphin,testing,bond007,member,calvin,voodoo,7777,samson,alex,apollo,fire,tester,chess,walter,beavis,voyager,peter,porno,bonnie,rush2112,beer,apple,scorpio,jonathan,skippy,sydney,scott,red123,power,gordon,travis,beaver,star,flyers,232323,zzzzzz,steve,rebecca,scorpion,doggie,legend,ou812,yankee,blazer,bill,runner,birdie,bitches,parker,topgun,asdfasdf,heaven,viper,animal,bigboy,arthur,baby,private,godzilla,donald,williams,lifehack,phantom,dave,rock,august,sammy,cool,brian,platinum,jake,bronco,paul,mark,frank,heka6w2,copper,billy,cumshot,garfield,willow,cunt,little,carter,slut,albert,kitten,super,jordan23,eagle1,shelby,america,11111,jessie,house,free,chevy,bullshit,white,broncos,horney,surfer,nissan,saturn,airborne,elephant,marvin,shit,action,adidas,qwert,kevin,1313,explorer,walker,police,christin,december,benjamin,wolf,sweet,therock,king,online,brooklyn,teresa,cricket,sharon,dexter,racing,penis,gregory,0000,teens,redwings,dreams,michigan,hentai,magnum,87654321,nothing,donkey,trinity,digital,333333,ramsesii,stella,cartman,guinness,speedy,buffalo,kitty,pimpin,eagle,einstein,kelly,nelson,nirvana,vampire,xxxx,playboy,louise,pumpkin,snowball,test123,girl,sucker,mexico,beatles,fantasy,ford,gibson,celtic,marcus,cherry,cassie,888888,natasha,sniper,chance,genesis,hotrod,reddog,alexande,college,jester,passw0rd,smith,lasvegas,carmen,slipknot,death,kimberly,1q2w3e,eclipse,1q2w3e4r,stanley,samuel,drummer,homer,montana,music,aaaa,spencer,jimmy,carolina,colorado,creative,hello1,rocky,goober,friday,AceofSpades,bollocks,scotty,abcdef,bubbles,hawaii,asakista,fluffy,mine,stephen,horses,thumper,darkness,asdfghjk,pamela,boobies,buddha,vanessa,sandman,naughty,douglas,honda,matt,azerty,6666,shorty,money1,beach,loveme,4321,simple,poohbear,444444,badass,destiny,sarah,denise,vikings,lizard,melanie,assman,sabrina,nintendo,water,good,howard,time,123qwe,november,xxxxx,october,zxcv,shamrock,atlantis,warren,wordpass,julian,mariah,rommel,1010,harris,predator,sylvia,massive,cats,sammy1,mister,stud,marathon,rubber,ding,trunks,desire,montreal,justme,faster,kathleen,irish,1999,bertha,jessica1,alpine,sammie,diamonds,tristan,swinger,shan,stallion,pitbull,letmein2,roberto,ready,april,palmer,ming,shadow1,audrey,chong,clitoris,wang,shirley,jackoff,bluesky,sundance,renegade,hollywoo,bernard,wolfman,soldier,picture,pierre,ling,goddess,manager,nikita,76hj93DB3wsa2,sweety,titans,hang,fang,ficken,niners,bottom,bubble,hello123,ibanez,webster,sweetpea,stocking,freeman,french,mongoose,speed,dddddd,hong,henry,hungry,yang,catdog,cheng,ghost,gogogo,randy,tottenha,curious,butterfl,mission,january,singer,sherman,shark,techno,lancer,lalala,autumn,chichi,orion,trixie,clifford,delta,bobbob,bomber,holden,kang,kiss,1968,spunky,liquid,mary,beagle,granny,network,bond,kkkkkk,millie,biggie,beetle,teacher,susan,toronto,anakin,genius,dream,dang,bush,nyx".split(",")
@@ -1834,7 +1842,9 @@ command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 	end if
 	table = "tp"
 	if arg1 == "hash" then table = "t5"
-	print(print(colorGold+"Writing tables to <u>"+home_dir+"/tables/"+table+CT))
+	table_path = HOME_SERVER[6].split("/tables/t5")[0]
+	//print(print(colorGold+"Writing tables to <u>"+home_dir+"/tables/"+table+CT))
+	print colorGold+"Writing tables to: "+table_path+"/tables/"+table
 	print(colorGold+"Hash Table: ["+colorWhite+HASH_TABLE.len+"</color>]")
 	print("<align=center>"+char(171)+char(187)+"</align>")
 	out=[]
@@ -1852,8 +1862,10 @@ command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 		output = out.join(char(10))
 		if output.len > 159900 then
 			print(lol+" "+out.len+" "+output.len)
-			localmachine.touch(home_dir+"/tables/"+table,lol+"")
-			file=localmachine.File(home_dir+"/tables/"+table+"/"+lol)
+			//localmachine.touch(home_dir+"/rkit/tables/"+table,lol+"")
+			//file=localmachine.File(home_dir+"/rkit/tables/"+table+"/"+lol)
+			localmachine.touch(table_path+"/tables/"+table,lol+"")
+			file=localmachine.File(table_path+"/tables/"+table+"/"+lol)
 			file.set_content(output)
 			command.perms("o-rwx",file)
 			out=[]
@@ -1862,14 +1874,13 @@ command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
 		//wait(.01)
 	end for
 
-	if out.len > 1 then
+	if out.len > 0 then
+		lol = lol + 1
 		print(lol+" "+HASH_TABLE.len+" "+out.len)
-		localmachine.touch(home_dir+"/tables/"+table,lol+"")
-		file=localmachine.File(home_dir+"/tables/"+table+"/"+lol)
+		localmachine.touch(table_path+"/tables/"+table,lol+"")
+		file=localmachine.File(table_path+"/tables/"+table+"/"+lol)
 		file.set_content(out.join(char(10)))
 		command.perms("o-rwx",file)
-		out=""
-		lol=lol + 1
 	end if
 
 	return file.path
@@ -1990,30 +2001,30 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			if dict_a.len > 0 then return "cerebrum: ["+colorGold+globals.dict_a.len+CT+"] passwords ready. " else return "cerebrum: import error. dictionary corrupted."
 		end if
 		if typeof(arg2) == "string" then
-			if arg2 == "@home" then
-				r_ip = ""
-				r_p = "22"
-				if params and params.len > 1 then
-					r_ip = params[0]
-					r_p = params[1].to_int
-				else
-					r_ip = targ.ip
-					r_p = targ.pt
-				end if
-				if not is_valid_ip(r_ip) then return "cerebrum: set remote ip and port with command.target [ip] [port] before using -i @home option."
+			if is_valid_ip(arg2) then
+				r_ip = arg2
+				r_p = HOME_SERVER[1]
+				// if params and params.len > 1 then
+				// 	r_ip = params[0]
+				// 	r_p = params[1].to_int
+				// else
+				// 	r_ip = targ.ip
+				// 	r_p = targ.pt
+				// end if
+				//if not is_valid_ip(r_ip) then return "cerebrum: set remote ip and port with command.target [ip] [port] before using -i @home option."
 				r_pas = ""
 				//if params and params.len > 2 then
 					//r_pas = params[2]
 				//else
-					r_pas = user_input("@home_server_password (leave blank to abort)"+char(10)+":> ", 1)
+				if HOME_SERVER[3] == "password" then r_pas = user_input("@home_server_password (leave blank to abort)"+char(10)+":> ", 1) else r_pas = HOME_SERVER[3]
 				//end if
-				if r_pas.replace(" ","") == "" then return("aborting...")
-				r_r = shell.connect_service(r_ip, r_p, "root", r_pas)
+				if r_pas.trim == "" then return("aborting...")
+				r_r = shell.connect_service(r_ip, r_p, HOME_SERVER[1], r_pas)
 				if r_r and typeof(r_r) == "shell" then
-					infile = r_r.host_computer.File("/root/tables/tp")
-					if not infile then return (colorRed+"404: /root/tables/tp not found. Run pwgen on remote host."+CT)
+					infile = r_r.host_computer.File(globals.HOME_SERVER[6])
+					if not infile then return (colorRed+"cerebrum: /root/rkit/tables/tp not found"+"cerebrum: home_dir/rkit/tables/tp not found"+char(10)+"-- run pwgen to create the tables"+CT)
 				else
-					return (colorRed+"222: remote server unreachable."+CT)
+					return (colorRed+"cerebrum: remote server unreachable."+CT)
 				end if
 			else
 				infile = globals.get_file(arg2)
@@ -2079,14 +2090,16 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 	tab = get_shell.host_computer.File("/root/tables/tp")
 	if tab and tab.has_permission("r") then 
 		print("Detected /root/tables/tp. Auto-import passwords?")
-		autoimport = user_input("[Y/n/q]||: ",0,1)
+		autoimport = user_input("[Y/n] (q=quit)||: ",0,1)
 		if autoimport.lower == "q" then return
 		if autoimport.lower != "n" then 
 			print("Calling "+colorWhite+"<u>cerebrum -i /root/tables/tp</u>")
 			print command.cerebrum("-i","/root/tables/tp")
 			return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds."
 		end if
+		print "cerebrum: bypassin tables..."
 	end if
+	print colorGold+"</b>cerebrum: working..."
 	if DEBUG then print("cerebrum calling: pwgen false "+arg1)
 	command.pwgen("false",arg1)
 	time_e = (time - time_s)
@@ -2532,7 +2545,7 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	print colorLightBlue+"<u>sl: "+colorCyan+"creating symlink:</b> "+source_file.path+" ~> "+sym_parent_path+"/"+sym_name
 	return source_file.symlink(sym_parent_path, sym_name)
 end function
-command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
+command.zc = function(neurobox_user,neurobox_pass,metalib,patch_it=0)
     if neurobox_user == "h" or neurobox_user == "help" then return "Zer0Chill || Zeroday || zero day || autopatcher || autosolver"+char(10)+
 	colorWhite+"Usage: zc [neurobox_username] [neurobox_password] [opt:metaLib_name|metaLib_object]"+char(10)+
 	"-- if a MetaLib is not supplied, zc will use the currently linked MetaLib"+char(10)+
@@ -2764,12 +2777,14 @@ command.zc = function(neurobox_user,neurobox_pass,metalib,arg4)
         output_file = globals.get_file(currentPath+"/patch.zd")
         if not output_file then print command.poke(currentPath+"/patch.zd")
         output_file = globals.get_file(currentPath+"/patch.zd")
-        if not output_file then print "zer0Chill: could not find or create patch.zd in current path"+char(10)+"-- patch not written to file"
-        if output_file then 
-            if not output_file.has_permission("w") then 
-                print "zer0Chill: patch.zd is write protected"+char(10)+"-- patch not written to file"
+        if not output_file then 
+			print "zer0Chill: could not find or create patch.zd in current path"+char(10)+"-- <b>patch not written to file!"
+		else
+			if not output_file.has_permission("w") then 
+                print "zer0Chill: patch.zd is write protected"+char(10)+"-- <b>patch not written to file!"
             else
-                print "zer0Chill: writing patch file to: "+output_file.path+char(10)+"-- status: ["+handle.write_patch(handle.output, output_file)+"]"
+                print "zer0Chill: writing patch file to: <b>"+output_file.path+char(10)+"-- status: ["+handle.write_patch(handle.output, output_file)+"]"
+				
             end if
         end if
         print "zer0Chill: returning output..."
@@ -2883,13 +2898,18 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [path] -- -f == run once on specified path, -d == run in daemon mode on specified path. Default path: /root/pass."
 	if not crypto then print(colorOrange+"WARNING: crypto.so not found"+CT)
-	dump = globals.get_file("dump.txt")
-	if not dump then print localmachine.touch(currentPath, "dump.txt")
-	dump = globals.get_file("dump.txt")
+	//dump = globals.get_file("dump.txt")
+	dump = command.tree("/","dump.txt",1,"N")
+	slash = "/"
+	if currentPath == "/" then slash = ""
+	if typeof(dump) != "file" then 
+		print command.poke(currentPath+slash+"dump.txt")
+		dump = globals.get_file("dump.txt")
+	end if
 	if not dump then return "hashim: dump.txt not found in current path."+char(10)+"hashim: unable to write dump.txt"
-	if arg2 then swap_path = arg2 else swap_path = "/root/pass"//params[0]
+	if arg2 then swap_path = arg2 else swap_path = globals.HOME_SERVER[5] // "/root/pass"//params[0]
 	swap_file = globals.get_file(swap_path)
-	if not swap_file then return("hashim: "+swap_path+" not found.")
+	if not swap_file then return("hashim: "+swap_path+" not found.") else print "hashim: found swap file: "+swap_path
 	//out_path = "/virt/out.spc"
 	//out_file = localmachine.File(out_path)
 	//if not out_file then return("404: "+out_path+" not found"+char(10)+"type<b> kore </b>without params to create (you may skip adding an ip)")
@@ -2901,11 +2921,12 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		wait(.05)
 		//if not daemon then swap_path = "/root/pass"
 		//swap_file = globals.get_file(swap_path)
-		if not swap_file then return "404: "+swap_path+" not found."
+		if not swap_file then return "hashim: error: "+swap_path+" not found."
 		last_read = "" //swap_file.get_content
 		running = true
 		manager = new DaemonManager
 		daemon = manager.Start("hashim")
+		// move the tables stuff up here, not good to keep redoing it in a loop
 		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
 		print(colorWhite+"Daemon: "+daemon+CT)
 		while (daemon and manager.Check(daemon)) or not manager.__initialized
@@ -2934,28 +2955,48 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 					if DEBUG then print "hash is:"+hash+" and len is: "+hash.len
 					if hash.len != 32 then continue
 					print("["+hash+"]")
-					//t_folder = localmachine.File("/root/tables/t5")
-					t_folder = globals.get_file(globals.TABLES_DIR)
-					if not t_folder then return globals.TABLES_DIR+" not found\n-- run<b> pwgen hash\n-- or edit TABLES_DIR to resolve"
-					files = t_folder.get_files
-					for f in files
-						if found then continue
-						lines = f.get_content.split(char(10))
-						for line in lines
+					t_path = globals.HOME_SERVER[6]
+					t_folder = globals.get_file(t_path)
+					have_tables = false
+					if not t_folder then 
+						print "hashim: "+t_path+" not found; searching for tables..."
+						t_folder = command.tree("/","tables",1,"N")
+						if typeof(t_folder) == "file" and t_folder.is_folder then 
+							folds = t_folder.get_folders
+							for f in folds
+								if f.name == "t5" and f.is_folder then 
+									t_folder = f 
+									have_tables = true 
+								end if
+							end for
+						else 
+							print "hashim: tables not found; defaulting to cryptolib"
+						end if
+					else 
+						print "hashim: using: "+t_path
+						have_tables = true
+					end if
+					if have_tables == true then
+						files = t_folder.get_files
+						for f in files
 							if found then continue
-							if line == lines[0] then continue
-							spl = line.split("=")
-							h = spl[0]
-							p = spl[1]
-							if h == hash then
-								print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
-								cache.push(user + ":" + p)
-								found = true
-								continue
-								if h.len != 32 then print(colorRed+"hashim: t5 table error: entry is not 32 characters"+char(10)+line+char(10)+"Line: "+lines.indexOf(line))
-							end if
+							lines = f.get_content.split(char(10))
+							for line in lines
+								if found then continue
+								if line == lines[0] then continue
+								spl = line.split("=")
+								h = spl[0]
+								p = spl[1]
+								if h == hash then
+									print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
+									cache.push(user + ":" + p)
+									found = true
+									continue
+									if h.len != 32 then print(colorRed+"hashim: t5 table error: entry is not 32 characters"+char(10)+line+char(10)+"Line: "+lines.indexOf(line))
+								end if
+							end for
 						end for
-					end for
+					end if
 					if found == true then continue
 					if crypto then
 						password = null
@@ -2966,6 +3007,8 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 							found = true
 							continue
 						end if
+					else 
+						print "hashim: error; no cryptolib found"
 					end if
 					print(colorRed+"Hash not found: unknown: "+hash+CT)
 					cache.push(user+":unknown")
