@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.6.1...(146.317)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.7...(147.886)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -26,10 +26,10 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		"kore: please do not delete the binary until kore -r is complete"
 		print("Validating "+home_dir+"/rkit...")
 		print(command.mkdir(home_dir+"/rkit"))
-		if not globals.get_file(home_dir+"/rkit") then return "kore: failed to create rkit: permission denied"
+		if not globals.get_file(home_dir+"/rkit") then return "<size=75%>kore: failed to create rkit: permission denied"
 		print("kore: copying: "+colorCyan+pro_path+CT+" to "+home_dir+"/rkit/5hell")
 		print(command.cp(pro_path, home_dir+"/rkit/5hell" ))
-		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print "kore: failed to copy 5hell: permission denied"
+		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print "<size=75%>kore: failed to copy 5hell: permission denied"
 		mpath = null
 		mpath = command.tree("/","metaxploit.so","1","N")
 		if mpath and mpath.parent.name == "rkit" then
@@ -43,36 +43,44 @@ command.kore = function(arg1,arg2,arg3,arg4)
 			end if
 		end if
 		if typeof(mpath) != "file" then 
-			print "kore: metaxploit.so not found"
+			print "<size=75%>kore: metaxploit.so not found"
 		else 
-			print("kore: copying: "+mpath.path+" to "+home_dir+"/rkit")
-			print "kore: if this is not the correct .so then"+char(10)+
-			"      -- please move the correct .so higher in the file tree"+char(10)+
-			"      -- such as in /lib"
+			print("<size=75%>kore: copying: "+mpath.path+" to "+home_dir+"/rkit")
+			print "<size=75%>kore: if this is not the correct .so then"+char(10)+
+			"<size=75%>-- please move the correct .so higher in the file tree"+char(10)+
+			"<size=75%>-- such as in /lib"
 			command.cp(mpath.path, home_dir+"/rkit")
-			if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print "kore: failed to copy metaxploit.so: permission denied"
+			if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print "<size=75%>kore: failed to copy metaxploit.so: permission denied"
 		end if
-			cpath = null				
-				cpath = command.tree("/","crypto.so","1","N")
-				if cpath and cpath.parent.name == "rkit" then
-					cpath.move(cpath.parent.path,cpath.name+".bku")
-					c_path_2 = command.tree("/","crypto.so","1","N")
-					if c_path_2 then 
-					cpath.delete	
-					cpath = c_path_2
-					else 
-						cpath.move(cpath.parent.path,cpath.name.remove(".bku"))
-					end if
-				end if
-				if typeof(cpath) != "file" then 
-					print "kore: crypto.so not found"
-				else 
-					print("kore: copying: "+cpath.path+" to "+home_dir+"/rkit/"+cpath.name)
-					command.cp(cpath.path, home_dir+"/rkit")
-					if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "kore: failed to copy crypto.so: permission denied"
-				end if 
+		cpath = null				
+		cpath = command.tree("/","crypto.so","1","N")
+		if cpath and cpath.parent.name == "rkit" then
+			cpath.move(cpath.parent.path,cpath.name+".bku")
+			c_path_2 = command.tree("/","crypto.so","1","N")
+			if c_path_2 then 
+			cpath.delete	
+			cpath = c_path_2
+			else 
+				cpath.move(cpath.parent.path,cpath.name.remove(".bku"))
+			end if
+		end if
+		if typeof(cpath) != "file" then 
+			print "<size=75%>kore: crypto.so not found"
+		else 
+			print("kore: copying: "+cpath.path+" to "+home_dir+"/rkit/"+cpath.name)
+			command.cp(cpath.path, home_dir+"/rkit")
+			if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "<size=75%>kore: failed to copy crypto.so: permission denied"
+		end if 
 		print "kore: ensuring "+colorWhite+home_dir+"/rkit/database.csv"+CT+" exists..."
 		print command.poke(home_dir+"/rkit/database.csv")
+		print "kore: ensuring "+colorWhite+home_dir+"/rkit/tables"+CT+" exits..."
+		t = command.grep("-f","^tables$","/")
+		if typeof(t) != "file" then 
+			print "<size=75%>kore: failed to locate tables"+char(10)+"<size=75%>-- run pwgen | pwgen hash to create? [N/y]"
+			if user_input("||: "+colorRed).lower == "y" then print command.shell("pwgen | pwgen hash") else print "kore: skipping tables..."
+		else 
+			if t.parent.name != "rkit" then print command.cp(t.path,home_dir+"/rkit") else print "<size=75%>kore: tables folder already exists"
+		end if
 		return 0
 	end function
 
@@ -128,18 +136,17 @@ command.kore = function(arg1,arg2,arg3,arg4)
         return 0
     end function
      
-    usage = function()
-        print kore_usage_info
+    error = function()
+        print "kore: invalid input"
         return 0
     end function
-
-    switch(arg1.lower)
+    switch(arg1)
         case("-r",@make_rkit)
         case("--rkit",@make_rkit)
         case("-s",@secure_it)
         case("--secure",@secure_it)
         case("--hdd",@report_hdd)
-    default(@usage)
+    default(@error)
     time_f = time - time_s
     return "kore: task complete in "+time_f+" seconds."
 end function
@@ -416,14 +423,18 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	"-- please note, rshell indexes start at 1 not 0"+char(10)+
 	"-- eg: rsi 1 7 | gp"+char(10)+
 	"Usage: rsi [<b>-p</b>] [opt:y] -- purge all rshells; supplying 'y' will skip confirmation"+char(10)+
-	"Usage: rsi [<b>-s</b>] -- scrub logs of all rshells (if possible)"+char(10)+
+	"Usage: rsi [<b>-s|-S</b>] -- scrub logs of all rshells (if possible)"+char(10)+
+	"-- [-s] -- uses silentclean"+char(10)+
+	"-- [-S] -- uses rclean"+char(10)+
+	"Usage: rsi [<b>-n|-N</b>] -- nuke all rshells"+char(10)+
+	"-- [-n] -- uses silentclean -n"+char(10)+
+	"-- [-N] -- uses rclean -n"+char(10)+
 	"Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10)+
 	"Usage: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"+char(10)
 
 	if not metaxploit then return "Error: Can't find metaxploit library in the /lib path or the current folder"
 	if not localmachine.is_network_active then return "nsl: no network connection."
 	if arg1 == "-p" then return command.purge("-r",arg2,arg3,arg4)
-	 
 	if arg1 == "stop" then 
 		rserver = null
 		rserver = include_lib("/lib/librshell.so")
@@ -451,13 +462,13 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		if rc then return colorGreen+"rsi: service installed"+CT else return colorRed + "rsi: failed to install service" + CT
 	end if
 	print(colorLightBlue+"Listening for upcoming connections...")
-	locals.shells = []
+	locals.rshells = []
 	one_loop = true
-	while shells.len == 0
+	while rshells.len == 0
 		wait(.01)
-		shells = metaxploit.rshell_server
-		if typeof(shells) == "string" then return shells
-		if shells.len == 0 and arg1 != "-d" then 
+		rshells = metaxploit.rshell_server
+		if typeof(rshells) == "string" then return rshells
+		if rshells.len == 0 and arg1 != "-d" then 
 			if one_loop == false then return colorOrange+"</b>rsi: no reverse shells connected\n-- use<b> rsi -d </b> to run in daemon mode."+CT else one_loop = false
 		else 
 			one_loop = false
@@ -473,40 +484,59 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		ret = 0
 		if arg2 then 
 			ret = arg2.to_int
-			if typeof(ret) != "number" or ret > shells.len or ret < 1 then return "rsi: invalid index. Note rshell indexes start at 1 not 0."
+			if typeof(ret) != "number" or ret > rshells.len or ret < 1 then return "rsi: invalid index. Note rshell indexes start at 1 not 0."
 			print "rsi: returning rshell ["+colorWhite+ret+CT+"]" 
-			return shells[ret - 1]
+			return rshells[ret - 1]
 		end if
 		arg1 = arg2
 	end if
+	if arg1 == "-s" or arg1 == "-n" then 
+		football = 0
+		time_s = time
+		if arg1 == "-n" then football = "-n"
+		for rs in rshells 
+			hold = globals.shell 
+			globals.shell = rs 
+			print command.silentclean(football)
+			globals.shell = hold 
+		end for
+		return "<size=75%>rsi: task complete in: "+colorOrange+time-time_s+"</color></b> seconds"
+	end if
+	if arg1 == "-S" or arg1 == "-N" then 
+		time_s = time
+		for rs in rshells 
+			if arg1 == "-S" then print command.rclean(rs) else print command.rclean("-n",rs)
+		end for
+		return "<size=75%>rsi: task complete in: "+colorOrange+time-time_s+"</color></b> seconds"
+	end if 
 	if arg1 then arg1 = arg1.to_int
 	if not arg1 then option = "0" else option = arg1
 	st = arg2
 	rs_buf = []
-	while typeof(option) != "number" or option > shells.len or option < 0
-		print(colorLightBlue + shells.len + "</b> shell(s) connected:"+char(10)+"- if your expected shell isn't listed yet"+char(10)+"- press <<b>enter</b>> to refresh the page"+char(10)+"<b>Select a shell to access:"+CT)
-		if shells.len < 1 then return "rsi:"+colorRed+"</b> there are no reverse shells connected"
+	while typeof(option) != "number" or option > rshells.len or option < 0
+		print(colorLightBlue + rshells.len + "</b> shell(s) connected:"+char(10)+"- if your expected shell isn't listed yet"+char(10)+"- press <<b>enter</b>> to refresh the page"+char(10)+"<b>Select a shell to access:"+CT)
+		if rshells.len < 1 then return "rsi:"+colorRed+"</b> there are no reverse shells connected"
 		rs_buf = []
-		for i in range(0, shells.len - 1)
-			rs_buf.push(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + shells[i].host_computer.public_ip + char(10) + "Local  IP: " + shells[i].host_computer.local_ip + char(10) + colorWhite + command.ps(shells[i]) )
+		for i in range(0, rshells.len - 1)
+			rs_buf.push(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + rshells[i].host_computer.public_ip + char(10) + "Local  IP: " + rshells[i].host_computer.local_ip + char(10) + colorWhite + command.ps(rshells[i]) )
 		end for
 		print(rs_buf.join(char(10)).trim)
 		print(colorLightBlue+"-----------"+CT)
 		option = user_input("Select shell ([0|q] to abort) :> ").to_int
 		if option == 0 or option == "q" then return 0
 		//wait(.01)
-		shells = metaxploit.rshell_server
+		rshells = metaxploit.rshell_server
 	end while
 	if option == 0 or option == "q" then return 0
 	print("Accessing shell [" + option + "]...")
-	ts = shells[option - 1]
+	ts = rshells[option - 1]
 	if return_it == true then 
 		print "rsi: returning rshell ["+colorWhite+(option)+CT+"]" 
 		return ts
 	end if
 	print
-	print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ option +CT+ ")" +CT+char(10)+ "Public IP: " + shells[option - 1].host_computer.public_ip + char(10) + "Local IP: " + shells[option - 1].host_computer.local_ip + char(10))// + colorWhite + command.ps(shells[option - 1]))
-	print command.ps(shells[option - 1])
+	print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ option +CT+ ")" +CT+char(10)+ "Public IP: " + rshells[option - 1].host_computer.public_ip + char(10) + "Local IP: " + rshells[option - 1].host_computer.local_ip + char(10))// + colorWhite + command.ps(rshells[option - 1]))
+	print command.ps(rshells[option - 1])
 	print colorWhite+"<u>"+colorLightBlue+" = = = = = = = = = = = = = </color>"+CT
 	print "[1] glasspool [2] start_terminal [3] scp "+char(10)+
 	      "[4] buffer_it [5] rclean [6] run [K] kill"+char(10)+
@@ -690,9 +720,10 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	is_it_known = function(a)
 		chrom = ""
 		line = a.split(" ")
-		p = "/"
-		if globals.currentPath != "/" then p = globals.currentPath + "/"
-		file = localmachine.File(p + line[2]+".cap")
+		//p = "/"
+		//if globals.currentPath != "/" then p = globals.currentPath + "/"
+		//file = localmachine.File(p + line[2]+".cap")
+		file = command.tree("/",line[2]+".cap",1,"N")
 		if file then
 			chrom = colorGreen
 		else
@@ -794,7 +825,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				return 0
 			end if
 		end if
-		if is_it_known(memory.join(" ")) then passw = crypto.aircrack(globals.currentPath + "/" + essid + ".cap")
+		if is_it_known(memory.join(" ")) then passw = crypto.aircrack(command.tree("/",essid+".cap",1,"N").path)
 		if passw and passw != "temp" then
 			print(passw + "@" + bssid)
 			print("Connection status: [" + localmachine.connect_wifi("wlan0", bssid, essid, passw) + "]"+char(10))
@@ -836,7 +867,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			print("Connection status: [" + try + "]"+char(10))
 			return detect_hidden
 		end if
-		max = (300000 / power.remove("%").val)
+		max = (300000 / ( power.remove("%").val) + 15 )
 		max = max + 10 // just in case
 		status = crypto.aireplay(bssid, essid, max)
 		if status then print(status) else print("Scan complete.")
