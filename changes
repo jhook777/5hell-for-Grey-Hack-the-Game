@@ -26,6 +26,68 @@
 // todo: kraken
 // todo: probe
 //
+// air: will now search filesystem for .cap files instead of only current path
+// pwgen: will now use HOME_SERVER[6] settings for default path for writing tables/tp and tables/t5
+// -- this string must end in: /tables/t5
+// ---- don't forget!
+// --eg: if HOME_SERVER[6] is: /root/rkit/tables/t5
+// ---- then pwgen will write tables/t5 and tables/tp to /root/rkit
+// --NOTE: kore -r will still copy tables from anywhere on the filesystem into rkit when run
+// ----- this will likely change in the future
+// pwgen: fixed: the last password file being overwritten, resulting in lost passwords
+// hashim: will now use HOME_SERVER settings for default paths to the pass/swap file and the tables folder
+// -- will search fs for tables if not found in specified folder, as a backup
+// rshell: will now use HOME_SERVER settings for default port, as well as default ip, of rshell server
+// checkUser: updated to not reject ftpshells
+// malp: fixed: scp gives a malformed error message on bad download
+// malp: fixed ftpshell handler to actually handle ftpshells
+// -- note: ftpshell.put is currently broken in the game
+// -- you can still -upload- to an ftpshell from a regular shell with scp, though
+// -- just no downloading from an ftpshell (no ftpshell.put)
+// rsi: changed locals.shells to locals.rshells
+// 5hell.src: you may now use || to seperate commands without piping output
+// -- this works the same as piping to empty space, ie:
+// ---- echo one | echo two |  | echo three
+// -- is the same as
+// ---- echo one | echo two || echo three
+// -- where the last command will only echo 'three' and not the output of the previous commands
+// -- this is '&&' in most shells, i think
+// -- updated pipe usage info
+// ezclip: fixed "to_int not found in map" when using @p
+// perms: corrected note when using lock:
+// -- the command to bypass anti-brick is: perms lock down
+// -- not perms lock all
+// -- the 'lock' alias is aliased to perms lock all
+// games: drug wars: adjusted difficulty of officer hardass
+// -- adjusted several values including inventory space, event frequency, drug size
+//
+// pwgen/cerebrum: the default dir for tables has been moved to home_dir/rkit/tables
+// -- this way you can take it with you when uploading and use it if you, for instance, start_terminal and lose stuff in memory
+// -- be sure to move your currently existing /root/tables to your rkit folder!
+// -- kore -r will now copy tables to rkit, if it exists outside of rkit 
+// cererum: please note that when cerebrum auto-imports the dictionary from tables, it uses a grep routine
+// -- meaning you do not *have* to put tables in rkit
+// ---- cerebrum will detect it anywhere on the system - at launch -
+// -- using the @home function of cerebrum will use the information in HOME_SERVER 
+// -- the @home function uses ssh for connection 
+// -- ip, port, username, password, and path to tables are all utilized, please define these appropriately
+//
+// games: drug wars: updated wealth values for all neighborhoods (hopefully this makes winning more feasable)
+// do: launching 5hell with do now accepts all params passed
+// -- you may launch 5hell with params without the do # prepend
+// -- launching with do as the first param will still exit when complete
+// -- launching with do as the first param has two modes:
+// -- if -f is not params[2] then everything from params[2] and on will be wrapped in floating quotes when processed
+// ---- this means the whole line will be executed as a single do script
+// ---- if  params[2] is -f then the file named in params[3] will be launched first, then the rest of the line will evaluate
+// -- launching with commands without do as the first param will result in the whole line being evaluated
+// ---- 5hell will not exit once the evaluation is complete
+// do: added the above to usage info
+// do: updated usage info to include info about adding comments to a do script
+// 5hell.src: added 8th element to HOME_SERVER: int:default=1222 rshell server port
+// rshell: will use HOME_SERVER[7] as default rshell server port
+// help: actually added the line for help daemon to the help page, oops
+//
 // malp: hotfix: copy and move in the file handler will actually work now
 // malp: file handler fixes:
 // --: fixed crash in copy routine
@@ -34,6 +96,7 @@
 // --: removed duplicate curl routine
 // --: added spam routine: fill a folder with a bunch of copies
 // malp: shell handler will now loop until exited the same way the computer handler does
+// credits: added: bakeneko, GSQ, blujoker for ideas and bug catching
 //
 // mail: added command line login
 // -- mail [email] [opt:password]
