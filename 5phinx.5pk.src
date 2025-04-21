@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "2.9.2"
 malp_version = "1.4.9"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.6...(156.170)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.7...(156.615)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -112,14 +112,14 @@ globals._ez_clip = function( in_prompt )
     // done reprocessing
     if DEBUG then print("p: "+@e)
     e_indx = in_prompt.indexOf(@e) 
-    if @e == "@STOP" then in_prompt[e_indx] = globals.SAFEWORD
+    if @e == "@STOP" then in_prompt[e_indx] = @globals.SAFEWORD
     if @e == "@a" then in_prompt[e_indx] = @globals.clip_board_alpha
     if @e == "@b" then in_prompt[e_indx] = @globals.clip_board_beta
     if @e == "@c" then in_prompt[e_indx] = @globals.clip_board_gamma
-    if @e == "@home" then in_prompt[e_indx] = globals.HOME_SERVER[0]
+    if @e == "@home" then in_prompt[e_indx] = @globals.HOME_SERVER[0]
     if @e == "@tbuf" then in_prompt[e_indx] = @globals.T_BUF.join(char(10))
     if @e == "@t" then in_prompt[e_indx] = @globals.targetIP 
-    if @e == "@p" then in_prompt[e_indx] = @globals.targetPort
+    if @e == "@p" then in_prompt[e_indx] = @str(globals.targetPort)
     if @e == "@o" then // this is getting out of hand...
       if in_prompt.hasIndex(e_indx+1) and typeof(in_prompt[e_indx+1]) == "string" and get_custom_object.hasIndex(in_prompt[e_indx+1]) then 
           in_prompt[e_indx+1] = command.cob("get",in_prompt[e_indx+1])
@@ -743,41 +743,34 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
   if DEBUG then print "debug: in secure_copy: tagged4scp: "+globals.tagged_for_scp
   if globals.tagged_for_scp != "" and globals.tagged_for_scp != null then copy_from = globals.tagged_for_scp
   //if copy_from then use_it = user_input("Copy from: "+copy_from+"? [Y/n]"+char(10)+"||: ",0,1).lower
-  if copy_from then print "Copying from: "+copy_from+"..."  else copy_from = user_input("Full path to copy from:>  ")
+  if copy_from then print "Copying from: "+copy_from else copy_from = user_input("Full path to copy from:>  ")
   //if use_it == "n" then copy_from = user_input("Full path to copy from: ")
-  if copy_from == "" or copy_from == " " then return "scp: invalid copy_from path"
+  if copy_from == "" or copy_from == " " then return colorOrange+"scp: invalid copy_from path"
   if not copy_to then copy_to = user_input("Destination folder:> ")
-  if copy_to == "" or copy_to == " " then return "scp: invalid destination path"
+  if copy_to == "" or copy_to == " " then return colorOrange+"scp: invalid destination path"
   if trajectory >= 0 then udp = str(trajectory) else udp = user_input("[0] upload [1] download"+char(10)+"(q=quit)|| : ",0,1)
   if DEBUG then print "debug: udp is "+udp+" and is a "+typeof(udp)
   if udp == "q" then return
   if udp == "1" then
-    if typeof(shl) == "shell" then
+    if typeof(shl) == "shell" or typeof(shl) == "ftpshell" or typeof(shl) == "pshell" then
       targ_f = shl.host_computer.File(copy_from)
       if targ_f then
         print("scp: pulling "+targ_f.path+" from "+shl.host_computer.local_ip+" @ "+shl.host_computer.public_ip)
       else
-        return copy_from +"scp-download: file not found"
+        return colorOrange+"scp-download: "+copy_from +" not found"
       end if
       if not targ_f.has_permission("r") then return "scp: copy permission denied"
-      return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
-    else
-      if typeof(shl) == "ftpshell" then
-        return shl.put(copy_from, copy_to, globals.shell) ///////// copying
-      else
-        if typeof(shl) == "pshell" and p_validate(shl,"scp") then 
-          return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
-        else
-          return "aborting..."
-        end if
-      end if
+      if typeof(shl) == "shell" then return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
+      if typeof(shl) == "ftpshell" then return colorRed+"</b>scp: error; a game bug prevents ftpshell.put from functioning"//shl.put(copy_from, copy_to, globals.shell) ///////// copying
+      if typeof(shl) == "pshell" and p_validate(shl,"scp") then return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
+      return "aborting..."
     end if
   else
     if udp == "0" then
       if typeof(globals.shell) == "shell" then
         payload = globals.get_file(copy_from)
         if not payload then
-          return "scp-upload: "+copy_from+" not found"
+          return colorOrange+"scp-upload: "+copy_from+" not found"
         end if
         print(char(10)+"Found: "+payload.path + " " + payload.size + " " + payload.permissions+char(10))
         print("<b>edit permissions</b>? (default: yes)")
@@ -813,7 +806,7 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         end if
         if failed then return "scp: failed" else return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
       else
-        if typeof(globals.shell) == "ftpshell" then print(shell.put(copy_from, copy_to, shl)) else return "aborting..." ///// copying
+        if typeof(globals.shell) == "ftpshell" then print colorRed+"</b>scp: error; a game bug prevents ftpshell.put from working"+char(10)+"-- aborting..." else print "aborting..." //print(shell.put(copy_from, copy_to, shl)) else return "aborting..." ///// copying
         return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
       end if
     end if
@@ -1541,23 +1534,24 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
         ///////////////////// SHELL HANDLER ///////////////////////////
         if typeof(buffer_selection) == "shell" or typeof(buffer_selection) == "ftpshell" then
           shelling = true 
+          notftp = true 
+          if typeof(buffer_selection) == "ftpshell" then notftp = false
           while shelling == true
             print(colorOrange+"<mark=orange><u>= = = = = = = = = = = = = = =</u></mark>"+CT)
             print(format_columns(buffer_selection.host_computer.show_procs)+char(10)+char(10)+checkUser(buffer_selection)+"@"+buffer_selection.host_computer.local_ip+char(10)+buffer_selection.host_computer.public_ip)
             print(colorOrange+"<size=65%><mark=orange><u>= = = = = = = = = = = = = = = = = = = =</u></mark></size>"+CT)
-            if typeof(buffer_selection) == "shell" then print "[f] felix   [c] curl       [p] purge from buffer"+char(10)+
-                                                              "[7] scp     [8] run        [9] fetch meta" +char(10)+
-                                                              "[4] glassp  [5] rclean     [6] get computer "+char(10)+
-                                                              "[1] open    [2] redirect   [3] upload rkit"+char(10)+
-                                                              "[0] to cob  [d] decompile  [b] fetch binaries"
+            print   "[f] felix  [c] curl       [p] purge from buffer"
+            if typeof(buffer_selection) == "shell" then 
+              print "[7] scp    [8] run        [9] fetch meta" +char(10)+
+                    "[4] glassp [5] rclean     [6] get computer "+char(10)+
+                    "[1] open   [2] redirect   [3] upload rkit"
+            end if                
+                                 
             if typeof(buffer_selection) == "ftpshell" then 
-              //print "[disabled, pending adjustment...]"
-              //print "[g] get [p] put [c] host computer"
-              //fselect = user_input("[s] start (ftp) terminal ||:",0,1)
-              //print "stub"
-              print command.code(buffer_selection)
-              continue
+              print "[4] glassp [5] rclean     [6] get computer"
+              print "[1] open   [2] scp/put    [3] upload rkit"
             end if
+            print   "[0] to cob [d] decompile  [b] fetch binaries"
             choice = user_input("(q=quit)||: ",0,1)
             if choice == "0" then 
               print colorOrange+"cobbling..."
@@ -1570,7 +1564,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
                 continue
               end if
             end if 
-            if choice == "9" then 
+            if choice == "9" and notftp then 
               ccc = command.fetch(buffer_selection)
               if typeof(ccc) == "MetaxploitLib" then 
                 print "-- "+colorOrange+"BUFFERING MetaxploitLib..."
@@ -1615,7 +1609,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               print( globals.curl(buffer_selection) )
               continue
             end if
-            if choice == "8" and typeof(buffer_selection) == "shell" then
+            if choice == "8" and notftp then
               l_path = user_input(colorLightBlue+"Enter launch_path</color></b> (<b>enter</b>=abort, 5hell=launch_first_5hell_found)"+char(10)+colorCyan+":> </b><size=75%><u>"+colorWhite)
               if l_path == "" then continue
               if l_path == "5hell" then 
@@ -1645,11 +1639,11 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               continue
             end if
             if choice == "4" then
-              command.glasspool(buffer_selection)
+              print command.glasspool(buffer_selection)
               continue
             end if
-            if choice == "7" then 
-              secure_copy(buffer_selection)
+            if choice == "7" and notftp then 
+              print secure_copy(buffer_selection)
               continue 
             end if
             if choice == "3" then
@@ -1680,6 +1674,10 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
                 print(copytrue)
                 continue
               end if
+              if not notftp then 
+                print "Successfully uploaded rootkit: "+kit.path+char(10)+"To: /home/guest"+char(10+"-- unable to launch via ftpshell; returning...")
+                continue 
+              end if
               go = user_input("Successfully uploaded rootkit: "+kit.path+char(10)+"To: /home/guest"+char(10)+"Would you like to run 5hell silently on the target? [<b>Y</b>/n]"+char(10)+"||: ",0,1)
               if go.lower == "n" then
                 continue
@@ -1709,7 +1707,11 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               continue
             end if
             if choice == "2" then 
-              if user_input("Redirect shell to internal ssh/ftp? [<b>Y</b>/n] :> ").lower != "n" then secure_connect(buffer_selection)
+              if notftp then
+                if user_input("Redirect shell to internal ssh/ftp? [<b>Y</b>/n] :> ").lower != "n" then secure_connect(buffer_selection)
+              else 
+                print secure_copy(buffer_selection)
+              end if
               continue
             end if
           end while
