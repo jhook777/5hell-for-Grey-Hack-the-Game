@@ -121,11 +121,30 @@ command.shell = function(input=null,mute=null)
     ////////// end prompt preperation
 
     // get user input unless command.shell was called internally (do, cc, glasspool...) // do not edit
-    if input then prompt = input.split(" ") else prompt = user_input(bang).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+    // if EXPERIMENTAL then 
+    //   // experimental version; add prompt to command history
+    //   if input then prompt = input.split(" ") else prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+    // else 
+    //   if input then prompt = input.split(" ") else prompt = user_input(bang,0,0).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+    // end if
+    prompt = [0,0,0,0,0]
+    if input then 
+      if typeof(input) == "list" then prompt = input// else prompt = str(input)
+      if typeof(input) == "string" then prompt = input.split(" ")
+      if prompt == [0,0,0,0,0] then return
+    else 
+      if EXPERIMENTAL then 
+      // experimental version; add prompt to command history
+        prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+      else 
+        prompt = user_input(bang,0,0).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+      end if
+    end if
     // flow control, edit with care
     // add or remove comment characters to/from the string below
-    if input and indexOf("|#-/", input[0]) != null then // thanks clover!
-      return 
+    if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#/", input[0]) != null then
+      if DEBUG then print "debug: shell: skipping comment: "+prompt.join(" ")
+      return
     else 
       input = null
     end if
@@ -133,6 +152,7 @@ command.shell = function(input=null,mute=null)
     // end flow control
 
     // remove/comment this line if you dont want the command buffer
+    if DEBUG then print "debug: pushing: "+char(10)+prompt.join(" ")+char(10)+"-- to command_buffer"
     globals.command_buffer.push(prompt.join(" ").remove(" | return"))
 
     // #####################################################################
@@ -193,11 +213,12 @@ command.shell = function(input=null,mute=null)
       // ############################### begin customizables two ###########################
       // begin shortcuts
       // macro replacement; do this before all other aliases as macros may contain aliases
+      command.cob("validate") // validate index exists to avoid a crash
       if get_custom_object.macros.hasIndex(prompt[0]) then prompt = ["macro"]+prompt
       // end macro replacement
       if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f"]+prompt[1:]
       if prompt[0] == "set" or prompt[0] == "get" then prompt = ["cob"]+prompt
-      if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!!
+      //if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!! // this is now a command!
       if prompt[0] == "exit" then prompt[0] = "quit"      // caution: too many shortcuts may slow down the script
       if prompt[0] == "sc" then prompt[0] = "silentclean"
       if prompt[0] == "gp" then prompt[0] = "glasspool"
@@ -215,10 +236,30 @@ command.shell = function(input=null,mute=null)
       prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out sanity check #1
       prompt = prompt[:5] 
       // sanity check #2
+      // experimental forking
+      fork = false
       for pp in prompt 
-        if pp == "" then prompt[__pp_idx] = 0
+        if pp == "--5pork" then 
+          fork = true
+          pp = ""
+        end if
+        if pp == "" then prompt[__pp_idx] = 0 // this interferes with the user intentionally sending "" as an argument (edge case), may have to change it, not sure if it is even needed
       end for
-
+      if EXPERIMENTAL then 
+        if fork then
+          terminal = globals.get_file("/usr/bin/Terminal.exe")
+          if typeof(terminal) != "file" then terminal = command.tree("/","Terminal.exe",1,"N")
+          if typeof(terminal) == "file" then
+            print colorRed+"5"+CT+colorWhite+"hell: 5porking..."
+            print command.run( terminal, prompt.join(" ") )
+          else  
+            print "shell: error; /usr/bin/Terminal.exe not found"
+          end if
+          continue
+        end if
+        fork = false
+      end if
+      // end experimental forking
       // processing
 
       // you know what, there was a distinct lack of using guard clauses here
@@ -227,7 +268,6 @@ command.shell = function(input=null,mute=null)
       // (especially if its in this user facing code) - Clover
 
       cmdName = prompt[0]
-
       // handle case where prompt is "shell" actually
       if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
@@ -262,13 +302,19 @@ command.shell = function(input=null,mute=null)
       end if
 
       if not command.hasIndex(cmdName) then
-        print(cmdName+": unrecognized command (type <b>help</b> for command list)")
-        continue
+        if globals.get_file(prompt[0]) then 
+          if DEBUG then print "debug: running binary on system"
+          prompt = ["run"] + prompt // are we bash today? eff it, we're bashin' it
+          cmdName = prompt[0]
+        else
+          print(cmdName+": unrecognized command (type <b>help</b> for command list)")
+          continue
+        end if
       end if
 
       f = @command[cmdName]
       if typeof(@f) != "function" then // san check #3
-        print(colorOrange+"shell: use <b>cob get [element]</b> to retrieve element.")
+        print(colorOrange+"shell: use <b>cob get ["+f+"]</b> to retrieve element.")
         continue
       end if
 
@@ -414,13 +460,13 @@ if params and params[0] == "do" then
       print "FROM PARAMS"
     end if
   end if
-  command.quit(command.shell(cmd+" "" | return"))
+  print command.quit(command.shell(cmd+" "" | return"))
 end if
 ////////////////END l_w_d CONTROL/////////////////
 //
 ///begin main///
 while true
-command.quit(command.shell(cmd))
+  print command.quit(command.shell(cmd))
 end while
 ////end main////
 //////////end of do not edit section//////////////
