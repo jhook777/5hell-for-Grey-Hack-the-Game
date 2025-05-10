@@ -1,13 +1,19 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.0.7_falling_skies"
+ver = "4.0.8.E_falling_skies"
+print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
-if params and params.indexOf("--debug") >= 0 then DEBUG = true
-size_of_5hell = "156.171"
+if params and params.indexOf("--debug") >= 0 then 
+	DEBUG = true
+	params.remove(params.indexOf("--debug"))
+end if
+size_of_5hell = "158.409"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
+EXPERIMENTAL = false 
+if globals.hasIndex("get_abs_path") then EXPERIMENTAL = true
 //
 // these three stubs are set below by super_import
 globals.metaxploit = null 
@@ -39,13 +45,6 @@ globals.homePath = home_dir
 globals.enumerated = []
 globals.tagged_for_scp = ""
 globals.backup_meta = null
-//globals.services = {}
-
-targ = {"ip":"0.0.0.0", "pt":0} // legacy crap, targetIP and targetPort and HOME_SERVER make this superfluous. also pretty sure it's not documented
-if params and params.len > 0 then targ.ip = params[0]
-if params and params.len > 1 then targ.pt = params[1].to_int
-//globals.localip = localmachine.local_ip
-//globals.pubip = localmachine.public_ip
 globals.neurobox_user = ""
 globals.neurobox_pass = ""
 globals.clip_board_alpha = "" 
@@ -56,9 +55,6 @@ globals.debug_username = ""
 globals.debug_password = "" // neurobox debug credentials
 globals.instance = globals.localmachine.File(program_path)
 //
-// while importing a starting dictionary is still possible it is no longer supported
-// current runtime loading of cerebrum is 20 seconds and importing from filesystem is less than 1 second
-// start dictionaries are therefore superfluous
 if DEBUG then print("<size=75%>loading dictionary...</size>")
 // this function puts the dictionary in the custom object for use between nested launches without breaking legacy dictionary calls
 globals.dict_a = function(import=0)  
@@ -68,8 +64,6 @@ globals.dict_a = function(import=0)
 	return cobble.dictionary // return the dictionary in all cases as a list
 end function
 //// UPDATING THE DICTIONARY IS HANDLED BY COMMAND.CEREBRUM //////
-//// COB import and COB export are now deprecated commented out
-//////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 if DEBUG then ds = dict_a.len
 if DEBUG then print("<size=75%>dictionary loaded...("+(ds/1000)+"kb)</size>")
@@ -85,7 +79,6 @@ globals.XPLOITS = []
 globals.MEMORY = null
 globals.meta_scan = []
 globals.T_BUF = [(localip+"@"+pubip)] // transmission buffer
-//globals.T_BUF = []
 globals.portInfo = null
 globals.tarLan = null
 globals.grepped_file = null
@@ -93,6 +86,7 @@ globals.airing = false
 globals.mail_user = null
 globals.last_mail = null
 globals.this_mail = 0
+globals.last_whois = ""
 
 colorRed = "<color=#FF0000FF><b>"
 colorGreen = "<color=#00FF00FF><b>"
@@ -107,39 +101,19 @@ colorMagenta = "<color=#FF00C8FF><b>"
 colorLightBlue = "<color=#2382FFFF><b>"
 CT = "</color></b>"
 //
-
 // import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/5phinx.5pk") // override=5phinx.5pk
 
 globals.super_import // located in 5phinx.5pk; include_lib latest of: metaxloit, crypto, aptclient
 // -- sets globals.metaxploit, globals.crypto, globals.apt_get 
-// -- this will be consolidated soon(tm)
 //
 // import contrib -- this contains shared functions and commands contributed by the community
 import_code("/root/src/contrib.5pk") // override=contrib.5pk
 //
-
-globals.get_file = function(input_string)
-	if DEBUG then print("debug: in_get_file: "+@input_string)
-	if typeof(input_string) == "file" then return input_string.path
-	if typeof(@input_string) != "string" then return 0
-	if input_string == "" or input_string == " " or not input_string then return 0
-	if DEBUG then print "debug: get_file: processing string: "+@input_string
-	if input_string.split("/")[0] == "" then
-		file = localmachine.File(input_string)
-	else
-		file = localmachine.File(currentPath+"/"+input_string)
-  	if not file then file = localmachine.File(currentPath+input_string)
-	end if
-	if DEBUG then
-		if file then print("File: ["+file.path+"]") else print("File: [not found]")
-	end if
-  if file then return file else return 0
-end function
 // end globals
 if DEBUG then print("<size=75%>loaded get_file...</size>")                       ////////////////////////////////
-if DEBUG then print("<size=75%>loading 5hell.5pk...("+size_of_5hell+"kb)</size>")                   /////LOADING 5HELL///////////////////////////////////
+if DEBUG then print("<size=75%>loading 5hell.5pk...("+size_of_5hell+"kb)</size>")                   /////LOADING 5HELL////////////
 if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")     ////////////////////////////////
 command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(@arg1) == "function" then
@@ -161,7 +135,6 @@ command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		globals.T_BUF.pull 
 		globals.clip_board_alpha = globals.T_BUF.join(char(10))
 		globals.T_BUF = [(localip+"@"+pubip)]
-		//globals.T_BUF = []
 	end if
 	if arg1 == "@cc" then globals.clip_board_alpha = globals.command_buffer.join(char(10))
 	if arg1 == "@B" then
@@ -200,7 +173,6 @@ command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		globals.T_BUF.pull
 		globals.clip_board_beta = globals.T_BUF.join(char(10))
 		globals.T_BUF = [(localip+"@"+pubip)]
-		//globals.T_BUF = []
 	end if
 	if arg1 == "@cc" then	globals.clip_board_beta = globals.command_buffer.join(char(10))
 	if arg1 == "@B" then
@@ -239,7 +211,6 @@ command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		globals.T_BUF.pull
 		globals.clip_board_gamma = globals.T_BUF.join(char(10))
 		globals.T_BUF = [(localip+"@"+pubip)]
-		//globals.T_BUF = []
 	end if
 	if arg1 == "@cc" then	globals.clip_board_gamma = globals.command_buffer.join(char(10))
 	if arg1 == "@B" then
@@ -323,7 +294,6 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "computer") then 
 		if typeof(arg1) == "shell" then locals.hold_comp = arg1.host_computer
 		if typeof(arg1) == "computer" then locals.hold_comp = arg1 
-		//swapped = true
 	end if
 	if verbose then print("<size=75%>Showing processes...")
 	if raw == true then return format_columns(locals.hold_comp.show_procs)
@@ -411,7 +381,6 @@ command.psudo = function(operation, arg2, arg3, arg4)
 	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-s"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a <b>root</b> shell object using credentials"
 //
     _psudo_menu = function()
-        // display options
         print colorGold+"</b>psudo: "+CT+"["+colorWhite+"y</b>|<b>l"+CT+"] execute "+colorCyan+"</b>start_terminal"+CT+" on the currently active shell object"
         print colorGold+"</b>psudo: "+CT+"["+colorWhite+"u"+CT+"] BUFFER a <b>local</b> user shell using credentials"
         print colorGold+"</b>psudo: "+CT+"["+colorWhite+"s"+CT+"] BUFFER a <b>root</b> shell using credentials"
@@ -435,7 +404,6 @@ command.psudo = function(operation, arg2, arg3, arg4)
             return colorGold+"</b>psudo: "+colorRed+"</b>failed</color> to obtain shell object"+char(10)+colorGold+"</b>-- check credentials and try again"
         end if
     end function
-//
     _shell_prompt = function(sh)
 		if typeof(sh) != "shell" then return colorGold+"psudo: error, expected shell, got: "+sh
         if user_input(colorGold+"</b>psudo: "+colorOrange+"warning; start_terminal ends the script!"+char(10)+
@@ -456,17 +424,13 @@ command.psudo = function(operation, arg2, arg3, arg4)
 		 	return colorGold+"</b>psudo: aborting..."
         end if
     end function
-//
 	if not operation then operation = _psudo_menu
 	if not operation then return colorGold+"</b>psudo: aborting..."
     // if it's a shell we warn and confirm
     if typeof(operation) == "shell" then _shell_prompt(operation)
-//
     // otherwise we parse the flag or return if invalid flag
     if typeof(operation) != "string" then return colorGold+"</b>psudo: aborting..."
-// 
     if operation == "-l" or operation == "-y" then return _shell_prompt(globals.shell)
-//
 	usr = null
 	psw = null
     if operation == "-u" then 
@@ -474,13 +438,11 @@ command.psudo = function(operation, arg2, arg3, arg4)
 		if arg3 then psw = arg3 else psw = user_input("user passwor:> ")
 		return _go_time(usr,psw)
 	end if
-//
     if operation == "-s" then
 		usr = "root"
 		if not arg2 then psw = user_input("root password:> ",1) else psw = arg2
 		return _go_time(usr,psw)
 	end if
-//
     return colorGold+"</b>psudo: invalid input"+char(10)+"-- aborting..."
 end function
 command.ls = function(arg1, arg2, arg3=0, arg4=0)
@@ -504,7 +466,7 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	a_order = 0
 	s_order = 0
 	if arg1 then 
-		if arg1.indexOf("-") == 0 then // we have flags
+		if arg1.indexOf("-") == 0 then 
 			if arg2 then folderPath = arg2
 			if arg1.indexOf("l") != null then showDetails = 1
 			if arg1.indexOf("a") != null then a_order = 1
@@ -660,7 +622,6 @@ command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not file then return("mv: can't find " + arg1)
 	destination = null
 	final_name = null
-	// check for file object
 	if typeof(arg2) == "file" then 
 		if p_validate(arg2,"size") then dest = arg2 else return "mv: error: output file object does not exist"+char(10)+
 		"-- please purge this object, recreate the file, or supply a string instead"
@@ -712,7 +673,7 @@ command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
   "---- create file haha, grep for (system.log) and return file_path, overwrite /var/system.log with haha"
   print "<u>"+colorGreen+"= = = = ="
   file = null
-  if typeof(arg1) == "file" then file = arg1 else file = globals.get_file(arg1) // taking a file as arg1 isn't quite finished/tested yet; i'll likely rewrite cp instead
+  if typeof(arg1) == "file" then file = arg1 else file = globals.get_file(arg1) 
   if not file then return("cp: can't find " + arg1)
   destination = null
   final_name = null
@@ -744,19 +705,22 @@ command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 command.usr = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or arg1 == "-h" or arg1 == "help" then return "USR || ADD USER || CHOWN"+char(10)+
-	"Usage: usr [opt: -r] [new_owner] [path] "+char(10)+
-	"-- [-r] flag makes the command recursive on all files and folders below [path]"+char(10)+
+	"Usage: usr [opt: -r] [user] [path] -- asign ownership of file at path to user"+char(10)+
+	"-- the -r flag applies user ownership recursively"+char(10)+
 	"Usage: usr [-a|add] [opt:user] [opt:password] -- add a user to the system"+char(10)+
 	"-- omitting user and or password will result in a prompt for these values"+char(10)+
 	"Usage: usr [-d|del] [username] [opt:bool 1|0] -- delete a user from the system"+char(10)+
 	"-- 0 == do not delete the home folder"+char(10)+
 	"-- 1 == delete the home folder"+char(10)+
 	"-- any other value results in a prompt"+char(10)+
-	"Usage: usr [path] -- return owner of file at path"+char(10)+
-	"-- Do not a name user add or del, for #reasons."+char(10)+
-		"-- It is good practice to run:"+char(10)+
-		" |><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
-		"-- or <b> kore -s</b> for optimal security"
+	"Usage: usr -u [path] -- return owner of file at path"+char(10)+
+	"NOTE: It is good practice to run:"+char(10)+
+	"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
+	"-- for optimal security <u><b>on a rented server"+char(10)+
+	"<size=75%>NOTE: for your peace of mind please use "+colorCyan+"lock"+CT+" and "+colorGreen+" kore -s "+char(10)+
+	"<size=75%>-- to secure your "+colorGold+"main home"+CT+" pc as"+char(10)+
+	"<size=75%>-- this ensures you will not brick your system"+char(10)+
+	"<size=75%>---- however if you somehow get Xorg to be removed from .show_procs, it will fail!!!"
 	is_recursive = false 
 	if arg1 == "add" or arg1 == "-a" then
 		if not arg2 then arg2 = user_input("new_user:> ")
@@ -782,17 +746,17 @@ command.usr = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1.lower == "-r" then 
 		arg1 = 1
 	end if
-	if typeof(arg1) == "string" then // check owner of string: /file/path
+	if typeof(arg1) == "string" then 
 		if not arg2 then
 			check_u = globals.get_file(arg1)
 			if typeof(check_u) == "file" then return check_u.owner 
 		end if
 	end if
-	if arg1 == 1 then // recursive
+	if arg1 == 1 then 
 		if not arg3 then return "usr: invalid arguments. please supply a path."
 		t_f = globals.get_file(arg3)
 		if t_f then return t_f.set_owner(arg2, 1) else return "usr: "+arg3+" not found."
-	else // not recursive
+	else 
 		if not arg2 then return "usr: "+arg1+" not found <b>or</b> path not supplied."
 		t_f = localmachine.File(arg2)
 		if t_f then return t_f.set_owner(arg1, 0) else return "usr: "+arg2+" not found."
@@ -800,7 +764,21 @@ command.usr = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.grp = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "<u>GROUP || ADD GROUP || CHGRP</u>"+char(10)+"Usage: grp [optional: -r -- recursive] [new_group] [path] "+char(10)+"Usage: grp [add|del] [group] [user] -- add or remove group to|from user."+char(10)+"Usage: grp -u [user] -- returns groups associated with user"+char(10)+"Usage: grp -f [path] -- returns group associated with file at path"+char(10)+"-- Do not name group add or del for #reasons."+char(10)+"-- It is good practice to run:"+char(10)+"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+"for optimal security."
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "<u>GROUP || ADD GROUP || CHGRP</u>"+char(10)+
+	"Usage: grp [add|del] [group] [user] -- add or remove group to|from user"+char(10)+
+	"-- users may multiple groups assigned to them"+char(10)+
+	"Usage: grp -u [user] -- returns groups associated with user"+char(10)+
+	"Usage: grp -f [path] -- returns group associated with file at path"+char(10)+
+	"Usage: grp [opt:-r] [group] [path] -- set group of file at path"+char(10)+
+	"-- the -r flag applies the group recursively"+char(10)+
+	"-- each file may have only one group"+char(10)+
+	"NOTE: It is good practice to run:"+char(10)+
+	"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
+	"-- for optimal security <u><b>on a rented server"+char(10)+
+	"<size=75%>NOTE: for your peace of mind please use "+colorCyan+"lock"+CT+" and "+colorGreen+" kore -s "+char(10)+
+	"<size=75%>-- to secure your "+colorGold+"main home"+CT+" pc as"+char(10)+
+	"<size=75%>-- this ensures you will not brick your system"+char(10)+
+	"<size=75%>---- however if you somehow get Xorg to be removed from .show_procs, it will fail!!!"
 	is_recursive = false
 	if arg1 == "-f" then 
 		if not arg2 or arg2 == "" then return "Usage: grp -f [path]"
@@ -834,60 +812,98 @@ command.grp = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.perms = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("__debug: in perms")
-	if (arg1 == "-h" or arg1 == "help") and arg2 == "extra" then return "Q: Perms lock all (aka the <b>lock</b> command): what does it do?"+char(10)+"A: the following:"+char(10)+"perms -R o-rwx /"+char(10)+"perms -R g-rwx /"+char(10)+"perms -R u-rwx /"+char(10)+"if on home computer, does the following to avoid lockout:"+char(10)+"perms g+x /bin/sudo"+char(10)+"perms g+x /bin/psudo"+char(10)+"perms g+x /bin/ssh"+char(10)+"perms g+x /usr/bin/Terminal.exe"+char(10)+"perms g+x /usr/bin/Chat.exe"+char(10)+"perms g+x /usr/bin/Mail.exe"+char(10)+"To bypass this and lock down anyway use:<b> perms lock down </b> (use with caution)"+char(10)+"n.b mail and chat are on this list because bugs happen when they are fully locked."
+	if (arg1 == "-h" or arg1 == "help") and arg2 == "extra" then return "Q: Perms lock all (aka the <b>lock</b> command): what does it do?"+char(10)+"A: the following:"+char(10)+"perms -R o-rwx /"+char(10)+"perms -R g-rwx /"+char(10)+"perms -R u-rwx /"+char(10)+"if on home computer, does the following to avoid lockout:"+char(10)+"perms g+x /bin/sudo"+char(10)+"perms g+x /bin/psudo"+char(10)+"perms g+x /bin/ssh"+char(10)+"perms g+x /usr/bin/Terminal.exe"+char(10)+"perms g+x /usr/bin/Chat.exe"+char(10)+"perms g+x /usr/bin/Mail.exe"+char(10)+"perms g+x /bin/bash"+char(10)+"perms -r g+x /etc/init.d"+char(10)+"To bypass this and lock down anyway use:<b> perms lock down </b> (use with caution)"+char(10)+"n.b mail and chat are on this list because bugs happen when they are fully locked."+char(10)+"N.B: you may remove any of these actions by commenting out"+char(10)+"-- the appropriate lines in 5hell.5pk > command.perms"+char(10)+"-- each entry will have a <b>command.perms(""g+x"",""path"") entry"
 	perms_usage = "<u>CHMOD || PERMISSIONS || PERMS || SECURITY</u>"+char(10)+
 		colorWhite+"Usage: perms [opt:-r] [userstring{+|-}permission] [path]"+char(10)+
 		"-- opt: -r -- run recursively on all files and folders under [path]"+char(10)+
-		"-- userstring -- o = other, g = group, u = user/owner"+char(10)+
-		"-- toggle -- [+] = add permission, [-] = remove permission"+char(10)+
-		"-- permission -- r = read, w = write, x = execute"+char(10)+
-		"E.G:<b> perms -r o-rwx / </b> -- remove rwx permissions from 'others' for all files"+char(10)+
-		"E.G:<b> perms -r g+x /bin</b> -- add group execute permissions to all files in /bin"+char(10)+char(10)+
-		"<color=white>Aliases:"+char(10)+
-		"Usage: perms lock all -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
+		colorCyan+"-- userstring: o = other, g = group, u = user/owner"+char(10)+
+		"-- {toggle}: [+] = add permission, [-] = remove permission"+char(10)+
+		"-- permission: r = read, w = write, x = execute"+char(10)+
+		"--eg:<b> perms -r o-rwx / </b> -- remove rwx permissions from 'others' for all files"+char(10)+
+		"--eg:<b> perms -r g+x /bin</b> -- add group execute permissions to all files in /bin"+char(10)+char(10)+
+		"<color=white>Aliases: presets for common permissions"+char(10)+
+		"Usage: perms lock [all] -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
 		"-- includes anti-brick technology: checks for home pc and relaxes certain permissions:"+char(10)+
-		"---- checks for user_email_address: if found, determines we are at home"+char(10)+
+		"---- checks for Xorg running as a process: if found, determines we are at home"+char(10)+
 		"---- if at home add g+x to: sudo, ssh, Terminal.exe, Chat.exe, Mail.exe"+char(10)+
-		"Usage: perms lock down -- force locking down, bypassing anti-brick technology"+char(10)+		
-		"Usage: perms unlock all -- add o+rwx to all files"+char(10)+
-		"<b>Shortcut:</b> "+colorRed+"lock"+CT+"-- alias for <b>perms lock all</b>"+char(10)+
-		"-- it is good practice to run:"+char(10)+
-		"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
-		"--for optimal security."+char(10)+
-		"-- you may type:<b> kore -s</b> to have this action performed for you"
+		"<b>Shortcut:</b> "+colorRed+"</b>lock"+CT+"-- an alias for <b>perms lock all</b>"+char(10)+
+		"Usage: perms lock [path] -- lock permissions on an individual file"+char(10)+
+		"-- returns the target file as an object"+char(10)+
+		"<b>Shortcut:</b> "+colorRed+"</b>lock [path]"+CT+"-- an alias for <b>perms lock [path]</b>"+char(10)+
+		"Usage: perms lock [down] -- force locking down, <b>bypassing anti-brick technology</b>"+char(10)+char(10)+
+		"Usage: perms unlock [all] -- add o+rwx to all files"+char(10)+
+		"UsagE: perms unlock [path] -- add o+rwx, recursively, to a path"+char(10)+char(10)+
+		"Note: it is good practice to run:"+char(10)+
+		"-- |><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
+		"-- for optimal security."+char(10)+
+		"-- you may type:<b> kore -s</b> to have this action performed for you"+char(10)+
 		"Extra: perms [-h|help] extra -- view extra help information about this command."
-	if arg1 == "-h" or arg1 == "help" or arg1 == 0 or arg2 == 0 then return perms_usage
-	if arg1 == "unlock" then return command.perms("-R", "o+rwx", "/")
-	if arg1 == "lock" then
-		if not localmachine.File("/").has_permission("w") then return "perms: lockdown failed: permission denied"
-		command.perms("-R", "o-rwx", "/")
-		command.perms("-R", "g-rwx", "/")
-		command.perms("-R", "u-rwx", "/")
-		//home = user_mail_address//user_input("r u home? [y/N] "+char(10)+"||: ",0,1)
-		home = null 
-		
-		processes = localmachine.show_procs.split(char(10))
-		for p in processes
-			if p == "USER PID CPU MEM COMMAND" then continue
-			process = p.split(" ")
-			process_ID = process[1]
-			process_CMD = process[4]
-			if process_CMD == "Xorg" then  home = true
-		end for
-
-		if home != null and arg2 != "down" then//home == "y" or home == "Y" then
-			print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- locking file permissions")
-			command.perms("g+x","/bin/sudo")
-			command.perms("g+x","/bin/psudo")
-			command.perms("g+x","/bin/ssh")
-			command.perms("g+x","/usr/bin/Terminal.exe")
-			command.perms("g+x","/usr/bin/Chat.exe")
-			command.perms("g+x","/usr/bin/Mail.exe")
-			print("<b><size=75%>perms: setting critical binaries to <b>g+x</b>...")
-			print("<size=75%>perms: rerun with <b>perms lock down</b> to force full lockdown")
+	if arg1 == "-h" or arg1 == "help" then return perms_usage
+	if not arg1 then return "usage: perms [opt:-r] [arg] [path]"+char(10)+"usage: perms lock [all|/path]"
+	if arg1 == "unlock" then 
+		if arg2 == "all" then 
+			print "perms: setting all to o+rwx"
+			command.perms("-R", "o+rwx", "/") 
+			_ = globals.get_file("/")
+		else 
+			ulf = globals.get_file(arg2)
+			if typeof(ulf) == "file" then 
+				print "perms: unlocking: "+ulf.path
+				command.perms("-R","o+rwx",ulf.path)
+				return ulf
+			end if
 		end if
-		if arg2 == "partial" then command.perms("-R","g+x", "/")
-		return "perms: lockdown complete"
+	end if
+	if arg1 == "lock" then
+		lf = "/"
+		if arg2 == "all" then 
+			if not localmachine.File("/").has_permission("w") then return "perms: lockdown failed: permission denied"
+			command.perms("-R", "o-rwx", "/")
+			command.perms("-R", "g-rwx", "/")
+			command.perms("-R", "u-rwx", "/")
+			home = null 
+			
+			processes = localmachine.show_procs.split(char(10))
+			for p in processes
+				if p == "USER PID CPU MEM COMMAND" then continue
+				process = p.split(" ")
+				process_ID = process[1]
+				process_CMD = process[4]
+				if process_CMD == "Xorg" then  home = true
+			end for
+
+			if home != null and arg2 != "down" then
+				print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- setting critical binaries to <b>g+x</b>...")
+				command.perms("g+x","/bin/sudo")
+				command.perms("g+x","/bin/psudo")
+				command.perms("g+x","/bin/ssh")
+				command.perms("g+x","/usr/bin/Terminal.exe")
+				command.perms("g+x","/usr/bin/Chat.exe")
+				command.perms("g+x","/usr/bin/Mail.exe")
+				command.perms("g+x","/bin/bash")
+				command.perms("-R","g+x","/etc/init.d")
+				print("<size=75%>perms: rerun with <b>perms lock down</b> to force full lockdown")
+			end if
+			if arg2 == "partial" then command.perms("-R","g+x", "/")
+			return colorCyan+"</b><size=75%>perms: lockdown complete"
+		else 
+			lf = globals.get_file(arg2)
+			if typeof(lf) == "file" then
+				print "perms: locking: <u><b>"+lf.path
+				command.perms("-R", "o-rwx", lf.path)
+				command.perms("-R", "g-rwx", lf.path)
+				command.perms("-R", "u-rwx", lf.path)
+				fc = colorLightBlue 
+				if lf.is_binary then 
+					if not lf.is_folder then fc = colorCyan
+				else 
+					fc = colorWhite 
+				end if
+				return lf
+			else
+				return "perms: "+arg2+" not found"
+			end if
+		end if
 	end if
 	perms = arg1
 	pathFile = arg2
@@ -902,7 +918,21 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 	if not file then return("perms: can't find " + pathFile)
 	output = file.chmod(perms, isRecursive)
 	if output then print(output)
-	return 0
+	print colorGold+perms+": <size=75%>"+file.path+" "+file.permissions
+	return file
+end function
+command.lock = function(arg1,arg2,arg3,arg4)
+	if arg1 == "help" or arg1 == "-h" then return "perms || chmod || lock || security || permissions"+char(10)+
+	colorWhite+"Usage: lock [opt: path] -- run <b>perms lock [all|/path]"+char(10)+
+	"-- this command is a shortcut for perms lock all / perms lock [path]"+char(10)+
+	"-- this command was formerly an alias defined in 5hell.src"+char(10)+
+	"-- it is now a sub-command similar to prox and scrub"+char(10)+char(10)+
+	"Usage: lock -- lock down all files; uses anti-brick technology"+char(10)+char(10)+
+	"Usage: lock [path] -- lock down a specific path; does not use anti-brick"+char(10)+char(10)+
+	"See <b>perms -h</b> for more info"
+	a = "all"
+	if typeof(arg1) == "string" or typeof(arg1) == "file" then a = arg1
+	return command.perms("lock",a)	
 end function
 command.mkdir = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "/" or arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "Usage: mkdir [/path/new_folder] -- create a new folder in path. path must exist."
@@ -968,13 +998,33 @@ if DEBUG then
 end if 
 command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("debug: arg1: "+arg1+ " :end arg1")
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run [file|path_to_file] [opt:parameters|shell] [opt:shell|parameters -- launch a script binary at path (gui's not supported)"+char(10)+"-- piped file objects are launched from the objects path"+char(10)+"-- max 14 nested launches before stack call error."+char(10)+"-- providing a shell object will launch a binary using that shell object"+char(10)+"-- you must pipe launch params if more than one word"+char(10)+"-- use echo and easy clip for best results (@a,@b,@c)"+char(10)+"---- eg: echo do 1 -f pwn.bat | clipa | clipb @B 1 | run /home/guest/rkit/5hell @b @a"+char(10)+"---- eg: echo rshell 1.1.1.1 | clipa | brutus | run /root/rkit/5hell @a"+char(10)+"Note: run supports pshells with the launch function however p_objects are not currently in game"
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run || launch || shell.launch || execute || script || binary"+char(10)+
+	colorMagenta+"Usage: </b>run [file|path_to_file] [opt:parameters|shell] [opt:shell|parameters"+char(10)+
+	"-- launch a script binary at path (.exe's not supported outside of experimental branch)"+char(10)+
+	"-- piped file objects are launched from the object's path"+char(10)+
+	"---- if you wish to launch a binary on another shell object:"+char(10)+
+	"------ glasspool into that shell object before using run"+char(10)+
+	"-- there is a game imposed max 14 nested launches before stack call error"+char(10)+
+	"-- providing a shell object will launch a binary using that shell object"+char(10)+
+	"-- pipe or wrap in floating quotes complex launch params (more than one word)"+char(10)+
+	"-- use echo and/or easy clip (@a,@b,@c) or <b>""</b> floating quotes <b>""</b> "+char(10)+
+	colorOlive+"---- eg: "+colorMagenta+"run /bin/credi7"+char(10)+
+	colorOlive+"---- eg: </b>zap | "+colorMagenta+"run /root/crowsploit"+char(10)+
+	colorOlive+"---- eg: </b>echo "" do 1 -f pwn.bat "" | clipa | clipb @B 1 || "+colorMagenta+"</b>"+colorMagenta+"run /home/guest/rkit/5hell @a @b"+char(10)+
+	colorOlive+"---- eg: </b>echo rshell 1.1.1.1 | clipa || brutus | "+colorMagenta+"run /root/rkit/5hell @a"+char(10)+
+	colorOlive+"---- eg: </b>ssh notroot@boot 192.168.0.2 | "+colorMagenta+"run /root/rkit/5hell "" brutus | rclean "" "+char(10)+char(10)+
+	colorWhite+"</b>New: you may now launch binaries by path, without prepending the path with 'run'"+char(10)+
+	"-- this is to give it more bash-like functionality"+char(10)+
+	colorMagenta+"-- eg: </b>/bin/echo "" this is new "" @B -m"
+	"Note: run supports pshells with the launch function however p_shells are not currently in game"
 	if typeof(arg1) != "string" and typeof(arg1) != "file" then return "run: arg1 should be file object or path to file" 
 	parameters = ""
+	rr = colorMagenta+"</b>run:"+colorWhite+"</b> launching external program..."
 	if arg2 and typeof(arg2) == "shell" then
 		if arg3 and typeof(arg3) == "string" then parameters = arg3 else parameters = ""
 		if typeof(arg1) == "string" then 
 			globals.stack_pool("up")
+			print rr
 			cc = arg2.launch(arg1, parameters)
 			globals.stack_pool("down")
 			_cascade // exit if cascade
@@ -982,6 +1032,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		if typeof(arg1) == "file" then 
 			globals.stack_pool("up")
+			print rr
 			cc = arg2.launch(arg1.path, parameters)			
 			globals.stack_pool("down")
 			_cascade // exit if cascade
@@ -997,6 +1048,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg2) == "string" then parameters = arg2
 		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
 		globals.stack_pool("up")
+		print rr
 		cc = arg3.launch(run_path, parameters)
 		globals.stack_pool("down")
 		_cascade // exit if cascade
@@ -1011,6 +1063,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	globals.stack_pool("up")
+	print rr
 	cc = shell.launch(file.path, parameters)
 	globals.stack_pool("down")
 	_cascade // exit if cascade
@@ -1045,10 +1098,7 @@ command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if not f then f = localmachine.File(currentPath+"/"+p)
 		if not f then f = localmachine.File(currentPath+p)
 		if not f then return "scribus: "+p+" not found. "
-		//w = user_input(f.path+" found. Open it? [Y/n] ||:",0,1)
-		//if w.lower == "n" then return "aborting..."
 		return globals.scribus(f)
-		//return 1
 	end if
 	return 0
 end function
@@ -1177,7 +1227,6 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
             end function
             mail.get_id = function(arg)
               ds = mail.data[arg].split(char(10))
-              //print(ds)
               i = ds[2].split(" ")
               i = i[1]
               return i
@@ -1205,7 +1254,6 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 				if r >= 0 and r < mail.data.len then
 					read_this = mail.meta.read(mail.get_id(r))
 					if spooling then print "<size=80%>herme5: spooling: ["+colorWhite+r+CT+"]" else print(read_this)
-					//if spooling then spool_buf.push(mail.data[(r)]+char(10)+read_this+char(10))
 					if spooling then spool_buf.push(read_this+char(10))
 					if read_this.split(char(10))[2] == "Subject: *" then
 						print(colorLightBlue+"<u><mark=#DF8600>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
@@ -1333,11 +1381,8 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
               end while
               return mailing
             end function
-
             return mail.menu
           end function
-          // end Herme5
-          //herme5          
 	return herme5
 end function
 command.malp = function(arg1, arg2, arg3=0, arg4=0)
@@ -1387,7 +1432,7 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"-- oe: "+open_entry)
 	return globals.memory_alpha(open_buffer,open_entry)
 end function
-command.fwr = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
+command.fwr = function(arg1, arg2, arg3=0, arg4=0) 
 	if GLASSPOOL then print(colorOrange+"fwr: ignores glasspool."+CT)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: fwr [ip] -- returns firewall rules for ip. returns local rules if no ip given."
 	if not localmachine.is_network_active then return "fwr: no network connection"
@@ -1413,32 +1458,34 @@ end function
 command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b><u>enumeration || ENUM || enum buffer"+char(10)+
 	"Use this to put things in a list."+char(10)+
-	"Usage: enum [opt|/path|file_object|array|#]"+char(10)+
-	"Usage: enum [list|string] -- enumerates a list or a newline separated string"+char(10)+
+	colorLightBlue+"</b>Usage: enum [opt|/path|file_object|array|#]"+char(10)+
+	colorWhite+"</b>Usage: enum [list|map|string] -- enumerates a list or a newline separated string"+char(10)+
 	"-- if the string is a single word it will be interpreted as a path"+char(10)+
 	"-- multiple words on a single line (piped) will be interpreted as a single entry"+char(10)+
-	"Usage: enum [path|file_object]"+char(10)+
+	"-- use enum -a [word] to add a single word to the enum buffer"+char(10)+
+	"-- lists and maps will be enumerated by element"+char(10)+
+	colorWhite+"</b>Usage: enum [path|file_object]"+char(10)+
 	"-- enumerate file contents as a list of strings"+char(10)+
 	"-- useful for 5hell scripting (see the '<b>do</b>' command)."+char(10)+
 	"-- e.g: enum file.txt | enum 1"+char(10)+
+	"-- use enum -a [file] to add a single file to the enum buffer"+char(10)+
 	"---- enumerate file.txt then return index [1] from the list"+char(10)+
-	"Usage: enum -l  -- return the length of enum buffer."+char(10)+
-	"Usage: enum -s  -- show the enum buffer and return the length"+char(10)+
-	"Usage: enum -d  -- enumerate the onboard dictionary"+char(10)+
+	"Usage: enum [-l]  -- return the length of enum buffer."+char(10)+
+	"Usage: enum [-s]  -- show the enum buffer and return the length"+char(10)+
+	"Usage: enum [-d]  -- enumerate the onboard dictionary"+char(10)+
 	"Usage: enum [#] -- return the element at index # in the enum buffer"+char(10)+
 	"UsagE: enum -r [index] -- remove the element at index"+char(10)+
-	"Usage: enum -i [index] [element] -- insert element at index "+char(10)+
+	colorGreen+"Usage: enum -i [index] [element] -- insert element at index "+char(10)+
 	"-- shifts everything below it down"+char(10)+
-	"Usage: enum -a [element] -- append element to end of enum buffer"+char(10)+
+	colorGreen+"Usage: enum -a [element] -- append element to end of enum buffer"+char(10)+
 	"-- unlike enum [string] you may use enum -a [string] to append a single word to the enum buffer"+char(10)+
-	"Usage: enum -e -- return the enum buffer as a list"+char(10)+
-	"Usage: enum -b  -- concatonate the BUFFER and globals.enumerated (the enum buffer)"+char(10)+
-	"Usage: enum -p -- purge the enum buffer"+char(10)+
+	"Usage: enum [-e] -- return the enum buffer as a list"+char(10)+
+	"Usage: enum [-b]  -- concatonate the BUFFER and globals.enumerated (the enum buffer)"+char(10)+
+	"Usage: enum [-p] -- purge the enum buffer"+char(10)+
 	"Advanced: poke files.txt | lock |  | ls | append files.txt | cat files.txt | clipb | enum"+char(10)+
 	"-- Or: ls | enum -- pipe ls output to the enum buffer"+char(10)+
 	"Advanced: lanpro | enum -- scan network and enumerate all LAN addresses found. "+char(10)+
-	"Advanced: enum -e -- return the enumerated buffer as a list object."+char(10)+
-	"Note: map support is coming soon(tm)"
+	"Note: limited map support"
 	if arg1 == null then return 0
 	if not arg1 or arg1 == "0" then
 		if globals.enumerated.len then return globals.enumerated[0] else return 0
@@ -1710,21 +1757,15 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 				end if
 			end for
 			buf = buf.join("")
-			//print(buf)
 			cipher_input = buf.split(char(32))
 		end if
-
-		//////////////////////////////////////
 		for password in cipher_input
 		  cipher_this = password
 		  for l in range(0,cipher_this.len)
-		    //print(cipher_this)
 		    cipher_this = Encode( enc_dec, cipher_this )
 		  end for
 		  cipher_output.push(cipher_this)
 		end for
-		//print("debug: output: "+cipher_output)
-		//////////////////////////////////////
 		if enc_dec == "enc" then
 			spacedex = ""
 			for co in cipher_output
@@ -1737,7 +1778,6 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 			cipher_output.push(char(40001))
 			cipher_output = cipher_output.join("")
 		end if
-		/////////////////////////////////////
 		print(colorLightBlue+"<u><mark=black>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
 		if enc_dec == "dec" then return cipher_output.join(" ")
 		return cipher_output
@@ -1886,7 +1926,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			colorLightBlue+"</b>---- press 'y' if you wish to exit, press enter or any other key to continue running"+char(10)+
 			colorGold+"This allows 5hell to launch 5hell with instructions to launch 5hell with instructions to..."+char(10)+
 			colorLightBlue+"</b>-- keep in mind there is a game limit of 15 <u>nested</u> uses of shell.launch"+char(10)+
-			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning <b>do 1000 dig -s</b> is completely valid"+char(10)+
+			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning "+colorWhite+"do 1000 dig -s</color></b> is completely valid"+char(10)+
 			colorLightBlue+"</b>-- please note that the game does not allow the use of <b>""</b> in launch parameters"+char(10)+
 			colorLightBlue+"</b>----<b> 5hell do 1 echo three | echo two | echo one"+char(10)+
 			colorLightBlue+"</b>---- will result in 5hell running the three echoes at launch "+char(10)+
@@ -1904,10 +1944,10 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			colorLightBlue+"</b>-- do.rc in <b>Config</b> will take priority over do.rc in <b>rkit</b>. This allows a 'home' and 'away' do.rc"+char(10)+
 			char(10)+
 			colorCyan+"Early Termination:"+char(10)+
-			colorLightBlue+"</b>If the final return value of a line in a do script is: <b>@STOP</b>, then:"+char(10)+
+			colorLightBlue+"</b>If the final return value of a line in a do script is: "+colorWhite+"@STOP"+CT+", then:"+char(10)+
 			colorLightBlue+"</b>-- that iteration will cease, and the next iteration will begin"+char(10)+
 			"----: equivalent to a <b>continue</b>"+char(10)+
-			colorLightBlue+"</b>If the final return value of a line in a do script is: <b>@RETURN</b>, then:"+char(10)+
+			colorLightBlue+"</b>If the final return value of a line in a do script is: "+colorWhite+"@RETURN"+CT+", then:"+char(10)+
 			"-- the do script will terminate; no further iterations will run"+char(10)+
 			"----: equivalent to a <b>break</b>"+char(10)+char(10)+
 			colorCyan+"Comments:"+char(10)+
@@ -1947,7 +1987,6 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 		print("* @@ on newline to abort and quit")
 		cmd_hold = command.scribus("@do")
 		if cmd_hold then cmd = cmd_hold.split(char(10)) else return "aborting..."
-		//print(cmd.join(char(10)))
 	end if
 	if cmd[0] == "-f" then
 		if arg3 then
@@ -1964,10 +2003,8 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	if DEBUG then print(cmd)
 	if cmd.len then
 		for i in range(1,iter)
-			//print(colorBlack+"*"+CT)
 			for c in cmd
-				// experimental
-				if c == globals.SAFEWORD then break // ick
+				if c == globals.SAFEWORD then break
 				c = c + " | return"
 				r = command.shell(c)
 				if r == "@STOP" then break
@@ -1995,7 +2032,6 @@ command.cc = function(arg1, arg2, arg3=0, arg4=0)
 	if typeof(do) == "number" and do >= 0 and do < globals.command_buffer.len then
 		carbon = globals.command_buffer[do]
 		carbon = carbon +" "+ schtick
-		//carbon = carbon.split(" ")
 		return command.shell( carbon )
 	else
 		return "cc: invalid index"	
@@ -2119,7 +2155,6 @@ bios_info.push("<mark=red><u>===================================================
 bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.6_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
 bios_info.push("* "+current_date+" "+globals.localmachine.local_ip+" @ "+globals.localmachine.public_ip+" up: "+time)
 procs = globals.localmachine.show_procs.split(char(10))
-//print(procs)
 root_procs = 0
 user_procs = 0
 guest_procs = 0
@@ -2179,10 +2214,8 @@ tot = folds + bins + txts
 bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] tot: ["+tot+"]</size>")
 ess = "-wifi disabled-"
 if localmachine.active_net_card == "WIFI" then
-	//sig = floor(rnd*99)+1
-	//sig = sig - 0
 	sig = 0
-	nets = localmachine.wifi_networks("wlan0") // list
+	nets = localmachine.wifi_networks("wlan0") 
 	ess = get_router.essid_name
 	_get_wifi = function(networks)
 		for net in networks 
@@ -2320,7 +2353,6 @@ bios_info.push("<size=85%>Security Audit Score: "+score+"/10</size>")
 bios_info.push("<size=60%>[unsecured_files:"+unsec_files+"]  [unsecured_directories: "+unsec_dirs+" ]</size>")
 bios_info.push("<size=60%>[/etc/passwd:"+pwf+"] [Mail.txt:"+mtf+"] [Bank.txt:"+bff+"]</size>")
 bios_info.push("<size=60%>[Map.conf:"+mcf+"] [Browser.txt:"+bcf+"] [ConfigLan.conf:"+clf+"]</size>")
-//bios_info.push("<size=60%>[services:                   ]</size>")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
 
 
@@ -2809,9 +2841,9 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		buf.push("<color=#FFFFFFFF><b>"+index[count:count+columns].join(" "))
 		count = count + columns
 	end for
-	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
+	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
 	print(format_columns(buf.join(char(10))).replace("sphinx", "<color=#FF0000FF>sphinx</color>" ) )
-	print
+	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
 	print(":><b> help</b> -- print this page: lists commands alphabetically")
 	print(":><b> help guide</b> -- for a quick getting started guide")
 	//print(":> help [-c|conventions] -- information about 5hell prompt conventions")
