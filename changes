@@ -3,17 +3,11 @@
 //
 // to do:
 // convince author of Medusa to port it to 5hell // can just wrap medusa into a command. it just works.
-// get command.do to persist through glasspool // first i have to figure out why it doesn't in the first place
 // mail: add command line brutus login
-// mail: add command line login
-// mail: add easy button (config based) login
 // database overhaul :(
 // tdump: wait for response feature
-// tdump: dump to local path
 // add chmod/perms to command.felix
-// kore -r needs to give /lib precedence when searching for components
 // add custom theme config
-// connect_service increases trace time: add something for that
 // add a way to tell grep to ignore specific folders
 // expand tree -f to take both path and object as params (jk have to start over) 
 // -- kinda fixed this in the regular tree command...
@@ -25,6 +19,92 @@
 //
 // todo: kraken
 // todo: probe
+// todo: db
+//
+// make sure the below is all DOCUMENTED
+//
+// 5hell.5pk: moved globals.get_file to 5phinx.5pk bc 5hell.5pk ran out of room
+// globals.get_file: will now return a file object if passed a file object
+// -- formerly the function would return the file path if input was a file object, and file object if input was a file path
+// -- now get_file will always return a file object
+// -- this will probably break some things...
+// 5hell.src: moved checking if prompt[0] is a file that we are trying to run to after confirming it isn't a command
+// -- this will reduce get_file calls (which recurse the whole filesystem) 
+// ---- as well as preventing files with the same name as a command from interfering with command execution
+// probe: facelift; color coded aspects of the output
+// -- red: switch or firewall or closed port
+// -- green: open port (includes gateway and internal)
+// -- magenta: non-switch router/machine with port 8080
+// -- cyan: known lib
+// -- gold: unknown lib
+// -- orange: no database found
+// -- white: server
+// probe: updated usage info
+// grep: fixed grep -a and grep -f losing the last result found
+// perms: perms lock [opt] will now take a path in addition to the keywords: all, partial, down
+// -- providing a path locks that path recursively
+// --eg: perms lock /root
+// perms: unlock now takes a path in addition to the keyword: all
+// --eg: perms unlock /bin
+// lock: the lock alias for perms lock all has been made into a command with additional options
+// -- lock by itself will work as normal
+// -- lock [path|file_object] will lock that path, recursively
+// kore: updated usage info
+// air: fixed pathing issue causing a crash on startup 
+// air: menu has changed!!!! be sure to take note of the new menu options when cracking wifi
+// air: will search the system for file.cap instead of assuming current path or home_dir
+// -- current public version of the game has weird current_path vs launch_path rules
+// -- experimental might fix this but for now we have to search for file.cap because it can end up in a number of folders depending on the situation
+// -- using tree instead of grep so that the search is silent
+// air: will now prompt for the final destination folder for the generated .cap file
+// -- leave blank (press enter) to use default; currentPath
+// zap: you may now pass an inject value to zap when preselecting an attack
+// --eg: zap 1 password, zap 1 191.168.0.2
+// zap: you may use the -r flag to skip the BUFFER prompt
+// --eg: zap -r 1 password
+// -- remember that zap [mem] [val] [opt:inject] will already skip all prompts
+// run: you may now run binaries on a system without the 'run' prepend
+// -- this is to give run more bash-like performance
+// -- simply typing the full or relative path is sufficient to run an external script
+// -- note that macros take priority over this;
+// ---- a macro named the same as a file or command will be processed instead of the file or command
+// -- using run to run scripts will still work, of course
+// run: updated usage info and usage examples
+// zap: updated usage info
+// meta: will now return the linked/loaded metaLib for ease of piping
+// macro: fixed typo causing crash when viewing usage info
+// -- added info about escaping ez_clip (eg @a, @b) with '\'
+// ----eg macro set foo " echo \@b " vs macro set foo " echo @b "
+// macro: will now print the macro string to be executed
+// macro: will now warn if a macro shares the name with an existing command
+// -- if a command and a macro share the same name, the macro will execute, not the command
+// macro: added warning if macro contains infinite loop // produces FALSE POSITIVES!!!! but otherwise doesn't interfere
+// fetch: added -b -- fetch binaries; works same as the button in malp/rsi
+// -- fetch -b [opt: path] [piped_shell] 
+// -- defaults to current path
+//
+// if: fixed bug preventing if from working correctly
+// -- also updated output
+// -- it is now safe to do silly things like: if " echo bar " " echo foo " " if bar bar \" echo foo \" foo " bar
+// enum: updated usage info
+// kore: fixed typo in kore -S usage info 
+// kore: added temporary hack to ensure kore clears all mail.txt and bank.txt
+// -- grep -a is omitting it's last result from it's return, fix it
+// rsi: added rsi -l -- return the length of the rshell buffer
+// -- added rsi [-k|-K] -- remove rkit and scrub log on all rshelled machines
+// -- added rsi --export -- return the rshell buffer as a list
+// -- updated usage info
+// --eg: macro set bubye " rsi -k || rsi -p y "
+// macro: will now accept piped input
+// macro: updated usage info
+// -- when setting a macro the @pipe point in the string will be replaced by whatever was piped to the macro call
+// macro: adjusted output of macro -l|list
+// purge: fixed incorrect prompt for purge -m; it will no longer ask if you want to clear rshells when purging macros
+// cob: added validate function to ensure the custom object contains the macros and stack_pool indexes
+// --: 5hell will auto-call this routine in as many appropriate cases as I am able anticipate
+// perms: added /bin/bash and /etc/init.d to the anti-brick routine for 'lock' (aka perms lock all)
+// sc: added /bin/bash to nuke routine
+// rclean: added /bin/bash to nuke routine
 //
 // air: will now search filesystem for .cap files instead of only current path
 // pwgen: will now use HOME_SERVER[6] settings for default path for writing tables/tp and tables/t5
