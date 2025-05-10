@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.8.0 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.2"
-malp_version = "1.4.9"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.7...(156.615)</size>")
+sphinx_version = "2.9.3"
+malp_version = "1.5.0"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.8...(159.716)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -18,10 +18,8 @@ update_path = function()
 end function
 
 _exit = @exit
-globals.exit = function(msg)
-  //if not msg then return colorRed+"quit: invalid exit call; aborting shutdown" // nope, this was a bad idea
-  eob = get_custom_object // end of business, if you were wondering
-  eob.return_value = msg 
+globals.exit = function(msg=0)
+  get_custom_object.return_value = msg
   _exit(msg)
 end function
 globals._cascade = function()
@@ -31,6 +29,24 @@ end function
 // // make this more better good by searching the whole filesystem // done
 hot_swap_libs = function() 
     return globals.super_import
+end function
+
+globals.get_file = function(input_string)
+	if DEBUG then print("debug: in_get_file: "+@input_string)
+	if typeof(input_string) == "file" then return input_string //    input_string.path might be probelmatic, lets return a file as expected
+	if typeof(@input_string) != "string" then return 0
+	if input_string == "" or input_string == " " or not input_string then return 0
+	if DEBUG then print "debug: get_file: processing string: "+@input_string
+	if input_string.split("/")[0] == "" then
+		file = localmachine.File(input_string)
+	else
+		file = localmachine.File(currentPath+"/"+input_string)
+  	if not file then file = localmachine.File(currentPath+input_string)
+	end if
+	if DEBUG then
+		if file then print("File: ["+file.path+"]") else print("File: [not found]")
+	end if
+  if file then return file else return 0
 end function
 
 // import_lib and super import! to replace hot swap libs. this version makes sure to use the highest version
@@ -208,6 +224,7 @@ globals._ez_clip = function( in_prompt )
     if @e == "\@p" then in_prompt[e_indx] = "@p"
     if @e == "\@o" then in_prompt[e_indx] = "@o"
     if @e == "\@B" then in_prompt[e_indx] = "@B"
+    if @e == "\@pipe" then in_prompt[e_indx] = "@pipe"
     if DEBUG then print("b: "+ in_prompt[e_indx])
   end for
   if DEBUG then print "ezclip: returning: "+in_prompt
@@ -360,8 +377,12 @@ globals.decompiler = function(object)
   end if
   if @c.indexOf("__isa") >= 0 or @c.hasIndex("__isa") or @c.hasIndex("classID") or typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "shell" or typeof(@c) == "file" or typeof(@c) == "computer" or typeof(@c) == "ftpshell" then 
     //if @c.hasIndex("__isa") then methods = @c.__isa.indexes else methods = @c.indexes
+    if DEBUG then print "code: isa confirmed; verifying indexes"
     methods = c.__isa.indexes
+    print c.__isa.indexes
+    if c.__isa.indexes.len < 2 then return "code: "+colorRed+"critical error; "+colorWhite+"the object has been invalidated"
     if typeof(c) == "MetaLib" then 
+      if not p_validate(c,"version") then return "code: "+colorRed+" critical error: "+colorWhite+"the object has been invalidated"
       print colorWhite+c.lib_name+CT+" v "+colorWhite+c.version
     end if
     if DEBUG then print "debug: methods: "+methods
@@ -510,11 +531,12 @@ p_validate = function( object, query )
   test = new object 
   if test == null then return 0
   if @object.hasIndex("__isa") and typeof(@object) != "string" then
-    if DEBUG then print "__isa index found..."
+    if DEBUG then print colorGreen+"__isa index found"
     locals.catch = @object.__isa.hasIndex(query)
     if DEBUG then print "result: "+locals.catch
 	  return locals.catch // does the object have the index we seek?
   else 
+    if DEBUG then print colorOrange+"_isa index not found"
     return 0
   end if
 end function 
@@ -572,7 +594,7 @@ if DEBUG then print("<size=75%>loaded _switch engine...</size>")
 
 globals.get_binaries = function(source_shell,dest_folder)
   // verify dest_folder exists
-  if not dest_folder or typeof(dest_folder) != "file" then return "error: destination folder does not exist!"
+  if not dest_folder or typeof(globals.get_file(dest_folder)) != "file" then return "error: destination folder does not exist!"
   // get source_shell home folder
   s_home = source_shell.host_computer.File("/home")
   if not s_home then return "error: target /home does not exist!"
@@ -609,7 +631,7 @@ globals.get_binaries = function(source_shell,dest_folder)
     if DEBUG then print "debug: source_file is: "+source_file+":"+typeof(source_file)
     print command.scpm("-d",source_file,dest_folder,source_shell)
   end for
-  return colorCyan+"Binaries Fetched."+char(10)+colorGreen+"kore"+CT+": recommendation: secure yourself with:"+char(10)+"<b>lock | usr -r root / | grp -r root /</b> (or <b>kore -s</b>)"
+  return colorCyan+"fetch: readable binaries Fetched."+char(10)+colorGreen+"kore"+CT+": recommendation: secure yourself with:"+char(10)+"<b>kore -s</b> or <b>lock | usr -r root / | grp -r root /</b> "
 end function
 
 // not yet used
@@ -1667,7 +1689,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
                 if kpx == "-" then kpx = "x" else kpx = ""
                 if kpw == "-" then kpw = "w" else kpw = ""
                 if kpr == "-" then kpr = "r" else kpr = ""
-                print(command.perms("-r", "o-"+kpr+kpw+kpx, kit.path))
+                print(command.perms("-r", "g+x"+kpr+kpw+kpx, kit.path))
               end if
               print(kit.permissions+" "+kit.owner+" "+kit.group+" "+kit.size+" "+kit.permissions+" "+kit.path)
               if typeof(copytrue) == "string" then
@@ -2771,7 +2793,7 @@ silentclean = function()
   return command.silentclean
 end function
 
-globals.select_attack = function(waitFor=0)
+globals.select_attack = function(waitFor=0,inject=0,ret=0)
   if not metaLib then return "Link metaLib before continuing."
   memory = []
   custom_mem = ""
@@ -2803,24 +2825,23 @@ globals.select_attack = function(waitFor=0)
   end if
   mem = memory.pull
   exploit = memory.pull
-  inject = user_input("Enter ip or passwd for inject value or leave blank (press<b> return</b>)"+char(10)+":> ")
-  print("Injecting address: " + mem + " with " + exploit)
+  if not inject then inject = user_input(colorGold+"Enter ip or passwd for inject value or leave blank (press<b> return</b>)"+char(10)+":> ")
+  print("Injecting address: " + mem + " with " + exploit +" "+ inject)
   result = metaLib.overflow(mem, exploit, inject)
   if result then 
     globals.BUFFER.push(result) // buffer result before handling it
     print colorRed+"</b>zap:"+colorWhite+" sending <b>"+result+"</b> to "+colorOrange+"BUFFER"
   end if
-  if typeof(result) == "shell" then
-
+  if typeof(result) == "shell" and not ret then
     ob = user_input(colorWhite+"</b>-- open shell in "+colorOrange+"BUFFER"+CT+"? ["+colorOrange+"Y"+CT+"/n]"+char(10)+"||: ",0,1)
     if ob.lower == "n" then print colorRed+"</b>zap: "+colorWhite+"</b> returning... " else return globals.memory_alpha(true,true)
     return result
   end if
-  if typeof(result) == "computer" then
+  if typeof(result) == "computer" and not ret then
     print("Obtained " + result)
     hooked_comp(result)
   end if
-  if typeof(result) == "file" then
+  if typeof(result) == "file" and not ret then
     print("Obtained " + result)
     list_files(result.parent)
   end if
@@ -2896,12 +2917,12 @@ update_port_info = function()
   globals.portInfo = "???"
   globals.tarLan = "???"
   if PORT_MAP.hasIndex(globals.targetPort) then
-    globals.portInfo = PORT_MAP[globals.targetPort][2]
+    globals.portInfo = PORT_MAP[globals.targetPort][2]+" "+PORT_MAP[globals.targetPort][3]
     globals.tarLan = PORT_MAP[globals.targetPort][-1]
   else
     for p in PORT_MAP
-      if p["value"][3] == globals.targetIP and p["value"][0] == globals.targetPort then
-        globals.portInfo = p["value"][2]
+      if p["value"][4] == globals.targetIP and p["value"][0] == globals.targetPort then
+        globals.portInfo = p["value"][2]+" "+p["valie"][3]
         globals.tarLan = globals.targetIP
       end if
     end for
@@ -2911,10 +2932,46 @@ end function
 display_portmap = function(bool_dump=0)
   port_index = globals.PORT_MAP.indexes
   display = ""
+  cw = colorWhite+"</b>"
+  cr = colorRed+"</b>"
+  cm = colorMagenta+"</b>"
+  if DEBUG then print "debug: port map: "+PORT_MAP
+
+  is_known = function(lib,ver)
+    if DEBUG then print +"debug: in is_known: lib: "+lib
+    dat = command.tree("/","database.csv",1,"N")
+    if typeof(dat) != "file" or not dat.has_permission("r") then return null 
+    //lib = lib.split(" ")
+    if lib == "employees" or lib == "criminals" or lib == "bank" or lib == "students" then lib = "sql"
+    lib = "lib"+lib+".so"
+    if DEBUG then print "debug: lib: "+lib
+    libver = lib+" v "+ver
+    if DEBUG then print colorWhite+"debug: libver: "+libver
+    if dat.get_content.split(char(10)).indexOf(libver) != null then return 1 else return 0    
+  end function
+
   for n in port_index
     if n == 1 then continue
-    display = display + (PORT_MAP[n][0] + " " + PORT_MAP[n][1] + " " + PORT_MAP[n][2] + " " + PORT_MAP[n][3] + "\n")
+    if DEBUG then print "debug: n: "+n+", PORT_MAP[n]: "+PORT_MAP[n]
+    if PORT_MAP[n][2] != "-" then ik = is_known(PORT_MAP[n][2],PORT_MAP[n][3]) else ik = colorGreen+"</b>"
+    if DEBUG then print "debug: ik: "+ik
+    if ik == null then ik = colorOrange+"</b>"
+    if ik == 1 then ik = colorCyan+"</b>" 
+    if ik == 0 then ik = colorGold+"</b>" 
+    cp = colorGreen+"</b>"
+    if PORT_MAP[n][1] == "closed" or PORT_MAP[n][1] == "Detected" then cp = cr
+    ci = cw
+    if PORT_MAP[n][0] == "Firewall" then ci = cr
+    stat = PORT_MAP[n][1]
+    if PORT_MAP[n][0] == "8080" or PORT_MAP[n][0] == 8080 then 
+      ci = cm
+      stat = "router"
+      cp = cm
+      if get_switch(PORT_MAP[n][4]) != null then; stat = "switch";cp=cr; end if
+    end if
+    display = display + (ci+PORT_MAP[n][0] + " " + cp+stat + " " + ik+PORT_MAP[n][2] + " " + ik+PORT_MAP[n][3]+ " " + ci+PORT_MAP[n][4] + char(10))
   end for
+
   update_port_info
   if bool_dump then return format_columns(display)
   print(format_columns(display))
@@ -2927,21 +2984,23 @@ make_portmap = function(router, comps, q_bool)
   //services.push("pNum")
   services = {}
   if not q_bool then print("Building port map... ")
-  services["pNum"] = [ "PORT" , "STATUS" , "SERVICE INFO" , "LAN" ]
+  services["pNum"] = [ "PORT" , "STATUS" , "SERVICE", "VERSION" , "LAN" ]
   if DEBUG then print("after pnum")
   ports = router.used_ports
-  r_lib_v = "router " + router.kernel_version
-  services["router"] = [ router.public_ip,  "gateway", r_lib_v, router.local_ip ]
+  r_lib_v = router.kernel_version
+  services["router"] = [ router.public_ip,  "gateway", "router", r_lib_v, router.local_ip ]
   if DEBUG then print "debug: obtained port object and router version"
   for p in ports
     state = "open"
     if p.is_closed then state = "closed"
     //services.push(p.port_number + " " + state + " " + router.port_info(p) + " " + p.get_lan_ip + "\n")
-    services[p.port_number] = [p.port_number, state , router.port_info(p) , p.get_lan_ip]
+    pi = router.port_info(p).split(" ")
+    if DEBUG then print "debug: port info: "+pi
+    services[p.port_number] = [p.port_number, state , pi[0], pi[1] , p.get_lan_ip]
   end for
   if DEBUG then print "debug: services mapped"
   cpl = null
-  services["-"] = ["-","-","-","-"]
+  services["-"] = ["-","-","-","-","-"]
   for cip in comps
     if DEBUG then print "debug: top of loop"+char(10)+"-- attempting router.device_ports("+cip+")"
     cpl = router.device_ports(cip)
@@ -2949,7 +3008,7 @@ make_portmap = function(router, comps, q_bool)
     if DEBUG then print "--: "+cpl
     if typeof(cpl) == "string" then
       if DEBUG then print "debug: computer port list is a string: firewall detected"
-      services[cip] = ["Firewall", "Detected", "@ addr:", cip]
+      services[cip] = ["Firewall", "Detected", "@","addr:", cip]
     else
       if DEBUG then print "debug: computer port list is a list:"+cpl
       for cp in cpl
@@ -2958,10 +3017,10 @@ make_portmap = function(router, comps, q_bool)
         if DEBUG then print "debug: port.get_lan_ip: "+lip 
         pn = cp.port_number
         if DEBUG then print "debug: port.port_number: "+pn
-        rpi = router.port_info(cp)        
+        rpi = router.port_info(cp).split(" ")      
         if DEBUG then print "debug: router.port_info(port): "+rpi
         //services[cp.get_lan_ip+":"+cp.port_number] = [cp.port_number, "internal", router.port_info(cp), cp.get_lan_ip]
-        services[lip+":"+pn] = [pn, "internal", rpi, lip]
+        services[lip+":"+pn] = [pn, "internal", rpi[0], rpi[1], lip]
         i = i + 1
       end for
     end if
@@ -3018,7 +3077,10 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
       end if
     end if
     if not quiet then print(t_router.public_ip + " details:")
-    if not quiet then print(whois(t_router.public_ip).replace("Neurobox Network",colorCyan+"<size=150%>Neurobox Network</size>"+CT))
+    if not quiet then 
+      globals.last_whois = whois(t_router.public_ip).replace("Neurobox Network",colorCyan+"Neurobox Network"+CT)
+      print globals.last_whois
+    end if
     if not quiet then print("Getting all reachable computers on " + t_router.local_ip + "'s network...")
     clist = null
     if not quiet then print("------------------------")
@@ -3027,7 +3089,11 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
     //clist.sort
     numComps = clist.len
     if not quiet then print("Found: " + numComps + " machines connected to: " + char(10)+ t_router.essid_name + " : " + t_router.bssid_name)
-    if not quiet then print(clist.join(char(10)))
+    if not quiet then 
+      for c in clist 
+        print(colorWhite+c)
+      end for
+    end if
     if not quiet then print("-----------")
     if not quiet then print("Firewall Rules:")
     rlz = t_router.firewall_rules
