@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.7...(147.886)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.8...(157.153)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -6,13 +6,15 @@ command.kore = function(arg1,arg2,arg3,arg4)
 	"-- create rkit folder if it doesn't exist"+char(10)+
     "-- copy metaxploit.so, crypto.so, and 5hell to home_dir/rkit"+char(10)+
 	"-- create database.csv within rkit if it doesn't exist "+char(10)+
+	"-- moves ~/tables to rkit"+char(10)+
+	"-- offers to run pwgen | pwgen hash if ~/tables is not found"+char(10)+char(10)+
     "Usage: <b>kore [-s|--secure]</b> -- automatic secure system:"+char(10)+
     "-- runs:<u> usr -r root / | grp -r root / | rm /etc/passwd"+char(10)+
     "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | lock"+char(10)+
 	"NOTE: kore -s will remove <b>all</b> copies of Bank.txt and Mail.txt"+char(10)+
 	"-- please rename these files if you wish to keep them"+char(10)+char(10)+
-	"Usage: <b>kore [-S],/b> -- paranoid secure; works as above plus:"+char(10)+
-	"-- removes /bin, /usr, and /home"+char(10)+
+	"Usage: <b>kore [-S]</b> -- paranoid secure; works as above plus:"+char(10)+
+	"-- removes /bin, /usr, and /home"+char(10)+char(10)+
     "Usage: <b>kore [--hdd]</b> -- prompts for hdd size in bytes"+char(10)+
     "-- writes size to /virt/hdd.io"+char(10)+
     "-- bios uses this to report remaining hdd space"+char(10)+char(10)+
@@ -98,16 +100,25 @@ command.kore = function(arg1,arg2,arg3,arg4)
 		print "<size=75%>"+ command.rm("/etc/passwd")
 		print "<size=75%>kore: removing *Bank.txt..."
 		bank_files = command.grep("-a","^Bank.txt$","/")
-		for f in bank_files 
-			if DEBUG and typeof(f) == "file" then print "debug: filename: "+f.name
-			if typeof(f) == "file" then print "<size=75%>" + command.rm(f)
-		end for
+		if typeof(bank_files) == "list" then
+			for f in bank_files 
+				if DEBUG then print "debug: file: "+f.path
+				if typeof(f) == "file" then print "<size=75%>" + command.rm(f)
+			end for
+		else 
+			print bank_files
+		end if
 		print "<size=75%>kore: removing *Mail.txt..."
 		mail_files = command.grep("-a","^Mail.txt$","/")
-		for f in mail_files 
-			if DEBUG and typeof(f) == "file" then print "debug: filename: "+f.name
-			if typeof(f) == "file" then print "<size=75%>" + command.rm(f) 
-		end for
+		if typeof(mail_files) == "list" then
+			for f in mail_files 
+				if DEBUG then print "debug: filename: "+f.name
+				print "<size=75%>" + command.rm(f) 
+			end for
+		else 
+			print mail_files
+		end if
+		// end hack
 		if outer.arg1 == "-S" then 
 			print colorRed+"<size=75%></b>kore</color>: removing home folder... "
 			print "<size=75%>"+command.rm("-r","/home")
@@ -140,7 +151,7 @@ command.kore = function(arg1,arg2,arg3,arg4)
         print "kore: invalid input"
         return 0
     end function
-    switch(arg1)
+    switch(arg1.lower)
         case("-r",@make_rkit)
         case("--rkit",@make_rkit)
         case("-s",@secure_it)
@@ -411,26 +422,40 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "<b><u>Reverse Shell Interface || RSI Daemon || Install rshell server"+char(10)+
+	colorWhite+"</b>Using rsi requires first setting an rshell server. To do so, rent a proxy, then"+char(10)+
+	colorWhite+"</b>install librshell.so (usually from your hackshop). Once you have the lib, you can"+char(10)+
+	colorWhite+"</b>type <b>rsi install</b> to install and start the server. Then, navigate to your"+char(10)+
+	colorWhite+"</b>proxy's router's port 8080 using Browser.exe and forward your desired port to"+char(10)+
+	colorWhite+"</b>port 1222 at your server's lan ip. Use this ip and port when placing your rshells."+char(10)+char(10)+
 	"Usage: rsi [opt: -d|-i|install|start|stop] [opt: -r|# ] [opt: #]"+char(10)+
-	colorLightBlue+"</b>Usage: <b>rsi</b> -- open rshell_interface: listen for connections on port 1222"+char(10)+
+	colorLightBlue+"</b>Usage: <b>rsi</b> -- open rshell_interface: listen for connections"+char(10)+
 	"-- Runs once then exits"+char(10)+
 	"Usage: rsi [<b>-d</b>] -- daemon mode, continues to listen for connections until an rshell connects."+char(10)+
 	colorCyan+"Usage: rsi [<b>-r</b>] [#] -- return the shell object at rshell index #"+char(10)+
 	"-- eg: rsi [<b>-r</b>] #  -- returns the rshell at index # as an object"+char(10)+
 	"-- eg: rsi [<b>-d</b>] [-r</b>] [1</b>] -- wait in daemon mode on an empty rshell buffer and return the first connection as an object"+char(10)+
-	"Usage: rsi [<b>#</b>]  -- auto-selects the rshell at index [#] and opens the context menu"+char(10)+
+	colorCyan+"</b>Usage: rsi [<b>#</b>]  -- auto-selects the rshell at index [#] and opens the context menu"+char(10)+
 	"Usage: rsi [<b>#1</b>] [<b>#2</b>] -- access the rshell at index #1 and auto select option [#2]"+char(10)+
 	"-- please note, rshell indexes start at 1 not 0"+char(10)+
 	"-- eg: rsi 1 7 | gp"+char(10)+
-	"Usage: rsi [<b>-p</b>] [opt:y] -- purge all rshells; supplying 'y' will skip confirmation"+char(10)+
+	colorGreen+"Usage: rsi [-l] -- return the length of the rsi buffer"+char(10)+
+	"-- returns the number as a <b>string</b>"+char(10)+
+	colorOrange+"</b>Usage: rsi [<b>-p</b>] [opt:y] -- purge all rshells; supplying 'y' will skip confirmation"+char(10)+
 	"Usage: rsi [<b>-s|-S</b>] -- scrub logs of all rshells (if possible)"+char(10)+
-	"-- [-s] -- uses silentclean"+char(10)+
-	"-- [-S] -- uses rclean"+char(10)+
-	"Usage: rsi [<b>-n|-N</b>] -- nuke all rshells"+char(10)+
-	"-- [-n] -- uses silentclean -n"+char(10)+
-	"-- [-N] -- uses rclean -n"+char(10)+
-	"Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10)+
-	"Usage: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"+char(10)
+	"-- [<b>-s</b>] -- uses silentclean"+char(10)+
+	"-- [<b>-S</b>] -- uses rclean"+char(10)+
+	colorCyan+"</b>Usage: rsi [<b>-d|-D</b>] -- scrub logs on and remove <b>rkit</b> from all rshells"+char(10)+
+	"-- [<b>-k</b>] -- uses silentclean -d to delete rkit and scrub"+char(10)+
+	"-- [<b>-K</b>] -- uses rclean -d to delete rkit and scrub"+char(10)+
+	colorCyan+"Usage: rsi ["+colorRed+"</b>-n|-N]"+CT+" -- nuke all rshells"+char(10)+
+	"-- [<b>-n</b>] -- uses silentclean -n"+char(10)+
+	"-- [<b>-N</b>] -- uses rclean -n"+char(10)+
+	colorGold+"</b>Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10)+
+	"Usage: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"+char(10)+
+	colorOrange+"Usage: rsi --export -- return the entire rshell buffer as a list"+char(10)+
+	"-- usage example: |> <b>rsi --export | enum -a | enum -b"+char(10)+
+	"---- export rsi as a list, enumerate, concatonate the list to the buffer"+char(10)+
+	"----ie: add all rshells to the buffer as individual entries"
 
 	if not metaxploit then return "Error: Can't find metaxploit library in the /lib path or the current folder"
 	if not localmachine.is_network_active then return "nsl: no network connection."
@@ -490,22 +515,30 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		arg1 = arg2
 	end if
-	if arg1 == "-s" or arg1 == "-n" then 
+	if arg1 == "-l" then return str(metaxploit.rshell_server.len)
+	if arg1 == "--export" then 
+		print colorLightBlue+"rsi: "+colorWhite+"returning rshell buffer as a list..."
+		return metaxploit.rshell_server
+	end if
+	if arg1 == "-s" or arg1 == "-n" or arg1 == "-k" then 
 		football = 0
 		time_s = time
-		if arg1 == "-n" then football = "-n"
+		if arg1 == "-n" then football = "-n"		
+		if arg1 == "-k" then football = "-d"
 		for rs in rshells 
-			hold = globals.shell 
-			globals.shell = rs 
+			//hold = globals.localmachine 
+			globals.localmachine = rs.host_computer 
 			print command.silentclean(football)
-			globals.shell = hold 
+			globals.localmachine = store 
 		end for
 		return "<size=75%>rsi: task complete in: "+colorOrange+time-time_s+"</color></b> seconds"
 	end if
-	if arg1 == "-S" or arg1 == "-N" then 
+	if arg1 == "-S" or arg1 == "-N" or arg1 == "-K" then 
 		time_s = time
 		for rs in rshells 
-			if arg1 == "-S" then print command.rclean(rs) else print command.rclean("-n",rs)
+			if arg1 == "-S" then print command.rclean(rs)
+			if arg1 == "-K" then print command.rclean("-d",rs)
+			if arg1 == "-N" then print command.rclean("-n",rs)
 		end for
 		return "<size=75%>rsi: task complete in: "+colorOrange+time-time_s+"</color></b> seconds"
 	end if 
@@ -761,7 +794,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		essid = "temp"
 		power = "temp"
 		ip = get_shell.host_computer.public_ip
-		if detect_hidden == 2 then print("Probing for hidden signals on local network: "+char(10)+ip)
+		if detect_hidden == 2 then print("Probing for nested signals on local network: "+char(10)+ip)
 		print("<align=center><b>(>|<)</b></align>")
 		networks = localmachine.wifi_networks("wlan0")
 		output = []
@@ -792,10 +825,10 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				end if
 			end for
 			if output.len then
-				print( "Found "+output.len+" hidden wireless signal(s): ")
+				print( "Found "+output.len+" nested wireless signal(s): ")
 				print(output.join(char(10)) + char(10) + "<b>- - - - - - - - - - - - - - - - </b>")
 			else
-				print("No hidden wireless signals found.")
+				print("No nested wireless signals found.")
 			end if
 		end if
 		networks = networks + output
@@ -825,21 +858,29 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				return 0
 			end if
 		end if
-		if is_it_known(memory.join(" ")) then passw = crypto.aircrack(command.tree("/",essid+".cap",1,"N").path)
-		if passw and passw != "temp" then
+		passw = null
+		cap_fl = command.tree("/",essid+".cap",1,"N")
+		if typeof(cap_fl) == "file" then passw = crypto.aircrack( cap_fl.path )
+		if passw then
 			print(passw + "@" + bssid)
 			print("Connection status: [" + localmachine.connect_wifi("wlan0", bssid, essid, passw) + "]"+char(10))
 			wait(1)
 			return detect_hidden
 		end if
-		print("Note: answering y/Y will use brutus. This will take a long long time. ")
-		print("Note: answering c/C will allow you to type the password")
-		print("Note: answering q/Q will abort")
-		print("Note: anything else will use aircrack to crack the wifi key ")
-		print("ie:"+colorCyan+" press enter"+CT+"; recommended)")
-		brut = user_input("Brute force the key? [c/y/N] (q=quit)"+char(10)+":> ")
-		if brut.lower == "q" then return "aborting..."
-		if brut == "y" or brut == "Y" then
+		print
+		print colorGold+"AIR: Options:"
+		print(colorGold+"["+colorWhite+"B</color>]rutus -- attempt to brute force the wifi key using tables/tp"+char(10)+"-- can take upwards of 20 minutes")
+		print(colorGold+"["+colorWhite+"C</color>]redentials -- connect to the wifi network using the known key"+char(10)+"-- requires knowing the key")
+		print
+		print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
+		print(colorCyan+"["+colorWhite+"A</color>]ir -- uses aireplay and aircrack"+char(10)+"--obtains the key through packet sniffing"+char(10)+"-- time to crack is based on signal strength"+char(10)+"-- acks_needed == 300000 / (pwr + 15)")
+		print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
+		print
+		print("Note: "+colorCyan+"press enter"+CT+" to default to using Air (recommended)")
+		brut = user_input("Please enter your selection: [b/c/<b>A</b>] (anything else to abort)"+char(10)+"||: <b>",0,1)
+		if brut == "" then brut = "a"
+		if brut.lower != "b" and brut.lower != "c" and brut.lower != "a" then return "aborting..."
+		if brut.lower == "b" then
 			d_count = 0
 			time_s = time
 			print("Trying: "+colorGold+dict_a.len+CT+" passwords..."+char(10)+"<b>This may take some time...</b>")
@@ -863,9 +904,32 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			ur_p = user_input("network credentials (q=quit):> ")
 			if ur_p.lower == "q" then return "aborting..."
 			try = localmachine.connect_wifi("wlan0", bssid, essid, ur_p)
-			if try == 1 then print(essid+" @ "+bssid)
+			if try == 1 then print(essid+" @ "+bssid) else try = colorRed+try+CT
 			print("Connection status: [" + try + "]"+char(10))
 			return detect_hidden
+		end if
+		// brut == a
+		print colorGold+"air: invoking aireplay..."
+		print(colorGreen+"Please ensure there are no files named "+colorWhite+"file.cap</color> on this machine.")
+		if typeof(command.tree("/","file.cap",1,"N")) == "file" then 
+			caps = command.grep("-a","^file.cap$","/")
+			cw = colorWhite
+			for c in caps
+				print "air: "+colorWhite+c.path
+				d = user_input("Do you wish to ["+cw+"d"+CT+"]elete, ["+cw+"r"+CT+"]ename, or ["+cw+"m"+CT+"]ove this file?"+char(10)+"Press <b>anything else</b> to skip (file may be overwritten!)"+char(10)+"||: ",0,1).lower
+				if d == "d" then print command.rm(c)
+				if d == "r" then 
+					nn = user_input("Please enter a new name for: "+c.path+char(10)+"(leave blank to abort):> <b>")
+					if nn == "" then 
+						print ("air: rename aborted...")
+						continue 
+					end if
+					sl = "/"
+					if c.parent.path == "/" then sl = ""
+					print command.mv(c,c.parent.path+sl+nn)
+				end if
+				if d == "m" then print command.mv(c,user_input("Please enter the new path for: "+c.path+char(10)+":> <b>"))
+			end for
 		end if
 		max = (300000 / ( power.remove("%").val) + 15 )
 		max = max + 10 // just in case
@@ -873,8 +937,10 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		if status then print(status) else print("Scan complete.")
 		print("Processing...")
 		wait(2)
-		cap = globals.get_file(home_dir+"/file.cap")
-		if cap then
+		// find the cap file
+		//cap = globals.get_file(home_dir+"/file.cap")
+		cap = command.tree("/","file.cap",1,"N")
+		if typeof(cap) == "file" then
 			catch = cap.move(globals.currentPath, essid+".cap")
 			if catch then print(catch)
 		else
@@ -886,15 +952,20 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		else
 			print("...file saved as " + essid+".cap")
 			print("The key is:<b> "+crypto.aircrack(globals.currentPath + "/" + essid + ".cap")+"</b>")
+			if user_input(colorCyan+"Would you like to move "+cap.path+" to another folder? "+char(10)+"[<b>N</b>/y] ||: ",0,1).lower == "y"then
+				dir = user_input(colorCyan+"Please enter the destination folder (leave blank to abort): "+char(10)+":> ")
+				if dir == "" then return "aborting..."
+				return command.mv(cap.path,dir)
+			end if
 		end if
 		return detect_hidden
 	end function
 	scw = 1
-	if arg1 == "-f" then arg1 = "false"
+	if arg1 == "-f" then arg1 = "false" // iwlist mode
 	if arg1 == "-c" then
 		if arg2 then
 			cap = globals.get_file(arg2)
-			if cap then return "air_crack: key:<b> "+crypto.aircrack(cap.path)+"</b>" else return "air_crack: "+arg2+" not found."
+			if cap then return "air_crack: key:\n<b>"+crypto.aircrack(cap.path)+"</b>" else return "air_crack: "+arg2+" not found."
 		else
 			return "usage: air -c [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"
 		end if
@@ -905,10 +976,28 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	return "air: exiting..."
 end function
 command.probe = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "<u><b>Probe || nMap || portscan</b></u>"+char(10)+"Usage: probe [optional: ip] [optional: port] -- standard whois and portmap"+char(10)+"probe -f [opt:ip] [opt:port] -- full scan. Takes longer. Gets all reachable, non-firewalled machines on subnet."+char(10)+"</b>Usage: probe [-s|show] -- display currently loaded portmap.</b>"+char(10)+"-- when local on a network, probe each router by LAN ip to probe that subnet"+char(10)+"Quick: probe -q [opt:ip] [opt:port] -- quick scan, gets only surface level machines on subnet."+char(10)+"Note: in all cases probe will set target ip and target port."
+	if arg1 == "help" or arg1 == "-h" then return "<u><b>probe || nmap || portscan"+char(10)+char(10)+
+	colorWhite+"Usage: probe [optional: ip] [optional: port] -- standard whois and portmap"+char(10)+
+	"-- sets global target ip and port when invoked"+char(10)+
+	colorWhite+"Usage: probe -f [opt:ip] [opt:port] -- full scan; akes longer "+char(10)+
+	"-- gets all reachable, non-firewalled machines on subnet."+char(10)+
+	"-- in many cases it will retreive the same machine list as a standard probe"+char(10)+
+	colorWhite+"Usage: probe [-s|show] -- display currently loaded portmap and whois info"+char(10)+
+	"-- when local on a network, probe each router by LAN ip to probe that subnet"+char(10)+
+	colorWhite+"Quick: probe -q [opt:ip] [opt:port] -- quick scan"+char(10)+
+	"-- gets only surface level machines on subnet"+char(10)+
+	"Note: in all cases probe will set target ip and target port."+char(10)+char(10)+
+	colorWhite+"Legend:"+char(10)+
+	colorRed+"-- red: switch or firewall or closed port"+char(10)+
+	colorGreen+"-- green: open port (includes gateway and internal)"+char(10)+
+	colorMagenta+"-- magenta: non-switch router/machine with port 8080"+char(10)+
+	colorCyan+"-- cyan: known lib"+char(10)+
+	colorGold+"-- gold: unknown lib"+char(10)+
+	colorOrange+"-- orange: no database found"+char(10)+
+	coorWhite+"-- white: machine/server/phone"
 	if not localmachine.is_network_active then return "probe: no network connection."
 	if arg1 =="-s" or arg1 == "show" then
-		if PORT_MAP then return globals.display_portmap(1)
+		if PORT_MAP then return globals.last_whois+char(10)+"- - - - - - - - - - - - - - -"+char(10)+globals.display_portmap(1) else return "probe: error; no portmap loaded"
 	end if
 	if arg1 then globals.targetIP = arg1
 	if arg2 then globals.targetPort = arg2.to_int
@@ -1329,9 +1418,8 @@ end if
 command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then
 		return "<u>SILENTCLEAN || silentclean || log wipe || scrubber || corrupt logs"+char(10)+
-		"Usage: silentclean [opt:-d|-n|--n] -- corrupt the system.log"+char(10)+
-		"-- operates on active computer/shell object (ie it respects glasspool)"+char(10)+
-		"-- does NOT accept piped objects (use rclean for that)"+char(10)+
+		"Usage: silentclean [opt:-d|-n|--n] [opt: shell|computer] -- corrupt the system.log"+char(10)+
+		"-- operates on active computer/shell object or piped computer/shell object"+char(10)+
 		"Usage: "+colorWhite+"</b>silentclean "+CT+"-- corrupt system.log of active computer/shell object"+char(10)+"--"+char(10)+
 		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-d"+CT+"] -- delete rkit and/or 5hell, then corrupt system.log"+char(10)+"--"+char(10)+
 		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-n"+CT+"] -- nuke system, delete rkit/5hell, corrupt system.log"+char(10)+
@@ -1341,10 +1429,9 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		"--------|><b> sc -d</b>"+char(10)+
 		colorGold+"</b>-- this is defined in 5hell.src >> aliases section"+char(10)+
 		"N.B. run sc as root since /var is usually write protected."+char(10)+char(10)+
-		"<b>Important: silentclean does not support piped objects"+char(10)+
-		"-- use rclean [-d|-n] [piped object] instead"+char(10)+
-		"-- or open the object with "+colorLightBlue+"</b>glasspool"+CT+" and run sc [-d|-n]"+char(10)+
-		"-- or be fancy and use: <b>gp -d sc @B [#] </b>"+char(10)+
+		"<b>Silentclean now supports piped objects!"+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+" [<b>shell|computer</b>] -- run silentclean on a piped computer or shell "+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-d"+CT+"] [<b>shell|computer</b>] -- run silentclean [-d|-n] on a piped object"+char(10)+
 		"NOTE: if silentclean detects "+colorLightBlue+"Xorg "+CT+"as a running process on the machine:"+char(10)+
 		"-- it will determine you are on a home pc and require an override to execute"+char(10)+
 		"-- this is to help prevent accidentally nuking yourself"+char(10)+
@@ -1362,14 +1449,26 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		"actually corrupted, and thus retains it's permissions when the next log write occurs."+char(10)+
 		"Naturally, this allows you to leave 'custom' log files behind in addition to just covering your tracks."
 	end if
-	if arg1 and typeof(arg1) != "string" and arg1 != "-d" and arg1 != "-n" then print colorOrange+"silentclean: <b>ignoring</b> unsupported input"+char(10)+"-- instead: use rclean [opt:-d|-n] [piped_object]"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"+char(10)+"--eg: <b>gp -d "" sc -d """
-	if arg2 then print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
+	store = globals.localmachine
+	_fix = function()
+		globals.localmachine = store
+		return "."
+	end function
+	//if arg1 and typeof(arg1) != "string" and arg1 != "-d" and arg1 != "-n" then print colorOrange+"silentclean: <b>ignoring</b> unsupported input"+char(10)+"-- instead: use rclean [opt:-d|-n] [piped_object]"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"+char(10)+"--eg: <b>gp -d "" sc -d """
+	if arg1 and arg1 != "-d" and arg1 != "-n" then print colorOrange+"<size=75%>silentclean: ignoring unsupported flag; running as default"
+	if arg2 then 
+		//print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
+		if typeof(arg2) == "shell" then globals.localmachine = arg2.host_computer
+		if typeof(arg2) == "computer" then globals.localmachine = arg2 
+		// use _fix to restore localmachine
+		// just ignore anything else, use rclean for file objects
+	end if
 	cleaner = command.tree("/","5hell","1","N")
 	if cleaner then 
 		if cleaner.parent.name == "rkit" then cleaner = cleaner.parent
 	end if
 	syslog = globals.get_file("/var/system.log")
-	if not syslog then return "silentclean: <b>/var/system.log not found!!</b>"
+	if not syslog then return "silentclean: <b>/var/system.log not found"+_fix
 
 	nuke_em = function()
 		libFolder =  globals.get_file("/lib")
@@ -1393,10 +1492,10 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			//syslog.delete
 			if not syslogbak.is_binary then syslogbak.set_content("No IPs Today :D")
 		else
-			return "silentclean: write failed; permission denied"
+			return "silentclean: write failed; permission denied"+_fix
 		end if
 		if arg1 == "-n" then 
-			if globals.localmachine.show_procs.indexOf("Xorg") == null then arg1 = "--n" else return "silentclean: "+colorOrange+"</b>detected home pc; execution halted"+char(10)+"-- re-run with "+colorWhite+"</b>silentclean --n"+CT+" to override"
+			if globals.localmachine.show_procs.indexOf("Xorg") == null then arg1 = "--n" else return "silentclean: "+colorOrange+"</b>detected home pc; execution halted"+_fix+char(10)+"-- re-run with "+colorWhite+"</b>silentclean --n"+CT+" to override"
 		end if
 		if arg1 == "--n" then nuke_em
 		if arg1 == "-d" or arg1 == "--n" then
@@ -1405,10 +1504,12 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		try = syslogbak.move("/var", "system.log")
 		syslog = globals.get_file("/var/system.log")
 		// add code to give the new file the same permissions as the original log
+		_fix
 		return try
 	else
-		return "silentclean: write failed; permission denied"
+		return "silentclean: write failed; permission denied"+_fix
 	end if
+	_fix
 	return 0
 end function
 command.scrub = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -1836,7 +1937,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	"---- enter a lan_ip or password for the inject value at the prompt"+char(10)+
 	"Usage: db -r [ip] <color=yellow>*</color> -- db all ports at given ip"+char(10)+
 	"Usage: db -r <color=yellow>*</color> -- db all ports of targetIP"+char(10)+char(10)+
-	"Usage: db -r -i -- "
+	"Usage: db -r -i -- "+char(10)+
 	colorWhite+"</b>Usage: db ["+colorCyan+"-l"+CT+"] [opt:lib_name] [opt:inject]"+char(10)+
 	"-- scan a local lib and database resutls"+char(10)+
 	"-- brings up menu if lib_name not supplied"+char(10)+
@@ -2389,7 +2490,9 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			if arg2 and is_valid_ip(arg2) then globals.targetIP = arg2
 			if arg3 and (typeof(arg3.to_int) == "number" or arg3 == "router") then globals.targetPort = arg3.to_int
 			if globals.targetIP then // and globals.targetPort then
-				return command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
+				ldb = command.linkdb(get_lib(arg),"-y") // edit get_lib to take 3rd param: auto link
+				if ldb then print ldb+char(10)+"meta: returning..."
+				return globals.metaLib
 			else
 				return "meta: invalid target IP"
 			end if
@@ -2399,11 +2502,15 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			if arg2 and typeof(arg2) == "MetaLib" then 
 				globals.metaLib = arg2
 				print colorLightBlue+"</b><size=75%>meta: loaded new <b>MetaLib</b> object:"
-				return command.linkdb(arg2.lib_name+" v "+arg2.version,"-y")
+				ldb = command.linkdb(arg2.lib_name+" v "+arg2.version,"-y")
+				if ldb then print ldb+char(10)+"meta: returning..."
+				return globals.metaLib
 			end if
 			arg = "L"
 			scan_this_lib = arg2
-			return command.linkdb(get_lib(arg,scan_this_lib),"-y") //else return "meta: invalid metaLib"// edit get_lib to take 3rd param: auto link
+			ldb = command.linkdb(get_lib(arg,scan_this_lib),"-y") //else return "meta: invalid metaLib"// edit get_lib to take 3rd param: auto link
+			if ldb then print ldb+char(10)+"meta: returning..."
+			return globals.metaLib
 		end if
 	
 		if arg1 == "return" then return globals.metaLib
@@ -2429,12 +2536,40 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	
 end function
 command.zap = function(arg1, arg2, arg3, arg4)
-	if arg1 == "help" or arg1 == "-h" then return "ZAP || Single Attack || overflow || exploit"+char(10)+
-	"Usage: zap -- select attack; Equivalent to 5phinx [A]"+char(10)+
-	"Usage: zap [memory_address] [unsec_value] [opt:pass|ip] -- manually input overflow parameters"+char(10)+
-	"Usage: zap [int] -- run the attack at index [int] "
+	if arg1 == "help" or arg1 == "-h" then return "ZAP || Single Attack || overflow || exploit || hack"+char(10)+
+	"<b>Usage: zap [opt:-r] [opt:index|mem_address] [opt:inject|unsec_value] [opt:inject]"+char(10)+char(10)+
+	"Usage: "+colorRed+"zap"+colorWhite+"</b> [opt:-r]</color> -- select attack; Equivalent to 5phinx [A]"+char(10)+
+	"-- brings up attack selection menu"+char(10)+
+	"-- prompts for inject value"+char(10)+
+	"-- if successful prompts to view the object in the BUFFER"+char(10)+
+	"---- use the -r flag to skip the BUFFER prompt:"+char(10)+
+	"----eg: <b>zap -r"+char(10)+char(10)+
+	"Usage: "+colorRed+"zap"+colorWhite+"</b> [opt:-r] [index#] [opt:inject]</color> -- run the attack at index[#], skipping the menu "+char(10)+
+	"-- passing an inject value skips the inject prompt after the menu"+char(10)+
+	"----eg: <b>zap 1"+char(10)+
+	"----eg: <b>zap 1 192.168.0.2"+char(10)+
+	"-- if successful prompts to view the object in the BUFFER"+char(10)+
+	"-- use the -r flag to skip the BUFFER prompt: "+char(10)+
+	"----eg: <b>zap -r 1 "+char(10)+
+	"--use use -r and supply and inject to skip inject prompt as well"+char(10)+
+	"----eg: <b>zap -r 1 password"+char(10)+char(10)+
+
+	"Usage: "+colorRed+"zap"+colorWhite+"</b> [memory_address] [unsec_value] [opt:inject]</color> -- manually input overflow parameters"+char(10)+
+	"-- skips all prompts"+char(10)+
+	"--eg: <b>zap 0x2D7A08D5 effectsetfocusonshowso password"+char(10)+char(10)+
+	"NOTE: all modes return the result when successful"+char(10)+
+	"NOTE: <b>inject</b> should be of type password or LAN IP or left blank, depending on the attack"+char(10)+
+	"NB: use the <b>roil</b> command to fire all attacks at once"
+
 	if not metaLib then return "Link metaLib before continuing."
 	print colorRed+"<size=75%><u>zap:<color=white> zapping..."
+	ret = 0
+	if arg1 == "-r" then 
+		ret = 1
+		arg1 = arg2 
+		arg2 = arg3 
+		arg3 = arg4 
+	end if 
 	if arg1 and arg2 and typeof(arg1) != "number" and typeof(arg1.to_int) != "number" then
 		result = null
 		if arg3 then
@@ -2449,7 +2584,7 @@ command.zap = function(arg1, arg2, arg3, arg4)
 		print colorRed+"</b>zap: "+colorWhite+"</b>returning..."
 		return result
 	end if
-	return globals.select_attack(arg1)
+	return globals.select_attack(arg1,arg2,ret)
 end function
 command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Attack All | Spam Attack | Run all Exploits | Into the Roil"+char(10)+
@@ -2568,11 +2703,13 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 			if DEBUG then print index
 			if index != "__isa" and index != "classID" and index != "macros" and index != "stack_pool" then gco.remove(index)
 		end for
+		print command.cob("validate")
 		return "custom object purged..."
 	end if
 	if arg1 == "-m" then 
-		if not confirm then confirm = user_input("Clear all rshells: are you sure? [y/N]||: ",0,1)
+		if not confirm then confirm = user_input("Clear all macros: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then print "purging macro registry..."
+		print command.cob("vaidate")
 		if DEBUG then print "debug: macros: "+char(10)+get_custom_object.macros
 		get_custom_object.macros = {}
 		return "macros purged..."
@@ -2628,6 +2765,11 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	colorCyan+"Usage: cob del [key] -- delete key and its value from custom object."+char(10)+
 	"-- returns string on success or failure."+char(10)+
 	colorCyan+"Usage: cob <b>purge</b> -- purge the custom object"+char(10)+
+	colorCyan+"Usage: cob validate -- ensure the custom_object contains indexes:"+char(10)+
+	"--: macros"+char(10)+
+	"--: stack_pool"+char(10)+
+	"--: this avoids crashes when those indexes don't exist"+char(10)+
+	"--: this is run by 5hell automatically in many cases"+char(10)+
 	colorCyan+"Usage: cob install [key] -- install a function residing in the custom object at [key]"+char(10)+
 	"-- this will add the function as a 5hell command (it will show up in help)"+char(10)+
 	"-- functions must still follow the standard template to avoid errors"+char(10)+
@@ -2715,6 +2857,14 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		return format_buf.join(char(10))
 	end function
 
+	cob.validate = function()
+		o=[]
+		o.push(colorCyan+"</b>cob: validating custom object...")
+		if not cobble.hasIndex("macros") then; cobble.macros = {};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
+		if not cobble.hasIndex("stack_pool") then; cobble.stack_pool = 0;o.push(colorOrange+"<size=75%>--: restoring index: stack_pool");end if
+		return o.join(char(10))
+	end function
+
 	cob.del = function( key=0, val=0, nil=0, nul=0 )
 		if typeof(@key) == "function" then
 		if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>" //else return "cob: key not found."
@@ -2740,6 +2890,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	end function
 
 	if arg1 == "return" then return cobble
+	if arg1 == "validate" then return cob.validate
 	if arg1 == "install" then 
 		if arg2 then return cob.install(arg2) else return "cob: install expects a key from the custom object"
 	end if
@@ -2936,15 +3087,35 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
     end if
 end function
 command.fetch = function(arg1,arg2,arg3,arg4)
-	if arg1 == "help" or arg1 == "-h" then return "SPOT || FETCH || MetaxploitLib || k̑érberos"+char(10)+
-	"Usage: fetch [shell_object] -- obtain a MetaxploitLib object from a supplied shell"+char(10)+
+	if arg1 == "help" or arg1 == "-h" then return "SPOT || FETCH || MetaxploitLib || kérberos"+char(10)+char(10)+
+	colorGold+"</b>Usage: fetch -b [shell_object|path] [path|shell_object] "+char(10)+
+	"--download the system.log and all binaries in /home from target shell"+char(10)+
+	"--eg:"+colorGold+"</b> fetch -b @B 1 /root"+char(10)+
+	"--eg:"+colorGold+"</b> zap | fetch -b /root"+char(10)+
+	"--eg:"+colorGold+"</b> rsi -r 1 | fetch -b"+char(10)+char(10)+
+	colorGold+"</b>Usage: fetch [shell_object] -- obtain a MetaxploitLib object from a supplied shell"+char(10)+
 	"-- uploads metaxploit.so to /home/guest"+char(10)+
 	"-- creates a source file in /home/guest"+char(10)+
 	"-- builds and runs the file"+char(10)+
-	"-- places the MetaxploitLib in the custom object"+char(10)+
+	"-- places the MetaxploitLib in the <b>custom object</b> under index:"+colorGold+" fetched"+char(10)+
 	"-- 'spots' out the files; moves them all to an empty file named '.'"+char(10)+
 	"-- returns the MetaxploitLib as an object"+char(10)+
+	"--eg:"+colorGold+"</b> zap | fetch"+char(10)+char(10)+
+	"NOTE: does <b>not</b> scrub the log; does not use rm to remove files"+char(10)+
+	"-- don't forget to scrub the log, if necessary"+char(10)+
 	"NOTE: This is not a jump file. It is a spot file. That is all."
+	if arg1 == "-b" then 
+		shl = null 
+		pth = globals.currentPath
+		if typeof(arg2) == "shell" then shl = arg2 else shl = arg3
+		if typeof(arg2) == "string" then pth = arg2 else pth = arg3
+		print colorOrange+"fetch: getting binaries..."
+		if typeof(shl) != "shell" then return "fetch: -b expects shell, got: "+typeof(arg2) 
+		if typeof(pth) != "string" then print "fetch: invalid destination path;"+char(10)+"-- defaulting to: "+pth
+		if DEBUG then print "debug: in fetching from "+shl+" to "+pth
+		return globals.get_binaries(shl,pth)
+	end if
+	//
 	if typeof(arg1) != "shell" then return 0
 	print colorGold+"</b>fetch: fetching MetaxploitLib from: "+char(10)+colorWhite+"</b>"+arg1.host_computer.public_ip+ " <b>:</b> "+arg1.host_computer.local_ip
 	//my_x = globals.get_file(meta_path)
