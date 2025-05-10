@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.7...(156.270)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.8...(159.185)</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -310,11 +310,11 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	return_path = false
 	return_list = false
 	globals.grepped_file = null
-	if a1 and a1 == "-f" or a1 == "-n" or a1 == "-fn" or a1 == "-p" or a1 == "-fp" or a1 == "-a" or a1 == "-fa" then
+	if a1 and a1.lower == "-f" or a1 == "-n" or a1.lower == "-fn" or a1 == "-p" or a1.lower == "-fp" or a1 == "-a" or a1.lower == "-fa" then
 		find_file = true 
-		if a1 == "-n" or a1 == "-fn" then return_name = true
-		if a1 == "-p" or a1 == "-fp" then return_path = true
-		if a1 == "-a" or a1 == "-fa" then return_list = true
+		if a1 == "-n" or a1.lower == "-fn" then return_name = true
+		if a1 == "-p" or a1.lower == "-fp" then return_path = true
+		if a1 == "-a" or a1.lower == "-fa" then return_list = true
 		if DEBUG then print "debug: grep: findfile == true"
 		a1 = a2
 		a2 = arg3
@@ -368,12 +368,12 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	gname = null
 
 	gp = function(grep_tar, t_f, use_re, findfile)
-		if DEBUG then print "debug: in gp"
+		if DEBUG then print "debug: in gp; tf: "+t_f.path
 		if t_f.is_folder and t_f.is_binary then
 			sub_folders = t_f.get_folders
 			sub_files = t_f.get_files
 			g_buf = null
-    		if globals.grepped_file != null then return 
+    		//if globals.grepped_file != null then return 
 			for sub in sub_folders
 				if use_re == true then
 					if re.match(grep_tar.values, sub.name.values) then 
@@ -495,12 +495,16 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	// end piped object handling.
 	if DEBUG then print "debug: gresult is: "+gresult
 	gp(grep_tar, t_f, invoke_regex, find_file)///////////////////////////////fire away!
-  	if DEBUG then print "debug: ggf: "+typeof(globals.grepped_file)
+  	if DEBUG then print "debug: ggf: "+greppy.grepped.join(char(10))//typeof(globals.grepped_file)
   	if globals.grepped_file then 
-		if return_name then return globals.grepped_file.name // change this to greppy.grepped_file
-		if return_path then return globals.grepped_file.path
+		//ggf = globals.grepped_file
+		ggf = greppy.grepped[0]
+		if a1 == "-F" or a1 == "-Fa" or a1 == "-Fn" or a1 == "-Fp" then ggf = greppy.grepped[-1]
+		globals.grepped_file = null
+		if return_name then return ggf.name // change this to greppy.grepped_file
+		if return_path then return ggf.path
 		if return_list then return greppy.grepped
- 	 	return globals.grepped_file
+ 	 	return ggf
 	end if
 	if gresult != [] then output = gresult.join(char(10))
 	return output
@@ -2493,21 +2497,21 @@ command["if"] = function(arg1,arg2,arg3,arg4)
 	"-- the string itself is surrounded by floating single quotes"+char(10)+
 	"--eg: <b>file -r /etc | clipa |  | if "" echo true "" "" echo false "" @a "" grep -f etc  "" "+char(10)+
 	"-- which would result in <b>true</b> printing to the screen (provided etc actually existed)"
-
 	s = @command["shell"]
 	res = 0
-	if @arg3 and typeof(@arg3) == "string" and globals.command.hasIndex(arg3.split(char(32))[0]) then arg3 = s(arg3+" | return",1)
-	if @arg4 and typeof(@arg4) == "string" and globals.command.hasIndex(arg4.split(char(32))[0]) then arg4 = s(arg4+" | return",1)
-	print colorCyan+"<u>= = = evaluating = = =</u>"+char(10)+"<size=75%>"+colorCyan+"Result:"
-
-	if DEBUG then print "debug:_"+char(10)+@arg1+char(10)+@arg2+char(10)+@arg3+char(10)+@arg4
-
+	print colorCyan+"<u>= = = evaluating = = =</u>"+char(10)
+	print colorRed+"<u><size=75%>"+CT+@arg3
+	if typeof(@arg3) == "string" and globals.command.hasIndex(arg3.split(char(32))[0]) then arg3 = s(arg3+" | return",1)
+	print colorRed+"<u><size=75%>"+CT+@arg4
+	if typeof(@arg4) == "string" and globals.command.hasIndex(arg4.split(char(32))[0]) then arg4 = s(arg4+" | return",1)
+	print "<size=75%><u>"+colorCyan+"Result:"
 	if arg3 == arg4 then
-		if @arg1 and typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then res = s(arg1+" | return",1)
+		if typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then res = s(arg1+" | return") else res = @arg1
 	else 
-		if @arg2 and typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then res = s(arg2+" | return",1)
+		if typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then res = s(arg2+" | return") else res = @arg2
 	end if
-	if @res isa string then return res.trim else return @res
+	//if @res isa string then return res.trim else return @res
+	return @res
 end function
 command.sl = function(arg1,arg2,arg3,arg4)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Symlink || symbolic link || file path"+char(10)+
@@ -2813,19 +2817,42 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	"* You may pipe a <b>do</b> script into a macro. A do script may execute a macro with: <b>do # [macro_name]."+char(10)+
 	"* This makes the two interchangeable, allowing you to choose the exact behavior you want performed."+char(10)+
 	colorCyan+"</b>Usage: macro [-s|set] [name] [string] -- set a macro to the given string"+char(10)+
-	"-- eg: macro -s foo ""echo bar | clipa"""+char(10)+
-	colorCyan+"</b>Usage: macro [name] -- fire the named macro, the macro prepend is <b>optional"+char(10)+
+	"-- eg: macro -s foo "" echo bar | clipa """+char(10)+
+	"-- escape ez_clip aliases with <b>\</b> when defining a macro"+char(10)+
+	"----eg: <b>macro set foo "" echo \@b "" "+char(10)+
+	"---- will use the value in @b when the macro is executed instead of when it is defined"+char(10)+
+	colorCyan+"</b>Usage: macro [name] [opt: input_to_pipe] -- fire the named macro, the macro prepend is <b>optional"+char(10)+
 	colorGold+"</b>NOTE: All macros may be fired from the command line by typing the macro name"+char(10)+
 	"-- this includes using macros within a string of piped commands"+char(10)+
 	"--eg: |> <b>macro -s gotime "" echo it's go time """+char(10)+
 	"----: |> <b>echo three | echo two | echo one | gotime | echo "" what time is it? """+char(10)+
+	"-- see the Piping section below for the [input_to_pipe] details"+char(10)+
+	colorWhite+"Note: a macro chain will return the <b>final</b> output of the chain"+char(10)+
 	colorCyan+"</b>Usage: macro [-d|del] [name] -- delete the named macro"+char(10)+
 	"-- eg: macro -d foo"+char(10)+
 	colorCyan+"</b>Usage: macro [-l|list] -- show all macros and their definitions"+char(10)+
 	"-- all macros are stored in the macro registry map: get_custom_object.macros"+char(10)+
 	colorCyan+"Usage: macro [-g|get] [macro] -- return the macro string of the given macro"+char(10)+char(10)+
-	colorGreen+"See Also: do -h, help conventions, help alias, help automation"
-	if not arg1 then return "Usage: macro [name] [opt:string]"
+	colorGreen+"</b>NOTE: invoking the macro command will restore the macro registry index"+char(10)+
+	"--: this will avoid a crash if the index is accidentally removed"+char(10)+
+	colorGreen+"</b>NOTE: a macro will return the output of the last command in the chain"+char(10)+
+	char(10)+
+	colorCyan+"Piping: "+colorWhite+"when calling a macro, piping works differently than normal."+char(10)+
+	colorWhite+"When creating a macro you may place one or more"+colorCyan+"@pipe"+CT+"<b>pointers within the string."+char(10)+
+	colorWhite+"When calling a macro, the "+colorCyan+"@pipe"+CT+"<b>pointer will be replaced by piped input."+char(10)+
+	colorGold+"Example: input not piped vs input piped"+char(10)+
+	colorWhite+"|> "+colorGreen+"macro set foo "" echo foo """+char(10)+
+	colorWhite+"--output of: |>"+colorOlive+" foo bar</b> ==> foo"+char(10)+
+	colorWhite+"|> "+colorGreen+"macro set foo "" echo foo "+colorCyan+"@pipe</color> """+char(10)+
+	colorWhite+"--output of: |>"+colorOlive+" foo bar</b> ==> foo bar"+char(10)+
+	colorWhite+"-- ""bar"" would be the [input_to_pipe] to the first command in the macro chain"+char(10)+
+	colorWhite+"Note: <b>each instance of "+colorCyan+"@pipe</color> will be replaced by the piped input"+char(10)+
+	colorWhite+"Note: you may escape "+colorCyan+"@pipe</color> with "+colorCyan+"\@pipe</color>"+char(10)+
+	colorWhite+"N.B. -- remember that "+colorCyan+"\@pipe</color> goes in the macro "+colorCyan+"set</color> string"+char(10)+
+	colorWhite+"---- not in the macro call"+char(10)+
+	colorGreen+"See Also: do -h, help conventions, help alias, help automation"+char(10)
+	if not arg1 then return "Usage: macro [name] [opt: input_to_pipe]"+char(10)+"Usage: macro set [name] [string]"
+	command.cob("validate")
 	print colorCyan+"<size=75%><u>==========macro=========="
 	gm = get_custom_object.macros
 	nsm = "-- no such macro"
@@ -2841,7 +2868,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		for kv in gm 
 			mbuf.push(colorCyan+"</b>"+kv.key+" </color>>> "+colorWhite+"</b>"+kv.value)
 		end for
-		return format_columns(mbuf.join(char(10)))
+		return mbuf.join(char(10))
 	end if 
 	if arg1 == "del" or arg1 == "-d" then 
 		// remove a macro
@@ -2858,13 +2885,23 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		if not arg3 then return "-- [-s] flag expects [name] [value]"
 		if gm.hasIndex(arg2) then print colorCyan+"</b>--"+colorOrange+"</b> macro already exists; overwriting"
 		gm[arg2] = arg3
-		return colorCyan+"</b>-- registered: "+colorWhite+"</b>"+arg2+CT+" as "+colorWhite+"</b>"+arg3//print command.cob("set",arg2,arg3)
+		if command.hasIndex(arg2) then print colorOrange+"Warning: macro shares the name of a command!"+char(10)+"-- the macro will be processed instead of the command"
+		if arg3.indexOf(arg2) != null then print colorRed+"WARNING: infinite loop detected; macro contains a call to self"
+		return colorCyan+"</b>-- registered: "+colorWhite+"</b>"+arg2+CT+" as "+colorWhite+"</b>"+arg3
 	else 
 		//fire a macro
 		macmac = null
 		if gm.hasIndex(arg1) then macmac = gm[arg1] else return nsm
+		if DEBUG then print "debug: macro chain: "+char(10)+macmac
 		if typeof(macmac) != "string" then return "-- invalid macro; this looks more like an alias"
-		return command.shell(macmac.replace(char(10)," |  | ")+" | return")		
+		//return command.shell(macmac.replace("@pipe",str(arg2)).replace(char(10)," |  | ")+" | return")	
+		print "<size=75%>"+colorCyan+"</b>"+macmac.replace("@pipe",colorRed+"@pipe"+CT).replace("@",colorMagenta+"@"+CT)
+		macmac = macmac+" | return".replace(char(10)," |  | ")
+		macmac = macmac.split(" ")
+		for ar in macmac 
+			if ar == "@pipe" then macmac[macmac.indexOf(ar)] = arg2
+		end for
+		return command.shell(macmac)	
 	end if
 	return 0
 end function
