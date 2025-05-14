@@ -2922,7 +2922,7 @@ update_port_info = function()
   else
     for p in PORT_MAP
       if p["value"][4] == globals.targetIP and p["value"][0] == globals.targetPort then
-        globals.portInfo = p["value"][2]+" "+p["valie"][3]
+        globals.portInfo = p["value"][2]+" "+p["value"][3]
         globals.tarLan = globals.targetIP
       end if
     end for
