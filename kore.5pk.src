@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.8.1...(157.160)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.8.2...(157.161)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -994,7 +994,7 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"-- cyan: known lib"+char(10)+
 	colorGold+"-- gold: unknown lib"+char(10)+
 	colorOrange+"-- orange: no database found"+char(10)+
-	coorWhite+"-- white: machine/server/phone"
+	colorWhite+"-- white: machine/server/phone"
 	if not localmachine.is_network_active then return "probe: no network connection."
 	if arg1 =="-s" or arg1 == "show" then
 		if PORT_MAP then return globals.last_whois+char(10)+"- - - - - - - - - - - - - - -"+char(10)+globals.display_portmap(1) else return "probe: error; no portmap loaded"
