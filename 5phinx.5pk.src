@@ -2993,9 +2993,9 @@ make_portmap = function(router, comps, q_bool)
   for p in ports
     state = "open"
     if p.is_closed then state = "closed"
-    //services.push(p.port_number + " " + state + " " + router.port_info(p) + " " + p.get_lan_ip + "\n")
+    if DEBUG then print "debug: port:"+p+" is: "+p.port_number
     pi = router.port_info(p).split(" ")
-    if DEBUG then print "debug: port info: "+pi
+    if DEBUG then print "debug: port info: "+pi+char(10)+"-- port lan ip: "+p.get_lan_ip
     services[p.port_number] = [p.port_number, state , pi[0], pi[1] , p.get_lan_ip]
   end for
   if DEBUG then print "debug: services mapped"
@@ -3004,24 +3004,26 @@ make_portmap = function(router, comps, q_bool)
   for cip in comps
     if DEBUG then print "debug: top of loop"+char(10)+"-- attempting router.device_ports("+cip+")"
     cpl = router.device_ports(cip)
-    if DEBUG then print "debug: got: "
-    if DEBUG then print "--: "+cpl
+    if DEBUG then print "--got: "+cpl
     if typeof(cpl) == "string" then
       if DEBUG then print "debug: computer port list is a string: firewall detected"
       services[cip] = ["Firewall", "Detected", "@","addr:", cip]
     else
       if DEBUG then print "debug: computer port list is a list:"+cpl
       for cp in cpl
-        i = 0
         lip = cp.get_lan_ip
         if DEBUG then print "debug: port.get_lan_ip: "+lip 
         pn = cp.port_number
         if DEBUG then print "debug: port.port_number: "+pn
         rpi = router.port_info(cp).split(" ")      
-        if DEBUG then print "debug: router.port_info(port): "+rpi
-        //services[cp.get_lan_ip+":"+cp.port_number] = [cp.port_number, "internal", router.port_info(cp), cp.get_lan_ip]
-        services[lip+":"+pn] = [pn, "internal", rpi[0], rpi[1], lip]
-        i = i + 1
+        if DEBUG then print "debug: router.port_info("+cp+"): "+rpi+char(10)+"-- "+lip
+        // hack follows
+        sub_pl = router.device_ports(lip)
+        sl=[]
+        for sp in sub_pl
+          if typeof(sp) == "port" then sl.push(sp.port_number)
+        end for
+        if comps.indexOf(lip) != null and sl.indexOf(pn) != null then services[lip+":"+pn] = [pn, "internal", rpi[0], rpi[1], lip]
       end for
     end if
   end for
@@ -3038,26 +3040,7 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
   is_switch = false
   if is_valid_ip(ip) then
     if not quiet then print(char(10)+"Scanning ip: " + ip)
-    // if not quiet and is_lan_ip(ip) then
-    //   waitFor = user_input(colorWhite+"[<b>1</b>] get_router [2] get_router(</b>"+ip+"<b>) [3] get_router(</b>"+localmachine.network_gateway+"<b>)"+CT+char(10)+"(enter=1, q=quit)||: ",0,1)
-    //   if waitFor.lower == "q" then return
-    //   if waitFor == "" then waitFor == "1"
-    //   if waitFor == "1" then
-    //     t_router = get_router
-    //   else
-    //     if waitFor == "2" then
-    //       t_router = get_router(ip)
-    //     else
-    //       if waitFor == "3" then
-    //         t_router = get_router(localmachine.network_gateway)
-    //       else
-    //         t_router = get_router
-    //       end if
-    //     end if
-    //   end if
-    // else
     t_router = get_router(ip)
-    // end if
     if DEBUG then print "debug: t_router is a: "+typeof(t_router)
     if DEBUG then print "ip is: "+ip
     if not t_router then
