@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.8.2...(157.161)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.0.9...(158.559)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -250,7 +250,7 @@ command.outmon = function(arg1, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.glasspool = function(arg1,arg2,arg3,arg4)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorLightBlue+"<u>Glasspool sshfs shell/computer mirroring || GP || glassp"+char(10)+
+	if arg1 == "help" or arg1 == "-h" then return colorLightBlue+"<u>Glasspool sshfs shell/computer mirroring || GP || glassp"+char(10)+
 	"Switches scope of commands to a supplied object"+char(10)+
 	"Usage: glasspool [object: shell|computer] -- switch scope to piped object"+char(10)+
 	"Usage: glasspool [#] -- switch scope to the shell or computer at BUFFER index #"+char(10)+
@@ -268,6 +268,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 	"-- execute commands on initialization with -r|-m options"+char(10)+
 	"--eg: gp -d "" do 1 -f this.bat "" -r 1"+char(10)+
 	"--eg: macro -s bob ""echo burger "" |  | gp -d bob -m"
+	if not arg1 then return "glasspool: invalid input; <b>gp -h</b> for help"
 	gp_do = false // do we need to initiate a do script when we start galsspool?
 	obj = arg1 
 	if arg1 == "-d" then
@@ -869,15 +870,15 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		end if
 		print
 		print colorGold+"AIR: Options:"
-		print(colorGold+"["+colorWhite+"B</color>]rutus -- attempt to brute force the wifi key using tables/tp"+char(10)+"-- can take upwards of 20 minutes")
 		print(colorGold+"["+colorWhite+"C</color>]redentials -- connect to the wifi network using the known key"+char(10)+"-- requires knowing the key")
+		print(colorGold+"["+colorWhite+"B</color>]rutus -- attempt to brute force the wifi key using tables/tp"+char(10)+"-- can take upwards of 20 minutes")
 		print
 		print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
 		print(colorCyan+"["+colorWhite+"A</color>]ir -- uses aireplay and aircrack"+char(10)+"--obtains the key through packet sniffing"+char(10)+"-- time to crack is based on signal strength"+char(10)+"-- acks_needed == 300000 / (pwr + 15)")
 		print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
 		print
 		print("Note: "+colorCyan+"press enter"+CT+" to default to using Air (recommended)")
-		brut = user_input("Please enter your selection: [b/c/<b>A</b>] (anything else to abort)"+char(10)+"||: <b>",0,1)
+		brut = user_input("Please enter your selection: [c/b/<b>A</b>] (anything else to abort)"+char(10)+"||: <b>",0,1)
 		if brut == "" then brut = "a"
 		if brut.lower != "b" and brut.lower != "c" and brut.lower != "a" then return "aborting..."
 		if brut.lower == "b" then
@@ -986,15 +987,27 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	"-- when local on a network, probe each router by LAN ip to probe that subnet"+char(10)+
 	colorWhite+"Quick: probe -q [opt:ip] [opt:port] -- quick scan"+char(10)+
 	"-- gets only surface level machines on subnet"+char(10)+
+	colorWhite+"Quicker: probe -q -- quick localnet scan"+char(10)+
 	"Note: in all cases probe will set target ip and target port."+char(10)+char(10)+
 	colorWhite+"Legend:"+char(10)+
 	colorRed+"-- red: switch or firewall or closed port"+char(10)+
+	"-- a switch is a hardware firewall that cannot be disabled"+char(10)+
+	"-- internal ports are always open when accessed via lan ip"+char(10)+
+	"---- unless they are firewalled"+char(10)+
 	colorGreen+"-- green: open port (includes gateway and internal)"+char(10)+
 	colorMagenta+"-- magenta: non-switch router/machine with port 8080"+char(10)+
+	"-- this port is open only when inside the network"+char(10)+
 	colorCyan+"-- cyan: known lib"+char(10)+
 	colorGold+"-- gold: unknown lib"+char(10)+
 	colorOrange+"-- orange: no database found"+char(10)+
-	colorWhite+"-- white: machine/server/phone"
+	colorWhite+"-- white: machine/server/phone"+char(10)+
+	colorGrey+"-- grey: lanip: not connected to gateway"+char(10)+
+	"---- when probing remotely; machine is part of an inner subnet"+char(10)+
+	"------ or the machine does not exist or the machine is busted"+char(10)+
+	"---- when probing locally; the machine does not exist or is busted"+char(10)+
+	colorGrey+"-- grey: port info: no lib.so / no response"+char(10)+
+	colorLightBlue+"NOTE:"+CT+" if both port info and lan ip are grey;"+char(10)+
+	"-- the machine likely does not exist (but not always)" 
 	if not localmachine.is_network_active then return "probe: no network connection."
 	if arg1 =="-s" or arg1 == "show" then
 		if PORT_MAP then return globals.last_whois+char(10)+"- - - - - - - - - - - - - - -"+char(10)+globals.display_portmap(1) else return "probe: error; no portmap loaded"
@@ -1008,8 +1021,8 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 		get = 255
 	end if
 	if arg1 == "-q" then
-		if arg2 then globals.targetIP = arg2
-		if arg3 then globals.targetPort = arg3.to_int
+		if arg2 then globals.targetIP = arg2 else globals.targetIP = command.ifconfig("-p")
+		if arg3 then globals.targetPort = arg3.to_int else globals.targetPort = "router"
 		get = 2
 	end if
 	if not arg1 or not is_valid_ip(globals.targetIP) or (arg1 == "-f" and not arg2) then set_ip
@@ -2374,7 +2387,7 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 			return 0 // return 0 on success
 		else 
 			return "linkdb: database entry not found"+char(10)+
-			"-- run db or meta scan"
+			colorLightBlue+"-- run "+colorWhite+"db</color> or meta scan"
 		end if
 	end if
 	print "linkdb: database.csv not found"+char(10)+"-- run db to create it" // print this, do NOT return this or everything breaks
@@ -2605,22 +2618,33 @@ command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	globals.roil(arg1)
 	return 0
 end function
+// consolidate all the reused code in this command
 command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "Usage: purge [-b] -- clear object BUFFER "+char(10)+
-	"Usage: purge [-t] -- clear transmit buffer (tbuf)"+char(10)+
-	"Usage: purge [-x] -- clear XPLOITS buffer "+char(10)+
-	"Usage: purge [-c] -- clear CC command buffer "+char(10)+
-	"Usage: purge [-e] -- clear enum buffer"+char(10)+
-	"Usage: purge [-s] -- clear tagged4scp buffer"+char(10)+
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "PURGE || clear buffer || feels bad"+char(10)+
+	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
+	"Usage: purge [-b] [#] -- remove BUFFER entry at index #"+char(10)+
+	"Usage: purge [-t] -- purge transmit buffer (@tbuf)"+char(10)+
+	"Usage: purge [-x] -- purge XPLOITS buffer "+char(10)+
+	"Usage: purge [-c] -- purge CC command buffer "+char(10)+
+	"Usage: purge [-e] -- purge enum buffer"+char(10)+
+	"Usage: purge [-s] -- purge tagged4scp buffer"+char(10)+
 	"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+
-	"Usage: purge [-o] -- purge custom object  (excludes macro registry)"+char(10)+
+	"Usage: purge [-o] -- purge custom object  (excludes: stack_pool, macro registry)"+char(10)+
 	"Usage: purge [-m] -- purge macro registry"+char(10)+
 	"Usage: purge [-d] -- purge monitors (daemons)"+char(10)+
-	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
+	"Usage: purge [-p] -- purge the PORT_MAP"+char(10)+
 	"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+
-	"Advanced: purge -b [#] -- remove BUFFER entry at #"+char(10)+
 	"Advanced: purge -d [daemon_name] -- remove monitor process with the specified identifier" 
 	confirm = arg2
+	if arg1 == "-p" then 
+		if not confirm then confirm = user_input("Clear PORT_MAP: are you sure? [y/N]||: ",0,1)
+		if confirm.lower == "y" then
+			globals.PORT_MAP = {}
+			return "PORT_MAP purged."
+		else
+			return "aborting..."
+		end if
+	end if
 	if arg1 == "-b" then
 		if confirm == "0" then return "purge: cannot purge the launch shell."
 		if typeof(confirm) != "number" and typeof(confirm.to_int) == "number" then confirm = confirm.to_int
@@ -2737,7 +2761,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 			return "Error starting daemon manager"
 		end if
 	end if
-	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r OR -m OR -x OR -o"
+	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r OR -m OR -x OR -o OR -p"
 end function
 // cobble, get_custom_object interface by Plu70
 if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
