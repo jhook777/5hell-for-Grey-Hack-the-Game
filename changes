@@ -18,10 +18,42 @@
 // update chop and grep to use piped strings
 //
 // todo: kraken
-// todo: probe
 // todo: db
+// todo: tree -f has a superior search algo vs regular, ancient tree
+// -- lets bring tree into the [-f]uture
+// todo: consolidate reused code in purge
 //
-// make sure the below is all DOCUMENTED
+// 5hell.5pk: added colorGrey
+// 5phinx.5pk: removed over 10k chars of legacy/commented code
+// dtools.5pk: also removed a bunch of legacy code
+// 5phinx: imporoved target port information display
+// -- it won't mix and match your targets anymore 
+// -- Except: when target port is 0 and target ip is not a router
+// ---- then port info will show the gateway router of the network
+// ---- i may or may not 'fix' this. atm, i can't decide if it's good or bad.
+// probe: upgraded super powers:
+// -- will now show machines not directly connected to a _remote_ router in grey
+// ---- when probing a local network, this won't apply
+// -- when probing a remote network, this applies to machines with a port forwarded to them that are not on the gateway's subnet
+// NOTE: when combined with the below, a machine with lib and ip in grey is most likely non-existant!
+// -- will now (attempt to) distinguish between non-existant machines vs non-responsive machines (aka missing lib)
+// -- formerly ports forwarded to non-existant machiens showed as "unknown"
+// ---- they will now show as "no machine" in grey
+// -- formerly ports forwarded to non-responsive machines showed as "unknown"
+// ---- they will now show as "no response" in grey
+// ---- machines with an active port but missing/corrupt .so will show as "no response"
+// --NOTE: when a portscan is run externally and a port is forwarded to an existing machine within the network that is; 
+// ---- (a) not directly connected to the gateway
+// ---- (b) missing it's lib.so
+// -- the machine will show as "no machine" instead of "no response" despite the machine existing
+// ---- when probe is run internally on the same network, that same machine will show, correctly, as "no response"
+// ---- this will change when i think up an efficient solution. the current state is a bit hacky
+// NOTE: to reiterate: if port/lib info AND lan ip are greyed out, the machine is either not there at all, or is nuked
+// -- it's difficult to tell for sure without investigating it yourself. gl.
+// probe: fixed typo causing crash in update_port_info
+// probe: fixed typo causing crash in usage info; updated usage info
+// purge: added -p -- purge PORT_MAP
+// kore: fixed crash on no arguments
 //
 // 5hell.5pk: moved globals.get_file to 5phinx.5pk bc 5hell.5pk ran out of room
 // globals.get_file: will now return a file object if passed a file object
