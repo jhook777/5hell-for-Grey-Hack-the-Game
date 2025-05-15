@@ -1,14 +1,14 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.0.8.E_falling_skies"
+ver = "4.0.9.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "158.409"
+size_of_5hell = "158.445"
 ///////////////////////////////////////
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
@@ -94,6 +94,7 @@ colorOlive = "<color=#048004FF><b>"
 colorWhite = "<color=#FFFFFFFF><b>"
 colorCyan = "<color=#00FFFFFF><b>"
 colorGold = "<color=#CCCC00FF><b>"
+colorGrey = "<color=#71858DFF><b>"
 colorBlack = "<color=#000000FF><b>"
 colorOrange = "<color=#FF8400FF><b>"
 colorViolet = "<color=#8821FDFF><b>"
