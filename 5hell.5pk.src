@@ -1,15 +1,14 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.0.9.E_falling_skies"
+ver = "4.1.1.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "158.445"
-///////////////////////////////////////
+size_of_5hell = "152.310"
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
@@ -47,9 +46,6 @@ globals.tagged_for_scp = ""
 globals.backup_meta = null
 globals.neurobox_user = ""
 globals.neurobox_pass = ""
-globals.clip_board_alpha = "" 
-globals.clip_board_beta = ""
-globals.clip_board_gamma = ""
 globals.clip_board_delta = "" // for do
 globals.debug_username = ""
 globals.debug_password = "" // neurobox debug credentials
@@ -64,7 +60,6 @@ globals.dict_a = function(import=0)
 	return cobble.dictionary // return the dictionary in all cases as a list
 end function
 //// UPDATING THE DICTIONARY IS HANDLED BY COMMAND.CEREBRUM //////
-//////////////////////////////////////////////////////////////////
 if DEBUG then ds = dict_a.len
 if DEBUG then print("<size=75%>dictionary loaded...("+(ds/1000)+"kb)</size>")
 globals.SAFEWORD = "stop_code" // use @STOP (or this value) in a do script and/or in an if statement within a do script to 'break' the do loop
@@ -113,123 +108,157 @@ globals.super_import // located in 5phinx.5pk; include_lib latest of: metaxloit,
 import_code("/root/src/contrib.5pk") // override=contrib.5pk
 //
 // end globals
-if DEBUG then print("<size=75%>loaded get_file...</size>")                       ////////////////////////////////
-if DEBUG then print("<size=75%>loading 5hell.5pk...("+size_of_5hell+"kb)</size>")                   /////LOADING 5HELL////////////
-if DEBUG then print("<size=75%>loading clipcommander.5pk...(6.660kb)</size>")     ////////////////////////////////
-command.clipa = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if typeof(@arg1) == "function" then
-		globals.clip_board_alpha = @arg1
-		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_alpha))
-		return @globals.clip_board_alpha
-	end if
-	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard alpha || clipa || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipa: pipe outputs to clipa with: command | clipa"+char(10)+" clipa [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipa"+char(10)+"clipa -- <b>Returns</b> contents of clipa if no arguments."+char(10)+"scribus @clipa -- edit clipa directly with the text editor."
-	if arg1 == "0" then
-		globals.clip_board_alpha = "0"
-		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_alpha))
-		return globals.clip_board_alpha
-	end if
-	if arg1 == 0 then
-		if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
-	end if
-	globals.clip_board_alpha = arg1
-	if arg1 == "@tbuf" then
+if DEBUG then print("<size=75%>loaded get_file...")                       
+if DEBUG then print("<size=75%>loading 5hell.5pk...("+size_of_5hell+"kb)")                   /////LOADING 5HELL////////////
+if DEBUG then print("<size=75%>loading clip commander...(666 licks to the center)")     
+// consolidate all clipX's into one clipboard command
+// newclip, to combine all clips
+// begin clip commander
+// expand by adding a CLIP map index and creating a corresponding command.[yourclip] = function(...) call below _clipboard (use existing ones as templates)
+CLIP = {"a":null,"b":null,"c":null}
+_clipboard = function( index, arg1, arg2 )
+    // index checking is done at command.clip[x] calls
+    cw = colorWhite
+    clip = {}
+    clip.msg = colorCyan+"</b>clip"+colorWhite+index+CT+"</color>"
+    clip.hlp = "clipboard || clipa || clipb || clipc || clippy dippy"+char(10)+
+    "There are, by default, three clipboard spaces: clipa, clipb, clipc. It is"+char(10)+
+    "possible to expand beyond this limit by adding entries to the CLIP map in 5hell.5pk."+char(10)+
+    "The clipboards may store any data type or game object. EZ_CLIP allows use of the"+char(10)+
+    "aliases: "+cw+"@a"+CT+" for clip"+cw+"a"+CT+", "+cw+"@b"+CT+" for clip"+cw+"b"+CT+", and "+cw+"@c"+CT+" for clip"+cw+"c"+char(10)+
+    "when you want to reference the clipboard in an argument. For example: "+char(10)+
+    colorGrey+"|> "+cw+"clipa foobar"+char(10)+
+    colorGrey+"|> "+cw+"echo @a"+char(10)+
+    colorGrey+"<b>foobar"+char(10)+char(10)+
+    "Viewing help for "+clip.msg+char(10)+
+    colorCyan+"</b>Usage: "+clip.msg+" -- returns the contents of "+clip.msg+char(10)+
+    "-- stored functions are returned as a reference"+char(10)+
+    colorGold+"</b>Usage: "+clip.msg+" [<b>any_value</b>] -- set "+clip.msg+" to any value"+char(10)+
+    "-- piped objects are stored and returned as objects"+char(10)+
+    "-- piped functions are stored and returned as function references"+char(10)+
+    "-- piped strings, including piped (string: integers), are stored and returned as strings"+char(10)+
+    "-- piped integers are stored and returned as integers"+char(10)+
+    "--nb: you may cast a string to an int with:"+char(10)+
+    "----:<b> clipa [+=|-=] 0"+char(10)+
+    "---eg: <b>clipa 12 || clipa += 0"+char(10)+
+    colorCyan+"</b>Usage: "+clip.msg+" [<b>-z</b>] -- set "+clip.msg+" to "+cw+"int: zero"+char(10)+
+    "-- passing <b>0</b> as an argument sets "+clip.msg+" to <b>string: 0"+char(10)+
+	"-- piping in an <b>int: 0</b> results in no_argument behavior: it returns "+clip.msg+char(10)+
+    colorCyan+"</b>Usage: "+clip.msg+" [<b>-n</b>] -- set "+clip.msg+" to "+colorMagenta+"</b>null"+char(10)+
+    "-- this is the default starting state of the clipboard"+char(10)+
+    colorCyan+"</b>Usage: "+clip.msg+" [<b>++|--</b>] -- increment | decrement "+clip.msg+" by 1"+char(10)+
+    "-- old way:<b> clipa 0 || calc @a [+|-] 1 | clipa"+char(10)+
+    "-- new way:<b> clipa 0 || clipa [++|--]"+char(10)+
+    colorCyan+"</b>Usage: "+clip.msg+" [<b>+=|-=</b>] [int] -- increment | decrement "+clip.msg+" by int"+char(10)+
+    "-- only ints or (string: ints) may by [inc|dec]remented"+char(10)+
+	"Advanced options:"+char(10)+
+    colorCyan+"</b>Usage: "+clip.msg+" [<b>@cc</b>] -- set "+clip.msg+" to the command buffer"+char(10)+
+	colorCyan+"</b>Usage: "+clip.msg+" [<b>@tbuf</b>] -- set "+clip.msg+" to the transmission buffer"+char(10)+
+	"--eg:<b> tree || gopher @tbuf"+char(10)+
+    colorCyan+"</b>Usage: "+clip.msg+" [<b>@B</b>] [<b>-m|#</b>] -- set "+clip.msg+" to "+colorOrange+"BUFFER[#]"+char(10)+
+    "-- passing <b>-m</b> instead of an index will prompt for selection with the BUFFER menu"+char(10)+
+	"NOTE: @tbuf, and @B are now available to <b>all</b> commands via ez_clip"+char(10)+
+	"--eg:<b> clipa @B 1 || clipb "" /home/guest/rkit/5hell "" || run @b @a"+char(10)+
+	"--eg:<b> run /home/guest/rkit/5hell @B -m"+char(10)+
+	"NOTE: it is important to distinguish between "+char(10)+
+	"-- "+cw+"@b"+CT+" -- clipb reference, and"+char(10)+
+	"-- "+colorOrange+"@B"+CT+" -- BUFFER reference"+char(10)+
+	"eg: <b>clipb foobar || echo @b </b>vs<b> zap || gp @B 1"+char(10)+
+	"-- see help alias for a full list of ez_clip aliases"+char(10)+
+    "Note: all (successful) uses of "+clip.msg+" will return the value of "+clip.msg+char(10)+char(10)+
+    "See Also: cob -h, help alias, help buffer"
+	if @arg1 == "help" or @arg1 == "-h" then return clip.hlp
+    clip.clp = @arg1
+	if DEBUG then print "debug: clipboard: "+char(10)+"--<b> arg1: "+@arg1+", arg2: "+@arg2
+    if typeof(@arg2) == "string" then arg2 = arg2.to_int
+    if @arg1 == "++" or @arg1 == "--" then arg2 = 1
+    clip.add = function()
+		if DEBUG then print "--- clipping: "+@clip.clp
+        if @arg1 then 
+            globals.CLIP[outer.index] = @clip.clp
+            print clip.msg+": clipped: "+typeof(@CLIP[outer.index])
+        end if
+        return @CLIP[outer.index]
+    end function
+    clip.n = function()
+        clip.clp = null 
+    end function
+    clip.z = function()
+        clip.clp = 0
+    end function
+    clip.up = function()
+        if typeof(@outer.arg2) != "number" then; print clip.msg+": += expects integer";return;end if
+        add = @CLIP[outer.index]
+        if typeof(@add) == "string" then add = add.to_int 
+        if typeof(@add) != "number" then; print clip.msg+": cannot increment "+typeof(@add);outer.arg1 = 0;return;end if
+        clip.clp = add + outer.arg2
+    end function
+    clip.dn = function()
+        if typeof(@outer.arg2) != "number" then; print clip.msg+": += expects integer";return;end if
+        sub = @CLIP[outer.index]
+        if typeof(@sub) == "string" then sub = sub.to_int 
+        if typeof(@sub) != "number" then; print clip.msg+": cannot decrement "+typeof(@sub);outer.arg1 = 0;return;end if
+        clip.clp = sub - outer.arg2
+    end function
+    // legacy compat:
+	clip.tbf = function()
 		globals.T_BUF.pull 
-		globals.clip_board_alpha = globals.T_BUF.join(char(10))
+		clip.clp = globals.T_BUF
 		globals.T_BUF = [(localip+"@"+pubip)]
-	end if
-	if arg1 == "@cc" then globals.clip_board_alpha = globals.command_buffer.join(char(10))
-	if arg1 == "@B" then
-		if globals.BUFFER.len < 1 then return "BUFFER is empty."
+    end function
+    clip.cc = function()
+        clip.clp = globals.command_buffer.join(char(10))
+    end function
+	clip.bf = function()
+		if globals.BUFFER.len < 1 then print clip.msg+"malp: BUFFER is empty."
 		i = 0
 		for b in globals.BUFFER
-			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
+			print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>")
 			i = i + 1
 		end for
-		get = arg2
-    if get and get != "-m" then get = arg2.to_int
-    if get == "-m" then get = user_input("clipa:> ").to_int
-		if typeof(get) != "number" then return "BUFFER: invalid selection."
-		if get >= 0 and get < BUFFER.len then globals.clip_board_alpha = globals.BUFFER[get] else return "BUFFER: invalid selection."
-	end if
-	print(colorCyan+"</b>clipa: clipped: "+typeof(@globals.clip_board_alpha))
-	if typeof(@globals.clip_board_alpha) == "function" then return @globals.clip_board_alpha else	return globals.clip_board_alpha
+        indx = @outer.arg2
+        if typeof(@indx) == "string" then 
+            if indx == "-m" then indx = user_input("clip:> ").to_int else indx = indx.to_int
+        end if
+        if typeof(@indx) == "number" and indx >= 0 and indx < BUFFER.len then clip.clp = @globals.BUFFER[indx] else clip.clp = clip.msg+": @B: invalid buffer selection."
+    end function    
+    // end_legacy_compat
+    clip.rtrn = function()
+        clip.clp = 0
+    end function
+    _=function();end function
+    "-- index: "+index+char(10)+
+    "----: "+@CLIP[index]+char(10)+
+    "-- arg1: "+@arg1+char(10)+
+    "-- arg2: "+@arg2
+	if typeof(@arg1) == "function" then return clip.add
+	if DEBUG then print "debug: starting clipa_switch"+char(10)
+    switch(@arg1)
+        case("-n", @clip.n)
+        case("-z", @clip.z)
+        case("++", @clip.up)
+		case("--", @clip.dn)
+		case("+=", @clip.up)
+		case("-=", @clip.dn)
+        case("@tbuf", @clip.tbf)
+        case("@cc", @clip.cc)
+        case("@B", @clip.bf)
+        case(0, @clip.rtrn)
+        if DEBUG then print "clip: switch: firing"
+    default(@_)
+    return clip.add
 end function
-command.clipb = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if typeof(@arg1) == "function" then
-		globals.clip_board_beta = @arg1
-		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_beta))
-		return @globals.clip_board_beta
-	end if
-	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard beta || clipb || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipb: pipe outputs to clipb with: command | clipb"+char(10)+" clipb [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}|function]"+char(10)+"-- add any of the above to clipb"+char(10)+"clipb -- <b>Returns</b> contents of clipb if no arguments."+char(10)+"scribus @clipb -- edit clipb directly with the text editor."+char(10)+"N.B. please be awake that command.<b>append</b> works a bit differently with clipb than with clipa or clipc."+char(10)+"-- see append -h for more info."
-	if arg1 == "0" then
-		globals.clip_board_beta = "0"
-		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_beta))
-		return globals.clip_board_beta
-	end if
-	if arg1 == 0 then
-		if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
-	end if
-	globals.clip_board_beta = arg1
-	if arg1 == "@tbuf" then
-		globals.T_BUF.pull
-		globals.clip_board_beta = globals.T_BUF.join(char(10))
-		globals.T_BUF = [(localip+"@"+pubip)]
-	end if
-	if arg1 == "@cc" then	globals.clip_board_beta = globals.command_buffer.join(char(10))
-	if arg1 == "@B" then
-		if globals.BUFFER.len < 1 then return "BUFFER is empty."
-		i = 0
-		for b in globals.BUFFER
-			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
-			i = i + 1
-		end for
-		get = arg2
-		if get and get != "-m" then get = arg2.to_int
-		if get == "-m" then get = user_input("clipb:> ").to_int
-		if typeof(get) != "number" then return "BUFFER: invalid selection."
-		if get >= 0 and get < BUFFER.len then globals.clip_board_beta = BUFFER[get] else return "BUFFER: invalid selection."
-	end if
-	print(colorCyan+"</b>clipb: clipped: "+typeof(@globals.clip_board_beta))
-	if typeof(@globals.clip_board_beta) == "function" then return @globals.clip_board_beta else	return globals.clip_board_beta
+command.clipa = function(arg1,arg2,arg3,arg4)
+    return @_clipboard("a",@arg1,@arg2)
 end function
-command.clipc = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if typeof(@arg1) == "function" then
-		globals.clip_board_gamma = @arg1
-		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_gamma))
-		return @globals.clip_board_gamma
-	end if
-	if arg1 == "help" or arg1 == "-h" then return "<u>clipboard gamma || clipc || clipspace</u>"+char(10)+"Usage:"+char(10)+" clipc: pipe outputs to clipc with: command | clipc"+char(10)+" clipc [optional:arg|string|list|map|@tbuf|@cc|@B {opt:-m|#}]"+char(10)+"-- add any of the above to clipc"+char(10)+"clipc -- <b>Returns</b> contents of clipc if no arguments."+char(10)+"scribus @clipc -- edit clipc directly with the text editor."
-	if arg1 == "0" then
-		globals.clip_board_gamma = "0"
-		print(colorCyan+"</b>clipped: "+typeof(@globals.clip_board_gamma))
-		return globals.clip_board_gamma
-	end if
-	if arg1 == 0 then
-		if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
-	end if
-	globals.clip_board_gamma = arg1
-	if arg1 == "@tbuf" then
-		globals.T_BUF.pull
-		globals.clip_board_gamma = globals.T_BUF.join(char(10))
-		globals.T_BUF = [(localip+"@"+pubip)]
-	end if
-	if arg1 == "@cc" then	globals.clip_board_gamma = globals.command_buffer.join(char(10))
-	if arg1 == "@B" then
-		if globals.BUFFER.len < 1 then return "BUFFER is empty."
-		i = 0
-		for b in globals.BUFFER
-			if typeof(@b) == "function" then print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>") else print("["+colorWhite+i+CT+"] - <b>"+checkUser(b)+":"+typeof(b)+"</b>")
-			i = i + 1
-		end for
-		get = arg2
-		if get and get != "-m" then get = arg2.to_int
-		if get == "-m" then get = user_input("clipc:> ").to_int
-		if typeof(get) != "number" then return "BUFFER: invalid selection."
-		if get >= 0 and get < BUFFER.len then globals.clip_board_gamma = BUFFER[get] else return "BUFFER: invalid selection."
-	end if
-	print(colorCyan+"</b>clipc: clipped: "+typeof(@globals.clip_board_gamma))
-	if typeof(@globals.clip_board_gamma) == "function" then return @globals.clip_board_gamma else	return globals.clip_board_gamma
+command.clipb = function(arg1,arg2,arg3,arg4)
+    return @_clipboard("b",@arg1,@arg2)
 end function
+command.clipc = function(arg1,arg2,arg3,arg4)
+    return @_clipboard("c",@arg1,@arg2)
+end function
+// end clip commander
+if DEBUG then print("<size=75%>loaded clip commander...(6.489kb)")  
 command.passwd = function(arg1, arg2, arg3=0, arg4=0)
   if arg1 == "help" or arg1 == "-h" then return "<u>Password || Change Password || passwd"+char(10)+"Usage: passwd [opt: user] [opt: password] -- change password for user"+char(10)+"- will prompt for missing options"
 	user = null
@@ -244,7 +273,7 @@ command.passwd = function(arg1, arg2, arg3=0, arg4=0)
   return try
 end function
 command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "ECHO || echo || Echo || echO"+char(10)+
+	if @arg1 == "help" or @arg1 == "-h" then return "ECHO || echo || Echo || echO"+char(10)+
 	"Usage: echo [up] [to] [four] [params] -- returns concatonated params to the terminal"+char(10)+char(10)+
 	"General usage is to echo text back to the terminal during batch script/macro execution."+char(10)+
 	"However, it may also be used to feed input to another command or concatonate outputs"+char(10)+
@@ -259,14 +288,14 @@ command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
 	"Simple enough. You may use richtext in the echo to spruce it up."+char(10)+
 	"Resizing text and adding color allows the echo to stand out when text"+char(10)+
 	"is flying by during a complex <b>dig</b>, for example."
-	ec = arg1+" "
-	if arg2 then ec = ec + arg2+" "
-	if arg3 then ec = ec + arg3+" "
-	if arg4 then ec = ec + arg4
+	ec = @arg1+" "
+	if @arg2 then @ec = @ec + @arg2+" "
+	if @arg3 then @ec = @ec + @arg3+" "
+	if @arg4 then @ec = @ec + @arg4
 	return ec.trim
 end function
 command.clear = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Clear Screen || Terminal Wipe || clearscreen"+char(10)+"Usage: clear -- clears the terminal of all text"
+	if @arg1 == "help" or @arg1 == "-h" then return "Clear Screen || Terminal Wipe || clearscreen"+char(10)+"Usage: clear -- clears the terminal of all text"
 	print("",1)
 	return 0
 end function
@@ -280,7 +309,7 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 	"<b>Usage: ps [opt:-r] [shell|computer] -- show processes running on the piped object"+char(10)+
 	"-- optional [-r] parameter returns raw, uncolorized output"+char(10)+
 	"--eg: rsi 1 7 | ps"
-	if arg1 == "-h" or arg1 == "help" then return ps_usage
+	if @arg1 == "-h" or @arg1 == "help" then return ps_usage
 	output = null
 	raw = false
 	verbose = false 
@@ -317,7 +346,7 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 	return output
 end function
 command.kill = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0  or arg1 == "-h" or arg1 == "help" then return "KILL || END PROCESS || TERMINATE SCRIPT"+char(10)+
+	if @arg1 == 0  or @arg1 == "-h" or arg1 == "help" then return "KILL || END PROCESS || TERMINATE SCRIPT"+char(10)+
 	"Usage: kill [PID] [opt: shell|computer] -- terminate PID"+char(10)+
 	"-- PID should be process number or ALL"+char(10)+
 	"-- see the <b>ps</b> command for process ID's"+char(10)+
@@ -457,7 +486,6 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	"Opt: [-r] -- list all files and return raw, uncolorized output"+char(10)+
 	"Note: option flags may be combined in any order"+char(10)+
 	"-- eg: <b>ls -lars"
-	if DEBUG then print "debug: in ls"
 	subFiles = null
 	folderPath = globals.currentPath
 	if DEBUG then print("ls: "+folderPath)
@@ -636,7 +664,7 @@ command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
 		else 
 			return "mv: invalid parameters"
 		end if
-		if DEBUG then print("split: "+split)
+		if DEBUG then print("mv_split: "+split)
 		if split.len and split[0] == "" then dest = globals.get_file(split.join("/")) else dest = globals.get_file(split.join("/"))
 		if DEBUG then print("dest: ["+dest+"]")
 		if not dest then
@@ -812,32 +840,41 @@ command.grp = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.perms = function(arg1, arg2, arg3=0, arg4=0)
-	if DEBUG then print("__debug: in perms")
+	if DEBUG then print("debug: in perms")
 	if (arg1 == "-h" or arg1 == "help") and arg2 == "extra" then return "Q: Perms lock all (aka the <b>lock</b> command): what does it do?"+char(10)+"A: the following:"+char(10)+"perms -R o-rwx /"+char(10)+"perms -R g-rwx /"+char(10)+"perms -R u-rwx /"+char(10)+"if on home computer, does the following to avoid lockout:"+char(10)+"perms g+x /bin/sudo"+char(10)+"perms g+x /bin/psudo"+char(10)+"perms g+x /bin/ssh"+char(10)+"perms g+x /usr/bin/Terminal.exe"+char(10)+"perms g+x /usr/bin/Chat.exe"+char(10)+"perms g+x /usr/bin/Mail.exe"+char(10)+"perms g+x /bin/bash"+char(10)+"perms -r g+x /etc/init.d"+char(10)+"To bypass this and lock down anyway use:<b> perms lock down </b> (use with caution)"+char(10)+"n.b mail and chat are on this list because bugs happen when they are fully locked."+char(10)+"N.B: you may remove any of these actions by commenting out"+char(10)+"-- the appropriate lines in 5hell.5pk > command.perms"+char(10)+"-- each entry will have a <b>command.perms(""g+x"",""path"") entry"
 	perms_usage = "<u>CHMOD || PERMISSIONS || PERMS || SECURITY</u>"+char(10)+
-		colorWhite+"Usage: perms [opt:-r] [userstring{+|-}permission] [path]"+char(10)+
+		colorWhite+"</b>Usage: perms [opt:-r] [userstring{+|-}permission] [path]"+char(10)+
 		"-- opt: -r -- run recursively on all files and folders under [path]"+char(10)+
-		colorCyan+"-- userstring: o = other, g = group, u = user/owner"+char(10)+
+		colorCyan+"</b>-- userstring: o = other, g = group, u = user/owner"+char(10)+
 		"-- {toggle}: [+] = add permission, [-] = remove permission"+char(10)+
 		"-- permission: r = read, w = write, x = execute"+char(10)+
 		"--eg:<b> perms -r o-rwx / </b> -- remove rwx permissions from 'others' for all files"+char(10)+
 		"--eg:<b> perms -r g+x /bin</b> -- add group execute permissions to all files in /bin"+char(10)+char(10)+
 		"<color=white>Aliases: presets for common permissions"+char(10)+
-		"Usage: perms lock [all] -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
-		"-- includes anti-brick technology: checks for home pc and relaxes certain permissions:"+char(10)+
-		"---- checks for Xorg running as a process: if found, determines we are at home"+char(10)+
-		"---- if at home add g+x to: sudo, ssh, Terminal.exe, Chat.exe, Mail.exe"+char(10)+
+		colorGold+"</b>Usage: perms lock [all] -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
+		"-- "+colorGold+"</b>includes anti-brick technology:"+char(10)+
+		colorWhite+"</b>-- perms will check running processes for: "+colorLightBlue+"Xorg"+char(10)+
+		colorWhite+"</b>-- if detected, critical binaries will be given: "+colorGold+"</b>g+x"+char(10)+
+		colorWhite+"</b>---- if we are home: add "+colorLightBlue+"g+x to:"+char(10)+
+		colorWhite+"</b>-- <size=85%> sudo, ssh, Terminal.exe, Chat.exe, Mail.exe, /etc/init.d"+char(10)+
+		colorWhite+"</b>-- <size=85%> /bin/bash will also be set if EXPERIMENTAL branch is detected"+char(10)+char(10)+
 		"<b>Shortcut:</b> "+colorRed+"</b>lock"+CT+"-- an alias for <b>perms lock all</b>"+char(10)+
-		"Usage: perms lock [path] -- lock permissions on an individual file"+char(10)+
+		"-- uses "+colorGold+"anti-brick"+CT+" technology"+char(10)+
+		"-- lock is a secondary command that uses command.perms(""lock"",""all"")"+char(10)+
+		"-- see <b>lock -h</b> for more"+char(10)+
+		colorGold+"</b>Usage: perms lock [path] -- lock permissions on an individual file"+char(10)+
 		"-- returns the target file as an object"+char(10)+
+		"-- dpes not use "+colorGold+"anti-brick"+CT+" technology"+char(10)+
 		"<b>Shortcut:</b> "+colorRed+"</b>lock [path]"+CT+"-- an alias for <b>perms lock [path]</b>"+char(10)+
-		"Usage: perms lock [down] -- force locking down, <b>bypassing anti-brick technology</b>"+char(10)+char(10)+
-		"Usage: perms unlock [all] -- add o+rwx to all files"+char(10)+
-		"UsagE: perms unlock [path] -- add o+rwx, recursively, to a path"+char(10)+char(10)+
+		"-- uses "+colorGold+"anti-brick"+CT+" technology"+char(10)+
+		colorGold+"</b>Usage: perms lock [down] -- force locking down"+char(10)+
+		"-- explicitly bypass "+colorGold+"anti-brick"+CT+" technology"+char(10)+char(10)+
+		colorGold+"</b>Usage: perms unlock [all] -- add o+rwx to all files"+char(10)+
+		colorGold+"</b>Usage: perms unlock [path] -- add o+rwx, recursively, to a path"+char(10)+char(10)+
 		"Note: it is good practice to run:"+char(10)+
 		"-- |><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
 		"-- for optimal security."+char(10)+
-		"-- you may type:<b> kore -s</b> to have this action performed for you"+char(10)+
+		colorGold+"</b>-- you may type:<b> kore -s</b> to have this action performed for you"+char(10)+
 		"Extra: perms [-h|help] extra -- view extra help information about this command."
 	if arg1 == "-h" or arg1 == "help" then return perms_usage
 	if not arg1 then return "usage: perms [opt:-r] [arg] [path]"+char(10)+"usage: perms lock [all|/path]"
@@ -994,35 +1031,39 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/dtools.5pk") // override=dtools.5pk
-if DEBUG then 
-	if command.hasIndex("grep") then print "debug: dtools loaded"
-end if 
 command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("debug: arg1: "+arg1+ " :end arg1")
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "run || launch || shell.launch || execute || script || binary"+char(10)+
-	colorMagenta+"Usage: </b>run [file|path_to_file] [opt:parameters|shell] [opt:shell|parameters"+char(10)+
+	if not @arg1 then return "run: usage: run [path] [opt:params|shell] [opt:shell]"
+	if @arg1 == "help" or @arg1 == "-h" then return "run || launch || shell.launch || execute || script || binary"+char(10)+
+	colorMagenta+"Usage: </b>run [file|path_to_file] [opt:parameters|shell] [opt:shell]"+char(10)+
 	"-- launch a script binary at path (.exe's not supported outside of experimental branch)"+char(10)+
-	"-- piped file objects are launched from the object's path"+char(10)+
-	"---- if you wish to launch a binary on another shell object:"+char(10)+
-	"------ glasspool into that shell object before using run"+char(10)+
 	"-- there is a game imposed max 14 nested launches before stack call error"+char(10)+
-	"-- providing a shell object will launch a binary using that shell object"+char(10)+
+	"---- the <b>stack_pool</b> in the custom object counts the number of nested launches"+char(10)+
+	"-- piped file objects are launched from the object's path"+char(10)+
+	"-- if you wish to launch a binary on another shell object:"+char(10)+
+	"---- either:"+char(10)+
+	"------ glasspool into that shell object before using run"+char(10)+
+	"---- or:"+char(10)+
+	"-- pipe in a shell object;"+char(10)+
+	colorOlive+"--eg: </b>brutus | "+colorMagenta+"run /root/rkit/5hell"+char(10)+
+	colorOlive+"--eg: </b>brutus | "+colorMagenta+"run /root/rkit/5hell "" rshell @home """+char(10)+
+	"---- this will launch the binary using that shell object"+char(10)+
 	"-- pipe or wrap in floating quotes complex launch params (more than one word)"+char(10)+
 	"-- use echo and/or easy clip (@a,@b,@c) or <b>""</b> floating quotes <b>""</b> "+char(10)+
 	colorOlive+"---- eg: "+colorMagenta+"run /bin/credi7"+char(10)+
 	colorOlive+"---- eg: </b>zap | "+colorMagenta+"run /root/crowsploit"+char(10)+
-	colorOlive+"---- eg: </b>echo "" do 1 -f pwn.bat "" | clipa | clipb @B 1 || "+colorMagenta+"</b>"+colorMagenta+"run /home/guest/rkit/5hell @a @b"+char(10)+
+	colorOlive+"---- eg: </b>echo "" do 1 -f pwn.bat "" | clipa | clipb @B 1 || "+colorMagenta+"run /home/guest/rkit/5hell @a @b"+char(10)+
 	colorOlive+"---- eg: </b>echo rshell 1.1.1.1 | clipa || brutus | "+colorMagenta+"run /root/rkit/5hell @a"+char(10)+
 	colorOlive+"---- eg: </b>ssh notroot@boot 192.168.0.2 | "+colorMagenta+"run /root/rkit/5hell "" brutus | rclean "" "+char(10)+char(10)+
 	colorWhite+"</b>New: you may now launch binaries by path, without prepending the path with 'run'"+char(10)+
 	"-- this is to give it more bash-like functionality"+char(10)+
 	colorMagenta+"-- eg: </b>/bin/echo "" this is new "" @B -m"
 	"Note: run supports pshells with the launch function however p_shells are not currently in game"
-	if typeof(arg1) != "string" and typeof(arg1) != "file" then return "run: arg1 should be file object or path to file" 
+	if typeof(@arg1) != "string" and typeof(@arg1) != "file" then return "run: arg1 should be file object or path to file" 
 	parameters = ""
 	rr = colorMagenta+"</b>run:"+colorWhite+"</b> launching external program..."
-	if arg2 and typeof(arg2) == "shell" then
-		if arg3 and typeof(arg3) == "string" then parameters = arg3 else parameters = ""
+	if typeof(@arg2) == "shell" then
+		if typeof(@arg3) == "string" then parameters = arg3 else parameters = ""
 		if typeof(arg1) == "string" then 
 			globals.stack_pool("up")
 			print rr
@@ -1031,7 +1072,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 			_cascade // exit if cascade
 			return cc
 		end if
-		if typeof(arg1) == "file" then 
+		if typeof(@arg1) == "file" then 
 			globals.stack_pool("up")
 			print rr
 			cc = arg2.launch(arg1.path, parameters)			
@@ -1041,7 +1082,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		return "run: arg1 should be file or path to file"
 	end if
-	if arg3 and typeof(arg3) == "shell" then 
+	if typeof(@arg3) == "shell" then 
 		run_path = null
 		if typeof(arg1) == "string" then run_path = arg1
 		if typeof(arg1) == "file" then run_path = arg1.path
@@ -1059,9 +1100,9 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if typeof(file) != "file" then file = globals.get_file(arg1)
 	if not file then return "run: "+arg1+" not found."
 	parameters = ""
-	if arg2 and typeof(arg2) == "string" then parameters = arg2
-	if arg3 and typeof(arg3) == "string" then parameters = parameters + " " + arg3 
-	if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
+	if typeof(@arg2) == "string" then parameters = arg2
+	//if arg3 and typeof(arg3) == "string" then parameters = parameters + " " + arg3 
+	//if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	globals.stack_pool("up")
 	print rr
@@ -1085,9 +1126,9 @@ command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		return 0
 	end if
 	if typeof(p) == "file" then return globals.scribus(p)
-	if p == "@clipa" then return command.clipa(globals.scribus(globals.clip_board_alpha))
-	if p == "@clipc" then return command.clipc(globals.scribus(globals.clip_board_gamma))
-	if p == "@clipb" then return command.clipb(globals.scribus(globals.clip_board_beta))
+	if p == "@clipa" then return command.clipa(globals.scribus(command.clipa))
+	if p == "@clipc" then return command.clipc(globals.scribus(command.clipc))
+	if p == "@clipb" then return command.clipb(globals.scribus(command.clipb))
 	if p == "@do" then
 		if not globals.clip_board_delta then globals.clip_board_delta = []
 		globals.clip_board_delta = globals.scribus(globals.clip_board_delta)
@@ -1418,14 +1459,15 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	open_entry = false
 	if @arg1 then
 		if typeof(@arg1) == "string" then 
-			if arg1 == "-b" then 
+			if @arg1 == "-b" then 
 				open_buffer = true 
-				arg1 = arg2 
-				arg2 = arg3 
-				arg3 = arg4 
+				arg1 = @arg2 
+				arg2 = @arg3 
+				arg3 = @arg4 
 			end if
 		end if
 		if @arg1 then 
+			print "debug: malp: pushing: "+typeof(@arg1)+" to BUFFER"
 			globals.BUFFER.push(@arg1)
 			open_entry = true
 		end if
@@ -1449,9 +1491,6 @@ command.fwr = function(arg1, arg2, arg3=0, arg4=0)
 end function
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/kore.5pk") // override=kore.5pk
-if DEBUG then 
-	if command.hasIndex("kore") then print "debug: kore loaded"
-end if 
 command.memdump = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "memdump: dump MEMORY, XPLOITS, PORT_MAP, clipboards,  to current_path+/memdump.mx"+char(10)+"n.b. ignores glasspool. main purpose is generating reports for clients."
 	return globals.dump_memory
@@ -1595,8 +1634,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	return "enum: error: unknown type"
 end function
 command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
-	if DEBUG then print("in rclean: got: "+typeof(@arg1))
-	if arg1 == "help" or arg1 == "-h" then return "Remote Clean || log scrubber || system.log cleaner"+char(10)+
+	if @arg1 == "help" or @arg1 == "-h" then return "Remote Clean || log scrubber || system.log cleaner"+char(10)+
 	"Copy a file over the system.log to corrupt it"+char(10)+
 	"Usage: rclean [opt: int ] -- select an object from buffer to atttempt a remote log wipe."+char(10)+
 	"Usage: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+
@@ -1618,7 +1656,7 @@ command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 		arg1 = arg2 
 		arg2 = "-n"
 	end if
-
+	if DEBUG then print ("<b>in rclean: obj: "+typeof(@arg1)+" opt: "+@arg2)
 	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "computer" or typeof(arg1) == "file") then return globals.rclean(arg1,arg2)
 	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@B",arg1),arg2)
 	return globals.rclean(command.clipb("@B","-m"),arg2)
@@ -1650,185 +1688,6 @@ command.ipfit = function(arg1, arg2, arg3=0, arg4=0)
 		return command.clipb
 	end if
 	return 0
-end function
-command.code = function(arg1, arg2, arg3=0, arg4=0)
-	if DEBUG then print("input type: "+typeof(@arg1))
-	if typeof(@arg1) == "function" then
-		print("Function() detected...")
-		return globals.decompiler(@arg1)
-	end if
-	if @arg1 == null or @arg1 == "-h" or @arg1 == "help" then return "<u>character code || cipher || encryption || || decryption || decompiler"+char(10)+
-	"<b>CODE</b> encode and decode utility"+char(10)+
-	"Supports standard Caesar cipher and 5hell's MuninCipher for encryption."+char(10)+
-	"May also return ascii character codes, decompile objects, and execute functions."+char(10)+
-	"Usage: code [char] -- returns ascii code for char"+char(10)+
-	"Usage: code -c [int] -- returns ascii char(int)"+char(10)+
-	"Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+
-	"-- will evaluate piped functions."+char(10)+
-	"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+
-	"Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher(tm)</b>"+char(10)+
-	"-- prompts for input if not supplied"+char(10)+
-	"-- enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+
-	"-- if input is more than one word use without params for prompt"+char(10)+
-	"-- or use piping or an input file (see -f options)"+char(10)+
-	"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+
-	"-- option [-f] [path] -- prompts for enc/dec"+char(10)+
-	"-- option [-fa|-af] [path] -- encode contents of path with MuninCipher"+char(10)+
-	"-- option [-fb|-bf] [path] -- decode contents of path with MuninCipher"+char(10)+
-	"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
-	Encode = function(instruction, password)
-    caesar = function(type, pass)
-				if pass == "" then return char(32)
-        nr = pass.len%9
-				if nr == 0 then nr = 25
-        crypt = function(char, nr, type)
-            if type == "enc" then return char+nr
-            if type == "dec" then return char-nr
-        end function
-        out = []
-        for i in range(0, pass.len-1)
-            c = pass[i].code
-            if c >= 48 and c <= 57 then
-                c = crypt(c, nr, type)
-                if c < 48 then c = c+10
-                if c > 57 then c = c-10
-            else if c >= 65 and c <= 90 then
-                c = crypt(c, nr, type)
-                if c < 65 then c = c+26
-                if c > 90 then c = c-26
-            else if c >= 97 and c <= 122 then
-                c = crypt(c, nr, type)
-                if c < 97 then c = c+26
-                if c > 122 then c = c-26
-            end if
-            out.push(char(c))
-        end for
-        return out.join("")
-    end function
-    output = caesar(instruction, password)  // instruction should be either "enc" for encode or "dec" for decode
-    return output
-	end function
-	if @arg1 == 0 then return str(char(32).code)
-	if @arg1 == "0" then return str("0".code)
-	if typeof(@arg1) == "number" then
-		print("<mark=red><size=75%>Converting integer...</mark></size>")
-		arg1 = str(arg1)
-	end if
-	if @arg1 == "-a" or @arg1 == "-b" then
-		enc_line = arg2
-		if arg2 and typeof(arg2) != "string" then return "code: -a|-b expects string input, got"+typeof(arg2)
-		if not arg2 then enc_line = user_input("MuninCipher:> ")
-		if enc_line.len > 40000 and @arg1 == "-a" then return "MC: max 40k characters for encode"
-		cipher_input = []
-		cipher_output = []
-		enc_dec = "enc"
-		if @arg1 == "-b" then enc_dec = "dec"
-		cipher_this = ""
-		if enc_dec == "enc" then
-			cipher_input = enc_line.split(char(32))
-		else
-			cipher_input.push(arg2)
-		end if
-		print(colorLightBlue+"<mark=black>M</mark>unin<mark=black>C</mark>iphering: "+cipher_input.join(" "))
-		/////////////////////////////////////
-		if enc_dec == "dec" then
-			input_split = cipher_input[0].split(char(40001))
-			ci_sli_dex = cipher_input[0].split(char(40001))[1]
-			ci_sli_txt = cipher_input[0].split(char(40001))[0]
-			cipher_size = ci_sli_dex.values
-			cipher_size = cipher_size.pop
-			cipher_size = cipher_size.code
-			ci_sli_txt = ci_sli_txt.values
-			spaces = []
-			last_space = 0
-			for dex in ci_sli_dex
-				spaces.push(dex.code+last_space+1)
-				last_space = spaces[-1]
-			end for
-			buf = []
-			if DEBUG then print("debug:<b>indexed</b>"+char(10)+"debug:spacing")
-			spaces.pop
-			for ci in range(0, cipher_size)
-				if DEBUG then print("debug: ci = "+ci)
-				if spaces.len and spaces[0] == ci+1 then
-					buf.push(char(32))
-					spaces.pull
-				else
-					if ci_sli_txt.len then buf.push(ci_sli_txt.pull)
-				end if
-			end for
-			buf = buf.join("")
-			cipher_input = buf.split(char(32))
-		end if
-		for password in cipher_input
-		  cipher_this = password
-		  for l in range(0,cipher_this.len)
-		    cipher_this = Encode( enc_dec, cipher_this )
-		  end for
-		  cipher_output.push(cipher_this)
-		end for
-		if enc_dec == "enc" then
-			spacedex = ""
-			for co in cipher_output
-				spacedex = spacedex + char(co.len)
-			end for
-			leng = cipher_output.join(" ").len
-			cipher_output.push(char(40001))
-			cipher_output.push(spacedex)
-			cipher_output.push(char(leng))
-			cipher_output.push(char(40001))
-			cipher_output = cipher_output.join("")
-		end if
-		print(colorLightBlue+"<u><mark=black>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
-		if enc_dec == "dec" then return cipher_output.join(" ")
-		return cipher_output
-	end if
-	if @arg1 == "-c" and arg2 then return char(arg2.to_int)
-	if @arg1 == "-d" then
-		if not arg2 then return "nothing to decode"
-		return Encode("dec", arg2)
-	end if
-	if @arg1 == "-e" then
-		if not arg2 then return "nothing to encode"
-		return Encode("enc", arg2)
-	end if
-	if @arg1 == "-f" or @arg1 == "-fa" or @arg1 == "-af" or @arg1 == "-bf" or @arg1 == "-fb" then
-		act = 0
-		if @arg1 == "-f" then act = (-1)
-		if @arg1 == "-fa" or @arg1 == "-af" then act = 1
-		cipher_file = null
-		cipher_text = ""
-		if not arg2 then return "code: -f expects a file_path or file_object"
-		if typeof(arg2) == "file" then
-			if not arg2.is_binary then cipher_file = arg2 else return "code: cannot open binary file"
-			if cipher_file.has_permission("r") then cipher_text = cipher_file.get_content.trim else return "code: read error. check permissions"
-		end if
-		if typeof(arg2) == "string" then
-			cipher_text = command.cat(arg2)
-		end if
-		if act < 0 then act = user_input("[0] decode [<b>1</b>] encode ||: ",0,1).to_int
-		if act == 0 then act = "-b" else act = "-a"
-		return command.code(act, cipher_text)
-	end if
-	if DEBUG then print("Checking types...")
-	buf = []
-	if typeof(@arg1) == "string" then
-		print("<mark=yellow><size=75%>Processing string...</mark></size>")
-		if arg1 == "\n" then return str(char(10).code)
-		if arg1 == 0 or arg1 == " " then return str(" ".code)
-		arg1 = arg1.values
-		for letter in arg1
-			buf.push(letter.code)
-		end for
-		if DEBUG then print "debug: code: string buf: "+buf
-		return buf.join(", ")
-	end if
-	if typeof(@arg1) == "shell" or typeof(@arg1) == "ftpshell" or typeof(@arg1) == "file" or typeof(@arg1) == "computer" or typeof(@arg1) == "map" or typeof(@arg1) == "custom_object" or typeof(@arg1) == "list" then return globals.decompiler(@arg1)
-	if typeof(@arg1) == "pshell" or typeof(@arg1) == "pcomputer" or typeof(@arg1) == "pfile" or typeof(@arg1) == "prouter" then return globals.decompiler(@arg1)
-	if @arg1.hasIndex("__isa") then return globals.decompiler(@arg1)
-	check = new @arg1 
-	if typeof(@check) == "map" then return globals.decompiler(@arg1)
-	return "code: unkown type"
 end function
 command.md5 = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "MD5SUM || md5 sum || password hash decipher || encode"+char(10)+"Usage: md5 [string] -- returns the md5sum of a string"+char(10)+"Usage: md5 -d [32_char_hash] -- checks hash against onboard dictionary then attempts decipher"+char(10)+"-- defaults to crypto.so if cerebrum is not loaded"+char(10)+"-- one of three main ways to decipher password hash combo's"+char(10)+"-- see also: <b>gopher</b>, <b>hashim</b>, <b>brutus</b>"
@@ -2072,7 +1931,6 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
 	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- press <"+colorGreen+"enter"+CT+"> to continue --")
 	if time_to_wait <= 300 and time_to_wait >= .01 then
-		if DEBUG then print "debug: ttw is"+time_to_wait
 	else
 		time_to_wait = 1
 		print "pause: invalid wait time: changing time_to_wait to 1 second"
@@ -2259,20 +2117,20 @@ bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
 bios_info.push("<size=85%>[Custom_Object: "+get_custom_object.len+" indexes]")
 bios_info.push("<size=85%>[tagged4scp: "+globals.tagged_for_scp+"]</size>")
 bios_info.push("[tbuf:<size=60%>"+globals.T_BUF.join(" ")+"</size>]</size>")
-if typeof(@globals.clip_board_alpha) == "string" then
-	bios_info.push("[clipa:<size=60%>"+@globals.clip_board_alpha.replace(char(10),", ")+"</size>]")
+if typeof(@CLIP["a"]) == "string" then
+	bios_info.push("[clipa:<size=60%>"+CLIP["a"].replace(char(10),", "))
 else
-	bios_info.push("[clipa:<size=60%>"+@globals.clip_board_alpha+"</size>]")
+	bios_info.push("[clipa:<size=60%>"+@CLIP["a"])
 end if
-if typeof(@globals.clip_board_beta) == "string" then
-	bios_info.push("[clipb:<size=60%>"+@globals.clip_board_beta.replace(char(10),", ")+"</size>]")
+if typeof(@CLIP["b"]) == "string" then
+	bios_info.push("[clipb:<size=60%>"+CLIP["b"].replace(char(10),"</size=60%>, "))
 else
-	bios_info.push("[clipb:<size=60%>"+@globals.clip_board_beta+"</size>]")
+	bios_info.push("[clipb:<size=60%>"+@CLIP["b"])
 end if
-if typeof(@globals.clip_board_gamma) == "string" then
-	bios_info.push("[clipc:<size=60%>"+@globals.clip_board_gamma.replace(char(10),", ")+"</size>]")
+if typeof(@CLIP["c"]) == "string" then
+	bios_info.push("[clipc:<size=60%>"+CLIP["c"].replace(char(10),"</size=60%>, "))
 else
-	bios_info.push("[clipc:<size=60%>"+@globals.clip_board_gamma+"</size>]")
+	bios_info.push("[clipc:<size=60%>"+@CLIP["c"])
 end if
 mscan = "-none-"
 if globals.meta_scan then mscan = "ready"
@@ -2654,9 +2512,9 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"gp [#]          |</b> glasspool [#]"+char(10)+
 	colorCyan+"prompt          |</b> -this will toggle the full_prompt on/off-"+char(10)+char(10)+
 	colorWhite+"Easy Clip       |</b> Replacement"+char(10)+
-	colorGold+"@a              |</b> clipa -- globals.clip_board_alpha"+char(10)+
-	colorGold+"@b              |</b> clipb -- globals.clip_board_beta"+char(10)+
-	colorGold+"@c              |</b> clipc -- globals.clip_board_gamma"+char(10)+
+	colorGold+"@a              |</b> clipa -- globals.CLIP[""a""]"+char(10)+
+	colorGold+"@b              |</b> clipb -- globals.CLIP[""b""]"+char(10)+
+	colorGold+"@c              |</b> clipc -- globals.CLIP[""C""]"+char(10)+
 	colorGold+"@tbuf           |</b> transmission buffer -- globals.T_BUF"+char(10)+
 	"-- this is                |</b> where hashes go when the tree command finds them"+char(10)+
 	colorGold+"@t              |</b> targetIP"+char(10)+
@@ -2665,8 +2523,9 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorGold+"@B [index|-m]   |</b> directly reference a value in the"+colorOrange+" BUFFER "+CT+"by [index] or menu: [-m]"+char(10)+
 	colorGold+"@o [key]        |</b> directly reference a value in the custom object by key"+char(10)+
 	colorWhite+"All <b>@</b> aliases (known as ez_clips) may be escaped with the <b>\</b> character:"+char(10)+
-	"--eg: <b>\@a</b>, \@home"+char(10)+
-	"--eg: <b>clipb bob | echo @a -- will echo 'bob', while <b>clipa bob | echo \@a -- will echo '@a' "+char(10)+
+	"<size=75%>--eg: <b>\@a</b>, \@home"+char(10)+
+	"<size=75%>--eg: <b>clipa bob || echo @a -- will echo 'bob', while "+char(10)+
+	"<size=75%>--eg: <b>clipa bob || echo \@a -- will echo '@a' "+char(10)+char(10)+
 	"Please note: several commands have their own references for editing the clipboards"+char(10)+
 	"-- these commands will use @clipa, @clipb, @clipc instead of @a, @b, @c"+char(10)+
 	"Further, the clipa, clipb, and clipc will use @B to reference the BUFFER:"+char(10)+
@@ -2676,11 +2535,11 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"-- there are other ways to pipe objects around besides the clipboards, explore to learn more."+char(10)+
 	char(10)+
 	colorOlive+"Marcos and Automation: "+char(10)+
-	colorWhite+" </b>You may define custom macro's with the "+colorOrange+"</b>macro</color> command. A macro is a "+char(10)+
-	colorWhite+"</b>runtime-defined set of instructions executed by a single command. Think of it as an alias that performs"+char(10)+
-	colorWhite+"</b>commands for you. Additionally, you may execute batch commands either from a file or from memory. There are"+char(10)+
-	colorWhite+"</b>a few differences between a <u>macro</u> and a <u>do script</u>."+char(10)+
-	colorWhite+"</b>Please see:  "+colorLightBlue+"</b>do -h, macro -h, and help automation for more information on this topic."+char(10)
+	colorWhite+"<size=75%></b>You may define custom macro's with the "+colorOrange+"</b>macro</color> command. A macro is a "+char(10)+
+	colorWhite+"<size=75%></b>runtime-defined set of instructions executed by a single command. Think of it as an alias that performs"+char(10)+
+	colorWhite+"<size=75%></b>commands for you. Additionally, you may execute batch commands either from a file or from memory. There are"+char(10)+
+	colorWhite+"<size=75%></b>a few differences between a <u>macro</u> and a <u>do script</u>."+char(10)+
+	colorWhite+"<size=75%></b>Please see:  "+colorLightBlue+"</b>do -h, macro -h, and help automation for more information on this topic."+char(10)
 
 	help_automation = "<u><b>automation || macro || do script || batch file"+char(10)+
 	colorCyan+"How to fully automate <color=red>5</color><color=white>hell</color>:"+char(10)+
@@ -2816,7 +2675,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		"either stock or your own, to prevent exposure of this information! "
 	end if
 	
-	if arg1 == "alias" then return help_alias
+	if arg1 == "-A" or arg1 == "alias" then return help_alias
 	if arg1 == "-c" or arg1 == "conventions" or arg1 == "-p" or arg1 == "prompt" then return help_conventions
 	if arg1 == "-t" or arg1 == "tools" then return help_tools
 	if arg1 == "-b" or arg1 == "buffer" then return help_buffer
@@ -2832,7 +2691,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 
 	num_commands = index.len
-	columns = 7 // # commands per line
+	columns = 8 // # commands per line
 	if globals.DEBUG then print("commands: "+num_commands+" columns: "+columns)
 	rows = ceil(num_commands / columns)
 	if globals.DEBUG then print("rows: "+rows)
