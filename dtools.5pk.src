@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.1...(145.459)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.2...(145.512)</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -2561,7 +2561,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	end if
 	if arg1 == "set" or arg1 == "-s" then 
 		// create a macro
-		if not arg3 then return "-- [-s] flag expects [name] [value]"
+		if typeof(@arg3) != "string" then return "-- [-s] flag expects [string:name] [string:value]"
 		if gm.hasIndex(arg2) then print +colorOrange+"<size=75%>-- macro already exists;</b> overwriting"
 		gm[arg2] = arg3
 		if command.hasIndex(arg2) then print colorOrange+"<size=85%></b>Warning: macro shares the name of a command!"+char(10)+"<size=75%>-- the macro will be processed instead of the command"
@@ -2574,9 +2574,12 @@ command.macro = function(arg1,arg2,arg3,arg4)
 				macs[i] = colorRed+"</b>"+m+CT
 				arg2 = colorRed+"</b>"+arg2+CT
 			end if
+			i = i + 1
 		end for
 		arg3 = macs.join(" ")
-		if selfcall == true then print colorRed+"<size=75%>WARNING: possible infinite loop detected; "+char(10)+colorRed+"</b><size=75%>-- macro may contain a call to self"+char(10)+"<size=65%>-- <b>double check that is is not problematic"
+		if selfcall == true then print colorRed+"<size=75%>WARNING: possible infinite loop detected; "+char(10)+
+		colorRed+"</b><size=75%>-- macro may contain a call to self"+char(10)+
+		"<size=65%>-- <b>double check that is is not problematic"
 		return colorCyan+"</b>-- registered: "+colorWhite+"</b>"+arg2+CT+" as "+colorWhite+"</b>"+arg3
 	else 
 		//fire a macro
