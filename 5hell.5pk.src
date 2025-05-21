@@ -1,7 +1,7 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.1.1.E_falling_skies"
+ver = "4.1.2.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
