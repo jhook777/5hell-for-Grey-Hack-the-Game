@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.5"
-malp_version = "1.5.1"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.0.9...(149.375)</size>")
+sphinx_version = "2.9.6"
+malp_version = "1.5.2"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.1...(147.886)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -13,7 +13,7 @@ end function
 
 update_path = function()
   globals.currentPath = current_path
-  print "Updating current path to: "+globals.currentPath
+  print "<size=75%>Updating current path to: "+globals.currentPath
   return 0
 end function
 
@@ -26,17 +26,35 @@ globals._cascade = function()
   if get_custom_object.hasIndex("return_value") and get_custom_object.return_value == "#!#CASCADE#!#" then exit "#!#CASCADE#!#" else return 0
 end function
 
-// // make this more better good by searching the whole filesystem // done
+Kérberos = function( sl )
+  if typeof(@sl) == "function" then print colorRed+"</b>Kérberos: prevented rogue function execution" else return @sl 
+end function
+
+list_daemons = function()
+  dl = command.grep("-f","^5hell.d$","/")
+  if typeof(dl) == "file" then 
+    if dl.has_permission("r") then 
+      dlc = dl.get_content 
+      if dlc.len < 5 then return "daemons: no daemons running"
+      return dlc
+    else 
+      return "daemons: 5hell.d is read protected!"
+    end if
+  else 
+    return "daemons: 5hell.d not found, no daemons running"
+  end if
+end function
+
 hot_swap_libs = function() 
     return globals.super_import
 end function
 
 globals.get_file = function(input_string)
 	if DEBUG then print("debug: in_get_file: "+@input_string)
-	if typeof(input_string) == "file" then return input_string //    input_string.path might be probelmatic, lets return a file as expected
+	if typeof(@input_string) == "file" then return input_string //    input_string.path might be probelmatic, lets return a file as expected
 	if typeof(@input_string) != "string" then return 0
 	if input_string == "" or input_string == " " or not input_string then return 0
-	if DEBUG then print "debug: get_file: processing string: "+@input_string
+	if DEBUG then print "debug: get_file: processing string: "+input_string
 	if input_string.split("/")[0] == "" then
 		file = localmachine.File(input_string)
 	else
@@ -46,6 +64,7 @@ globals.get_file = function(input_string)
 	if DEBUG then
 		if file then print("File: ["+file.path+"]") else print("File: [not found]")
 	end if
+  if DEBUG then print "get_file: returning..."
   if file then return file else return 0
 end function
 
@@ -129,9 +148,9 @@ globals._ez_clip = function( in_prompt )
     if DEBUG then print("p: "+@e)
     e_indx = in_prompt.indexOf(@e) 
     if @e == "@STOP" then in_prompt[e_indx] = @globals.SAFEWORD
-    if @e == "@a" then in_prompt[e_indx] = @globals.clip_board_alpha
-    if @e == "@b" then in_prompt[e_indx] = @globals.clip_board_beta
-    if @e == "@c" then in_prompt[e_indx] = @globals.clip_board_gamma
+    if @e == "@a" then in_prompt[e_indx] = @globals.CLIP["a"]
+    if @e == "@b" then in_prompt[e_indx] = @globals.CLIP["b"]
+    if @e == "@c" then in_prompt[e_indx] = @globals.CLIP["c"]
     if @e == "@home" then in_prompt[e_indx] = @globals.HOME_SERVER[0]
     if @e == "@tbuf" then in_prompt[e_indx] = @globals.T_BUF.join(char(10))
     if @e == "@t" then in_prompt[e_indx] = @globals.targetIP 
@@ -273,12 +292,20 @@ mail_user_list = function(ip_address, port)
   return crypto.smtp_user_list( ip_address , port )
 end function
 
-globals._export_metax = function() // export metaxploit to the custom object: called on startup
+// export metaxploit, crypto, shell to the custom object: called on startup
+// merge into session object when session objects become a thing
+globals._export_metax_et_al = function() 
   s = globals.stack_pool
   g = get_custom_object
   m = globals.metaxploit 
+  c = globals.crypto
+  sh = globals.shell
+  ip = sh.host_computer.public_ip+" : "+sh.host_computer.local_ip
+  g["myi"+s] = ip
   g["myx"+s] = m 
-  return 0
+  g["myc"+s] = c
+  g["mys"+s] = sh
+  return {"s":s,"m":m,"c":c,"sh":sh,"ip":ip}
 end function
 
 globals.sus = function(a,b,c,d) // expects libname v version
@@ -313,9 +340,9 @@ dump_memory = function()
     if XPLOITS then buf.push(XPLOITS.join( char(10) ) + char(10) )
     if meta_scan then buf.push(meta_scan.join( char(10) ) + char(10) )
     if PORT_MAP then buf.push(display_portmap(1))
-    if globals.clip_board_alpha.len then buf.push( globals.clip_board_alpha )
-    if globals.clip_board_beta.len then buf.push( globals.clip_board_beta )
-    if globals.clip_board_gamma.len then buf.push( globals.clip_board_gamma )
+    if globals.CLIP["a"].len then buf.push( globals.CLIP["a"] )
+    if globals.CLIP["b"].len then buf.push( globals.CLIP["b"] )
+    if globals.CLIP["c"].len then buf.push( globals.CLIP["c"] )
     buf.push(T_BUF)
     memdump.set_content( buf.join( char(10) ) )
     print("Memory dumped to: "+memdump.path)
@@ -335,105 +362,113 @@ string.noparse = function(self)
   return buf.join(char(10))
 end function
 
-// warning: garbage code follows. somehow 'works'
-globals.decompiler = function(object)
-  act = "Decompiling"
-  if typeof(@object) == "custom_object" then 
-    print("<mark=yellow>Expanding custom object...")
-    for thing in object 
-      print thing
-    end for 
-    return object
-  end if
-  if typeof(@object) == "function" then act = "Evaluating"
-  print("<mark=yellow>"+act+": "+typeof(@object)+"</mark>")
-  c = @object
-  if typeof(@c)=="number" then return c
-  if typeof(@c) == "string" then 
-    fe = []
-    for letter in c.values 
-      fe.push(letter.code)
-    end for 
-    return fe.join(", ")
-  end if 
-  if typeof(@c) == "function" then
-    return p_exe(@c)
-  end if
-  if @c.indexOf("__isa") >= 0 or @c.hasIndex("__isa") or @c.hasIndex("classID") or typeof(@c) == "pshell" or typeof(@c) == "pfile" or typeof(@c) == "pcomputer" or typeof(@c) == "shell" or typeof(@c) == "file" or typeof(@c) == "computer" or typeof(@c) == "ftpshell" then 
-    if DEBUG then print "code: isa confirmed; verifying indexes"
-    methods = c.__isa.indexes
-    print c.__isa.indexes
-    if c.__isa.indexes.len < 2 then return "code: "+colorRed+"critical error; "+colorWhite+"the object has been invalidated"
-    if typeof(c) == "MetaLib" then 
-      if not p_validate(c,"version") then return "code: "+colorRed+" critical error: "+colorWhite+"the object has been invalidated"
-      print colorWhite+c.lib_name+CT+" v "+colorWhite+c.version
-    end if
-    if DEBUG then print "debug: methods: "+methods
-    for ind in methods
-      print(ind+": "+c[ind])
-    end for
-    print("- - - - - - - - - - - - - - - -"+char(10))
-    i = 0
-    for m in methods
-      print("["+colorWhite+ i +CT+"] [ "+colorLightBlue+ m +CT+" ]")
-      i = i + 1
-    end for 
-    i = i - 1
-    if DEBUG then print("debug: i: "+i+" methods: "+methods.len)
-    print(colorWhite+"<u>======================</u>"+CT)
-    pr = user_input("Select a function to execute (q=quit):> ")
-    if pr.lower == "q" or pr == "" or pr == " " then return "aborting..." 
-    pr = pr.to_int
-    rcv = null
-    if pr >= 0 and pr <= i then rcv = globals.p_exe( c , methods[pr]) else return 0
-    if DEBUG then print "rcv: "+rcv
-    if rcv then 
-      globals.BUFFER.push(rcv)
-      print( "result: "+typeof(rcv) + " sent to BUFFER." ) 
-    end if
-    return rcv
-  end if  
+// slightly less garbage code than before follows, somehow works
+globals.decompiler = function(o)
+    act = "Decompiling"
+    if typeof(@o) == "function" then act = "Evaluating"
+    if typeof(@o) == "custom_object" then act = "Expanding"
+    print "<mark=yellow>"+act+": "+typeof(@o)
 
-  if typeof(@c) == "list" then 
-    for d in c
-      print "<u>"+colorWhite+"ndx"+colorLightBlue+":"+colorWhite+"element"
-      print "["+colorWhite+c.indexOf(d)+CT+"]"+colorWhite+":"+CT+"["+d+"]"
+    if typeof(@o) == "custom_object" then 
+        ort = []
+        for thing in o 
+            ort.push( thing.key+" : "+thing.value )
+            if typeof(thing) == "map" or typeof(thing) == "list" then 
+                for sub_thing in thing
+                    ort.push(sub_thing)
+                end for
+            end if
+        end for 
+        print "code: returning list"
+        return ort
+    end if
+
+    if typeof(@o) == "function" then
+        return p_exe(@o)
+    end if
+
+    if typeof(o) == "number" then return "code: cannot decompile a number"
+    if typeof(o) == "string" then 
+        fe = []
+        for letter in o.values 
+            fe.push(letter.code)
+        end for 
+        return fe.join(", ")
+    end if 
+
+    if o.indexOf("__isa") >= 0 or o.hasIndex("__isa") or o.hasIndex("classID") or typeof(o) == "pshell" or typeof(o) == "pfile" or typeof(o) == "pcomputer" or typeof(o) == "shell" or typeof(o) == "file" or typeof(o) == "computer" or typeof(o) == "ftpshell" then 
+        if DEBUG then print "code: isa confirmed; verifying indexes"
+        methods = o.__isa.indexes
+        print methods
+        if methods.len < 2 then return "code: "+colorRed+"critical error; "+colorWhite+"the object has been invalidated"
+        if typeof(o) == "MetaLib" then 
+            if not p_validate(o,"version") then return "code: "+colorRed+" critical error: "+colorWhite+"the object has been invalidated"
+            print colorWhite+o.lib_name+CT+" v "+colorWhite+o.version
+        end if
+        for ind in methods
+            print(ind+": "+o[ind])
+        end for
+        print("- - - - - - - - - - - - - - - -"+char(10))
+        i = 0
+        for m in methods
+            print("["+colorWhite+ i +CT+"] [ "+colorLightBlue+ m +CT+" ]")
+            i = i + 1
+        end for 
+        i = i - 1
+        if DEBUG then print("debug: i: "+i+" methods: "+methods.len)
+        print(colorWhite+"<u>======================</u>"+CT)
+        pr = user_input("Select a function to execute (q=quit):> ").to_int
+        if pr.lower == "q" or pr == "" or pr == " " then return "aborting..." 
+        rcv = null
+        if pr >= 0 and pr <= i then rcv = globals.p_exe( o , methods[pr]) else return 0
+        if DEBUG then print "rcv: "+rcv
+        if rcv then 
+            globals.BUFFER.push(rcv)
+            print( "result: "+typeof(rcv) + " sent to BUFFER." ) 
+        end if
+        return rcv
+    end if  
+
+    if typeof(o) == "list" then 
+        cw = colorWhite+"</b>"
+        cb = colorLightBlue+"</b>"
+        for d in o
+        print "<u>"+cw+"ndx"+cb+":"+cw+"element"
+        print "["+cw+o.indexOf(d)+CT+"]"+cw+":"+CT+"["+d+"]"
+        end for
+        print cb+"["+cw+"1</color>] enumerate "+cb+"["+cw+"2</color>] to cob "+cb+"["+cw+"3</color>] to buffer"+char(10)
+        print cb+"["+cw+"a</color>] to clipa "+cb+"["+cw+"b</color>] to clipb "+cb+"["+cw+"c</color>]> to clipc"
+        choice = user_input("||: ",0,1)
+        if choice == "1" then return command.enum(o)
+        if choice == "2" then 
+            set_key = user_input("set_key (<b>enter</b>=quit):> ")
+            if set_key == "" then print "aborting..."
+            return command.cob("set", set_key, o)
+        end if
+        if choice == "3" then 
+            tb = user_input("select an index:> ").to_int
+            if tb < o.len and tb >= 0 then  
+                print "sending element to "+colorOrange+"BUFFER..."
+                globals.BUFFER.push(o[tb])
+            else
+                print "invalid index; aborting..."
+            end if
+        end if
+        if choice == "a" then return command.clipa(o)
+        if choice == "b" then return command.clipb(o)
+        if choice == "c" then return command.clipc(o)
+        return 0
+    end if
+    out = []
+    for d in o
+        out.push(d+char(10))
     end for
-    print colorLightBlue+"["+colorWhite+"1</color>]</b> enumerate "+colorLightBlue+"["+colorWhite+"2</color>]</b> to custom_object "+colorLightBlue+"["+colorWhite+"3</color>]</b> buffer selection"
-    print colorLightBlue+"["+colorWhite+"a</color>]</b> to clipa "+colorLightBlue+"["+colorWhite+"b</color>]</b> to clipb "+colorLightBlue+"["+colorWhite+"c</color>]</b> to clipc"
-    choice = user_input("||: ",0,1)
-    if choice == "1" then print command.enum(c)
-    if choice == "2" then 
-      set_key = user_input("set_key (<b>enter</b>=quit):> ")
-      if set_key == "" then print "aborting..."
-      print command.cob("set", set_key, c)
-    end if
-    if choice == "3" then 
-      getthis = user_input("select an index:> ").to_int
-      if getthis < c.len and getthis >= 0 then  
-        print "sending element to "+colorOrange+"BUFFER..."
-        globals.BUFFER.push(c[getthis])
-      else
-        print "invalid index. aborting..."
-      end if
-    end if
-    if choice == "a" then command.clipa(c)
-    if choice == "b" then command.clipb(c)
-    if choice == "c" then command.clipc(c)
     return 0
-  end if
-  for d in @c
-    print(d+char(10))
-  end for
-  return 0
 end function
 
 globals.p_exe = function( obj, f_name=null ) // obj is either game object or function
   if DEBUG then print("debug: In P_EXE: "+@obj+": "+f_name)
-  if typeof(@obj) != "function" and not p_validate(obj, f_name) then 
-    print "invalid object"
-    return 0
-  end if    
+  if typeof(@obj) != "function" and not p_validate(obj, f_name) then return "p_exe: invalid input; expects object or function"
   if typeof(@obj) == "function" then 
     foo = @obj 
   else 
@@ -454,63 +489,62 @@ globals.p_exe = function( obj, f_name=null ) // obj is either game object or fun
     if ar == "" then continue
     if DEBUG then print("typeof "+ar+": "+typeof(ar))
     if str(ar) == "self" then 
-      if typeof(@obj) == "function" then 
-        self_param = user_input("Use @a|@b|@c to use an object from the clipboard, (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
-        if typeof(self_param) == "string" then 
-          print "error: expected object, got string"
-          return 0
-        end if 
-        a.push(self_param)
-        continue
-      end if
-      a.push(obj)
-      continue 
+        if typeof(@obj) == "function" then 
+            self_param = user_input("Use [@a|@b|@c ] to use an object from the clipboard, (q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
+            if self_param == "@a" then self_param = CLIP["a"]
+            if self_param == "@b" then self_param = CLIP["b"]
+            if self_param == "@c" then self_param = CLIP["c"]
+            if typeof(self_param) == "string" then 
+                print "error: expected object, got string"
+                return 0
+            end if 
+            a.push(self_param)
+            continue
+        end if
+        a.push(obj)
+        continue 
     end if
     def = ar.split("=")
-    def_act=""""
-    if def.len > 1 then def = def[0] else def = 0
-    if def then 
-      print "<b>code: the following argument may not be omitted</b>"
-      def_act = "quit"
+    if def.len > 1 then def = def[1].trim else def = """"
+
+    inp = user_input("(Use [@a|@b|@c] for the clipboard"+char(10)+"-- ints are cast as ints, use 'int' to cast as string"+char(10)+"<b>enter="+def+"</b>, null=null,  q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
+    if @inp == "q" then return "aborting..."
+    if @inp == "" then inp = def
+    if @inp == "null" then inp = null
+    if @inp == "@a" or @inp == "@clipa" then inp = @globals.CLIP["a"]
+    if @inp == "@b" or @inp == "@clipb" then inp = @globals.CLIP["b"]
+    if @inp == "@c" or @inp == "@clipc" then inp = @globals.CLIP["c"]
+    if typeof(@inp) == "string" then 
+        tint = inp.remove("'")
+        if typeof(inp.to_int) == "number" then inp = inp.to_int // assume integers are to be cast as integers
+        if typeof(tint).to_int == "number" then inp = tint // if it's wrapped in ' then it's a string
     end if
-    inp = user_input("(Use @a|@b|@c for the clipboard"+char(10)+"-- ints are cast as ints, use 'int' to cast as string"+char(10)+"<b>enter="+def_act+"</b>, null=null,  q=quit)"+char(10)+colorLightBlue+"Supply argument for: "+colorWhite+ ar +CT+char(10)+"</b>:> ")
-    if inp == "q" then return "aborting..."
-    if inp == "" or inp == " " then
-      if def then inp = def else return "code: invalid input: this argument cannot be blank"
-    end if
-    if inp == "null" then inp = null
-    if inp == "@a" or inp == "@clipa" then inp = @globals.clip_board_alpha
-    if inp == "@b" or inp == "@clipb" then inp = @globals.clip_board_beta
-    if inp == "@c" or inp == "@clipc" then inp = @globals.clip_board_gamma
-    tint = inp.remove("'")
-    if typeof(inp) == "string" and typeof(inp.to_int) == "number" then inp = inp.to_int // assume integers are to be cast as integers
-    if typeof(tint).to_int == "number" then inp = tint // if it's wrapped in ' then it's a string
     if DEBUG then print "debug: p_exe_: input is "+@inp+" and is a "+typeof(@inp)
     a.push(@inp)
     i = i + 1
   end for 
+
   if DEBUG then print "obj is: "+@obj+" and is a: "+typeof(@obj)
   if DEBUG then print "f_name is: "+f_name
   if typeof(@obj) == "function" then o = @obj else o = @obj[f_name]
   catch = null
   if args == [[]] then args = []
   if DEBUG then print("debug: args to run: "+args.len+": "+args)
-  if args.len == 0 then catch = o
-  if args.len == 1 then catch = o(a[0])
-  if args.len == 2 then catch = o(a[0], a[1])
-  if args.len == 3 then catch = o(a[0], a[1], a[2])
-  if args.len == 4 then catch = o(a[0], a[1], a[2], a[3])
-  if args.len == 5 then catch = o(a[0], a[1], a[2], a[3], a[4])
-  if args.len == 6 then catch = o(a[0], a[1], a[2], a[3], a[4], a[5])
-  if DEBUG then print "p_exe: catch: "+catch
-  return catch // if args > 6 then git rekt
+  if args.len == 0 then return o
+  if args.len == 1 then return o(a[0])
+  if args.len == 2 then return o(a[0], a[1])
+  if args.len == 3 then return o(a[0], a[1], a[2])
+  if args.len == 4 then return o(a[0], a[1], a[2], a[3])
+  if args.len == 5 then return o(a[0], a[1], a[2], a[3], a[4])
+  if args.len == 6 then return o(a[0], a[1], a[2], a[3], a[4], a[5])
+  if args.len > 6 then return "p_exe: sadness: can't handle more than 6 args"
 end function
 
 p_validate = function( object, query )
   if DEBUG then print "DEBUG: in p_validate"+char(10)+"validating: "+@object
   if typeof(@object) == "function" then return 1
   if typeof(@object) == "number" then return 1
-  test = new object 
+  test = new @object 
   if test == null then return 0
   if @object.hasIndex("__isa") and typeof(@object) != "string" then
     if DEBUG then print colorGreen+"__isa index found"
@@ -523,10 +557,11 @@ p_validate = function( object, query )
   end if
 end function 
 
-globals.fexecute = function(funciton_ref,args)
+// not exactly useful if it only tages on arg
+globals.fexecute = function(function_ref,args)
   print "fexecute: <mark=yellow># <color=white>#</color> executing # <color=white>#</color> </mark>"
   if typeof(@funciton_ref) == "function" then 
-    return function_ref 
+    return function_ref(args) 
   else 
     print "fexecute: invalid input"
   end if
@@ -546,7 +581,8 @@ end function
 _switch = {}
 _switch.var = ""
 _switch.set_var = function( input )
-	_switch.var = input
+  if DEBUG then print "-switch: input: "+@input
+	_switch.var = @input
 end function
 _switch.case_list = []
 _switch.case = function( condition, action )
@@ -556,7 +592,8 @@ _switch.default = function( action )
 	// evaluate switch
 	if _switch.case_list.len > 0 then
 		for line in _switch.case_list
-			if line.hasIndex(_switch.var) then 
+			if @line.hasIndex(_switch.var) then 
+        if DEBUG then print "_switch.var: "+_switch.var
 				s = @line[_switch.var]
 				_switch.var = ""
 				_switch.case_list = []
@@ -1110,9 +1147,8 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
     print("[6] Air [/] cBios [-] RSI [.] dBase" )
     print("[7] Go Back   [8] Procs   [9] Kill  ")
     if DEBUG then print("prompt ready: ")
-    if go_to_buffer == true then
+    if @go_to_buffer then
       waitFor = "5"
-      go_to_buffer = false
     else 
       waitFor = user_input("(q=quit)||: ",0,1)
     end if
@@ -1272,8 +1308,9 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
       end for
       print(colorWhite+"__________________________________")
       selection = null
-      if go_to_selection == true then selection = BUFFER.len-1 else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
+      if @go_to_selection == true and @go_to_buffer == true then selection = BUFFER.len-1 else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
       go_to_selection = false
+      go_to_buffer = false
       if selection >= BUFFER.len or selection < 0 or typeof(selection) != "number" then continue
       if BUFFER.hasIndex(selection) and @BUFFER[selection] then
         buffer_selection = @BUFFER[selection]
@@ -1287,6 +1324,15 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
           if typeof(@buffer_selection) == "function" then
             args = str(@buffer_selection).split( "FUNCTION" )[1].split(", ")
             print("function takes: "+args.len+" arguments.")
+           print "["+colorWhite+"c"+CT+"] add to custom object"
+            print "["+colorWhite+"d"+CT+"] execute function"
+            uip = user_input("(anything else = quit) :> <b>")
+            if uip == "d" then 
+              print(globals.decompiler(@buffer_selection))
+              continue 
+            end if
+            if uip == "c" then print command.cob("set",user_input("cob: set key to:> "),@buffer_selection)
+            continue 
           end if
           if typeof(@buffer_selection) == "string" then 
             print buffer_selection
@@ -1580,53 +1626,9 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               print secure_copy(buffer_selection)
               continue 
             end if
-            if choice == "3" then
-              kit = null
-              kit = command.tree("/","rkit","1","N")
-              if not kit or typeof(kit) != "file" then
-                print(colorRed+"<b>Error: rkit not found."+CT)
-                continue
-              end if
-              kperms = kit.permissions.values
-              kpx = kperms[-1]
-              kpw = kperms[-2]
-              kpr = kperms[-3]
-              print("Changing rkit permissions to <b>o+rwx</b> for upload...")
-              print(command.perms("-r","o+rwx", kit.path))
-              copytrue = shell.scp(kit.path,"/home/guest",buffer_selection)
-              print("Restoring permissions...")
-              if kpx == "-" and kpw == "-" and kpr == "-" then
-                print(command.perms("-r","o-rwx", kit.path))
-              else
-                if kpx == "-" then kpx = "x" else kpx = ""
-                if kpw == "-" then kpw = "w" else kpw = ""
-                if kpr == "-" then kpr = "r" else kpr = ""
-                print(command.perms("-r", "g+x"+kpr+kpw+kpx, kit.path))
-              end if
-              print(kit.permissions+" "+kit.owner+" "+kit.group+" "+kit.size+" "+kit.permissions+" "+kit.path)
-              if typeof(copytrue) == "string" then
-                print(copytrue)
-                continue
-              end if
-              if not notftp then 
-                print "Successfully uploaded rootkit: "+kit.path+char(10)+"To: /home/guest"+char(10+"-- unable to launch via ftpshell; returning...")
-                continue 
-              end if
-              go = user_input("Successfully uploaded rootkit: "+kit.path+char(10)+"To: /home/guest"+char(10)+"Would you like to run 5hell silently on the target? [<b>Y</b>/n]"+char(10)+"||: ",0,1)
-              if go.lower == "n" then
-                continue
-              else
-                par = user_input("Enter launch parameters, if any. Otherwise press <<b>enter</b>> "+char(10)+"Example: do 1 brutus"+char(10)+":> "+colorWhite).trim // add preset options
-                print(colorLightBlue+"Initializing sshfs glasspool protocol..."+CT)
-                print(colorWhite+"<size=75%><u>Injecting process /home/guest/rkit/5hell into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
-                globals.stack_pool("up")
-                catch = buffer_selection.launch("/home/guest/rkit/5hell",par)
-                _cascade // exit if cascade
-                globals.stack_pool("down")
-                if catch then print(catch)
-                globals.update_path
-                continue
-              end if
+            if choice == "3" then 
+              print command.infil(buffer_selection)
+              continue 
             end if
             if choice == "1" then
               print("Opening a terminal will exit "+CT+colorRed+"5hell"+CT+". Continue? ")
@@ -1651,7 +1653,18 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
           end while
           continue
         end if // end shell handler
-        if buffer_selection.hasIndex("__isa") then print(globals.decompiler(buffer_selection))
+        if @buffer_selection.hasIndex("__isa") then
+          print "Expanding: "+typeof(@buffer_selection)+"..."
+          print "["+colorWhite+"c"+CT+"] add to custom object"
+          print "["+colorWhite+"d"+CT+"] send to decompiler"
+          uip = user_input("(anything else = quit) :>")
+          if uip == "d" then 
+            print(globals.decompiler(@buffer_selection))
+            continue 
+          end if
+          if uip == "c" then print command.cob("set",user_input("cob: set key to:> "),@buffer_selection)
+          continue 
+        end if
       end if
       continue
     end if  // end option 5
@@ -1868,15 +1881,6 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
 end function
 
 globals.rclean = function(arg1, arg2=0)
-  // if not arg1 or arg1 == "-h" or arg1 == "help" then return colorGreen+"<u>RCLEAN || REMOTE CLEAN || LOG SCRUBBING"+char(10)+
-  // " Remote clean is a remote log scrubbing protocol. It differs"+char(10)+
-  // "from silentclean in a couple of ways. Silentclean creates a file on the"+char(10)+
-  // "target system. Rclean does not create a file but rather uses a file present on the system."+char(10)+
-  // "This means "+colorOrange+"rclean"+CT+"is most useful in scrubbing"+colorOrange+"BUFFERED"+CT+" or piped objects. "+char(10)+
-  // colorLightBlue+"Silentclean"+CT+char(10)+"is most useful for in place log wiping or wiping through"+colorLightBlue+"GLASSPOOL"+CT+"."
-  // "Usage: rclean [ip] [port]"+char(10)+
-  // "Additional functionaly via memory alpha when working with objects."+char(10)+
-  // "Mainly used by kraken."
   t_file = null
   detection_factor = 0
   remote_clean = function(f,d=0) // file object, bool 0|1
@@ -1913,7 +1917,7 @@ globals.rclean = function(arg1, arg2=0)
       if kit and kit.has_permission("w") then 
         kit.delete 
         detection_factor = detection_factor + 1 
-        print "rclean: rkit/5hell deleted"+char(10)+"[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+        print "rclean: rkit/5hell deleted"+char(10)+"[<color=red>detection_factor: "+detection_factor+"</color>]"
       else 
         print colorRed+"rclean: cannot delete rkit/5hell: permission denied"
       end if
@@ -1926,7 +1930,7 @@ globals.rclean = function(arg1, arg2=0)
               print "deleting: /boot"
               boot.delete
               detection_factor = detection_factor + 1
-              print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+              print "[<color=red>detection_factor: "+detection_factor+"</color>]"
             else 
               print colorRed+"rclean: could not delete /boot: permission denied!"
             end if
@@ -1937,7 +1941,7 @@ globals.rclean = function(arg1, arg2=0)
           if lib_fold.has_permission("w") then 
             lib_fold.delete
             detection_factor = detection_factor + 1
-            print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+            print "[<color=red>detection_factor: "+detection_factor+"</color>]"
           else 
             print colorRed+"rclean: could not delete /lib: permission denied!"
           end if
@@ -1958,7 +1962,7 @@ globals.rclean = function(arg1, arg2=0)
     end if
     if catch == 1 then 
       detection_factor = 0
-      print "[<color=red>detection_factor</color>: ][<color=red>"+detection_factor+"</color>]"
+      print "[<color=red>detection_factor: "+detection_factor+"</color>]"
       return "rclean: "+colorGreen+"Log Scrubbed..."
     else 
       return colorRed+"rclean: failed: "+catch+char(10)+colorRed+"WARNING: we left "+ detection_factor + " log entries!"
@@ -2664,7 +2668,7 @@ update_port_info = function()
   rr = get_router(globals.targetIP)
   if globals.targetPort == "router" and typeof(rr) == "router" then 
     if DEBUG then print "debug: target and rr are: "+rr
-    globals.portInfo = rr.kernel_version
+    globals.portInfo = "kernel_router "+rr.kernel_version
     globals.tarLan = rr.local_ip
     return 0
   end if
@@ -2832,7 +2836,7 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
     numComps = clist.len
     brdc = "Broadcasting: "+t_router.essid_name + " : " + t_router.bssid_name
     if brdc == "Broadcasting:  : " then brdc = "Broadcasting: -wifi disabled-"
-    if not quiet then print("Found: " + numComps + " machines connected to: " + char(10)+ t_router.local_ip+char(10)+brdc)
+    if not quiet then print("Found: " + numComps + " machines connected to: " + t_router.local_ip+char(10)+brdc)
     if not quiet then 
       for c in clist 
         print(colorWhite+c)
