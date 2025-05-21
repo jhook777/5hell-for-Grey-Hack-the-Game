@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.0.9...(151.616)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.1...(145.459)</size>")
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+"Usage: poke [/path/to/file] [opt: string] -- create file in path and optionally set contents to string."+char(10)+"Usage: poke test.txt -- creates text.txt in the current path"+char(10)+"poke test.txt hello -- creates test.txt and sets content to hello"+char(10)+"Advanced: ls -la /virt | poke test.txt -- creates test.txt and pipes the output of ls -la /virt into it"+char(10)+"N.B. if file already exists then contents will be <b>overwritten</b> if string supplied."+char(10)+"n.b.b. if string is more than one word use piping to supply string."+char(10)+"<b>Advanced:</b> poke -f [path_to_existing_file] [content] -- will skip the overwrite prompt"+char(10)+"Advanced: poke -n [path] -- create path and/or set content to null."+char(10)+"-- overwrites file content with a null character."
 	skip = false
@@ -82,16 +82,16 @@ command.append = function(arg1, arg2, arg3=0, arg4=0)
 	path_to_file = arg1
 	buf = arg2
 	if path_to_file == "@clipa" then
-		globals.clip_board_alpha = globals.clip_board_alpha+buf
-		return "clipped:"+char(10)+globals.clip_board_alpha
+		globals.CLIP["a"] = globals.CLIP["a"]+buf
+		return "clipped:"+char(10)+globals.CLIP["a"]
 	end if
 	if path_to_file == "@clipb" then
-		globals.clip_board_beta = globals.clip_board_beta+char(10)+buf
-		return "clipped:"+char(10)+globals.clip_board_beta
+		globals.CLIP["b"] = globals.CLIP["b"]+char(10)+buf // append treats clipb differently
+		return "clipped:"+char(10)+globals.CLIP["b"]
 	end if
 	if path_to_file == "@clipc" then
-		globals.clip_board_gamma = globals.clip_board_gamma+buf
-		return "clipped:"+char(10)+globals.clip_board_gamma
+		globals.CLIP["c"] = globals.CLIP["c"]+buf
+		return "clipped:"+char(10)+globals.CLIP["c"]
 	end if
   if typeof(path_to_file) == "file" then file = path_to_file
 	if typeof(path_to_file) == "string" then file = globals.get_file(path_to_file)
@@ -180,13 +180,13 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	end if
 	if clipping == true then
 		if arg1 == "@clipa" then
-			if typeof(globals.clip_board_alpha) == "string" then data = globals.clip_board_alpha.replace(char(160),char(32)).split(char(10)) else return "chop: clipa contents incompatible. expects string."
+			if typeof(globals.CLIP["a"]) == "string" then data = globals.CLIP["a"].replace(char(160),char(32)).split(char(10)) else return "chop: clipa contents incompatible. expects string."
 		end if
 		if arg1 == "@clipb" then
-		  if typeof(globals.clip_board_beta) == "string" then data = globals.clip_board_beta.replace(char(160),char(32)).split(char(10)) else return "chop: clipb contents incompatible. expects string."
+		  if typeof(globals.CLIP["b"]) == "string" then data = globals.CLIP["b"].replace(char(160),char(32)).split(char(10)) else return "chop: clipb contents incompatible. expects string."
 		end if
 		if arg1 == "@clipc" then
-			if typeof(globals.clip_board_gamma) == "string" then data = globals.clip_board_gamma.replace(char(160),char(32)).split(char(10)) else return "chop: clipc contents incompatible. expects string."
+			if typeof(globals.CLIP["c"]) == "string" then data = globals.CLIP["c"].replace(char(160),char(32)).split(char(10)) else return "chop: clipc contents incompatible. expects string."
 		end if
 	else
 		data = file.get_content.replace(char(160),char(32)).split(char(10))
@@ -564,9 +564,9 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 		arg3 = arg4 
 	end if 
 	if arg1 then
-		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.clip_board_alpha
-		if arg1 == "@clipb"  or arg1 == "@b" then arg1 = globals.clip_board_beta
-		if arg1 == "@clipc"  or arg1 == "@c" then arg1 = globals.clip_board_gamma
+		if arg1 == "@clipa" or arg1 == "@a" then arg1 = globals.CLIP["a"]
+		if arg1 == "@clipb" or arg1 == "@b" then arg1 = globals.CLIP["b"]
+		if arg1 == "@clipc" or arg1 == "@c" then arg1 = globals.CLIP["c"]
 		if typeof(arg1) == "string" then tem = globals.get_file(arg1)
 		if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then tem = arg1.host_computer.File("/")
 		if typeof(arg1) == "computer" then tem = arg1.File("/")
@@ -1516,14 +1516,18 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 	dcsv = globals.get_file(kit.path+"/database.csv")
 	if not dcsv then return colorOrange+"dig: database error"+char(10)+"-- manually create database.csv or run db"
   end if
-  if command.meta("link") then
-      command.db("-r")
-      //if command.meta("link","-r") then // idfk
-	  if command.meta("link") then // idfk
-          return "dig: database error!"+char(10)+"-- idfk"
-      end if
-  end if
-  // if shell exploit, exploit target
+//   if typeof(command.meta("link")) != "MetaLib" then
+//       print command.db("-r")
+//       //if command.meta("link","-r") then // idfk
+// 	  if typeof(command.meta("link")) != "MetaLib" then // idfk // ffs this better work
+//           return "dig: database error!"+char(10)+"-- idfk"
+//       end if
+//   end if
+	ml = command.meta("link")
+	if typeof(ml) != "MetaLib" then return "dig: unable to connect;"+char(10)+"-- firewall or bad ip:"+char(10)+"--: "+ml
+	//ldb = command.linkdb(ml.name+" v "+ml.version)
+	if globals.XPLOITS == null then print command.db("-r")
+	if globals.XPLOITS == null then return "dig: database error!"+char(10)+"-- ffs, quid facis, Plutus?"+char(10)+"-- figere stercus"  // if shell exploit, exploit target
   mem = ""
   unsec_val = ""
   
@@ -1536,6 +1540,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
       end if
   end for
   if mem == "" then return "dig: shell exploit not found on target"
+
   dig_this = null
   dig_this = command.zap(mem,unsec_val,0) // get the remote shell
   if typeof(dig_this) != "shell" then return "dig: failed to obtain shell on target."
@@ -1562,209 +1567,6 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   // rclean and exit
   // repeat if necessary
   return "returning to original 5hell session..."
-end function
-
-// original pwgen by usespython, additions by Plu70
-if DEBUG then print("<size=75%>loading ...pwgen.5pk...(31.479kb)</size>")
-command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "pwgen: generate a friggin lot of passwords with hashes."+char(10)+"Usage: pwgen -- generate ~/rkit/tables/tp/ and files with one password per line"+char(10)+"Usage: pwgen hash -- generate ~/rkit/tables/t5 and files with hash=pw one per line"+char(10)+"Use cerebrum to expand onboard dictionary."+char(10)+"NOTE: the tables folder does not need to be in rkit to be used"+char(10)+"-- including it in rkit allows you to upload it with rkit to targets"+char(10)+"---- move it to a different folder if this is not desired behavior"
-
-	// pwgen v0.4 by usespython, modifications by Plu70
-	PASSWORDSB="belagio,balencia,ibiza,3k4l23ll,4567adee,bees,Bee123,hobo,heebeejeebee,geronimo69,Es1,day,abcd,abc1,baby,mayday,today,yesterday,fifteen,abgDw32fhGu58k,69696969,sfuzzer,111,1111,222,2222,3333,333,00000,000,4444,444,5555,555,55555555,4fb426abgDw32fHG,666,6666,thx1138,7777,777,8888,888,9999,999,0000,oicu812,1337,8008,4hpu79htgbr,80085,007007,43110,69696969,t23t49k21af3,evkfdhgbv78ery,6h057,h4ck,h4ckg4m3,g01ng,p0st4l,g01ngp0st4l,81rd,7074g,35sk1m0,pr0n,n00b,nu8,suxor,hazorz,5uxzorz,owned,pwnd,0wnd,p0wn3d,w00t,woo7,woot,w007,10100111001,teh,meh,lol,brb,afk,wyd,gtfo,lmao,lmfao,gitgud,lawl,troll,bawl,epic,54321,987654321,88888888,555555,1234567890,1973,147147,151515,1515,101010,202020,21122112,12341234,74lk,dir7y,53nP4I,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0,le375p34k,420420,11111111,112233,h4f4jf53fk74,123abc,1234qwer,123321,5y4hpu79htgbrub,ncc1701e,7777777,51505150,000000,5150,222222,999999,252525,77777777,98765432,poop,polyamorous,zelda,password,6gtr43,123456,12345678,1234,qwerty,12345,dragon,baseball,football,letmein,monkey,696969,abc123,mustang,michael,shadow,master,jennifer,111111,2000,jordan,superman,harley,1234567,hunter,trustno1,ranger,buster,thomas,tigger,robert,soccer,batman,test,pass,hockey,george,charlie,andrew,michelle,love,sunshine,jessica,6969,pepper,daniel,access,123456789,654321,joshua,maggie,starwars,silver,william,dallas,yankees,123123,ashley,666666,hello,amanda,orange,biteme,freedom,computer,sexy,thunder,nicole,ginger,heather,hammer,summer,corvette,taylor,swift,austin,1111,merlin,matthew,121212,golfer,cheese,princess,martin,chelsea,patrick,richard,diamond,yellow,bigdog,secret,asdfgh,sparky,cowboy,camaro,anthony,matrix,falcon,iloveyou,bailey,guitar,jackson,purple,scooter,phoenix,aaaaaa,morgan,tigers,porsche,mickey,maverick,cookie,nascar,peanut,justin,131313,money,horny,samantha,panties,steelers,joseph,snoopy,boomer,whatever,iceman,smokey,gateway,dakota,cowboys,eagles,chicken,black,zxcvbn,please,pharoa,andrea,ferrari,knight,hardcore,porn,ass,love,sex,hooker,blow,coke,melissa,compaq,coffee,booboo,bitch,johnny,bulldog,xxxxxx,welcome,james,player,ncc1701,wizard,scooby,charles,junior,internet,mike,brandy,tennis,banana,monster,spider,lakers,miller,rabbit,enter,mercedes,brandon,steven,fender,john,yamaha,diablo,chris,boston,tiger,marine,chicago,rangers,gandalf,winter,bigtits,barney,edward,raiders,porn,badboy,blowme,spanky,bigdaddy,johnson,chester,london,midnight,blue,fishing,hannah,slayer,rachel,sexsex,redsox,asdf,marlboro,panther,zxcvbnm,arsenal,oliver,qazwsx,mother,victoria,jasper,angel,david,winner,crystal,golden,butthead,viking,jack,iwantu,shannon,murphy,angels,prince,cameron,girls,madison,wilson,carlos,hooters,willie,startrek,captain,maddog,jasmine,butter,booger,angela,golf,lauren,rocket,tiffany,theman,dennis,liverpoo,flower,forever,green,jackie,muffin,turtle,sophie,danielle,redskins,toyota,jason,sierra,winston,debbie,giants,packers,newyork,jeremy,casper,bubba,dracula,sandra,lovers,mountain,united,cooper,driver,tucker,helpme,pookie,lucky,maxwell,8675309,bear,suckit,gators,shithead,jaguar,monica,fred,happy,hotdog,tits,gemini,lover,xxxxxxxx,777777,canada,nathan,victor,florida,nicholas,rosebud,metallic,doctor,trouble,success,stupid,tomcat,warrior,peaches,apples,fish,qwertyui,magic,buddy,dolphins,rainbow,gunner,987654,freddy,alexis,braves,2112,1212,xavier,dolphin,testing,bond007,member,calvin,voodoo,7777,samson,alex,apollo,fire,tester,chess,walter,beavis,voyager,peter,porno,bonnie,rush2112,beer,apple,scorpio,jonathan,skippy,sydney,scott,red123,power,gordon,travis,beaver,star,flyers,232323,zzzzzz,steve,rebecca,scorpion,doggie,legend,ou812,yankee,blazer,bill,runner,birdie,bitches,parker,topgun,asdfasdf,heaven,viper,animal,bigboy,arthur,baby,private,godzilla,donald,williams,lifehack,phantom,dave,rock,august,sammy,cool,brian,platinum,jake,bronco,paul,mark,frank,heka6w2,copper,billy,cumshot,garfield,willow,cunt,little,carter,slut,albert,kitten,super,jordan23,eagle1,shelby,america,11111,jessie,house,free,chevy,bullshit,white,broncos,horney,surfer,nissan,saturn,airborne,elephant,marvin,shit,action,adidas,qwert,kevin,1313,explorer,walker,police,christin,december,benjamin,wolf,sweet,therock,king,online,brooklyn,teresa,cricket,sharon,dexter,racing,penis,gregory,0000,teens,redwings,dreams,michigan,hentai,magnum,87654321,nothing,donkey,trinity,digital,333333,ramsesii,stella,cartman,guinness,speedy,buffalo,kitty,pimpin,eagle,einstein,kelly,nelson,nirvana,vampire,xxxx,playboy,louise,pumpkin,snowball,test123,girl,sucker,mexico,beatles,fantasy,ford,gibson,celtic,marcus,cherry,cassie,888888,natasha,sniper,chance,genesis,hotrod,reddog,alexande,college,jester,passw0rd,smith,lasvegas,carmen,slipknot,death,kimberly,1q2w3e,eclipse,1q2w3e4r,stanley,samuel,drummer,homer,montana,music,aaaa,spencer,jimmy,carolina,colorado,creative,hello1,rocky,goober,friday,AceofSpades,bollocks,scotty,abcdef,bubbles,hawaii,asakista,fluffy,mine,stephen,horses,thumper,darkness,asdfghjk,pamela,boobies,buddha,vanessa,sandman,naughty,douglas,honda,matt,azerty,6666,shorty,money1,beach,loveme,4321,simple,poohbear,444444,badass,destiny,sarah,denise,vikings,lizard,melanie,assman,sabrina,nintendo,water,good,howard,time,123qwe,november,xxxxx,october,zxcv,shamrock,atlantis,warren,wordpass,julian,mariah,rommel,1010,harris,predator,sylvia,massive,cats,sammy1,mister,stud,marathon,rubber,ding,trunks,desire,montreal,justme,faster,kathleen,irish,1999,bertha,jessica1,alpine,sammie,diamonds,tristan,swinger,shan,stallion,pitbull,letmein2,roberto,ready,april,palmer,ming,shadow1,audrey,chong,clitoris,wang,shirley,jackoff,bluesky,sundance,renegade,hollywoo,bernard,wolfman,soldier,picture,pierre,ling,goddess,manager,nikita,76hj93DB3wsa2,sweety,titans,hang,fang,ficken,niners,bottom,bubble,hello123,ibanez,webster,sweetpea,stocking,freeman,french,mongoose,speed,dddddd,hong,henry,hungry,yang,catdog,cheng,ghost,gogogo,randy,tottenha,curious,butterfl,mission,january,singer,sherman,shark,techno,lancer,lalala,autumn,chichi,orion,trixie,clifford,delta,bobbob,bomber,holden,kang,kiss,1968,spunky,liquid,mary,beagle,granny,network,bond,kkkkkk,millie,biggie,beetle,teacher,susan,toronto,anakin,genius,dream,dang,bush,nyx".split(",")
-	PASSWORDSA="operator,1966,966235,feral,323232,blonde,lond,osint,msfconsole,Bd5gHie89YA,tornado,lindsey,content,bruce,buck,aragorn,griffin,chen,campbell,trojan,christop,newman,wayne,tina,rockstar,father,geronimo,pascal,crimson,brooks,hector,penny,anna,camera,chandler,fatcat,lovelove,cody,cunts,waters,stimpy,finger,cindy,wheels,viper1,latin,robin,greenday,creampie,brendan,hiphop,willy,snapper,funtime,duck,trombone,adult,cotton,cookies,kaiser,mulder,westham,latino,jeep,ravens,aurora,drizzt,madness,hermit,energy,kinky,314159,leather,bastard,young,,extreme,hard,password1,vincent,lacrosse,hotmail,spooky,amateur,alaska,badger,paradise,maryjane,soup,crazy,mozart,video,russell,vagina,spitfire,anderson,norman,otaku,eric,cherokee,cougar,barbara,long,family,horse,enigma,allison,raider,brazil,blonde,jones,55555,dude,drowssap,jeff,school,marshall,lovely,1qaz2wsx,jeffrey,caroline,franklin,booty,molly,snickers,leslie,nipples,courtney,diesel,rocks,eminem,westside,suzuki,daddy,passion,hummer,ladies,Azachary,frankie,elvis,reggie,alpha,suckme,simpson,patricia,pirate,tommy,semperfi,jupiter,redrum,freeuser,wanker,stinky,ducati,paris,natalie,babygirl,bishop,windows,spirit,tiktok,thot,pantera,monday,patches,brutus,houston,smooth,penguin,marley,forest,cream,212121,flash,maximus,nipple,bobby,bradley,vision,pokemon,champion,fireman,indian,softball,picard,system,clinton,cobra,enjoy,lucky1,claire,claudia,boogie,timothy,marines,security,dirty,admin,wildcats,pimp,dancer,hardon,veronica,abcd1234,abcdefg,ironman,wolverin,remember,great,freepass,bigred,squirt,justice,francis,hobbes,kermit,pearljam,mercury,domino,9999,denver,brooke,rascal,hitman,mistress,simon,tony,bbbbbb,friend,peekaboo,naked,budlight,electric,sluts,stargate,saints,bondage,brittany,bigman,zombie,swimming,duke,qwerty1,babes,scotland,disney,rooster,brenda,mookie,swordfis,candy,duncan,olivia,hunting,blink182,alicia,8888,samsung,bubba1,whore,virginia,general,passport,aaaaaaaa,erotic,liberty,arizona,jesus,abcd,newport,skipper,rolltide,balls,happy1,galore,christ,weasel,242424,wombat,digger,classic,bulldogs,poopoo,accord,popcorn,turkey,jenny,amber,bunny,mouse,titanic,liverpool,dreamer,everton,friends,chevelle,carrie,gabriel,psycho,nemesis,burton,pontiac,connor,eatme,lickme,roland,cumming,mitchell,ireland,lincoln,arnold,spiderma,patriots,goblue,devils,eugene,empire,asdfg,cardinal,brown,shaggy,froggy,qwer,kawasaki,kodiak,people,phpbb,light,kramer,chopper,hooker,honey,whynot,lisa,baxter,adam,snake,ncc1701d,qqqqqq,airplane,britney,avalon,sandy,sugar,sublime,stewart,wildcat,raven,scarface,elizabet,123654,trucks,wolfpack,lawrence,raymond,american,alyssa,bambam,movie,woody,shaved,snowman,tiger1,chicks,raptor,1969,stingray,shooter,france,stars,madmax,kristen,sports,jerry,789456,garcia,simpsons,lights,ryan,looking,chronic,alison,hahaha,packard,hendrix,perfect,service,spring,srinivas,spike,katie,oscar,brother,bigmac,suck,single,cannon,georgia,popeye,tattoo,texas,party,bullet,taurus,sailor,wolves,panthers,japan,strike,flowers,pussycat,chris1,loverboy,berlin,sticky,marina,tarheels,fisher,russia,connie,wolfgang,testtest,mature,bass,catch22,juice,michael1,159753,women,alpha1,trooper,hawkeye,head,freaky,dodgers,pakistan,machine,pyramid,vegeta,katana,moose,tinker,coyote,infinity,inside,letmein1,bang,control,hercules,morris,james1,tickle,outlaw,browns,billybob,pickle,test1,michele,antonio,sucks,pavilion,changeme,caesar,prelude,tanner,adrian,darkside,bowling,wutang,sunset,robbie,alabama,danger,zeppelin,juan,rusty,pppppp,nick,2001,ping,darkstar,madonna,qwe123,bigone,casino,cheryl,charlie1,mmmmmm,lakota,akota,integra,wrangler,apache,tweety,qwerty12,bobafett,simone,none,business,sterling,trevor,transam,dustin,harvey,england,2323,seattle,ssssss,rose,harry,openup,pandora,trucker,wallace,indigo,storm,malibu,weed,review,babydoll,doggy,dilbert,pegasus,joker,catfish,flipper,valerie,herman,detroit,kenneth,cheyenne,bruins,stacey,smoke,joey,seven,marino,fetish,xfiles,wonder,stinger,pizza,babe,pretty,stealth,manutd,gracie,gundam,cessna,longhorn,presario,mnbvcxz,wicked,mustang1,victory,shelly,awesome,athena,q1w2e3r4,help,holiday,knicks,street,redneck,casey,gizmo,scully,dragon1,devildog,triumph,eddie,bluebird,shotgun,peewee,hubris,ronnie,angel1,daisy,special,metallica,madman,country,impala,lennon,roscoe,omega,access14,enterpri,miranda,search,smitty,blizzard,unicorn,tight,rick,ronald,asdf1234,harrison,trigger,truck,danny,home,winnie,beauty,thailand,cadillac,castle,tyler,bobcat,buddy1,sunny,stones,asian,freddie,chuck,butt,loveyou,norton,hellfire,hotsex,indiana,short,panzer,lonewolf,trumpet,colors,blaster,12121212,fireball,logan,precious,aaron,elaine,jungle,masamune,atlanta,gold,corona,curtis,nikki,polaris,timber,theone,baller,chipper,orlando,island,skyline,dragons,dogs,benson,licker,goldie,engineer,kong,pencil,basketba,open,hornet,world,linda,barbie,chan,farmer,valentin,indians,larry,redman,foobar,travel,morpheus,bernie,target,141414,hotstuff,photos,laura,savage,holly,rocky1,dollar,turbo,design,newton,hottie,moon,blondes,4128,lestat,avatar,future,goforit,random,abgrtyu,jjjjjj,q1w2e3,smiley,goldberg,express,zipper,wrinkle1,stone,andy,babylon,dong,powers,consumer,dudley,Aster,monkey1,serenity,samurai,99999999,skeeter,lindsay,joejoe,master1,aaaaa,chocolat,christia,birthday,stephani,tang,alfred,ball,maria,sexual,maxima,sampson,buckeye,highland,kristin,seminole,reaper,bassman,nugget,lucifer,airforce,nasty,watson,warlock,2121,philip,always,dodge,chrissy,burger,bird,snatch,missy,pink,gang,maddie,holmes,huskers,piglet,photo,joanne,hamilton,dodger,paladin,christy,chubby,buckeyes,hamlet,abcdefgh,bigfoot,sunday,manson,goldfish,garden,deftones,icecream,blondie,spartan,julie,harold,charger,brandi,stormy,sherry,pleasure,juventus,rodney,galaxy,holland,escort,zxcvb,planet,jerome,wesley,blues,song,peace,david1,1966,cavalier,gambit,karen,sidney,ripper,jamie,sister,marie,martha,nylons,aardvark,nadine,minnie,whiskey,bing,plastic,anal,babylon5,chang,savannah,loser,racecar,insane,yankees1,mememe,hansolo,chiefs,fredfred,freak,frog,salmon,concrete,yvonne,sophia,stefan,8a1n80w,slick,rocker,opensesame,onessnap".split(",")
-	PASSWORDSC="123456789098765,012345678909876,abgDw32fhGu58k,Bd5gHie89YA,HG54h49lklj4G53,Bd5gHie89YA,59038qyghq340fg,tgby2hnr4fv9ujm,abcplm123098tg6,3dsvi2psdfn34,a03nf93nf8,3edv45gb8ub202n,afdiounwrnnfsa,234086531230324,111111111111111,222222222222222,333333333333333,444444444444444,55555555555555,666666666666666,777777777777777,888888888888888,999999999999999,000000000000000,efh368jhr08712,asdfghjkl102938,ghfjdkslatywoec,bogu2847mshd02,1357924680aoejd,g35gk5k63l10,d0emgh4m43la,ae51wc3g7d9c,GHEITHEKA102938,HHHHHHHHHHHHH,AAAAAAAAAAAAAAAA,RRRRRRRRRRRRRRRR,sssssssssssssss,ttttttttttttttt,llllllllllllll,eeeeeeeeeeeee,uuuuuuuuuuuu,oooooooooo,aaaaaaaa,1234,123,987,567,654,56432,12345,55555,99999,34567,jhgfd,uiopl,mnbvc,ytrewq,iuhhfd,sadregh,01010101010101,1010101010101010,000111000111000,einagearghaaer,235gdfa5yhgea,aletgadfgraerga,0k9j8h7g6f5f4ed2,afdsawe4togfido,butyrhdncbuh,39n8nf93fk59,adfsafawefgaag,a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,1,2,3,4,5,6,7,8,9,0".split(",")
-	PASSWORDS = PASSWORDSA + PASSWORDSB
-	if arg2 == "-p" then PASSWORDS = PASSWORDSC
-	String={}
-	String.capitalize=function(s)
-	if s.len<2 then return s.upper
-	return s[0].upper+s[1:].lower
-	end function
-	String.strip=function(t,s)
-	if not t then return ""
-	for b in range(0,t.len-1)
-		if s.indexOf(t[b])==null then break
-	end for
-	if s.indexOf(t[b])>=0 then return ""
-	for e in range(-1,-1*t.len)
-		if s.indexOf(t[e])==null then break
-	end for
-	if e==-1 then return t[b:]
-	return t[b:e+1]
-	end function
-	PasswordGenerator={}
-	PasswordGenerator.init=function(samples)
-	self.s=[]
-	self.c={}
-	for s in samples
-		s=s.trim.upper
-		if s.len>3 then self.s.push(s) // length limiter here
-	end for
-	if DEBUG then print "pwgen: debug: self.s.len: "+self.s.len
-	for s in self.s
-		for i in range(0,s.len-4)
-		k=s[i:i+3] // limiter
-		if self.c.hasIndex(k) then
-			if self.c[k].indexOf(s[i+3])==null then self.c[k].push(s[i+3]) // limiter
-		else
-			self.c[k]=[s[i+3]] // limiter
-		end if
-		end for
-		//wait(.1)
-	end for
-	end function
-	PasswordGenerator.AllPasswords=function()
-	r={}
-	for s in self.s
-		for i in range(0,s.len-4)
-		self.r(s.len,s[i:i+3],r) // limiter
-		//wait(.01)
-		end for
-	end for
-		print(colorGold+"50%"+CT+" -- loading hash_table...")
-		print("<align=center>"+char(171)+char(187)+"</align>")
-	o={}
-	for s in r.indexes
-		if s.indexOf(" ")>=0 then
-		n=s.split(" ")
-		i=n.indexOf("")
-		while i>=0
-			n.remove(i)
-			i=n.indexOf("",i-1)
-		end while
-		if n then
-			for i in range(0,n.len-1)
-			n[i]=String.capitalize(n[i])
-			end for
-		end if
-		s=n.join(" ")
-		else
-		s=String.capitalize(s)
-		end if
-		if s.len<5 then continue
-		a=s[0]
-		b=s[1]
-		if a.lower==b or "hrl'aeiou".indexOf(b)==null and "AEIOUS".indexOf(a)==null and ["Ch","Mc"].indexOf(a+b)==null then s=String.capitalize(s[1:])
-		s=String.strip(s,"'-")
-		o[s]=1
-		o[s.lower]=1
-		//wait(.01)
-	end for
-	r={}
-	print(colorGold+"75%"+CT+" -- loading hash_table...")
-	print("<align=center>"+char(171)+char(187)+"</align>")
-	for p in o.indexes
-		if p.len > 3 then 
-			o[p[:4]] = 1
-			o[String.capitalize( p[:4] ) ] = 1
-			o[p[:3]] = 1
-			o[String.capitalize( p[:3] ) ] = 1
-		end if
-		if p.len > 4 then
-			o[p[-3:]] = 1
-			o[String.capitalize( p[-3:] )] = 1
-			o[p[-4:]] = 1
-			o[String.capitalize( p[-4:] )] = 1
-		end if
-	end for
-	for w in PASSWORDS
-		o[w] = 1
-	end for
-	if arg1 == "false" then return o.indexes
-	for i in o.indexes
-		r[md5(i)]=i
-	end for
-	return r
-	end function
-	PasswordGenerator.r=function(l,s,o)
-	c=s[s.len-3:]
-	if self.c.hasIndex(c) and s.len<l then
-		for c in self.c[c]
-		self.r(l,s+c,o)
-		//wait(.01)
-		end for
-	else
-		o[s]=1
-	end if
-	end function
-	if globals.BIGBRAIN then 
-		if arg1 == "false" then
-			return "Dictionary already expaneded."
-		end if
-		print(colorGold+"0% -- loading hash_table, please wait..."+CT)
-		HASH_TABLE = {}
-		for pw in globals.dict_a
-			HASH_TABLE[md5(pw)] = pw
-			//wait(.01)
-		end for
-		print(colorGold+"100%"+CT+" -- hash_table loaded...")
-	else
-		print(colorGold+"0% -- loading hash_table, please wait..."+CT)
-		if arg1 == "-t" or arg2 == "-t" then 
-			PasswordGenerator.init(PASSWORDSC)	
-		else 
-			PasswordGenerator.init(PASSWORDS)
-		end if
-		//PasswordGenerator.init(globals.dict_a)
-		//PasswordGenerator.init(globals.dict_a+PASSWORDS)
-		//PasswordGenerator.init(PASSWORDS[0:arg2])
-		//
-		print(colorGold+"10%"+CT+" -- loading hash_table...")
-		print("<align=center>"+char(171)+char(187)+"</align>")
-		HASH_TABLE=PasswordGenerator.AllPasswords
-		print(colorGold+"100%"+CT+" -- hash_table loaded...")
-		print("<b>Magnum Cerebrum: expanding onboard dictionary...</b>")
-		// globals.dict_a = HASH_TABLE.values
-		if arg2 == "-p" then globals.dict_a(HASH_TABLE.values + PASSWORDSA + PASSWORDSB + PASSWORDSC) else globals.dict_a(HASH_TABLE.values+PASSWORDS)
-		globals.BIGBRAIN = true
-		if arg1 == "false" then
-			return "Dictionary expaneded."
-		end if
-	end if
-	table = "tp"
-	if arg1 == "hash" then table = "t5"
-	table_path = HOME_SERVER[6].split("/tables/t5")[0]
-	//print(print(colorGold+"Writing tables to <u>"+home_dir+"/tables/"+table+CT))
-	print colorGold+"Writing tables to: "+table_path+"/tables/"+table
-	print(colorGold+"Hash Table: ["+colorWhite+HASH_TABLE.len+"</color>]")
-	print("<align=center>"+char(171)+char(187)+"</align>")
-	out=[]
-	count=0
-	lol=1
-	for i in HASH_TABLE
-		count=count+1
-		if arg1 == "hash" then
-			//out=out+char(10)+i["key"]+"="+i["value"]
-			out.push(i["key"]+"="+i["value"])
-		else
-			//out=out+char(10)+i["value"]
-			out.push(i["value"])
-		end if
-		output = out.join(char(10))
-		if output.len > 159900 then
-			print(lol+" "+out.len+" "+output.len)
-			//localmachine.touch(home_dir+"/rkit/tables/"+table,lol+"")
-			//file=localmachine.File(home_dir+"/rkit/tables/"+table+"/"+lol)
-			localmachine.touch(table_path+"/tables/"+table,lol+"")
-			file=localmachine.File(table_path+"/tables/"+table+"/"+lol)
-			file.set_content(output)
-			command.perms("o-rwx",file)
-			out=[]
-			lol=lol + 1
-		end if
-		//wait(.01)
-	end for
-
-	if out.len > 0 then
-		lol = lol + 1
-		print(lol+" "+HASH_TABLE.len+" "+out.len)
-		localmachine.touch(table_path+"/tables/"+table,lol+"")
-		file=localmachine.File(table_path+"/tables/"+table+"/"+lol)
-		file.set_content(out.join(char(10)))
-		command.perms("o-rwx",file)
-	end if
-
-	return file.path
 end function
 command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 	if arg1 == "-h" or arg1 == "help" then return colorGold+"Brutus: dictionary attack psudo brute force type tool"+char(10)+"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+"(Default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords)"+char(10)+"-- on success sends <b>shell</b> to BUFFER and password to <b>clipa</b>"+char(10)+"Usage: brutus -i [/path|object] -- import dictionary (may be csv or newline separated values)"+char(10)+"-- 5hell will attempt to determine the type. Please ensure valid inputs."+char(10)+"-- accepts: path to file or folder, or piped file/folder object"+char(10)+"-- See dfit for making a.csv from newline separated dictionary file."+char(10)+"-- See cerebrum for altering onboard dict_a"+char(10)+"Advanced: brutus -s [shell_object] [ip] -- use shell_object to initiate ssh + brutus attack against ip "+char(10)+"(equal to command.ssh root@-brutus [ip] but uses the given shell instead of active shell)"
@@ -2715,8 +2517,8 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	colorGreen+"</b>NOTE: a macro will return the output of the last command in the chain"+char(10)+
 	char(10)+
 	colorCyan+"Piping: "+colorWhite+"when calling a macro, piping works differently than normal."+char(10)+
-	colorWhite+"When creating a macro you may place one or more"+colorCyan+"@pipe"+CT+"<b>pointers within the string."+char(10)+
-	colorWhite+"When calling a macro, the "+colorCyan+"@pipe"+CT+"<b>pointer will be replaced by piped input."+char(10)+
+	colorWhite+"When creating a macro you may place one or more "+colorCyan+"@pipe"+CT+"<b> pointers within the string."+char(10)+
+	colorWhite+"When calling a macro, the "+colorCyan+"@pipe"+CT+"<b> pointer will be replaced by piped input."+char(10)+
 	colorGold+"Example: input not piped vs input piped"+char(10)+
 	colorWhite+"|> "+colorGreen+"macro set foo "" echo foo """+char(10)+
 	colorWhite+"--output of: |>"+colorOlive+" foo bar</b> ==> foo"+char(10)+
@@ -2725,7 +2527,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	colorWhite+"-- ""bar"" would be the [input_to_pipe] to the first command in the macro chain"+char(10)+
 	colorWhite+"Note: <b>each instance of "+colorCyan+"@pipe</color> will be replaced by the piped input"+char(10)+
 	colorWhite+"Note: you may escape "+colorCyan+"@pipe</color> with "+colorCyan+"\@pipe</color>"+char(10)+
-	colorWhite+"N.B. -- remember that "+colorCyan+"\@pipe</color> goes in the macro "+colorCyan+"set</color> string"+char(10)+
+	colorWhite+"N.B. -- remember that ["+colorCyan+"\@pipe | @pipe</color>] goes in the "+colorCyan+"macro set</color> string"+char(10)+
 	colorWhite+"---- not in the macro call"+char(10)+
 	colorGreen+"See Also: do -h, help conventions, help alias, help automation"+char(10)
 	if not arg1 then return "Usage: macro [name] [opt: input_to_pipe]"+char(10)+"Usage: macro set [name] [string]"
@@ -2760,17 +2562,28 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	if arg1 == "set" or arg1 == "-s" then 
 		// create a macro
 		if not arg3 then return "-- [-s] flag expects [name] [value]"
-		if gm.hasIndex(arg2) then print colorCyan+"</b>--"+colorOrange+"</b> macro already exists; overwriting"
+		if gm.hasIndex(arg2) then print +colorOrange+"<size=75%>-- macro already exists;</b> overwriting"
 		gm[arg2] = arg3
-		if command.hasIndex(arg2) then print colorOrange+"Warning: macro shares the name of a command!"+char(10)+"-- the macro will be processed instead of the command"
-		if arg3.indexOf(arg2) != null then print colorRed+"WARNING: infinite loop detected; macro contains a call to self"
+		if command.hasIndex(arg2) then print colorOrange+"<size=85%></b>Warning: macro shares the name of a command!"+char(10)+"<size=75%>-- the macro will be processed instead of the command"
+		macs = arg3.split(" ")
+		selfcall = false
+		i = 0
+		for m in macs 
+			if m == arg2 then 
+				selfcall = true
+				macs[i] = colorRed+"</b>"+m+CT
+				arg2 = colorRed+"</b>"+arg2+CT
+			end if
+		end for
+		arg3 = macs.join(" ")
+		if selfcall == true then print colorRed+"<size=75%>WARNING: possible infinite loop detected; "+char(10)+colorRed+"</b><size=75%>-- macro may contain a call to self"+char(10)+"<size=65%>-- <b>double check that is is not problematic"
 		return colorCyan+"</b>-- registered: "+colorWhite+"</b>"+arg2+CT+" as "+colorWhite+"</b>"+arg3
 	else 
 		//fire a macro
 		macmac = null
 		if gm.hasIndex(arg1) then macmac = gm[arg1] else return nsm
 		if DEBUG then print "debug: macro chain: "+char(10)+macmac
-		if typeof(macmac) != "string" then return "-- invalid macro; this looks more like an alias"
+		if typeof(macmac) != "string" then return colorOrage+"</b><size=75%>-- invalid macro; this looks more like an alias"
 		//return command.shell(macmac.replace("@pipe",str(arg2)).replace(char(10)," |  | ")+" | return")	
 		print "<size=75%>"+colorCyan+"</b>"+macmac.replace("@pipe",colorRed+"@pipe"+CT).replace("@",colorMagenta+"@"+CT)
 		macmac = macmac+" | return".replace(char(10)," |  | ")
@@ -2973,4 +2786,320 @@ command.tdump = function(arg1,arg2,arg3,arg4)
 	//globals.T_BUF = []
 	print "tdump: returning file object for "+passfile.path
 	return passfile
+end function
+command.calc = function(arg1="0", arg2="0", arg3="0", arg4=0)
+	calc_help = function()
+		return "calc [arg1] [arg2: + - * / (or: add, sub, mul, div)] [arg3] "+char(10)+"calc (a)sin/(a)cos/(a)tan/ [arg]"+char(10)+"calc pwr/abs/sqrt [arg]"+char(10)+"calc [min] rnd [max] |or| calc rnd [max]   (min=0)"+char(10)+"calc [arg1] pwr [arg2]"+char(10)+"calc [arg1] == [arg2] (check if equal.)"+char(10)+"Use pi to indicate pi. eg: calc pi || calc pi / 2 || calc cos pi || etc"+char(10)+"N.B. If an input is a function it will be evaluated"+char(10)+"-- EXCEPT when using the equals function (ie x == y)"+char(10)+"-- in this case function pointers will be compared."+char(10)+"You may use @a or @clipa, @b or @clipb, @c or @clipc to reference the clipboards."+char(10)+"-- ie calc @a + @b"+char(10)+"Returns: evaluation as string."+char(10)+"calc [n] base [p] -- retruns the [p].adic representation of the number to evaluate."+char(10)+"e.g. 42 base 2 -> 101010"
+	end function
+	if @arg1 == "-h" or @arg1 == "help" then return calc_help
+	calc = {}
+	 
+	// p-adic representation
+	calc.base = function(n, p) // expects int: value, int:prime (must be greater than 1)
+		if p < 1 then exit("Invalid base. P must be geater than 1")
+		p_adic_digits = []
+		while n != 0
+			quotient = null
+			remainder = null
+			res = divmod(n, p) // write divmod function, returns list
+			quotient = res[0]
+			remainder = res[1]
+			p_adic_digits.push( remainder )
+			n = quotient
+		end while
+		p_adic_digits = reverse( p_adic_digits ) // write a reverse function
+		return p_adic_digits.join("") // returns list
+	end function
+	divmod = function( val, prime )
+		result = []
+		result.push( floor(val / prime) )
+		result.push( val % prime )
+		return result
+	end function
+	reverse = function( list_input )
+		new_list = []
+		while list_input.len > 0
+			new_list.push( list_input.pop )
+		end while
+		return new_list
+	end function
+	
+	calc.equals = function(a1,a3)
+		if @a1 == @a3 then
+			print("equal")
+			return 1
+		else
+			print("not equal")
+			return 0
+		end if
+	end function
+	calc.add = function(a1,a3)
+		return (a1 + a3)
+	end function
+	calc.sub = function(a1,a3)
+		return (a1 - a3)
+	end function
+	calc.mul = function(a1,a3)
+		return (a1 * a3)
+	end function
+	calc.div = function(a1,a3)
+		return (a1 / a3)
+	end function
+	calc.cos = function(a1,a3)
+		return cos(a1)
+	end function
+	calc.sin = function(a1,a3)
+		return sin(a1)
+	end function
+	calc.tan = function(a1,a3)
+		return tan(a1)
+	end function
+	calc.acos = function(a1,a3)
+		return acos(a1)
+	end function
+	calc.asin = function(a1,a3)
+		return asin(a1)
+	end function
+	calc.atan = function(a1,a3)
+		return atan(a1)
+	end function
+	calc.sqrt = function(a1,a3)
+		return sqrt(a1)
+	end function
+	calc.pwr = function(a1,a3)
+		tm=1
+		for i in range(1,a3)
+			tm=(tm * a1)
+		end for
+		return tm
+	end function
+	calc.rnd = function(a1,a3=0)
+		//if typeof(a1) != "number" then a1 = a1.to_int
+		ran = range(a3, a1)
+		ran.shuffle
+		return ran[0]
+		//return (floor((rnd * a3.val) + a1.val))
+	end function
+	calc.abs = function(a1,a3)
+		return abs(a1)
+	end function
+	calc.pi = function(a1,a3)
+		return "3.14159265358"
+	end function
+	if @arg1 == "@a" or @arg1 == "@clipa" then arg1 = @globals.CLIP["a"]
+	if @arg1 == "@b" or @arg1 == "@clipb" then arg1 = @globals.CLIP["b"]
+	if @arg1 == "@c" or @arg1 == "@clipc" then arg1 = @globals.CLIP["c"]
+	if @arg2 == "@a" or @arg2 == "@clipa" then arg2 = @globals.CLIP["a"]
+	if @arg2 == "@b" or @arg2 == "@clipb" then arg2 = @globals.CLIP["b"]
+	if @arg2 == "@c" or @arg2 == "@clipc" then arg2 = @globals.CLIP["c"]
+	if @arg3 == "@a" or @arg3 == "@clipa" then arg3 = @globals.CLIP["a"]
+	if @arg3 == "@b" or @arg3 == "@clipb" then arg3 = @globals.CLIP["b"]
+	if @arg3 == "@c" or @arg3 == "@clipc" then arg3 = @globals.CLIP["c"]
+	if @arg2 == "==" then arg2 = "equals"
+	if @arg1 == "pi" and @arg2 == 0 then return calc.pi
+	if @arg1 == "pi" then arg1 = calc.pi
+	if @arg2 == "pi" then arg2 = calc.pi
+	if @arg3 == "pi" then arg3 = calc.pi
+	if @arg2 == "+" then arg2 = "add"
+	if @arg2 == "-" then arg2 = "sub"
+	if @arg2 == "*" then arg2 = "mul"
+	if @arg2 == "/" then arg2 = "div"
+	if calc.hasIndex(@arg1) then
+		c = @calc[arg1]
+		if typeof(@arg2) == "number" then arg2 = str(arg2)
+		return str(c(arg2.val))
+	else
+		if calc.hasIndex(@arg2) then
+			c = @calc[arg2]
+			par1 = 0
+			par2 = 0
+			if typeof(@arg1) == "function" then par1 = @arg1 else par1 = arg1
+			if typeof(@arg3) == "function" then par2 = @arg3 else par2 = arg3
+			if DEBUG then print("par1: "+typeof(@par1)+char(10)+"par2: "+typeof(@par2)+char(10))
+			if typeof(@arg1) == "string" then par1 = arg1.val
+			if typeof(@arg3) == "string" then par2 = arg3.val
+			if DEBUG then print("par1: "+@par1+char(10)+"par2: "+@par2+char(10))
+			return str(c(@par1,@par2))
+		else
+			return "calc: <b>invalid input</b>"
+		end if
+	end if
+end function
+command.code = function(arg1, arg2, arg3=0, arg4=0)
+	if DEBUG then print("code: input: "+typeof(@arg1))
+	if typeof(@arg1) == "function" then
+		print("Function() detected...")
+		return globals.decompiler(@arg1)
+	end if
+	if @arg1 == null or @arg1 == "-h" or @arg1 == "help" then return "<u>character code || cipher || encryption || || decryption || decompiler"+char(10)+
+	"<b>CODE</b> encode and decode utility"+char(10)+
+	"Supports standard Caesar cipher and 5hell's MuninCipher for encryption."+char(10)+
+	"May also return ascii character codes, decompile objects, and execute functions."+char(10)+
+	"Usage: code [char] -- returns ascii code for char"+char(10)+
+	"Usage: code -c [int] -- returns ascii char(int)"+char(10)+
+	"Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+
+	"-- will evaluate piped functions."+char(10)+
+	"Advanced: code [-d|-e] [word] -- decode|encode a word using standard caesar cypher"+char(10)+
+	"Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher(tm)</b>"+char(10)+
+	"-- prompts for input if not supplied"+char(10)+
+	"-- enter text to encrypt|decrypt on a single line up to 40,000 chars"+char(10)+
+	"-- if input is more than one word use without params for prompt"+char(10)+
+	"-- or use piping or an input file (see -f options)"+char(10)+
+	"Advanced: code [-f|-fa|-fb] [/file/path|file_object] -- encode|decode contents of file"+char(10)+
+	"-- option [-f] [path] -- prompts for enc/dec"+char(10)+
+	"-- option [-fa|-af] [path] -- encode contents of path with MuninCipher"+char(10)+
+	"-- option [-fb|-bf] [path] -- decode contents of path with MuninCipher"+char(10)+
+	"<b>N.B.</b> MuninCipher is tamper resistant! Attempting to copy/paste the cipher text can/will corrupt it!"
+	Encode = function(instruction, password)
+    caesar = function(type, pass)
+				if pass == "" then return char(32)
+        nr = pass.len%9
+				if nr == 0 then nr = 25
+        crypt = function(char, nr, type)
+            if type == "enc" then return char+nr
+            if type == "dec" then return char-nr
+        end function
+        out = []
+        for i in range(0, pass.len-1)
+            c = pass[i].code
+            if c >= 48 and c <= 57 then
+                c = crypt(c, nr, type)
+                if c < 48 then c = c+10
+                if c > 57 then c = c-10
+            else if c >= 65 and c <= 90 then
+                c = crypt(c, nr, type)
+                if c < 65 then c = c+26
+                if c > 90 then c = c-26
+            else if c >= 97 and c <= 122 then
+                c = crypt(c, nr, type)
+                if c < 97 then c = c+26
+                if c > 122 then c = c-26
+            end if
+            out.push(char(c))
+        end for
+        return out.join("")
+    end function
+    output = caesar(instruction, password)  // instruction should be either "enc" for encode or "dec" for decode
+    return output
+	end function
+	if @arg1 == 0 then return str(char(32).code)
+	if @arg1 == "0" then return str("0".code)
+	if typeof(@arg1) == "number" then
+		print("<mark=red><size=75%>Converting integer...</mark></size>")
+		arg1 = str(arg1)
+	end if
+	if @arg1 == "-a" or @arg1 == "-b" then
+		enc_line = arg2
+		if arg2 and typeof(arg2) != "string" then return "code: -a|-b expects string input, got"+typeof(arg2)
+		if not arg2 then enc_line = user_input("MuninCipher:> ")
+		if enc_line.len > 40000 and @arg1 == "-a" then return "MC: max 40k characters for encode"
+		cipher_input = []
+		cipher_output = []
+		enc_dec = "enc"
+		if @arg1 == "-b" then enc_dec = "dec"
+		cipher_this = ""
+		if enc_dec == "enc" then
+			cipher_input = enc_line.split(char(32))
+		else
+			cipher_input.push(arg2)
+		end if
+		print(colorLightBlue+"<mark=black>M</mark>unin<mark=black>C</mark>iphering: "+cipher_input.join(" "))
+		/////////////////////////////////////
+		if enc_dec == "dec" then
+			input_split = cipher_input[0].split(char(40001))
+			ci_sli_dex = cipher_input[0].split(char(40001))[1]
+			ci_sli_txt = cipher_input[0].split(char(40001))[0]
+			cipher_size = ci_sli_dex.values
+			cipher_size = cipher_size.pop
+			cipher_size = cipher_size.code
+			ci_sli_txt = ci_sli_txt.values
+			spaces = []
+			last_space = 0
+			for dex in ci_sli_dex
+				spaces.push(dex.code+last_space+1)
+				last_space = spaces[-1]
+			end for
+			buf = []
+			spaces.pop
+			for ci in range(0, cipher_size)
+				if DEBUG then print("debug: ci = "+ci)
+				if spaces.len and spaces[0] == ci+1 then
+					buf.push(char(32))
+					spaces.pull
+				else
+					if ci_sli_txt.len then buf.push(ci_sli_txt.pull)
+				end if
+			end for
+			buf = buf.join("")
+			cipher_input = buf.split(char(32))
+		end if
+		for password in cipher_input
+		  cipher_this = password
+		  for l in range(0,cipher_this.len)
+		    cipher_this = Encode( enc_dec, cipher_this )
+		  end for
+		  cipher_output.push(cipher_this)
+		end for
+		if enc_dec == "enc" then
+			spacedex = ""
+			for co in cipher_output
+				spacedex = spacedex + char(co.len)
+			end for
+			leng = cipher_output.join(" ").len
+			cipher_output.push(char(40001))
+			cipher_output.push(spacedex)
+			cipher_output.push(char(leng))
+			cipher_output.push(char(40001))
+			cipher_output = cipher_output.join("")
+		end if
+		print(colorLightBlue+"<u><mark=black>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
+		if enc_dec == "dec" then return cipher_output.join(" ")
+		return cipher_output
+	end if
+	if @arg1 == "-c" and arg2 then return char(arg2.to_int)
+	if @arg1 == "-d" then
+		if not arg2 then return "nothing to decode"
+		return Encode("dec", arg2)
+	end if
+	if @arg1 == "-e" then
+		if not arg2 then return "nothing to encode"
+		return Encode("enc", arg2)
+	end if
+	if @arg1 == "-f" or @arg1 == "-fa" or @arg1 == "-af" or @arg1 == "-bf" or @arg1 == "-fb" then
+		act = 0
+		if @arg1 == "-f" then act = (-1)
+		if @arg1 == "-fa" or @arg1 == "-af" then act = 1
+		cipher_file = null
+		cipher_text = ""
+		if not arg2 then return "code: -f expects a file_path or file_object"
+		if typeof(arg2) == "file" then
+			if not arg2.is_binary then cipher_file = arg2 else return "code: cannot open binary file"
+			if cipher_file.has_permission("r") then cipher_text = cipher_file.get_content.trim else return "code: read error. check permissions"
+		end if
+		if typeof(arg2) == "string" then
+			cipher_text = command.cat(arg2)
+		end if
+		if act < 0 then act = user_input("[0] decode [<b>1</b>] encode ||: ",0,1).to_int
+		if act == 0 then act = "-b" else act = "-a"
+		return command.code(act, cipher_text)
+	end if
+	if DEBUG then print("Checking types...")
+	buf = []
+	if typeof(@arg1) == "string" then
+		print("<mark=yellow><size=75%>Processing string...</mark></size>")
+		if arg1 == "\n" then return str(char(10).code)
+		if arg1 == 0 or arg1 == " " then return str(" ".code)
+		arg1 = arg1.values
+		for letter in arg1
+			buf.push(letter.code)
+		end for
+		if DEBUG then print "debug: code: string buf: "+buf
+		return buf.join(", ")
+	end if
+	if typeof(@arg1) == "shell" or typeof(@arg1) == "ftpshell" or typeof(@arg1) == "file" or typeof(@arg1) == "computer" or typeof(@arg1) == "map" or typeof(@arg1) == "custom_object" or typeof(@arg1) == "list" then return globals.decompiler(@arg1)
+	if typeof(@arg1) == "pshell" or typeof(@arg1) == "pcomputer" or typeof(@arg1) == "pfile" or typeof(@arg1) == "prouter" then return globals.decompiler(@arg1)
+	if @arg1.hasIndex("__isa") then return globals.decompiler(@arg1)
+	check = new @arg1 
+	if typeof(@check) == "map" then return globals.decompiler(@arg1)
+	return "code: unkown type"
 end function
