@@ -23,6 +23,68 @@
 // -- lets bring tree into the [-f]uture
 // todo: consolidate reused code in purge
 //
+// wtf is up with dig / linkdb this time??
+//
+// the whole thing: threw @'s at 5hell to prevent unwanted rogue function execution when passing functions around as params for *some* commands
+// -- if you find cases where I missed and you think it needs it, pleae @ me. If you don't like how messy the code is, don't @ me, bro.
+// -- the goal is to allow functions to be passed around as if they were objects and only execute them when we really, really want to
+// -- you can run params through globals.Kérberos( arg ) as an @ reference (ie: arg = Kérberos(@arg)
+// NEW FUNCTION: Kérberos(arg) will return arg as a reference if it is not a function and will return:
+// ---- Kérberos: prevented rogue function execution
+// -- if arg is a function
+// -- put this in your custom commands (or existing commands) if piped functions are executing without your permission
+// run: will not execute piped function refrences
+// run: updated usage info
+// echo: will not execute piped function refrences
+// ez_clip: will (hopefully) not execute function references
+//////////
+// malp: rogue function prevention needed
+////////
+// 5hell.src: added --daemons, --daemons stop [name] to view and stop daemons
+// 5hell.src: added rogue function execution prevention
+// clip[a|b|c]: _complete__rewrite_
+// -- consolidated code
+// -- clipboard is now a map; easier to add new clip spaces if desired
+// -- easier to incorporate into future session objects
+// -- added --, ++, -=, += for incrementing/decrementing the clipboard if it is an int or string: int
+// -- added -z -- set clipboard to zero
+// -- added -n -- set clipboard to null
+// -- updated usage info
+// -- usage info is larger than the actual clipboard code :|
+// globals: changed all references to old globals.clip_board_x to globals.CLIP[index]
+// -- in the future this will be session.CLIP[index]
+// 5hell.src: updated comment regarding do.rc to include putting a priority version in Config 
+// -- the one in Config supercedes the one in rkit 
+// -- this info is in the help info but i felt it also belonged in 5hell.src
+// malp: option [3] upload rkit will now launch 5hell right away without prompts
+// -- use [8] run if you want to run it with launch params
+// -- this routine now uses command.infil, which is a new command
+// malp: will no longer execute piped/stored functions without being told to do so
+// new: command.infil: runs the same routing as [3] in malp
+// -- because why wasn't this a command?
+// --: infil [shell_object] [opt:params]
+// --eg: infil @B -m " bat pwn.bat "
+// globals.decompiler: overhauled decompiler, p_validate, p_exe
+// -- these will play nicer with piped functions 
+// -- at the moment, to explicitly execute a piped function; pipe it to command.code 
+// --eg: cob get funky_town | code
+// -- this prompts for each param the function takes, if any, before executing the function and returning the result
+// ---- i hope to improve on this in the future
+// _switch: overhauled to better handle piped functions
+// cob: you may now get and set nested indexes within maps s
+// -- setting list indexes still needs work; needs push, pull, pop, etc
+// ---- so that will be Soon(tm)
+// -- see cob -h for details
+// rclean: cleaned up 'detection_factor' display
+// -- fixed crash when selecting an object from the mini-menu when using @B -m
+// help: added missing -A flag option
+// dig: fixed the 'idfk' database error (fucking hopefully, idfk)
+// linkdb: will now return 1 on success and 0 on fail 
+// calc: moved from kore.5pk to dtools.5pk to free up space and also because it kinda belongs there anyway
+// code: moved to dtools.5pk from 5hell.5pk
+// pwgen: moved to contrib.5pk from dtools.5pk
+// 
+//
 // 5hell.5pk: added colorGrey
 // 5phinx.5pk: removed over 10k chars of legacy/commented code
 // dtools.5pk: also removed a bunch of legacy code
