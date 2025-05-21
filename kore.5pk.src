@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.0.9...(158.559)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.1.1...(158.928)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -448,7 +448,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"</b>Usage: rsi [<b>-d|-D</b>] -- scrub logs on and remove <b>rkit</b> from all rshells"+char(10)+
 	"-- [<b>-k</b>] -- uses silentclean -d to delete rkit and scrub"+char(10)+
 	"-- [<b>-K</b>] -- uses rclean -d to delete rkit and scrub"+char(10)+
-	colorCyan+"Usage: rsi ["+colorRed+"</b>-n|-N]"+CT+" -- nuke all rshells"+char(10)+
+	colorCyan+"Usage: rsi ["+colorRed+"</b>-n|-N</color>]"+CT+" -- nuke all rshells"+char(10)+
 	"-- [<b>-n</b>] -- uses silentclean -n"+char(10)+
 	"-- [<b>-N</b>] -- uses rclean -n"+char(10)+
 	colorGold+"</b>Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10)+
@@ -1211,144 +1211,6 @@ command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 		print("Shell sent to BUFFER. Access via memory_alpha.")
 	end if
 	return rem_shell
-end function
-command.calc = function(arg1="0", arg2="0", arg3="0", arg4=0)
-	calc_help = function()
-		return "calc [arg1] [arg2: + - * / (or: add, sub, mul, div)] [arg3] "+char(10)+"calc (a)sin/(a)cos/(a)tan/ [arg]"+char(10)+"calc pwr/abs/sqrt [arg]"+char(10)+"calc [min] rnd [max] |or| calc rnd [max]   (min=0)"+char(10)+"calc [arg1] pwr [arg2]"+char(10)+"calc [arg1] == [arg2] (check if equal.)"+char(10)+"Use pi to indicate pi. eg: calc pi || calc pi / 2 || calc cos pi || etc"+char(10)+"N.B. If an input is a function it will be evaluated"+char(10)+"-- EXCEPT when using the equals function (ie x == y)"+char(10)+"-- in this case function pointers will be compared."+char(10)+"You may use @a or @clipa, @b or @clipb, @c or @clipc to reference the clipboards."+char(10)+"-- ie calc @a + @b"+char(10)+"Returns: evaluation as string."+char(10)+"calc [n] base [p] -- retruns the [p].adic representation of the number to evaluate."+char(10)+"e.g. 42 base 2 -> 101010"
-	end function
-	if @arg1 == "-h" or @arg1 == "help" then return calc_help
-	calc = {}
-	 
-	// p-adic representation
-	calc.base = function(n, p) // expects int: value, int:prime (must be greater than 1)
-		if p < 1 then exit("Invalid base. P must be geater than 1")
-		p_adic_digits = []
-		while n != 0
-			quotient = null
-			remainder = null
-			res = divmod(n, p) // write divmod function, returns list
-			quotient = res[0]
-			remainder = res[1]
-			p_adic_digits.push( remainder )
-			n = quotient
-		end while
-		p_adic_digits = reverse( p_adic_digits ) // write a reverse function
-		return p_adic_digits.join("") // returns list
-	end function
-	divmod = function( val, prime )
-		result = []
-		result.push( floor(val / prime) )
-		result.push( val % prime )
-		return result
-	end function
-	reverse = function( list_input )
-		new_list = []
-		while list_input.len > 0
-			new_list.push( list_input.pop )
-		end while
-		return new_list
-	end function
-	
-	calc.equals = function(a1,a3)
-		if @a1 == @a3 then
-			print("equal")
-			return 1
-		else
-			print("not equal")
-			return 0
-		end if
-	end function
-	calc.add = function(a1,a3)
-		return (a1 + a3)
-	end function
-	calc.sub = function(a1,a3)
-		return (a1 - a3)
-	end function
-	calc.mul = function(a1,a3)
-		return (a1 * a3)
-	end function
-	calc.div = function(a1,a3)
-		return (a1 / a3)
-	end function
-	calc.cos = function(a1,a3)
-		return cos(a1)
-	end function
-	calc.sin = function(a1,a3)
-		return sin(a1)
-	end function
-	calc.tan = function(a1,a3)
-		return tan(a1)
-	end function
-	calc.acos = function(a1,a3)
-		return acos(a1)
-	end function
-	calc.asin = function(a1,a3)
-		return asin(a1)
-	end function
-	calc.atan = function(a1,a3)
-		return atan(a1)
-	end function
-	calc.sqrt = function(a1,a3)
-		return sqrt(a1)
-	end function
-	calc.pwr = function(a1,a3)
-		tm=1
-		for i in range(1,a3)
-			tm=(tm * a1)
-		end for
-		return tm
-	end function
-	calc.rnd = function(a1,a3=0)
-		//if typeof(a1) != "number" then a1 = a1.to_int
-		ran = range(a3, a1)
-		ran.shuffle
-		return ran[0]
-		//return (floor((rnd * a3.val) + a1.val))
-	end function
-	calc.abs = function(a1,a3)
-		return abs(a1)
-	end function
-	calc.pi = function(a1,a3)
-		return "3.14159265358"
-	end function
-	if @arg1 == "@a" or @arg1 == "@clipa" then arg1 = @globals.clip_board_alpha
-	if @arg1 == "@b" or @arg1 == "@clipb" then arg1 = @globals.clip_board_beta
-	if @arg1 == "@c" or @arg1 == "@clipc" then arg1 = @globals.clip_board_gamma
-	if @arg2 == "@a" or @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
-	if @arg2 == "@b" or @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
-	if @arg2 == "@c" or @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
-	if @arg3 == "@a" or @arg3 == "@clipa" then arg3 = @globals.clip_board_alpha
-	if @arg3 == "@b" or @arg3 == "@clipb" then arg3 = @globals.clip_board_beta
-	if @arg3 == "@c" or @arg3 == "@clipc" then arg3 = @globals.clip_board_gamma
-	if @arg2 == "==" then arg2 = "equals"
-	if @arg1 == "pi" and @arg2 == 0 then return calc.pi
-	if @arg1 == "pi" then arg1 = calc.pi
-	if @arg2 == "pi" then arg2 = calc.pi
-	if @arg3 == "pi" then arg3 = calc.pi
-	if @arg2 == "+" then arg2 = "add"
-	if @arg2 == "-" then arg2 = "sub"
-	if @arg2 == "*" then arg2 = "mul"
-	if @arg2 == "/" then arg2 = "div"
-	if calc.hasIndex(@arg1) then
-		c = @calc[arg1]
-		if typeof(@arg2) == "number" then arg2 = str(arg2)
-		return str(c(arg2.val))
-	else
-		if calc.hasIndex(@arg2) then
-			c = @calc[arg2]
-			par1 = 0
-			par2 = 0
-			if typeof(@arg1) == "function" then par1 = @arg1 else par1 = arg1
-			if typeof(@arg3) == "function" then par2 = @arg3 else par2 = arg3
-			if DEBUG then print("par1: "+typeof(@par1)+char(10)+"par2: "+typeof(@par2)+char(10))
-			if typeof(@arg1) == "string" then par1 = arg1.val
-			if typeof(@arg3) == "string" then par2 = arg3.val
-			if DEBUG then print("par1: "+@par1+char(10)+"par2: "+@par2+char(10))
-			return str(c(@par1,@par2))
-		else
-			return "calc: <b>invalid input</b>"
-		end if
-	end if
 end function
 command.sniff = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: sniff -- listen to network traffic. Prints a string if connections detected."+char(10)+"-- runs in daemon mode. exits on first sniffed connection (or ctrl+c)."
@@ -2315,7 +2177,8 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 					globals.XPLOITS = []
 					globals.MEMORY = null
 					found_it = line
-					done = colorOrange+"Database: link for </b>"+colorWhite+found_it+"</color> complete."+CT
+					print colorOrange+"Database: link for </b>"+colorWhite+found_it+"</color> complete."+CT
+					done = 1
 					continue
 				else
 					continue
@@ -2624,13 +2487,16 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
 	"Usage: purge [-b] [#] -- remove BUFFER entry at index #"+char(10)+
 	"Usage: purge [-t] -- purge transmit buffer (@tbuf)"+char(10)+
-	"Usage: purge [-x] -- purge XPLOITS buffer "+char(10)+
+	"Usage: purge [-X] -- purge XPLOITS buffer "+char(10)+
+	"Usage: purge [-X] -- purge the metaxploitLib object"+char(10)+
+	"USage: purge [-M] -- purge the MetaLib object"+char(10)+
+	"-- also purges XPLOITS buffer"+char(10)+
+	"Usage: purge [-m] -- purge macro registry"+char(10)+
 	"Usage: purge [-c] -- purge CC command buffer "+char(10)+
 	"Usage: purge [-e] -- purge enum buffer"+char(10)+
 	"Usage: purge [-s] -- purge tagged4scp buffer"+char(10)+
 	"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+
 	"Usage: purge [-o] -- purge custom object  (excludes: stack_pool, macro registry)"+char(10)+
-	"Usage: purge [-m] -- purge macro registry"+char(10)+
 	"Usage: purge [-d] -- purge monitors (daemons)"+char(10)+
 	"Usage: purge [-p] -- purge the PORT_MAP"+char(10)+
 	"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+
@@ -2770,9 +2636,20 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
 	colorCyan+"Usage: cob set [key] [val] -- set custom object key to val."+char(10)+
 	"-- returns string on success or error"+char(10)+
+	"-- create a map with the custom object by using<b> {}</b> as your val"+char(10)+
+	"--eg:<b> cob set newmap {}"+char(10)+
+	"-- you may set a key within an existing map with the dot reference:"+char(10)+
+	"--eg:<b> cob set newmap.submap {}\n--eg:<b> cob set newmap.foo bar"+char(10)+
+	"---- the map must already exist in order to add an index to the map"+char(10)+
+	"-- create a new list in the custom object by using<b> []</b> as your val"+char(10)+
+	"--eg:<b> cob set newlist []"+char(10)+
+	"---- at this time it is not possible to add to a list in the custom object"+char(10)+
 	colorCyan+"Usage: cob get [key] -- get value of custom object key."+char(10)+
 	"-- returns value at key or null"+char(10)+
 	"-- returns @reference (pointer) if value is a function"+char(10)+
+	"-- use dot reference to retrieve nested elements of lists and maps"+char(10)+
+	"--eg: cob get foo.bar"+char(10)+
+	"--eg: cob get foo.bar.1 -- where 1 is index 1 of a list"+char(10)+
 	colorCyan+"Usage: cob return -- returns the raw custom object"+char(10)+
 	"-- pipe to command.<b>code</b> to decompile the object."+char(10)+
 	"-- ie:<b> cob return | code</b>"+char(10)+
@@ -2808,12 +2685,15 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	colorGold+"EZclip: you may use "+colorWhite+"@o </color>[<color=white>key</color>]</b>"+char(10)+
 	"-- to reference a key in the custom object"+char(10)+
 	"-- the <b>@o [key]</b> will be replaced by the key's value, much like using @a, @b, @c for the clipboard"
-	if arg1 == "help" or arg1 == "-h" then return usage_info
-	if not arg1 then return "cob: invalid input: see <b>cob -h</b>"
+	if @arg1 == "help" or @arg1 == "-h" then return usage_info
+	if typeof(@arg1) != "string" then return "cob: invalid input: see <b>cob -h</b>"
 	cobble = get_custom_object
 	cob = {}
-	cob.set = function( key=0, val=0, nil=0, nul=0 )
-		if not @key then return null
+	cob.err = "cob: invalid input: see <b>cob -h"
+	cob.set = function( key=0, val=0, kl="", nul=0 )
+		if not @key or not @val then return null
+		if @val == "{}" then val = {}
+		if @val == "[]" then val = []
 		if typeof(@key) == "function" then
 			if typeof(@val) == "function" then
 				cobble[@key] = @val
@@ -2827,7 +2707,9 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 				cobble[key] = val
 			end if
 		end if
-		if cobble.hasIndex( @key ) then return "cob: set<b> "+@key+"</b> to <b>"+@val+"</b>" else return "cob: set error"
+		gcout = "custom_object"
+		if typeof(cobble) != gcout then gcout=gcout+"."+kl
+		if cobble.hasIndex( @key ) then return "cob: set "+gcout+"[<b>"+@key+"</b>] to <b>"+@val+"</b>" else return "cob: set error"
 	end function
 
 	cob.get = function( key=0, val=0, nil=0, nul=0 )
@@ -2839,10 +2721,10 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob.search = function ( val=0, key=0, nil=0, nul=0 )
 		if cobble.indexOf( @val ) != null then
 		if typeof(@val) == "function" then return cobble.indexOf( @val )
-		return cobble.indexOf( val )
+			return cobble.indexOf( val )
 		else
-		if cobble.indexOf( val ) != null then return cobble.indexOf( val )
-		return "cob: value not found"
+			if cobble.indexOf( val ) != null then return cobble.indexOf( val )
+			return "cob: value not found"
 		end if
 	end function
 
@@ -2851,6 +2733,10 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	end function
 	
 	cob.inspect = function( key=0, val=0, nil=0, nul=0 )
+		if @key then 
+			tmpc = command.cob("get",@key)
+			if typeof(@tmpc) == "list" or typeof(@tmpc) == "map" then cobble = tmpc else return "cob: cannot inspect non-list/non-map;"+char(10)+"-- instead use:<b> cob get"
+		end if
 		inspect_buf = []
 		value_buf = []
 		st = "KEY "+colorWhite+":"+CT+" [" + colorGold+"</b>"+ "TYPE" + "</color>] "+colorWhite+":"+CT+" "
@@ -2882,6 +2768,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	end function
 
 	cob.validate = function()
+		if DEBUG then print "debug: cob: validating custom object"
 		o=[]
 		o.push(colorCyan+"</b>cob: validating custom object...")
 		if not cobble.hasIndex("macros") then; cobble.macros = {};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
@@ -2916,26 +2803,51 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	if arg1 == "return" then return cobble
 	if arg1 == "validate" then return cob.validate
 	if arg1 == "install" then 
-		if arg2 then return cob.install(arg2) else return "cob: install expects a key from the custom object"
+		if typeof(@arg2) == "string" then return cob.install(arg2) else return "cob: install expects a (string: key) from the custom object"
 	end if
+
 	if arg1 == "set" then
-		if @arg3 then
-			if @arg2 == "@clipa" then arg2 = @globals.clip_board_alpha
-			if @arg2 == "@clipb" then arg2 = @globals.clip_board_beta
-			if @arg2 == "@clipc" then arg2 = @globals.clip_board_gamma
-			return cob.set( @arg2, @arg3 )
-		else
-			return "cob: invalid input: see <b>cob -h</b>"
-		end if
+		if not @arg2 then return "cob: index cannot be zero or null"
+		//if @arg3 then
+			if @arg2 == "@clipa" then arg2 = @globals.CLIP["a"]
+			if @arg2 == "@clipb" then arg2 = @globals.CLIP["b"]
+			if @arg2 == "@clipc" then arg2 = @globals.CLIP["c"]
+			if @arg3 == "@clipa" then arg3 = @globals.CLIP["a"]
+			if @arg3 == "@clipb" then arg3 = @globals.CLIP["b"]
+			if @arg3 == "@clipc" then arg3 = @globals.CLIP["c"]
+			kl = null
+			idx = @arg2
+			if typeof(@arg2) == "string" then
+				kl = arg2.split("\.")
+				if kl.len > 1 then 
+					if DEBUG then print "debug: cob is setting a nested index: "+kl
+					idx = kl.pop
+					kl = kl.join(".")
+					tmp_c = command.cob("get",kl)
+					if typeof(tmp_c) == "list" or typeof(tmp_c) == "map" then cobble = tmp_c else return "cob: target index is not a list or map"
+				end if
+			end if
+			if typeof(cobble) == "list" and typeof(@idx) == "string" then idx = idx.to_int
+			return cob.set( @idx, @arg3, kl )
+		//else
+		//	return "cob: invalid input: see <b>cob -h</b>"
+		//end if
 	end if
 	if arg1 == "get" then
-		if @arg2 then
+		if not @arg2 then return cob.err
+		kl = []
+		rl = []
+		if typeof(@arg2) == "string" then kl = arg2.split("\.") else kl = [@arg2]
+		if DEBUG then print "key list: "+kl
+		for k in kl 
 			g = @cob.get
-			return g( @arg2 )
-		else
-			return "cob: invalid input: see <b>cob -h</b>"
-		end if
+			if typeof(cobble) == "list" and typeof(@k) == "string" and typeof(k.to_int) == "number" then k = k.to_int
+			rl.push(g(@k))
+			if typeof(@rl[-1]) == "map" or typeof(@rl[-1]) == "list" then cobble = rl[-1] else break 
+		end for
+		return rl[-1]
 	end if
+
 	if arg1 == "indexes" then 
 		return cob.return_indexes
 	end if
@@ -2944,13 +2856,13 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	end if
 	if arg1 == "sign" then return cob.sign(signature)
 	if arg1 == "search" then
-		if @arg2 then return cob.search( @arg2 ) else return "cob: invalid input: see <b>cob -h</b>"
+		if @arg2 then return cob.search( @arg2 ) else return cob.err
 	end if
 	if arg1 == "del" then
-		if @arg2 then return cob.del( @arg2 ) else return "cob: invalid input: see <b>cob -h</b>"
+		if @arg2 then return cob.del( @arg2 ) else return cob.err
 	end if
 	if arg1 == "purge" then return command.purge("-o","y")
-	return "cob: invalid input: see <b>cob -h</b>"
+	return cob.err
 end function
 command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "SMTP || MAIL USER LIST"+char(10)+"Usage: smtp [ip] [port] -- return mail user list if ip/port is running smtp mail server"+char(10)+"-- user target ip and target port if not supplied"
@@ -3262,4 +3174,55 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	save = "y"//user_input("Send results to clipb? [y/N] "+char(10)+"||: ",0,1)
 	if save.lower == "y" then command.clipb(r_buf.join(char(10)))
 	return colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
+end function
+command.infil = function(sh_ob,par=0,arg2,arg3)
+	cgo = colorGold+"</b>"
+	cw = colorWhite+"</b>"
+    cr = colorRed+"</b>"
+	if @sh_ob == "help" or @sh_ob == "-h" then return "Infil || infiltrate || infiltration || upload rkit"+char(10)+
+	cw+"Usage: "+cgo+"infil"+cw+" ["+cgo+"shell_object"+CT+"] -- automatic door kicker"+char(10)+
+	"-- uploads rkit to /home/guest on target shell and then launches 5hell"+char(10)+
+	"-- does not accept launch params;"+char(10)+
+	"---- include desired launch behavior in rkit/do.rc before upload"+char(10)+
+	"--eg: <b>zap | infil"+char(10)+
+	"NOTE: the /home/guest destination is hard coded as this is always open on "+char(10)+
+	"-- untouched npc machines"+char(10)+
+	"-- create a macro that mimics infil's behavior (perms, scpm, perms, run)"+char(10)+
+	"-- to use a different destination folder"
+	if typeof(@sh_ob) != "shell" then return "usage: infil [shell_object]"+char(10)+"-- or:<b> infil -h "
+    kit = null
+    kit = command.tree("/","rkit","1","N")
+    if typeof(kit) != "file" then return cr+"infil: rkit not found; aborting..." else cgo+"infil: found: "+kit.permissions+" "+kit.path
+
+    kperms = kit.permissions.values
+    kpx = kperms[-1]
+    kpw = kperms[-2]
+    kpr = kperms[-3]
+    print cgo+"infil: changing rkit permissions to <b>o+rwx</b> for upload..."
+    print command.perms("-r","o+rwx", kit.path)
+    print cgo+"infil: uploading..."
+    copytrue = command.scpm("-u",kit.path,"/home/guest",sh_ob)
+    print cgo+"infil: restoring permissions..."
+    if kpx == "-" and kpw == "-" and kpr == "-" then
+        print command.perms("-r","o-rwx", kit.path)
+    else
+        if kpx == "-" then kpx = "x" else kpx = ""
+        if kpw == "-" then kpw = "w" else kpw = ""
+        if kpr == "-" then kpr = "r" else kpr = ""
+        print command.perms("-r", "o-"+kpr+kpw+kpx, kit.path)
+    end if
+    print kit.permissions+" "+kit.owner+" "+kit.group+" "+kit.size+" "+kit.path
+    if copytrue == "scp: failed" then return copytrue else print copytrue
+    print cgo+"infil: successfully uploaded rootkit: "+kit.path+char(10)+cgo+"-- to: /home/guest/rkit"
+
+    if typeof(sh_ob) == "ftpshell" then return cr+"infil: unable to launch via ftpshell; returning..."
+    
+    print colorWhite+"<size=75%></b>Initializing sshfs "+colorLightBlue+"</b>glasspool</color> protocol..."+CT
+    print colorWhite+"</b><size=65%>-- preparing to run "+colorRed+"</b>5</color>hell silently on the target..."
+
+    print colorWhite+"<size=75%><u>-- injecting process <u>"+cgo+"/home/guest/rkit/5hell</u></color> into 0x"+colorLightBlue+"</b>0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"
+    print command.run("/home/guest/rkit/5hell",par,sh_ob)
+    _cascade // exit if cascade
+    globals.update_path
+    return cgo+"<size=75%>infil: infiltration complete"
 end function
