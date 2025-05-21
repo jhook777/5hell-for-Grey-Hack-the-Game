@@ -22,8 +22,21 @@
 // todo: tree -f has a superior search algo vs regular, ancient tree
 // -- lets bring tree into the [-f]uture
 // todo: consolidate reused code in purge
+// do: doesn't play nice with ||
 //
-// wtf is up with dig / linkdb this time??
+//
+// cob: added ability to 'cob inspect' a map within the custom object (currently only one layer deep)
+// --eg: cob set mac {} || cob set mac.lmore " tags " || cob inspect mac 
+// macro: fixed issue causing the wrong part of the string to be highlited when a selfcall is possible
+// sphinx: you may now launch 5phinx without metaxploit or crypto present
+// -- scanning won't work, but you can still launch it and use probe, idk
+// -- just feels weird blocking it
+// contrib.5pk: rejuggled the position of two functions because i forgot why i had put them in their pre-juggle position in the first place
+// probe: when probing a lan ip that is not a router, probe will walk that subnet 1 ip at a time to find the correct router
+// sphinx: the port info display (under target ip display) in sphinx will update this information when port is a router an the probe is actually done
+// -- it won't, in most cases, update when only theip itself is changed. have to redo the probe first
+// -- changing the port number *should* update the port info right away
+// -- changing target ip to a public ip *will* immediately update the port info to the new router if target port is also a router
 //
 // the whole thing: threw @'s at 5hell to prevent unwanted rogue function execution when passing functions around as params for *some* commands
 // -- if you find cases where I missed and you think it needs it, pleae @ me. If you don't like how messy the code is, don't @ me, bro.
