@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.6"
+sphinx_version = "2.9.7"
 malp_version = "1.5.2"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.1...(147.886)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.2...(148.315)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -2818,8 +2818,22 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
       if not quiet then print("probe: attempting to locate router at: "+char(10)+colorWhite+ip+CT)
       t_router = get_router( ip )
       if not t_router then 
-        if not quiet then print(colorRed+"probe: failed to find router. portscan aborted.")
-        return
+        if not quiet then print(colorRed+"probe: failed to find router\n-- walking subnet until router is found...")
+        t_router = null
+        
+        for lip in range(0,255)
+          ip = ip.split("\.")
+          ip.pop 
+          ip = ip.join(".")
+          ip = ip+"."+lip
+          if DEBUG then print "debug: ip: "+ip
+          t_router = get_router(ip) 
+          if typeof(t_router) == "router" then break 
+        end for
+        if typeof(t_router) != "router" then 
+          print "probe: error, no router found!" 
+          return
+        end if
       end if
     end if
     if not quiet then print(t_router.public_ip + " details:")
@@ -3167,7 +3181,7 @@ sphinx_switch = function(resolve,tt)
   end if
   if resolve == "+" or resolve == "=" then
     if targetIP and targetPort then
-      print(command.linkdb(get_lib,"-y"))
+      if not globals.metaxploit then print "error: metaxploitLib not found" else print(command.linkdb(get_lib,"-y"))
     else
       print(colorOrange+"Please set target IP and Port before continuing.")
     end if
@@ -3231,7 +3245,7 @@ sphinx_switch = function(resolve,tt)
       end if
       if globals.targetIP and globals.targetPort then
         confirm = user_input("Scan remote lib: "+globals.targetIP+" "+globals.targetPort+" and update database? [Y/n] ||: ",0,1)
-        if confirm.lower != "n" then command.db("-r", globals.targetIP, globals.targetPort)
+        if confirm.lower != "n" then print command.db("-r", globals.targetIP, globals.targetPort)
         return true
       else
         print("Please set a target IP and port." )
