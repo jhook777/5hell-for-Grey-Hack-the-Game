@@ -195,16 +195,23 @@ command.shell = function(input=null,mute=null)
     // process the pre_processed input
     while pipe.len > 0                  
       // begin command parsing
+      if DEBUG then print "debug: top of pipe loop"
       prompt = pipe.pull // no touchy
       if next.len > 0 then prompt.push(next.pull) // no touchy
 
+      // prevent rogue function execution
+      if typeof(@prompt[0] ) == "function" then 
+        print colorRed+"shell: preventing execution of rogue function:"
+        print @prompt[0]
+        continue 
+      end if
       // some folks like to edit the below line to do command.cc instead of continue
       if not prompt.len or prompt[0] == "" or prompt[0] == 0 or prompt[0] == "0" or prompt[0] == null then continue
       //
       if prompt[0] == "return" then 
         if not mute then print colorWhite+"<size=50%><u><color=red>5</color>hell: returning..."
         if prompt.len > 1 then 
-          return prompt[1] 
+          return @prompt[1] 
         else 
           return 0 // might edit this to return a value instead
         end if
@@ -237,13 +244,14 @@ command.shell = function(input=null,mute=null)
       prompt = prompt[:5] 
       // sanity check #2
       // experimental forking
+      if DEBUG then print "debug: experimental..."
       fork = false
       for pp in prompt 
-        if pp == "--5pork" then 
+        if @pp == "--5pork" then 
           fork = true
-          pp = ""
+          @pp = ""
         end if
-        if pp == "" then prompt[__pp_idx] = 0 // this interferes with the user intentionally sending "" as an argument (edge case), may have to change it, not sure if it is even needed
+        //if @pp == "" then prompt[__pp_idx] = 0 // this interferes with the user intentionally sending "" as an argument (edge case), may have to change it, not sure if it is even needed
       end for
       if EXPERIMENTAL then 
         if fork then
@@ -261,25 +269,35 @@ command.shell = function(input=null,mute=null)
       end if
       // end experimental forking
       // processing
-
+      if DEBUG then print "-- end experimental"
       // you know what, there was a distinct lack of using guard clauses here
       // and i dont know if its for performance reasons but i think we
       // can sacrifice a little bit of performance for readability
       // (especially if its in this user facing code) - Clover
 
-      cmdName = prompt[0]
+      cmdName = @prompt[0]
+      if typeof(@cmdName) == "function" then 
+        print colorRed+"shell: preventing rogue function execution"
+        continue 
+      end if
       // handle case where prompt is "shell" actually
+
       if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
-        if prompt[1] == "--debug" then
+        if @prompt[1] == "--daemons" then
+          print list_daemons
+          if @prompt[2] == "stop" then print DaemonManager.Stop(prompt[3])
+          continue
+        end if
+        if @prompt[1] == "--debug" then
           print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
           globals.DEBUG = not globals.DEBUG
           continue
         end if
-        if prompt[1] == "--home" then 
-          if typeof(prompt[2]) == "string" and is_valid_ip(prompt[2]) then 
-            print("shell: updating @home to: "+prompt[2])
-            globals.HOME_SERVER[0] = prompt[2] 
+        if @prompt[1] == "--home" then 
+          if typeof(prompt[2]) == "string" and is_valid_ip(@prompt[2]) then 
+            print("shell: updating @home to: "+@prompt[2])
+            globals.HOME_SERVER[0] = @prompt[2] 
           else 
             print globals.HOME_SERVER[0]
           end if
@@ -297,12 +315,14 @@ command.shell = function(input=null,mute=null)
         gp = " " + state + "active "
         print(colorOlive+"["+colorLightBlue+"GLASSPOOL  "+CT+":"+colorOrange+gp+CT+"]")
         print("<size=65%>--: use<b> shell --home [ip]</b> to change home_server")
+        print("<size=65%>--: use<b> shell --daemons</b> to view active daemons")
+        print("<size=65%>--: use <b>shell --daemons stop [daemon_id]</b> to stop a daemon")
         print("<size=65%>--: use<b> shell --debug</b> to toggle debug mode")
         continue 
       end if
 
       if not command.hasIndex(cmdName) then
-        if globals.get_file(prompt[0]) then 
+        if globals.get_file(@prompt[0]) then 
           if DEBUG then print "debug: running binary on system"
           prompt = ["run"] + prompt // are we bash today? eff it, we're bashin' it
           cmdName = prompt[0]
@@ -324,13 +344,13 @@ command.shell = function(input=null,mute=null)
       if DEBUG then print("target function takes: "+args+" arguments.")
       if DEBUG then print("debug: preparing to fire: "+char(10)+prompt)
       if args == 4 then
-        catch = f(prompt[1], prompt[2], prompt[3], prompt[4])
+        catch = f(@prompt[1], @prompt[2], @prompt[3], @prompt[4])
       else if args == 3 then
-        catch = f(prompt[1], prompt[2], prompt[3])
+        catch = f(@prompt[1], @prompt[2], @prompt[3])
       else if args == 2 then
-        catch = f(prompt[1], prompt[2])
+        catch = f(@prompt[1], @prompt[2])
       else if args == 1 then
-        catch = f(prompt[1])
+        catch = f(@prompt[1])
       else
         catch = f
       end if
@@ -433,11 +453,14 @@ if DEBUG then print("<size=75%>stack_pool: ["+sp+"]")
 if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
 // auto 'do' a batch file on startup
 // unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
-// only executes if 5hell.rc is located in a folder named rkit
+// only executes if 5hell.rc is located in a folder named rkit or your Config folder
+// if one exists in both, the one in Config is executed, not the one in rkit
 dorc = globals._startup_resource_configuration
 if DEBUG then print dorc
-if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib...")
-globals._export_metax // export our metaxploit on each startup
+// export our metaxploit, crypto, shell on each startup
+if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib, CryptoLib, Shell...")
+emx = globals._export_metax_et_al
+if DEBUG then print("<size=75%>-- "+emx)
 if DEBUG then print("<size=75%>checking for tables/tp")
 itp = globals._import_tables // import tables/tp if it exists
 if DEBUG then print itp
