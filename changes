@@ -37,9 +37,7 @@
 // run: updated usage info
 // echo: will not execute piped function refrences
 // ez_clip: will (hopefully) not execute function references
-//////////
-// malp: rogue function prevention needed
-////////
+// malp: rogue function prevention added
 // 5hell.src: added --daemons, --daemons stop [name] to view and stop daemons
 // 5hell.src: added rogue function execution prevention
 // clip[a|b|c]: _complete__rewrite_
