@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.2...(133.004kb)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.3...(132.559kb)</size>)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -758,12 +758,10 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.2...(133.004k
       print_logo
       return battleship
   end function
-  ////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////
+
   ///////////////////////////BLACKJACK/////////////////////////////
   ////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////
+
   g2 = function()
       // Jokers Wild Blackjack by Plu70 (aka raal, aka jhook777)
       // feel free to use the deck in your own games!
@@ -1208,8 +1206,7 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.2...(133.004k
   
     return blackjack(deck)
   end function
-  ///////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////
+ 
   ///////////////////////////////////////DRUGWARS//////////////
   ////////////////////////////////////////////////////////////
   g3 = function()
@@ -1934,8 +1931,8 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.2...(133.004k
       end while
   end function
   
-  ///////////////////////////////////////contrubutions start here///////////////////////////////////////////
-  /// this is stuff that was not made by Plu70
+ //////////////////////contrubutions start here///////////
+  /// this is stuff that was not made entirely by Plu70
   /// most of this will contain additions or adjustments by Plu70
   //// cotributed commands ////////////////////
   command.pwgen = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -2139,94 +2136,6 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.2...(133.004k
 	return file.path
 end function
 if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
-
-// regex engine, translated from C code provided by Princeton U., by Plu70
-  re = {}
-  re.match = function(regexp, text) 
-    if DEBUG then print("<b> in globals.re(gex)")
-    if regexp[0] == "^" then
-      regexp.pull
-      return re.match_here(regexp,text)
-    end if
-    while text.len > 0
-      if re.match_here(regexp, text) then return 1
-      text.pull
-    end while
-    return 0
-  end function
-  re.match_here = function(regexp, text)
-    if not regexp then return 1
-    if regexp.len > 1 and regexp[1] == "#" then 
-      return self.match_star(regexp[0], regexp[2:], text)
-    end if
-    if regexp[0] == "$" and not regexp.hasIndex(1) then
-      if text.hasIndex(1) then return 0 else return 1
-    end if
-    if text.len > 0 and (regexp[0] == "*" or regexp[0] == text[0]) then 
-      return self.match_here(regexp[1:], text[1:])
-    end if
-    return 0
-  end function
-  re.match_star = function(c, regexp, text)
-    while text.len and (text[0] == c or c == "*") 
-      if re.match_here( regexp, text) then return 1
-      text = text[1:]
-    end while
-    return 0
-  end function
-  if DEBUG then print("<size=75%>loaded regex engine...</size>")
-  // end regex engine //
-  //
-  // checkUser function by Corvus, additions by Plu70
-  checkUser = function(result)
-    if DEBUG then print("checkUser: "+@result)
-    if typeof(@result) == "function" then return "function"
-    user = ""
-    rfile = null
-    file = null
-    if result == null then return "null"
-    if typeof(result) != "shell" and typeof(result) != "ftpshell" and typeof(result) != "file" and typeof(result) != "computer" then return "???"
-    if typeof(result) == "computer" then
-      file = result.File("/home")
-      rfile = result.File("/root")
-    else if typeof(result) == "shell" or typeof(result) == "ftpshell" then
-      file = result.host_computer.File("/home")
-      rfile = result.host_computer.File("/")
-    end if
-    if rfile and rfile.has_permission("w") then
-      user = "root"
-    else if rfile and file then
-      for folder in file.get_folders
-        if folder.has_permission("w") and folder.name != "guest" then user = folder.name
-      end for
-    end if
-    if typeof(result) == "file" then
-      if DEBUG then print "check_user: found file"
-      if not p_validate(result,"name") then return "null"
-      file = result
-      if file.name != "/" then
-        file = file.parent
-        while file.name != "/"
-          file = file.parent
-        end while
-      end if
-      if not file then return "???"
-      if file.has_permission("w") then user = "root"
-      for folder in file.get_folders
-        if folder.name == "root" then
-          if folder.has_permission("w") then user = "root"
-        end if
-        if folder.name == "home" and user != "root" then
-          for sub in folder.get_folders
-            if sub.has_permission("w") and sub.name != "guest" then user = sub.name
-          end for
-        end if
-      end for
-    end if
-    if user == "" then user = "guest"
-    return user // by Corvus
-  end function
-  // end check user //
 
   // glosure by rocketorbit
   command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -2754,7 +2663,94 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
   // transcribed from C code provided by Princeton U.
   // useage: re.match( String: regex pattern, Char Array (list): text to parse )
   // returns 1 if match and 0 if no match
-  
+  // regex engine, translated from C code provided by Princeton U., by Plu70
+  re = {}
+  re.match = function(regexp, text) 
+    if DEBUG then print("<b> in globals.re(gex)")
+    if regexp[0] == "^" then
+      regexp.pull
+      return re.match_here(regexp,text)
+    end if
+    while text.len > 0
+      if re.match_here(regexp, text) then return 1
+      text.pull
+    end while
+    return 0
+  end function
+  re.match_here = function(regexp, text)
+    if not regexp then return 1
+    if regexp.len > 1 and regexp[1] == "#" then 
+      return self.match_star(regexp[0], regexp[2:], text)
+    end if
+    if regexp[0] == "$" and not regexp.hasIndex(1) then
+      if text.hasIndex(1) then return 0 else return 1
+    end if
+    if text.len > 0 and (regexp[0] == "*" or regexp[0] == text[0]) then 
+      return self.match_here(regexp[1:], text[1:])
+    end if
+    return 0
+  end function
+  re.match_star = function(c, regexp, text)
+    while text.len and (text[0] == c or c == "*") 
+      if re.match_here( regexp, text) then return 1
+      text = text[1:]
+    end while
+    return 0
+  end function
+  if DEBUG then print("<size=75%>loaded regex engine...</size>")
+  // end regex engine //
+  //
+  // checkUser function by Corvus, additions by Plu70
+  checkUser = function(result)
+    if DEBUG then print("checkUser: "+@result)
+    if typeof(@result) == "function" then return "function"
+    user = ""
+    rfile = null
+    file = null
+    if result == null then return "null"
+    if typeof(result) != "shell" and typeof(result) != "ftpshell" and typeof(result) != "file" and typeof(result) != "computer" then return "???"
+    if typeof(result) == "computer" then
+      file = result.File("/home")
+      rfile = result.File("/root")
+    else if typeof(result) == "shell" or typeof(result) == "ftpshell" then
+      file = result.host_computer.File("/home")
+      rfile = result.host_computer.File("/")
+    end if
+    if rfile and rfile.has_permission("w") then
+      user = "root"
+    else if rfile and file then
+      for folder in file.get_folders
+        if folder.has_permission("w") and folder.name != "guest" then user = folder.name
+      end for
+    end if
+    if typeof(result) == "file" then
+      if DEBUG then print "check_user: found file"
+      if not p_validate(result,"name") then return "null"
+      file = result
+      if file.name != "/" then
+        file = file.parent
+        while file.name != "/"
+          file = file.parent
+        end while
+      end if
+      if not file then return "???"
+      if file.has_permission("w") then user = "root"
+      for folder in file.get_folders
+        if folder.name == "root" then
+          if folder.has_permission("w") then user = "root"
+        end if
+        if folder.name == "home" and user != "root" then
+          for sub in folder.get_folders
+            if sub.has_permission("w") and sub.name != "guest" then user = sub.name
+          end for
+        end if
+      end for
+    end if
+    if user == "" then user = "guest"
+    return user // by Corvus
+  end function
+  // end check user //
+  //
   // DAEMON manager, by redi0
   //
   DaemonManager = {
