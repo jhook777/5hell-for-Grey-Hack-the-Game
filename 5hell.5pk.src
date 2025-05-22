@@ -1,14 +1,14 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.1.2.E_falling_skies"
+ver = "4.1.3.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "152.310"
+size_of_5hell = "151.986"
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
@@ -83,19 +83,6 @@ globals.last_mail = null
 globals.this_mail = 0
 globals.last_whois = ""
 
-colorRed = "<color=#FF0000FF><b>"
-colorGreen = "<color=#00FF00FF><b>"
-colorOlive = "<color=#048004FF><b>"
-colorWhite = "<color=#FFFFFFFF><b>"
-colorCyan = "<color=#00FFFFFF><b>"
-colorGold = "<color=#CCCC00FF><b>"
-colorGrey = "<color=#71858DFF><b>"
-colorBlack = "<color=#000000FF><b>"
-colorOrange = "<color=#FF8400FF><b>"
-colorViolet = "<color=#8821FDFF><b>"
-colorMagenta = "<color=#FF00C8FF><b>"
-colorLightBlue = "<color=#2382FFFF><b>"
-CT = "</color></b>"
 //
 // import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
 // Do not remove the comment in the next line, it is necessary for Greybel support
@@ -192,6 +179,7 @@ _clipboard = function( index, arg1, arg2 )
         if typeof(@add) == "string" then add = add.to_int 
         if typeof(@add) != "number" then; print clip.msg+": cannot increment "+typeof(@add);outer.arg1 = 0;return;end if
         clip.clp = add + outer.arg2
+		clip.clp = str(clip.clp)
     end function
     clip.dn = function()
         if typeof(@outer.arg2) != "number" then; print clip.msg+": += expects integer";return;end if
@@ -199,6 +187,7 @@ _clipboard = function( index, arg1, arg2 )
         if typeof(@sub) == "string" then sub = sub.to_int 
         if typeof(@sub) != "number" then; print clip.msg+": cannot decrement "+typeof(@sub);outer.arg1 = 0;return;end if
         clip.clp = sub - outer.arg2
+		clip.clp = str(clip.clp)
     end function
     // legacy compat:
 	clip.tbf = function()
@@ -1826,7 +1815,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	iter = 0
 	cmd = []
 	if arg1 then
-		if typeof(arg1) == "number" then iter = arg1 else iter = arg1.to_int
+		if typeof(arg1) == "number" then iter = arg1 else iter = arg1.to_int // needs a check for invalid type
 	else
 		iter = user_input("Number of iterations to run command:"+char(10)+":> ").to_int
 	end if
@@ -1865,6 +1854,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 		for i in range(1,iter)
 			for c in cmd
 				if c == globals.SAFEWORD then break
+				//c = c.replace(" || "," |  | ") + " | return"
 				c = c + " | return"
 				r = command.shell(c)
 				if r == "@STOP" then break
