@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "2.9.7"
 malp_version = "1.5.2"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.2...(148.315)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.3...(148.868)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -3389,6 +3389,9 @@ end function
 
 // Start Main Menu
 main = function()
+  print5 = function(str)
+    return colorGold+"</b>"+str+CT 
+  end function
   user_log_file = get_shell.host_computer.File("/var/system.log")
   logSize = 0
   first_run = true
@@ -3411,7 +3414,8 @@ main = function()
       first_run = false
     end if
     target_type = "local"
-    print(char(10)+colorWhite + "5phinx"+char(8482) +" "+ sphinx_version + ", by Plu70 localhost: "+localmachine.local_ip+CT)
+    print
+    print(colorWhite+"5phinx"+char(8482)+" v "+sphinx_version+", by Plu70 :: localhost: "+localmachine.local_ip+CT)
     print("<b>/////////////////////////////////////////////</b>")
     if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
       target_type = "local"
