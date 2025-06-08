@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.3...(149.953)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.4...(150.663)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -79,7 +79,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		end if
 		gcout = "custom_object"
 		if typeof(cobble) != gcout then gcout=gcout+"."+kl
-		if cobble.hasIndex( @key ) then return "cob: set "+gcout+"[<b>"+@key+"</b>] to <b>"+@val+"</b>" else return "cob: set error"
+		if cobble.hasIndex( @key ) then return "cob: set "+gcout+"."+colorGold+@key+CT+" to: "+colorGold+@val else return "cob: set error"
 	end function
 
 	cob.get = function( key=0, val=0, nil=0, nul=0 )
@@ -1541,7 +1541,9 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   //p = tp[-1] // target port
   t = arg1 
   p = arg2
+  suss = false
   if t == "-s" then 
+  	suss = true
   	t = globals.sus // in 5phinx.5pk
 	p = "0"
   end if
@@ -1566,7 +1568,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   if DEBUG then print "debug: checking for dig.bat in: "+kit.path
   bat_file = globals.get_file(kit.path+"/dig.bat")
   if not bat_file then 
-      command.poke(kit.path+"/dig.bat", "ifconfig -p | probe"+char(10)+"brutus | clipc"+char(10)+"grep -p 5hell | clipb"+char(10)+"run @b "" do 1 rshell @home "" @c")
+      command.poke(kit.path+"/dig.bat", "ifconfig -p | probe"+char(10)+"brutus | clipc"+char(10)+"grep -p 5hell | clipb"+char(10)+"run @b "" do 1 rshell @home "" @c"+char(10)+"rclean -d @c")
       bat_file = globals.get_file(kit.path+"/dig.bat")
       if not bat_file then return "dig: unable to find or create dig.bat, aborting."
   end if
@@ -1612,22 +1614,35 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 	//ldb = command.linkdb(ml.name+" v "+ml.version)
 	if globals.XPLOITS == null then print command.db("-r")
 	if globals.XPLOITS == null then return "dig: database error!"+char(10)+"-- ffs, quid facis, Plutus?"+char(10)+"-- figere stercus"  // if shell exploit, exploit target
-  mem = ""
-  unsec_val = ""
+  mem = []
+  unsec_val = []
   
   for xp in globals.XPLOITS
       yp = xp.split(" ")
       zp = yp[-1]
-      if zp == "shell" then 
-          mem = yp[0]
-          unsec_val = yp[1]
+	  if DEBUG then print "debug: zp: "+zp
+      if zp == "shell" then // needs adjustment to prioritize root > user > guest shells
+          mem.push(yp[0])
+          unsec_val.push(yp[1])
       end if
   end for
-  if mem == "" then return "dig: shell exploit not found on target"
-
+  if DEBUG then print "mem: "+mem
+  if mem == [] then return "dig: shell exploit not found on target"
+  digging = true
   dig_this = null
-  dig_this = command.zap(mem,unsec_val,0) // get the remote shell
-  if typeof(dig_this) != "shell" then return "dig: failed to obtain shell on target."
+  while digging 
+	if mem.len > 0 then
+  		dig_this = command.zap(mem[0],unsec_val[0],0) // get the remote shell
+		mem.pull 
+		unsec_val.pull
+		if typeof(dig_this) == "shell" then digging = false 
+	else
+		digging = false	
+	end if
+  end while
+  if typeof(dig_this) != "shell" then 	
+  	if suss then return command.dig("-s") else return "dig: failed to obtain shell on target."
+  end if
   // upload rkit (mind permissions)
   if DEBUG then print "dig: found a shell"
   print command.perms("-r","o+rwx", kit.path)
@@ -1848,23 +1863,31 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			return "cerebrum: import error. dictionary corrupted."
 		end if
 	end if
-	if globals.BIGBRAIN then return "Magnum Cerebrum already active."+char(10)+"Run the command: <b>cerebrum --purge</b> to reset."
+	if globals.BIGBRAIN == true then return "Magnum Cerebrum already active."+char(10)+"Run the command: <b>cerebrum --purge</b> to reset."
 	print(colorGold+"<align=center> Magnum Cerebrum </align>"+CT)
 	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
 	//globals.BIGBRAIN = true
 	time_s = time
 	if DEBUG then print("DEBUG: TIME: "+time_s)
-	tab = get_shell.host_computer.File("/root/tables/tp")
-	if tab and tab.has_permission("r") then 
-		print("Detected /root/tables/tp. Auto-import passwords?")
-		autoimport = user_input("[Y/n] (q=quit)||: ",0,1)
-		if autoimport.lower == "q" then return
-		if autoimport.lower != "n" then 
-			print("Calling "+colorWhite+"<u>cerebrum -i /root/tables/tp</u>")
-			print command.cerebrum("-i","/root/tables/tp")
-			return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds."
+	//tab = get_shell.host_computer.File("/root/tables/tp")
+	tab = command.tree("/","tables","1","N")
+	if typeof(tab) == "file " and tab.has_permission("r") and tab.is_folder then 
+		tf = tab.get_files
+		tp = null 
+		for t in tp 
+			if t.name == "tp" then tp = t 
+		end for
+		if typeof(tp) == "file" or not tp.is_binary then 
+			print("Detected tables/tp. Auto-import passwords?")
+			autoimport = user_input("[Y/n] (q=quit)||: ",0,1)
+			if autoimport.lower == "q" then return
+			if autoimport.lower != "n" then 
+				print("Calling "+colorWhite+"<u>cerebrum -i /root/tables/tp</u>")
+				print command.cerebrum("-i", tp.path)
+				return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds."
+			end if
+			print "cerebrum: bypassin tables..."
 		end if
-		print "cerebrum: bypassin tables..."
 	end if
 	print colorGold+"</b>cerebrum: working..."
 	if DEBUG then print("cerebrum calling: pwgen false "+arg1)
