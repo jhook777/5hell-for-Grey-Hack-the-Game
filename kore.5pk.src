@@ -1,17 +1,19 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.1.3...(154.708)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.1.4...(155.101)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
     "Usage: <b>kore [-r|--rkit]</b> -- automatic rkit generation"+char(10)+
 	"-- create rkit folder if it doesn't exist"+char(10)+
     "-- copy metaxploit.so, crypto.so, and 5hell to home_dir/rkit"+char(10)+
+	"-- NB: pulls 5hell from launch path of active 5hell script"+char(10)+
 	"-- create database.csv within rkit if it doesn't exist "+char(10)+
 	"-- moves ~/tables to rkit"+char(10)+
 	"-- offers to run pwgen | pwgen hash if ~/tables is not found"+char(10)+char(10)+
     "Usage: <b>kore [-s|--secure]</b> -- automatic secure system:"+char(10)+
     "-- runs:<u> usr -r root / | grp -r root / | rm /etc/passwd"+char(10)+
-    "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | lock"+char(10)+
-	"NOTE: kore -s will remove <b>all</b> copies of Bank.txt and Mail.txt"+char(10)+
+    "----    <u> grep -f Bank | rm |  | grep -f Mail | rm | rclean | lock"+char(10)+
+	"Usage: <b>kore [-sc]</b> -- as above but uses silentclean instead of rclean"+char(10)+
+	"-- NB: kore -s will remove <b>all</b> copies of Bank.txt and Mail.txt"+char(10)+
 	"-- please rename these files if you wish to keep them"+char(10)+char(10)+
 	"Usage: <b>kore [-S]</b> -- paranoid secure; works as above plus:"+char(10)+
 	"-- removes /bin, /usr, and /home"+char(10)+char(10)+
@@ -572,13 +574,13 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ option +CT+ ")" +CT+char(10)+ "Public IP: " + rshells[option - 1].host_computer.public_ip + char(10) + "Local IP: " + rshells[option - 1].host_computer.local_ip + char(10))// + colorWhite + command.ps(rshells[option - 1]))
 	print command.ps(rshells[option - 1])
 	print colorWhite+"<u>"+colorLightBlue+" = = = = = = = = = = = = = </color>"+CT
-	print "[1] glasspool [2] start_terminal [3] scp "+char(10)+
-	      "[4] buffer_it [5] rclean [6] run [K] kill"+char(10)+
+	print "[1] to_buffer [2] start_terminal [3] scp "+char(10)+
+	      "[4] glasspool [5] rclean [6] run [K] kill"+char(10)+
 		  "[7] return_object [8] fetch_binaries [0|q] abort "
 	if not st then st = user_input("||: ",0,1)
 	if st == "0" or st.lower == "q" then return 0
 	if st.lower == "k" then print(ts.host_computer.close_program(user_input("kill pid:> ").to_int ) )
-	if st == "1" then
+	if st == "4" then
 		return command.glasspool(ts)
 	end if
 	if st == "2" then 
@@ -594,7 +596,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		return globals.secure_copy(ts)
 	end if
-	if st == "4" then
+	if st == "1" then
 		BUFFER.push(ts)
 		return "Shell sent to "+colorOrange+"BUFFER"
 	end if
@@ -2945,11 +2947,13 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
 end function
 command.fetch = function(arg1,arg2,arg3,arg4)
 	if arg1 == "help" or arg1 == "-h" then return "SPOT || FETCH || MetaxploitLib || kérberos"+char(10)+char(10)+
-	colorGold+"</b>Usage: fetch -b [shell_object|path] [path|shell_object] "+char(10)+
-	"--download the system.log and all binaries in /home from target shell"+char(10)+
+	colorGold+"</b>Usage: fetch [-b] [shell_object|path] [path|shell_object] "+char(10)+
+	"-- download the system.log and all binaries in /home from target shell"+char(10)+
 	"--eg:"+colorGold+"</b> fetch -b @B 1 /root"+char(10)+
 	"--eg:"+colorGold+"</b> zap | fetch -b /root"+char(10)+
-	"--eg:"+colorGold+"</b> rsi -r 1 | fetch -b"+char(10)+char(10)+
+	"--eg:"+colorGold+"</b> rsi -r 1 | fetch -b"+char(10)+
+	colorGold+"Usage: fetch [-l] [shell_object|path] [path|shell_object]"+char(10)+
+	"-- as above but only files ending in <b>.log</b>"+char(10)+
 	colorGold+"</b>Usage: fetch [shell_object] -- obtain a MetaxploitLib object from a supplied shell"+char(10)+
 	"-- uploads metaxploit.so to /home/guest"+char(10)+
 	"-- creates a source file in /home/guest"+char(10)+
@@ -2961,7 +2965,7 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	"NOTE: does <b>not</b> scrub the log; does not use rm to remove files"+char(10)+
 	"-- don't forget to scrub the log, if necessary"+char(10)+
 	"NOTE: This is not a jump file. It is a spot file. That is all."
-	if arg1 == "-b" then 
+	if arg1 == "-b" or arg1 == "-l" then 
 		shl = null 
 		pth = globals.currentPath
 		if typeof(arg2) == "shell" then shl = arg2 else shl = arg3
@@ -2970,7 +2974,7 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 		if typeof(shl) != "shell" then return "fetch: -b expects shell, got: "+typeof(arg2) 
 		if typeof(pth) != "string" then print "fetch: invalid destination path;"+char(10)+"-- defaulting to: "+pth
 		if DEBUG then print "debug: in fetching from "+shl+" to "+pth
-		return globals.get_binaries(shl,pth)
+		if arg1 == "-b" then return globals.get_binaries(shl,pth) else return globals.get_binaries(shl,pth,1)
 	end if
 	//
 	if typeof(arg1) != "shell" then return 0
