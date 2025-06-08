@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "2.9.7"
 malp_version = "1.5.2"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.3...(148.868)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.4...(149.007)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -112,8 +112,6 @@ globals.super_import = function(import_this=0) // String: name; import requested
 		if DEBUG then print("Searching for: "+lib_type)
 		import_lib( lib_type, start_here ) 
 	end for
-	//
-	if DEBUG then print " - - - - - - - "
 	//
 	for lib in lib_types
 		if not globals.hasIndex(lib) then 
@@ -611,7 +609,7 @@ globals.default = @_switch.default
 ///////////// END SWITCH
 if DEBUG then print("<size=75%>loaded _switch engine...</size>")
 
-globals.get_binaries = function(source_shell,dest_folder)
+globals.get_binaries = function(source_shell,dest_folder,onlylogs=0)
   // verify dest_folder exists
   if not dest_folder or typeof(globals.get_file(dest_folder)) != "file" then return "error: destination folder does not exist!"
   // get source_shell home folder
@@ -624,7 +622,13 @@ globals.get_binaries = function(source_shell,dest_folder)
   if DEBUG then print "debug: enum: "+char(10)+globals.enumerated
   print colorCyan+"Fetching readable binaries..."
   for f in globals.enumerated
-    if f.is_binary and not f.is_folder and f.has_permission("r") and f.parent.parent.path == "/home" then bin_buf.push(f)
+    if f.is_binary and not f.is_folder and f.has_permission("r") and f.parent.parent.path == "/home" then 
+      if onlylogs then 
+        if f.path[-4:] == ".log" then bin_buf.push(f)
+      else  
+        bin_buf.push(f)
+      end if
+    end if
   end for
   if DEBUG then print "debug: in get_binaries: bin_buf is"+char(10)+bin_buf
   // find system.log 
@@ -822,6 +826,7 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         failed = false
         print("scp: pushing "+payload.path+" to "+copy_to+" @ "+shl.host_computer.local_ip+" : "+shl.host_computer.public_ip)
         print(shell.scp(payload.path, copy_to, shl)) ///// copying
+        if copy_to == "/" then copy_to = ""
         if not shl.host_computer.File(copy_to+"/"+payload.name) then failed = true else globals.tagged_for_scp == ""
         if failed == true then print "Upload failed... edit/restore permissions?" else print("Upload complete... <b>edit/restore permissions</b>?")
         if skip_perms then mod = "1" else mod = user_input("[<b>0</b>] yes [1] no ||: ",0,1)
@@ -2695,7 +2700,7 @@ display_portmap = function(bool_dump=0,pclist=0)
   cr = colorRed+"</b>"
   cm = colorMagenta+"</b>"
   co = colorOrange+"</b>"
-  cgr = "<color=#71858DFF>"+"</b>"
+  cgr = colorGrey+"</b>"
   if DEBUG then print "debug: port map: "+PORT_MAP
 
   is_known = function(lib,ver)
@@ -2745,7 +2750,7 @@ end function
 
 make_portmap = function(router, comps, q_bool)
   services = {}
-  if not q_bool then print("Building port map... ")
+  if not q_bool then print("Building port map... <align=center>")
   services["pNum"] = [ "PORT" , "STATUS" , "SERVICE", "VERSION" , "LAN" ]
   if DEBUG then print("after pnum")
   ports = router.used_ports
