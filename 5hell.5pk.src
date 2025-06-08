@@ -1,14 +1,14 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.1.3.E_falling_skies"
+ver = "4.1.4.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "151.986"
+size_of_5hell = "152.945"
 
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
@@ -56,7 +56,7 @@ if DEBUG then print("<size=75%>loading dictionary...</size>")
 globals.dict_a = function(import=0)  
 	cobble = get_custom_object
 	if typeof(import) == "list" then cobble.dictionary = import // set a new dicitonary from input: list
-	if not cobble.hasIndex("dictionary") then cobble.dictionary = ["a"] // set default dictionary if it doesn't exist
+	if not cobble.hasIndex("dictionary") then cobble.dictionary = ["a"] else globals.BIGBRAIN = true // set default dictionary if it doesn't exist
 	return cobble.dictionary // return the dictionary in all cases as a list
 end function
 //// UPDATING THE DICTIONARY IS HANDLED BY COMMAND.CEREBRUM //////
@@ -93,6 +93,8 @@ globals.super_import // located in 5phinx.5pk; include_lib latest of: metaxloit,
 //
 // import contrib -- this contains shared functions and commands contributed by the community
 import_code("/root/src/contrib.5pk") // override=contrib.5pk
+globals.dmanager = new DaemonManager
+dmanager.Init
 //
 // end globals
 if DEBUG then print("<size=75%>loaded get_file...")                       
@@ -216,12 +218,8 @@ _clipboard = function( index, arg1, arg2 )
         clip.clp = 0
     end function
     _=function();end function
-    "-- index: "+index+char(10)+
-    "----: "+@CLIP[index]+char(10)+
-    "-- arg1: "+@arg1+char(10)+
-    "-- arg2: "+@arg2
+	// start switch
 	if typeof(@arg1) == "function" then return clip.add
-	if DEBUG then print "debug: starting clipa_switch"+char(10)
     switch(@arg1)
         case("-n", @clip.n)
         case("-z", @clip.z)
@@ -1941,31 +1939,53 @@ if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"
 "Usage: bios -m -- return the currently linked <color=#13E6CA>metaLib object"+char(10)+
 "Usage: bios -x -- return the currently loaded <color=#FF0800>metaxploitLib object"+char(10)+
 "Usage: bios -c -- return the currently loaded <color=#8C00FF>crypto object"+char(10)+
+"Usage: bios -C [cryptoLib|/path] -- replace the currently loaded <color=#64184B>crypto object"+char(10)+
+"-- eg: bios -i /lib/crypto.so | <b>bios -C"+char(10)+
+"-- eg: <b>bios -C /root/crypto.so"+char(10)+
 "Usage: bios -n -- return the currently linked <color=#0011FF>netsession object"+char(10)+
 "Usage: bios -p -- return the currently loaded <color=#69E488>port_map object as a string"+char(10)+
+"Usage: bios -P -- return the currently loaded <color=#00FF40>port_map object as a map"+char(10)+
 "Usage: bios -H -- return the currently linked <color=#E4EE58>herme5 meta.mail object"+char(10)+
 "-- returns null if not logged in to a mail account"+char(10)+
 "Usage: bios -s -- return the currently loaded <color=#8B8568>meta_scan information</color> as a string"+char(10)+
-"Usage: bios -P -- return the currently loaded <color=#00FF40>port_map object as a map"+char(10)+
 "Usage: bios -X -- return the currently loaded <color=#065F0D>XPLOITS as a list"+char(10)+
 "Usage: bios -M -- return the current <color=#FF00C8>MEMORY object or null"+char(10)+
 "Usage: bios -B -- return the global <color=#E68A13>BUFFER as a list"+char(10)+
-"Usage: bios -r [opt: ip] -- return the <b>local<b> <color=#71858D>router object</color> [opt:ip]"+char(10)+
-"Usage: bios -i [path] -- runs <b>include_lib</b> on path and returns result"+char(10)+
+"Usage: bios -r [opt: ip] -- return the <b>local<b> <color=#71858D>router object</color> [opt:ip]"+char(10)+char(10)+
+"<b>Usage: bios -i [/path] -- runs <u></b>include_lib</u><b> on /path and returns result"+char(10)+
 "-- init.so, net.so, kernel_module.so cannot be imported as they lack an API"+char(10)+
-"-- prompts for path if path not supplied"+char(10)+
+"-- prompts for a path if path not supplied"+char(10)+
 "---- e.g.|> bios -i /lib/blockchain.so | malp "+char(10)+
 "---- returns the blockchainLib object and pipes it to malp (to the BUFFER)"+char(10)+
 "---- note: cannot include_lib net.so, init.so, kernel_module.so"+char(10)+
 "------ only libs with API's may use include_lib"+char(10)+
-"------ use meta link to load those with the metaxploitLib"+char(10)+
+"------ use meta link to load those with the metaxploitLib"+char(10)+char(10)+
 "Usage: bios --stack -- return the global stack_pool value (as a string numeral)"+char(10)+
 "-- this value is incremented by one with each use of <B>run</b> (shell.launch)"+char(10)+
 "-- this value is decremented on return from <b>run</b>"+char(10)+
-"-- current stack_pool: <b>"+globals.stack_pool
+"-- current stack_pool: <b>"+globals.stack_pool+char(10)+char(10)+
 "Usage: bios --home -- return the globals.HOME_SERVER list"+char(10)+
 "-- current HOME_SERVER: <size=75%><b>"+globals.HOME_SERVER
 if arg1 == "--stack" then return str(globals.stack_pool)
+if arg1 == "-C" then 
+	ilib = null
+	if typeof(arg2) == "cryptoLib" then 
+		ilib = arg2
+		globals.cryptoLibVersion = "-.-.-"
+	end if
+	if typeof(arg2) == "string" then 
+		lib = globals.get_file(arg2)
+		if typeof(lib) == "file" then ilib = include_lib(lib.path) else return "bios: file not found"
+		if typeof(ilib) == "cryptoLib" then 
+			if metaxploit then globals.cryptoLibVersion = metaxploit.load(lib.path).version else globals.cryptoLibVersion = "-.-.-"
+		else 
+			return "bios: target file is not a cryptoLib"
+		end if
+	end if
+	if typeof(ilib) == "cryptoLib" then globals.crypto = ilib else return "bios: invalid input"
+	print colorGold+"</b>bios: global cryptoLib replaced: "+char(10)+"-- crypto.so v "+globals.cryptoLibVersion
+	return ilib
+end if	
 if arg1 == "-a" then return globals.apt_get 
 if arg1 == "-x" then return globals.metaxploit 
 if arg1 == "-c" then return globals.crypto 
@@ -1993,10 +2013,14 @@ if arg1 == "-i" then
 	end if
 	tf = globals.get_file(arg2)
 	if not tf then return "bios: "+colorRed+"</b>target file not found!"
-	inc = include_lib(arg2)
-	if inc then globals.BUFFER.push(inc)
-	print "bios: sending "+inc+" to "+colorOrange+"BUFFER..."
-	if not inc then return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+colorGreen+"kore: helper:</b> perhaps try<b> meta link -l [libname] </b>instead"+char(10)+"-- if you meant metax.load("+arg2+")" else return inc
+	inc = include_lib(tf.path)
+	if inc then 
+		globals.BUFFER.push(inc)
+		print "bios: sending "+inc+" to "+colorOrange+"BUFFER"+char(10)+"-- returning..."
+		return inc
+	else
+		return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+colorGreen+"kore: helper:</b> perhaps try<b> meta load [libname]"+char(10)+"-- if you meant metax.load("+arg2+")" 
+	end if
 end if
 
 bios_info = []
