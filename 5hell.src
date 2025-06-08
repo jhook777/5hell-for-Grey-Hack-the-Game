@@ -153,7 +153,7 @@ command.shell = function(input=null,mute=null)
     end if
     // flow control, edit with care
     // add or remove comment characters to/from the string below
-    if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#/", input[0]) != null then
+    if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#", input[0]) != null then // had to remove '/' as it was conflicting with things
       if DEBUG then print "debug: shell: skipping comment: "+prompt.join(" ")
       return
     else 
@@ -296,8 +296,8 @@ command.shell = function(input=null,mute=null)
       if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
         if @prompt[1] == "--daemons" then
-          print list_daemons
-          if @prompt[2] == "stop" then print DaemonManager.Stop(prompt[3])
+          print dmanager.List
+          if @prompt[2] == "stop" then print dmanager.Stop(prompt[3])
           continue
         end if
         if @prompt[1] == "--debug" then
@@ -407,18 +407,19 @@ if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 //////////////////END IMPRTS SECTION ////////////////////////////
 //
 //
-//////////////////////////////////// SECURITY GOES HERE //////////////////////
-///// customize this line fully for the most security ////////
-  access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
-  // if you rename access_codes be sure to edit the below line
-  rnac = access_codes.indexes
-  rnac.shuffle
-  rnac = rnac.pop
-  if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
-    wait(300)
-    exit("frag off, chumba")
-  end if
-/////////////////END SECURITY///////////////////
+//////////////////////////////// OPTIONAL SECURITY SECTION //////////////////////
+// ////////////////////////////// YOUR SECURITY GOES HERE //////////////////////
+// ///// customize this line fully (with something more advanced) for the most security ////////
+//   access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
+//   // if you rename access_codes be sure to edit the below line
+//   rnac = access_codes.indexes
+//   rnac.shuffle
+//   rnac = rnac.pop
+//   if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
+//     wait(300)
+//     exit("frag off, chumba")
+//   end if
+// /////////////////END SECURITY///////////////////
 // 
 //
 if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
@@ -470,10 +471,10 @@ if params and params[0] == "do" then
   if params.len > 2 then 
     if params[2] == "-f" then 
       cmd = cmd + " "" " + "do 1 -f " + params[3:].join(" ")
-      print "FROM FILE"
+      if DEBUG then print "FROM FILE"
     else 
       cmd = cmd + " "" " + params[2:].join(" ")
-      print "FROM PARAMS"
+      if DEBUG then print "FROM PARAMS"
     end if
   end if
   print command.quit(command.shell(cmd+" "" | return"))
