@@ -12,7 +12,6 @@
 // expand tree -f to take both path and object as params (jk have to start over) 
 // -- kinda fixed this in the regular tree command...
 // update 5phinx F1 help info: remove or correct outdated info
-// scp falsely reports failure sometimes: track this down
 // absolutely must update the databasing system
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
@@ -22,11 +21,49 @@
 // todo: tree -f has a superior search algo vs regular, ancient tree
 // -- lets bring tree into the [-f]uture
 // todo: consolidate reused code in purge
-// do: doesn't play nice with ||
 //
+// DaemonManager: merged PR from redit0: added DaemonManager.List method
+// -- to use the new method:
+// ----: manager = new DaemonManager
+// ----: manager.Init
+// ----: daemons = manager.List
+// rsi: glasspool option is now option [4] to remain consitent with malp
+// -- the to_buffer option (formerly [4]) is now option [1]
+// 5hell.src: the security section will now be commented out by default
+// -- uncomment and customize if you wish to secure 5hell with a password
+// scpm: fixed bug causing scpm to report failure when it actually succeeded 
+// -- basically if the copy_to path was '/'  then the success check looked for //path, 
+// -- will now properly prevent the extra '/' in the path
+// fetch: get_binaries now has a toggle to return only .log files (chats and system.log)
+// --: fetch -b [shell] -- all binaries, fetch -l [shell] -- only logs
+// cerebrum: will now search for tables/tp throughout the filesystem instead of a static location
+// -- this is mostly because i got annoyed at it not importing /home/guest/rkit/tables like i expected the last change to do
+// -- so now it'll load no matter where it is. rename it if you don't like that
+// 5hell.5pk: will properly set the BIGBRAIN bool 
+// dig: added 'rclean -d @c` to the end of the default dig.bat 
+// -- missing a log scrub line is a bit of a big deal, sorry :|
+// dig: adjustments to dig -s to get it to power through failure
+// -- more therapy needed
+// 5hell.src: changed the FROM PARAMS, FROM FILE lines to debug lines, as they were meant to be
+// portmap: put a blinky in make portmap
+// cob: adjusted return text
+// bios: -i will accept relative paths
+// -- -i will also automatically buffer results
+// bios: added [-C] [cryptoLib|/path] -- replace the global crypto library
+//
+// 5hell.src: moved the color palette from 5hell.5pk to the top of 5hell.src to both make room and make changing default colors easier for the end user
+// -- for example, if your default text color is cyan, and you want the cyan lines to be a different color so they stand out; change the hex value 
+// 5hell.src: will replace || with |  | for the 'input' var as well
+// do: will properly handle using || in do scripts thanks to the above
+// clipboard: fixed crash when using ++/-- on an int stored in the clipboard
+// -- using ++/-- will now recast the value as a string after increasing/decreasing
+// -- this is to fix crashes in other commands that expect string, not integer, input, as well
+// -- pipe to string -n and then to another function/command if you really, really need an int 
+// shuffled some other commands around the .5pks to make room and to improve consistency between .5pk contents
 //
 // cob: added ability to 'cob inspect' a map within the custom object (currently only one layer deep)
 // --eg: cob set mac {} || cob set mac.lmore " tags " || cob inspect mac 
+// cob: inspect will now show a small amount of the contents of stored maps
 // macro: fixed issue causing the wrong part of the string to be highlited when a selfcall is possible
 // sphinx: you may now launch 5phinx without metaxploit or crypto present
 // -- scanning won't work, but you can still launch it and use probe, idk
