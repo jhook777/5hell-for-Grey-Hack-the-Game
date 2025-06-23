@@ -1,7 +1,7 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.1.4.E_falling_skies"
+ver = "4.1.4.1.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
@@ -87,11 +87,18 @@ globals.last_whois = ""
 // import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/5phinx.5pk") // override=5phinx.5pk
-
+//
+// set globals.metaxploit, globals.crypto, globals.apt_get 
 globals.super_import // located in 5phinx.5pk; include_lib latest of: metaxloit, crypto, aptclient
-// -- sets globals.metaxploit, globals.crypto, globals.apt_get 
+//
+// Do not remove the comment in the next line, it is necessary for Greybel support
+import_code("/root/src/kore.5pk") // override=kore.5pk
+//
+// Do not remove the comment in the next line, it is necessary for Greybel support
+import_code("/root/src/dtools.5pk") // override=dtools.5pk
 //
 // import contrib -- this contains shared functions and commands contributed by the community
+// Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/contrib.5pk") // override=contrib.5pk
 globals.dmanager = new DaemonManager
 dmanager.Init
@@ -1016,8 +1023,6 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 	if no_parse then print file.get_content.noparse else return file.get_content
 	return 0
 end function
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/dtools.5pk") // override=dtools.5pk
 command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("debug: arg1: "+arg1+ " :end arg1")
 	if not @arg1 then return "run: usage: run [path] [opt:params|shell] [opt:shell]"
@@ -1476,8 +1481,6 @@ command.fwr = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print "debug: router is a: "+typeof(router)
 	return router.firewall_rules
 end function
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/kore.5pk") // override=kore.5pk
 command.memdump = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "memdump: dump MEMORY, XPLOITS, PORT_MAP, clipboards,  to current_path+/memdump.mx"+char(10)+"n.b. ignores glasspool. main purpose is generating reports for clients."
 	return globals.dump_memory
