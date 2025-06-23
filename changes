@@ -22,6 +22,11 @@
 // -- lets bring tree into the [-f]uture
 // todo: consolidate reused code in purge
 //
+// DaemonManager: added hack to move 5hell.d to move 5hell.d to rkit on initialization, if rkit exists
+// hotfix: DaemonManager will load 5hell.d to rkit, if present, on initialization instead of /root
+// -- it will load to /root if rkit is not present
+// -- launching 5hell after adding this update will automatically move 5hell.d to rkit if both are present
+//
 // DaemonManager: merged PR from redit0: added DaemonManager.List method
 // -- to use the new method:
 // ----: manager = new DaemonManager
