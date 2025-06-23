@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.4...(132.707kb)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.4.1...(132.921kb)</size>)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -2756,7 +2756,8 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
   DaemonManager = {
     "__comp": globals.localmachine,
     "__file": null,
-    "__filePath": "/root/5hell.d",
+    //"__filePath": "/root/5hell.d",
+    "__filePath": globals.currentPath+"/5hell.d",
     "__initialized": 0,
     "__type": {
       "hashim": "hashim",
@@ -2813,13 +2814,17 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
   DaemonManager.Init = function
     file = self.__comp.File(self.__filePath)
     if not file then
-      self.__comp.touch("/root", "5hell.d")
+      //self.__comp.touch("/root", "5hell.d")
+      self.__comp.touch(currentPath,"5hell.d")
       file = self.__comp.File(self.__filePath)
       if not file then
         print("Error: could not create 5hell.d." )
         return
       end if
     end if
+    // temp hack
+    kit = command.tree("/","rkit","1","N")
+    if kit then file.move(kit.path,file.name)
     self.__file = file
     self.__initialized = 1
   end function
