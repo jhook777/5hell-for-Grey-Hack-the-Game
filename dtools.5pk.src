@@ -1801,7 +1801,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 				if HOME_SERVER[3] == "password" then r_pas = user_input("@home_server_password (leave blank to abort)"+char(10)+":> ", 1) else r_pas = HOME_SERVER[3]
 				//end if
 				if r_pas.trim == "" then return("aborting...")
-				r_r = shell.connect_service(r_ip, r_p, HOME_SERVER[1], r_pas)
+				r_r = shell.connect_service(r_ip, r_p, HOME_SERVER[2], r_pas)
 				if r_r and typeof(r_r) == "shell" then
 					infile = r_r.host_computer.File(globals.HOME_SERVER[6])
 					if not infile then return (colorRed+"cerebrum: /root/rkit/tables/tp not found"+"cerebrum: home_dir/rkit/tables/tp not found"+char(10)+"-- run pwgen to create the tables"+CT)
