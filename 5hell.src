@@ -34,7 +34,7 @@
 // option get_custom_object == load 5hell to custom object. EXPERIMENTAL!!!
 // choose one below:
 command = {} // default
-//command = get_custom_object // experimental, use with cobble.5pk for best results.
+//command = get_custom_object // experimental, use with caution
 //
 //////////END MAP OPTION//////////////////
 //
@@ -54,18 +54,27 @@ globals.HOME_SERVER = ["ip.add.rr.ess", 22, "root", "password", "ssh", "/root/pa
 //
 // DEFINE COLOR PALETTE //
 // edit these if the current color conflicts with your theme
+// definition  =  <#color_code><opt:b>
 colorRed = "<color=#FF0000FF><b>"
-colorGreen = "<color=#00FF00FF><b>"
-colorOlive = "<color=#048004FF><b>"
-colorWhite = "<color=#FFFFFFFF><b>"
 colorCyan = "<color=#00FFFFFF><b>"
 colorGold = "<color=#CCCC00FF><b>"
 colorGrey = "<color=#71858DFF><b>"
+colorGreen = "<color=#00FF00FF><b>"
+colorOlive = "<color=#048004FF><b>"
+colorWhite = "<color=#FFFFFFFF><b>"
 colorBlack = "<color=#000000FF><b>"
 colorOrange = "<color=#FF8400FF><b>"
 colorViolet = "<color=#8821FDFF><b>"
 colorMagenta = "<color=#FF00C8FF><b>"
 colorLightBlue = "<color=#2382FFFF><b>"
+// default color for standard print override, adjust to your theme
+// use "" for your default terminal color
+colorDefault = colorGreen+"</b>"
+colorError = colorRed // not yet implemented
+colorWarning = colorOrange // not yet implemented
+color5phinxText = "<color=#FFFFFFFF><b>"
+color5phinxElement = "<color=#71858DFF><b>"
+color5phinxButton = "<color=#00FFFFFF><b>"
 CT = "</color></b>"
 /////////// IMPRT LINE /////////
 //////////// change the below lines to the path where you placed 5hell.5pk //////
@@ -295,6 +304,11 @@ command.shell = function(input=null,mute=null)
 
       if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
+        if @prompt[1] == "--this" then 
+          globals.BUFFER.push(globals.shell)
+          print "shell: "+colorWhite+"</b>active shell pushed to "+colorOrange+"</b>BUFFER"
+          continue 
+        end if
         if @prompt[1] == "--daemons" then
           print dmanager.List
           if @prompt[2] == "stop" then print dmanager.Stop(prompt[3])
@@ -325,9 +339,10 @@ command.shell = function(input=null,mute=null)
         if globals.GLASSPOOL then state = ""
         gp = " " + state + "active "
         print(colorOlive+"["+colorLightBlue+"GLASSPOOL  "+CT+":"+colorOrange+gp+CT+"]")
+        print("<size=65%>--: use<b> shell --this </b> to push the current shell to the BUFFER")
         print("<size=65%>--: use<b> shell --home [ip]</b> to change home_server")
         print("<size=65%>--: use<b> shell --daemons</b> to view active daemons")
-        print("<size=65%>--: use <b>shell --daemons stop [daemon_id]</b> to stop a daemon")
+        print("<size=65%>--: use<b> shell --daemons stop [daemon_id]</b> to stop a daemon")
         print("<size=65%>--: use<b> shell --debug</b> to toggle debug mode")
         continue 
       end if
