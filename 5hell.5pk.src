@@ -1,7 +1,8 @@
 // 5hell v 4.0.0 by Plu70
 // released v 4.0.0
 // imports .5pk files from /root/src
-ver = "4.1.4.1.E_falling_skies"
+// globals
+ver = "4.1.5.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
@@ -9,7 +10,7 @@ if params and params.indexOf("--debug") >= 0 then
 	params.remove(params.indexOf("--debug"))
 end if
 size_of_5hell = "152.945"
-
+globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
 if globals.hasIndex("get_abs_path") then EXPERIMENTAL = true
@@ -30,7 +31,6 @@ end function
 if DEBUG then print("<size=75%>registering macros...")
 if not get_custom_object.hasIndex("macros") then get_custom_object.macros = {}
 //
-// globals
 globals.BIGBRAIN = false
 globals.GLASSPOOL = 0
 globals.command_buffer = []
@@ -876,13 +876,16 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		if arg2 == "all" then 
 			print "perms: setting all to o+rwx"
 			command.perms("-R", "o+rwx", "/") 
-			_ = globals.get_file("/")
+			//_ = globals.get_file("/")
+			return localmachine.File("/")
 		else 
 			ulf = globals.get_file(arg2)
 			if typeof(ulf) == "file" then 
 				print "perms: unlocking: "+ulf.path
 				command.perms("-R","o+rwx",ulf.path)
 				return ulf
+			else 
+				return "perms: "+arg2+" not found"
 			end if
 		end if
 	end if
@@ -904,7 +907,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 				if process_CMD == "Xorg" then  home = true
 			end for
 
-			if home != null and arg2 != "down" then
+			if home == true then
 				print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- setting critical binaries to <b>g+x</b>...")
 				command.perms("g+x","/bin/sudo")
 				command.perms("g+x","/bin/psudo")
@@ -916,31 +919,29 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 				command.perms("-R","g+x","/etc/init.d")
 				print("<size=75%>perms: rerun with <b>perms lock down</b> to force full lockdown")
 			end if
-			if arg2 == "partial" then command.perms("-R","g+x", "/")
+			//
 			return colorCyan+"</b><size=75%>perms: lockdown complete"
-		else 
-			lf = globals.get_file(arg2)
-			if typeof(lf) == "file" then
-				print "perms: locking: <u><b>"+lf.path
-				command.perms("-R", "o-rwx", lf.path)
-				command.perms("-R", "g-rwx", lf.path)
-				command.perms("-R", "u-rwx", lf.path)
-				fc = colorLightBlue 
-				if lf.is_binary then 
-					if not lf.is_folder then fc = colorCyan
-				else 
-					fc = colorWhite 
-				end if
-				return lf
-			else
-				return "perms: "+arg2+" not found"
-			end if
+		end if
+		if arg2 == "partial" then 
+			command.perms("-R","g+x", "/")
+			return "perms: partial lockdown complete"
+		end if
+		if arg2 == "down" then arg2 = "/"
+		lf = globals.get_file(arg2)
+		if typeof(lf) == "file" then
+			print "perms: locking: <u><b>"+lf.path
+			command.perms("-R", "o-rwx", lf.path)
+			command.perms("-R", "g-rwx", lf.path)
+			command.perms("-R", "u-rwx", lf.path)
+			return lf
+		else
+			return "perms: "+arg2+" not found"
 		end if
 	end if
 	perms = arg1
 	pathFile = arg2
 	isRecursive = 0
-	if arg1 == "-R" or arg1 == "-r" then
+	if arg1.lower == "-r" then
 		perms = arg2
 		if arg3 and typeof(arg3) == "string" or typeof(arg3) == "file" then pathFile = arg3 else return "perms: invalid path"
 		isRecursive = 1
@@ -1059,6 +1060,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg1) == "string" then 
 			globals.stack_pool("up")
 			print rr
+			print colorWhite+"</b>-- on target shell"
 			cc = arg2.launch(arg1, parameters)
 			globals.stack_pool("down")
 			_cascade // exit if cascade
@@ -1067,6 +1069,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(@arg1) == "file" then 
 			globals.stack_pool("up")
 			print rr
+			print colorWhite+"</b>-- on target shell"
 			cc = arg2.launch(arg1.path, parameters)			
 			globals.stack_pool("down")
 			_cascade // exit if cascade
@@ -1083,11 +1086,13 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
 		globals.stack_pool("up")
 		print rr
+		print colorWhite+"</b>-- on target shell"
 		cc = arg3.launch(run_path, parameters)
 		globals.stack_pool("down")
 		_cascade // exit if cascade
 		return cc
 	end if
+	if arg2 == "ssh: failed" or arg3 == "ssh: failed" then return "run: input shell is not a shell, received:"+char(10)+"ssh: aborting..."
 	file = arg1
 	if typeof(file) != "file" then file = globals.get_file(arg1)
 	if not file then return "run: "+arg1+" not found."
@@ -1098,6 +1103,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	globals.stack_pool("up")
 	print rr
+	if GLASSPOOL then print "-- via "+colorLightBLue+"<size=75%>GLASSPOOL"
 	cc = shell.launch(file.path, parameters)
 	globals.stack_pool("down")
 	_cascade // exit if cascade
@@ -2063,15 +2069,17 @@ if hdd_io then
 	h_s = h_c[0].split(":")
 	h_n = 0
 	if h_s.len > 1 then h_n = h_s[1].val
-	if h_n then h_size = h_n - root.size.val else h_size = "<color=red>dev_sda error</color>"
+	if h_n then h_size = h_n - root.size.val
 end if
-if globals.stack_pool >= 15 then stack_print = "depleted; restart required" else stack_print = globals.stack_pool
+if globals.stack_pool >= 15 then stack_print = "depleted; further nested launches not possible" else stack_print = globals.stack_pool
 bios_info.push("<mark=red><size=85%>|</size></mark>")
 bios_info.push("<size=85%>Macula Registry: [stack_pool:"+colorRed+stack_print+CT+"] </size>")
 bios_info.push("<size=85%>root_procs [<b>"+root_procs+"</b>] user_procs [<b>"+user_procs+"</b>]  guest_procs [<b>"+guest_procs+"</b>] t:<b> "+(procs.len-1)+"</b></size>")
 bios_info.push("<size=85%>cpu_usage: ["+cpu_used+"%] mem_usage: ["+mem_used+"%] temp: <color=red>therm_io not found</color></size>")
 bios_info.push("<size=85%>[cpu:<mark=green>|"+"|"*(cpu_used/4)+"</mark>"+"_"*((100-cpu_used)/4)+"]   [ram:<mark=green>"+"|"*(mem_used/4+1)+"</mark>"+"_"*((100-mem_used)/4)+"]</size>")
-bios_info.push("<size=85%>[hdd_used: <b>"+root.size+" </b>bytes]  [hdd_free: "+h_size+" bytes]</size>")
+hdd=(root.size.val / 1000000)
+if typeof(h_size) == "number" then h_size = h_size / 1000000
+bios_info.push("<size=85%>[hdd_used: <b>"+str(hdd)+" </b>MB]  [hdd_free: "+h_size+" MB]</size>")
 allfiles = command.tree("-r","/")
 folds = 0
 bins = 0
@@ -2087,7 +2095,7 @@ for f in allfiles
 	end if
 end for
 tot = folds + bins + txts
-bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] tot: ["+tot+"]</size>")
+bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] total: ["+tot+"]</size>")
 ess = "-wifi disabled-"
 if localmachine.active_net_card == "WIFI" then
 	sig = 0
@@ -2155,44 +2163,45 @@ bios_info.push("<size=85%>[portmap:"+globals.PORT_MAP.len+"] [xploits: "+globals
 bios_info.push("<size=85%>[dict_a:"+colorGold+globals.dict_a.len+CT+"]  [dict_size: "+dict_a.join(", ").len+"]</size>")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
 score = 10
+co = colorOrange
 pwf = command.tree("/etc","passwd",1,"N")
 if pwf then 
-	pwf = pwf.permissions 
+	pwf = co + pwf.permissions 
 	score = score - 1
 else 
 	pwf = "--null--"
 end if
 bff = command.tree("/","Bank.txt",1,"N")
 if bff then
-	bff = bff.parent.path 
+	bff = co + bff.parent.path 
 	score = score - 1
 else 
 	bff = "--null--"
 end if
 mtf = command.tree("/","Mail.txt",1,"N")
 if mtf then 
-	mtf = mtf.parent.path 
+	mtf = co + mtf.parent.path 
 	score = score - 1
 else 
 	mtf = "--null--"
 end if
 mcf = command.tree("/","Map.conf",1,"N")
 if mcf then 
-	mcf = mcf.parent.path 
+	mcf = co + mcf.parent.path 
 	score = score - 1
 else 
 	mcf = "--null--"
 end if
 bcf = command.tree("/","Browser.txt",1,"N")
 if bcf then 
-	bcf = bcf.parent.path 
+	bcf = co + bcf.parent.path 
 	score = score - 1
 else 
 	bcf = "--null--"
 end if
 clf = command.tree("/","ConfigLan.conf",1,"N")
 if clf then 
-	clf = clf.parent.path 
+	clf = co + clf.parent.path 
 	score = score - 1
 else 
 	clf = "--null--"
@@ -2278,7 +2287,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, bakeneko, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, bakeneko, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, CyanMatter, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -2715,7 +2724,8 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	buf = []
 	count = 0
 	for i in range(0,rows)
-		buf.push("<color=#FFFFFFFF><b>"+index[count:count+columns].join(" "))
+		//buf.push("<color=#FFFFFFFF><b>"+index[count:count+columns].join(" "))
+		buf.push(colorWhite+index[count:count+columns].join(" "))
 		count = count + columns
 	end for
 	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
