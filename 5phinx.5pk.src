@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.7"
+sphinx_version = "2.9.8"
 malp_version = "1.5.2"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.4...(149.007)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.5...(149.007)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -16,12 +16,56 @@ update_path = function()
   print "<size=75%>Updating current path to: "+globals.currentPath
   return 0
 end function
-
+//
+// overrides
 _exit = @exit
 globals.exit = function(msg=0)
   get_custom_object.return_value = msg
   _exit(msg)
 end function
+//
+_print = @print
+globals.print = function(msg, mode=0, color=0) 
+// -- mode: 0=default, 1=clear_screen, 2=dont_print
+// -- color: 0;default, 1;error, 2;warning, otherwise supply a color code
+  // --colors defined in 5hell.src 
+  // --override at runtime with kore --override [colorDefinition] [new_colorCode]
+  // ----eg: kore --override colorDefault <#FFFFFF>
+  // --or place the line(s) in do.rc 
+  if color == 0 then color = colorDefault
+  if color == 1 then color = colorError
+  if color == 2 then color = colorWarn
+  // --otherwise supply a color code for color
+  if mode == 0 then mode = globals.SILENT
+  if typeof(@msg) == "string" then 
+   msg = wrap_text(msg,color)
+  else 
+    msg = color+msg+CT
+  end if 
+  if mode < 2 then _print( msg, mode )
+  return null
+end function
+//
+_user_input = @user_input 
+globals.user_input = function(prompt="",ispass=0,anykey=0,log=0)
+  if typeof(@prompt) == "string" then 
+    prompt = wrap_text(prompt,colorDefault)
+  else 
+    prompt = colorDefault+prompt+CT
+  end if
+  if EXPERIMENTAL then return _user_input(prompt,ispass,anykey,log)  else return _user_input(prompt,ispass,anykey)
+end function
+
+wrap_text = function(msg,clr)
+  msg = msg.split(char(10))
+  mc = []
+  for m in msg
+    mc.push(clr+m)
+  end for
+  return mc.join(char(10))
+end function
+// end overrides
+//
 globals._cascade = function()
   if get_custom_object.hasIndex("return_value") and get_custom_object.return_value == "#!#CASCADE#!#" then exit "#!#CASCADE#!#" else return 0
 end function
@@ -30,6 +74,7 @@ Kérberos = function( sl )
   if typeof(@sl) == "function" then print colorRed+"</b>Kérberos: prevented rogue function execution" else return @sl 
 end function
 
+// no longer used, use the daemon manager instead
 list_daemons = function()
   dl = command.grep("-f","^5hell.d$","/")
   if typeof(dl) == "file" then 
@@ -555,7 +600,7 @@ p_validate = function( object, query )
   end if
 end function 
 
-// not exactly useful if it only tages on arg
+// not exactly useful if it only takes one arg
 globals.fexecute = function(function_ref,args)
   print "fexecute: <mark=yellow># <color=white>#</color> executing # <color=white>#</color> </mark>"
   if typeof(@funciton_ref) == "function" then 
@@ -1123,15 +1168,14 @@ end function
 
 ////////////// BEGIN_MEMORY_ALPHA //////////////////////////////
 globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
+  banner = colorRed + "5phinx"+char(8482)+colorWhite+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"+char(10)+colorGold+"//////////////////////////////////////////////"
   buffered_filesys = null
   viewing = true
-  print(colorWhite + "5phinx"+char(8482)+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"  + CT )
-  print("<b>//////////////////////////////////////////////</b>")
+  print banner
   if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
   print
   while viewing
-    print(colorWhite + "5phinx"+char(8482)+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"  + CT )
-    print("<b>/////////////////////////////////////////////</b>")
+    print banner
     if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
     print
     print
@@ -1147,18 +1191,17 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
       if globals.net_session then netdump
     end if
     if MEMORY or XPLOITS.len or PORT_MAP then print(colorLightBlue+"[3] Dump Memory "+CT)
-    print(colorLightBlue+"[4] File manager. ")
+    print(colorLightBlue+"[4] File manager")
     if BUFFER.len > 0 then print(colorOrange+"</b>+[5] [Storing: "+BUFFER.len+" buffer objects]"+CT)
-    print("[6] Air [/] cBios [-] RSI [.] dBase" )
-    print("[7] Go Back   [8] Procs   [9] Kill  ")
+    print(colorGold+"</b>[6] Air [/] cBios [-] RSI [.] dBase" )
+    print(colorGold+"</b>[7] Go Back   [8] Procs   [9] Kill  ")
     if DEBUG then print("prompt ready: ")
     if @go_to_buffer then
       waitFor = "5"
     else 
-      waitFor = user_input("(q=quit)||: ",0,1)
+      waitFor = user_input(colorGold+"(q=quit)||: ",0,1)
     end if
-    print(colorWhite + "5phinx"+char(8482)+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"  + CT )
-    print("<b>/////////////////////////////////////////////</b>")
+    print banner
     if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
     print
     if waitFor == "." then
@@ -2947,7 +2990,8 @@ get_lib = function(waitFor=0,this_lib=null)
         print(colorGold+"</b>["+colorWhite+i+CT+"] " + l.name)
         i = i + 1
       end for
-      selection = user_input(colorGold+"load_lib:"+colorWhite+" select a lib.so to load: "+CT).val
+      selection = user_input(colorGold+"load_lib:"+colorWhite+" </b>select a lib.so to load: "+char(10)+"(q=quit):> ").to_int
+      if selection == "q" then return "aborting..."
       if selection >= 0 and selection < i then
         return load_lib(lib_list[selection].path)
       else
@@ -3402,6 +3446,9 @@ main = function()
   first_run = true
   running = true
   count = 0
+  EL = color5phinxElement
+  TX = color5phinxText
+  BT = color5phinxButton
   while running
     if targetPort == 0 or targetPort == "0" then targetPort = "router"
     count = count + 1
@@ -3420,8 +3467,8 @@ main = function()
     end if
     target_type = "local"
     print
-    print(colorWhite+"5phinx"+char(8482)+" v "+sphinx_version+", by Plu70 :: localhost: "+localmachine.local_ip+CT)
-    print("<b>/////////////////////////////////////////////</b>")
+    print(colorRed+"5phinx"+char(8482)+colorWhite+"<size=90%></b> v "+sphinx_version+", by Plu70 :: localhost: "+localmachine.local_ip+CT)
+    print(EL+"<b>/////////////////////////////////////////////")
     if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
       target_type = "local"
     end if
@@ -3432,7 +3479,7 @@ main = function()
         if targetPort == 8080 then target_type = "http"
       else
         PI = portInfo.split(" ")
-        target_type = ""
+        target_type = "___Set_Port_with_[5]___"
         if typeof(PI[0]) == "string" and portInfo != "" and portInfo != "???" then
           target_type = "computer"
         end if
@@ -3444,96 +3491,67 @@ main = function()
         if PI[0] == "smtp" then target_type = "mail"
         if PI[0] == "smartappliance" then target_type = "appliance"
       end if
-      if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
-        target_type = "local"
-      end if
-      if target_type == "camera" then
-                          print("Target:________CAMERA_________Port Map: <b>Loaded</b>")
-      else
-        if target_type == "computer" then
-                          print("Target:_______SERVER__________Port Map: <b>Loaded</b>")
-        else
-          if target_type == "router" then
-                          print("Target:________ROUTER_________Port Map: <b>Loaded</b>")
-          else
-            if target_type == "http" then
-                          print("Target:_______WEB_SERVER______Port Map: <b>Loaded</b>")
-            else
-              if target_type == "local" then
-                          print("Target:________LOCAL__________Port Map: <b>Loaded</b>")
-              else
-                if target_type == "ssh" then
-                          print("Target:_______SSH_SERVER______Port Map: <b>Loaded</b>")
-                else 
-                  if target_type == "rshell" then 
-                          print("Target:_____RSHELL_SERVER_____Port Map: <b>Loaded</b>")
-                  else 
-                    if target_type == "sql" then 
-                          print("Target:_______SQL_SERVER______Port Map: <b>Loaded</b>")
-                    else 
-                      if target_type == "mail" then 
-                          print("Target:______MAIL_SERVER______Port Map: <b>Loaded</b>")
-                      else
-                        if target_type == "appliance" then 
-                          print("Target:_________DEVICE________Port Map: <b>Loaded</b>")
-                        else 
-                          print("Target:___Set_Port_with_[5]___Port Map: <b>Loaded</b>")
-                        end if
-                      end if
-                    end if
-                  end if
-                end if
-              end if
-            end if
-          end if
-        end if
-      end if
-    else
+      if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then target_type = "local"
+
+      if target_type == "camera" then   target_type = EL+"________"+TX+"CAMERA"+CT+"_________"+CT
+      if target_type == "computer" then target_type = EL+"________"+TX+"SERVER"+CT+"_________"+CT
+      if target_type == "router" then   target_type = EL+"________"+TX+"ROUTER"+CT+"_________"+CT
+      if target_type == "http" then     target_type = EL+"______"+TX+"WEB_SERVER"+CT+"_______"+CT
+      if target_type == "local" then    target_type = EL+"________"+TX+"LOCAL"+CT+"__________"+CT
+      if target_type == "ssh" then      target_type = EL+"______"+TX+"SSH_SERVER"+CT+"_______"+CT
+      if target_type == "rshell" then   target_type = EL+"_____"+TX+"RSHELL_SERVER"+CT+"_____"+CT
+      if target_type == "sql" then      target_type = EL+"______"+TX+"SQL_SERVER"+CT+"_______"+CT
+      if target_type == "mail" then     target_type = EL+"______"+TX+"MAIL_SERVER"+CT+"______"+CT
+      if target_type == "appliance" then target_type =EL+"________"+TX+"DEVICE"+CT+"_________"+CT
+                          
+      print(TX+"Target:"+EL+target_type+CT+"Port Map:"+colorGreen+" Loaded")
+    else             
       if targetIP then
-        print("Target:___Map_with_[0]____Port Map:"+colorOrange+" Not</b> Loaded</color>")
+        print(EL+"Target:___"+TX+"Map_with_[0]"+CT+"____"+TX+"Port Map:"+colorWarning+" not Loaded")
       else
-        print("Target:__Set_IP_with_[4]__Port Map:"+colorOrange+" Not</b> Loaded</color>")
+        print(EL+"Target:__"+TX+"Set_IP_with_[4]"+CT+"__"+TX+"Port Map:"+colorWarning+" not Loaded")
       end if
     end if
-    print(format_columns("[ " + targetIP + " ] [ " + targetPort + " ]"))
+
+    //print(EL+format_columns("[ "+ TX + targetIP + CT + " ] [ " + TX + targetPort + CT +" ]"))
     if portInfo then
-      print(format_columns("[ " + tarLan +   " ] [ " + portInfo +    " ]" ))
+      print(format_columns( EL + "[ "+ TX + targetIP + CT + " ] [ " + TX + targetPort + CT +" ]"+ char(10)+EL+"[ "+ TX + tarLan + CT +  " ] [ " + TX + portInfo.replace(" ","_") + CT+ " ]" ))
     end if
     if metaLib then
-      print(format_columns("["+colorGreen+"MetaLib: loaded"+CT+" [" + NUM_SPLOITS + "] Exploits Found]"))
-      print(format_columns("[MetaLib: <b>"+metaLib.lib_name + " v " + metaLib.version+"</b>]"))
+      print(EL+format_columns("["+TX+"MetaLib: "+CT+colorGreen+"loaded"+CT+" [" +colorGreen+ NUM_SPLOITS +CT+ "] "+TX+"Exploits Found"+CT+"]"))
+      print(EL+format_columns("["+TX+"MetaLib: "+CT+colorGreen+metaLib.lib_name + " v " + metaLib.version+CT+"]"))
     else
-      print("[MetaLib: "+colorOrange+"not loaded</b></color>] press [=] or [+] to link")
+      print(EL+"["+TX+"MetaLib: "+colorWarning+"not loaded"+CT+CT+"] "+TX+"press "+CT+"["+BT+"="+CT+"]"+TX+" or "+CT+"["+BT+"+"+CT+"]"+TX+" to link")
     end if
     if alert then
-      print(colorRed + "[/var/system.log: I/O detected " + logSize + "  bytes]\n Alert! /var/system.log !")
+      print(colorError + "[/var/system.log: I/O detected " + logSize + "  bytes]"+char(10)+colorError+"-- Alert! /var/system.log size has changed!")
     else
-      print("[Log I/O: " + logSize + " bytes]")
+      print(EL+"["+TX+"Log I/O: " + logSize + " bytes"+CT+"]")
     end if
     print
-    print "[<b>F1</b>] for <b>help"
+    print EL+"["+BT+"F1"+CT+"]"+TX+" for <b>help"
     if globals.HERMES == true then
-      print("000"+mail_widget(count))
+      print(EL+"000"+mail_widget(count))
     else     
-      print("000102030405060708090<b>.")
+      print(EL+"000102030405060708090<b>.")
     end if
     if targetIP then
-      print("0["+colorWhite+"0</color></b>]...."+colorWhite+"P</color>ROBE</b>.....09<b>.")
-      print("00["+colorWhite+"1</color></b>]..."+colorWhite+"S</color>CAN</b>..070809<b>.")
+      print(EL+"0["+BT+"0"+CT+"]...."+BT+"P"+CT+TX+"ROBE"+CT+".....09<b>.")
+      print(EL+"00["+BT+"1"+CT+"]..."+BT+"S"+CT+TX+"CAN"+CT+"..070809<b>.")
     else
-      print("000102030405060708090<b>.")
-      print("000102030405060708090<b>.")
+      print(EL+"000102030405060708090<b>.")
+      print(EL+"000102030405060708090<b>.")
     end if
     if targetIP and targetPort then
-      print("000.["+colorWhite+"2</color></b>]."+colorWhite+"R</color>OIL</b>....0809<b>.")
-      print("000..["+colorWhite+"3</color></b>]"+colorWhite+"D</color>BASER</b>...809<b>.")
+      print(EL+"000.["+BT+"2"+CT+"]."+BT+"R"+CT+TX+"OIL"+CT+"....0809<b>.")
+      print(EL+"000..["+BT+"3"+CT+"]"+BT+"D"+CT+TX+"BASER"+CT+"...809<b>.")
     else
-      print("001 SET IP WITH [<color=white>4</color>] 0<b>.")
-      print("000 SET PT WITH [<color=white>5</color>] 0<b>.")
+      print(EL+"001"+TX+" SET IP WITH "+CT+"["+BT+"4"+CT+"] 0<b>.")
+      print(EL+"000"+TX+" SET PT WITH "+CT+"["+BT+"5"+CT+"] 0<b>.")
     end if
-    print("["+colorWhite+"."+CT+"]DIG.["+colorWhite+"4"+CT+"]<b>IP</b>.["+colorWhite+"5</b></color>]<b>PORT</b>.")
-    print("[Q][A][Z]["+char(177)+"].6<b>v</b>7<b><</b>8<b>></b>9<b>^</b>.")
-    option = user_input("[0][1][2][3][4][5].<b>||: ",0,1)
+    print(EL+"["+BT+"."+CT+"]DIG.["+BT+"4"+CT+"]<b>IP</b>.["+BT+"5"+CT+"]<b>PORT</b>.")
+    print(EL+"["+BT+"Q"+CT+"]["+BT+"A"+CT+"]["+BT+"Z"+CT+"]["+BT+char(177)+CT+"].6"+BT+"v"+CT+"7"+BT+"<"+CT+"8"+BT+">"+CT+"9"+BT+"^"+CT+".")
+    option = user_input(EL+"[0][1][2][3][4][5]<b>||: ",0,1)
     running = sphinx_switch(option,target_type)
   end while
 end function
