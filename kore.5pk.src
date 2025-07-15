@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.1.4...(155.101)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.1.5...(157.114)</size>")
 command.kore = function(arg1,arg2,arg3,arg4)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -20,6 +20,14 @@ command.kore = function(arg1,arg2,arg3,arg4)
     "Usage: <b>kore [--hdd]</b> -- prompts for hdd size in bytes"+char(10)+
     "-- writes size to /virt/hdd.io"+char(10)+
     "-- bios uses this to report remaining hdd space"+char(10)+char(10)+
+	"Usage: kore --override [colorDefinition] [new_colorcode]"+char(10)+
+	"-- override a default color code at runtime"+char(10)+
+	"---- use with caution"+char(10)+
+	"-- place in your <b>do.rc</b> for custom themes without recompiling"+char(10)+
+	"-- see 5hell.src for valid colorDefinitions"+char(10)+
+	"-- you may also hard code these overrides in 5hell.src"+char(10)+char(10)+
+	"Usage: kore --silent -- toggle silent_print mode on and off"+char(10)+
+	"-- place at the top and bottom of your do.rc to suppress startup output"+char(10)+char(10)+
 	"NOTE: kore once had more functionality and will once again soon"
     if arg1 == "help" or arg1 == "-h" then return kore_usage_info
     
@@ -98,6 +106,8 @@ command.kore = function(arg1,arg2,arg3,arg4)
         c = null
 		c = command.grp("-r","root","/")
 		if c then print "<size=75%>"+c
+		print "<size=75%>kore: removing /lib/kernel_module.so"
+		print "<size=75%>"+ command.rm("/lib/kernel_module.so")
 		print "<size=75%>kore: removing /etc/passwd..." 
 		print "<size=75%>"+ command.rm("/etc/passwd")
 		print "<size=75%>kore: removing *Bank.txt..."
@@ -148,6 +158,19 @@ command.kore = function(arg1,arg2,arg3,arg4)
         print command.poke("/virt/hdd.io", "dev_sda:"+size_of_disk)
         return 0
     end function
+
+	override_color = function() 
+		if typeof(arg2) == "string" and typeof(arg3) == "string" then 
+			if arg2.indexOf("color") != null and globals.hasIndex(arg2) then globals[arg2] = arg3 else return "kore: invalid color; override aborted\n-- see 5hell.src for valid colors"
+			return colorGold+"</b>kore: color override complete for:"+char(10)+"-- "+arg3+arg2
+		end if
+		return "kore: invalid input"
+	end function
+
+	silent_print = function()
+		if globals.SILENT == 0 then globals.SILENT = 2 else globals.SILENT = 0
+		return "kore: silent_print mode toggled off" // this should not print when toggled on
+	end function
      
     error = function()
         print "kore: invalid input"
@@ -159,6 +182,8 @@ command.kore = function(arg1,arg2,arg3,arg4)
         case("-s",@secure_it)
         case("--secure",@secure_it)
         case("--hdd",@report_hdd)
+		case("--override",@override_color)
+		case("--silent",@silent_print)
     default(@error)
     time_f = time - time_s
     return "kore: task complete in "+time_f+" seconds."
@@ -529,7 +554,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		if arg1 == "-n" then football = "-n"		
 		if arg1 == "-k" then football = "-d"
 		for rs in rshells 
-			//hold = globals.localmachine 
+			store = globals.localmachine 
 			globals.localmachine = rs.host_computer 
 			print command.silentclean(football)
 			globals.localmachine = store 
@@ -870,14 +895,17 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			wait(1)
 			return detect_hidden
 		end if
+		max = (300000 / ( power.remove("%").val) + 15 )
 		print
 		print colorGold+"AIR: Options:"
 		print(colorGold+"["+colorWhite+"C</color>]redentials -- connect to the wifi network using the known key"+char(10)+"-- requires knowing the key")
+		if max > 34000 then print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
 		print(colorGold+"["+colorWhite+"B</color>]rutus -- attempt to brute force the wifi key using tables/tp"+char(10)+"-- can take upwards of 20 minutes")
+		if max > 34000 then print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
 		print
-		print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
-		print(colorCyan+"["+colorWhite+"A</color>]ir -- uses aireplay and aircrack"+char(10)+"--obtains the key through packet sniffing"+char(10)+"-- time to crack is based on signal strength"+char(10)+"-- acks_needed == 300000 / (pwr + 15)")
-		print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
+		if max <= 34000 then print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
+		print(colorCyan+"["+colorWhite+"A</color>]ir -- uses aireplay and aircrack"+char(10)+"-- obtains the key through packet sniffing"+char(10)+"-- time to crack is based on signal strength"+char(10)+"-- acks_needed == 300000 / (pwr + 15)"+char(10)+":: "+colorCyan+max)
+		if max <= 34000 then print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
 		print
 		print("Note: "+colorCyan+"press enter"+CT+" to default to using Air (recommended)")
 		brut = user_input("Please enter your selection: [c/b/<b>A</b>] (anything else to abort)"+char(10)+"||: <b>",0,1)
@@ -934,7 +962,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				if d == "m" then print command.mv(c,user_input("Please enter the new path for: "+c.path+char(10)+":> <b>"))
 			end for
 		end if
-		max = (300000 / ( power.remove("%").val) + 15 )
+		//max = (300000 / ( power.remove("%").val) + 15 )
 		max = max + 10 // just in case
 		status = crypto.aireplay(bssid, essid, max)
 		if status then print(status) else print("Scan complete.")
@@ -1212,7 +1240,7 @@ command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 		globals.BUFFER.push(rem_shell)
 		print("Shell sent to BUFFER. Access via memory_alpha.")
 	end if
-	return rem_shell
+	if rem_shell then return rem_shell else return "ssh: failed"
 end function
 command.sniff = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: sniff -- listen to network traffic. Prints a string if connections detected."+char(10)+"-- runs in daemon mode. exits on first sniffed connection (or ctrl+c)."
@@ -1332,11 +1360,13 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		return "."
 	end function
 	//if arg1 and typeof(arg1) != "string" and arg1 != "-d" and arg1 != "-n" then print colorOrange+"silentclean: <b>ignoring</b> unsupported input"+char(10)+"-- instead: use rclean [opt:-d|-n] [piped_object]"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"+char(10)+"--eg: <b>gp -d "" sc -d """
-	if arg1 and arg1 != "-d" and arg1 != "-n" then print colorOrange+"<size=75%>silentclean: ignoring unsupported flag; running as default"
-	if arg2 then 
+	if arg1 and arg1 != "-d" and arg1 != "-n" and typeof(arg1) != "shell" and typeof(arg1) != "computer" then return colorWarning+"<size=75%>silentclean: unsupported input; aborting to avoid catastrophe"
+	if arg1 or arg2 then 
 		//print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
 		if typeof(arg2) == "shell" then globals.localmachine = arg2.host_computer
 		if typeof(arg2) == "computer" then globals.localmachine = arg2 
+		if typeof(arg1) == "shell" then globals.localmachine = arg1.host_computer
+		if typeof(arg1) == "computer" then globals.localmachine = arg1
 		// use _fix to restore localmachine
 		// just ignore anything else, use rclean for file objects
 	end if
@@ -1957,12 +1987,12 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	end function
 	get_lib = function() // remote true
 		if globals.targetPort == "router" then
-			net_session = globals.metaxploit.net_use( globals.targetIP )
+			globals.net_session = globals.metaxploit.net_use( globals.targetIP )
 		else
-			net_session = globals.metaxploit.net_use( globals.targetIP , globals.targetPort )
+			globals.net_session = globals.metaxploit.net_use( globals.targetIP , globals.targetPort )
 		end if
-		if net_session then
-			globals.metaLib = net_session.dump_lib
+		if globals.net_session then
+			globals.metaLib = globals.net_session.dump_lib
 		else
 			print("Error. Can't establish net session.")
 			return
@@ -2742,6 +2772,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		return 1
 	end function
 	apt.update = function()
+	  print "<size=75%>Checking repositories..."
 	  return print(apt_get.update)
 	end function
 	
