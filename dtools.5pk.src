@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.4...(150.663)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.5...(151.424)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -1756,7 +1756,7 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 			print("root:"+colorGold+""+d+""+CT)
 			print("clipa: "+command.clipa(d))
 			gotcha = root.host_computer.public_ip+":"+root.host_computer.local_ip
-			print "brutus: "+colorGreen+"saving root password as index in custom object. access via <b>cob</b> command"
+			print "brutus: "+colorGreen+"saving root password as index in custom object. \n-- access via <b>cob</b> command"
 			if DEBUG then print("brutus: debug: calling cob: adding "+gotcha+" to index <b>"+d)
 			print command.cob("set",d,gotcha)
 			globals.BUFFER.push(root)
@@ -1768,7 +1768,27 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 	return 0
 end function
 command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return colorGold+"<u>Magnum Cerebrum || Big Brain || dictionary || word list || rockme</u>"+CT+char(10)+"Usage: cerebrum -- Expand dict_a to 300k+ passwords and store in custom_object.dictionary"+char(10)+"-- Use <b>pwgen</b> instead to save passwords locally to file."+char(10)+"<b>Advanced: cerebrum -i [/path/to/file|file_object|list] -- import a custom dictionary"+char(10)+"-- file may be csv or nsv: ',' or char(10) "+char(10)+"-- may be file, directory, piped object, or list"+char(10)+"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary (to save memory)."+char(10)+"Advanced: cerebrum -p -- load only common player passwords (wip)"+char(10)+"Advanced: cerebrum -i @home -- import dictionary file or folder from @home server"+char(10)+"-- searches /root/tables/tp on @home server"+char(10)+"-- see help @home for more information about the @home server."+char(10+"Advanced: -- passing -d as any argument returns the onboard dictionary as a list"+char(10)+"---- importing a string of passwords directly is not supported, use brutus for that."+char(10)+"Note: cerebrum will autodetect /root/tables and offer to import it if present")
+	if arg1 == "-h" or arg1 == "help" then return colorGold+"<u>Magnum Cerebrum || Big Brain || dictionary || word list || rockme rocku"+char(10)+
+	colorGold+"</b>Usage: cerebrum -- Expand dict_a to 300k+ passwords and store in custom_object.dictionary"+char(10)+
+	"-- use <b>pwgen</b> instead to save passwords locally to file\n"+char(10)+
+	"Usage:<b> cerebrum -i [/path/to/file|file_object|list] </b>-- import a custom dictionary"+char(10)+
+	"-- file may be csv or nsv: ',' or char(10) "+char(10)+
+	"-- may be file, directory, piped object, or list"+char(10)+
+	"-- you may now import either tables/tp or tables/t5 with -i\n"+char(10)+
+	"Usage: <b>cerebrum -i [ip|@home] </b>-- import dictionary file or folder from @home server"+char(10)+
+	"-- searches for <b>tables/tp</b> on server at provided ip or @home ip"+char(10)+
+	"-- see help @home for more information about the @home server"+char(10)+
+	"-- @home will paste the @home ip any time it is used from the command line"+char(10)+
+	"---- not just when using cerebrum"+char(10)+
+	"-- if calling cerebrum -i internally with custom code:"+char(10)+
+	"---- be sure to pass an actual ip address or the HOME_SERVER[1] index for that param\n"+char(10)+
+	"Usage: cerebrum -p -- load only common player passwords (wip)\n"+char(10)+
+	"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary (to save memory)\n"+char(10)+
+	"Advanced: -- passing -d as any argument returns the onboard dictionary as a list"+char(10)+
+	"---- importing a string of passwords directly is not supported, use brutus for that."+char(10)+
+	"Note: cerebrum, without arguments, will autodetect tables/tp and offer to import it if present"+char(10)+
+	"-- cerebrum will autoload tables/tp on launch"+char(10)
+
 	if arg1 == "-i" and not arg2 then return "cerebrum: -i expects /path or file_object or @home."
 	infile = null
 	if arg1 == "--purge" then 
@@ -1776,35 +1796,36 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 		globals.BIGBRAIN = false
 		return "cerebrum: dictionary purged."
 	end if
-	if arg1 == "-i"then
+	if arg1 == "-i" then
 		if not arg2 then return "crebrum: -i expects a path or file object or list."
 		if typeof(arg2) == "list" then
-			globals.dict_a(arg2)
-			if dict_a.len > 0 then return "cerebrum: ["+colorGold+globals.dict_a.len+CT+"] passwords ready. " else return "cerebrum: import error. dictionary corrupted."
+			if arg2.len > 0 then 	
+				globals.dict_a(arg2)
+				globals.BIGBRAIN = true
+				return "cerebrum: ["+colorGold+globals.dict_a.len+CT+"] passwords ready. " 
+			else 
+				return "cerebrum: import error. dictionary corrupted."
+			end if
 		end if
 		if typeof(arg2) == "string" then
 			if is_valid_ip(arg2) then
 				r_ip = arg2
 				r_p = HOME_SERVER[1]
-				// if params and params.len > 1 then
-				// 	r_ip = params[0]
-				// 	r_p = params[1].to_int
-				// else
-				// 	r_ip = targ.ip
-				// 	r_p = targ.pt
-				// end if
-				//if not is_valid_ip(r_ip) then return "cerebrum: set remote ip and port with command.target [ip] [port] before using -i @home option."
 				r_pas = ""
-				//if params and params.len > 2 then
-					//r_pas = params[2]
-				//else
 				if HOME_SERVER[3] == "password" then r_pas = user_input("@home_server_password (leave blank to abort)"+char(10)+":> ", 1) else r_pas = HOME_SERVER[3]
 				//end if
 				if r_pas.trim == "" then return("aborting...")
 				r_r = shell.connect_service(r_ip, r_p, HOME_SERVER[2], r_pas)
 				if r_r and typeof(r_r) == "shell" then
 					infile = r_r.host_computer.File(globals.HOME_SERVER[6])
-					if not infile then return (colorRed+"cerebrum: /root/rkit/tables/tp not found"+"cerebrum: home_dir/rkit/tables/tp not found"+char(10)+"-- run pwgen to create the tables"+CT)
+					//if not infile then return (colorRed+"cerebrum: "+globals.HOME_SERVER[6]+" not found"+"cerebrum: home_dir/rkit/tables/tp not found"+char(10)+"-- run pwgen to create the tables"+CT)
+					if infile then 
+						in_par = infile.parent 
+						inpass = r_r.host_computer.File(in_par.path+"/tp")
+						if inpass then infile = inpass
+					else 
+						return "cerebrum: unable to locate tables/tp;\n-- run <b>pwgen</b> on server or\n-- check HOME_SERVER path"
+					end if
 				else
 					return (colorRed+"cerebrum: remote server unreachable."+CT)
 				end if
@@ -1816,7 +1837,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			if typeof(arg2) == "file" then
 				infile = arg2
 			else
-				return "cerebrum: invalid type. expects /path or file_object or @home."
+				return "cerebrum: invalid type. expects /path or file_object or ip or @home"
 			end if
 		end if
 		print(colorGold+"<size=75%>cerebrum: importing dictionary..."+char(10)+colorGold+"<align=center><size=75%><<>></align>"+CT)
@@ -1845,7 +1866,11 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 						end if
 						if globals.dict_a.len < 710000 then 
 							d_b = d_b.split(delim)
-							globals.dict_a(globals.dict_a + d_b)	
+							dl = []
+							for p in d_b 
+								if p.indexOf("=") != null then dl.push(p.split("=")[1]) else dl.push(p)								
+							end for 
+							globals.dict_a(globals.dict_a + dl)	
 							if DEBUG then print("dict_a: "+dict_a.len)
 						else 
 							print("cerebrum: max dictionary length reached. Could not load: "+dfile.path)
@@ -1860,7 +1885,8 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			globals.BIGBRAIN = true
 			return "cerebrum: ["+colorGold+dict_a.len+CT+"] passwords ready. " 
 		else 
-			return "cerebrum: import error. dictionary corrupted."
+			globals.BIGBRAIN = false
+			return "cerebrum: import error. dictionary corrupted"
 		end if
 	end if
 	if globals.BIGBRAIN == true then return "Magnum Cerebrum already active."+char(10)+"Run the command: <b>cerebrum --purge</b> to reset."
@@ -1884,7 +1910,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			if autoimport.lower != "n" then 
 				print("Calling "+colorWhite+"<u>cerebrum -i /root/tables/tp</u>")
 				print command.cerebrum("-i", tp.path)
-				return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds."
+				return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds"
 			end if
 			print "cerebrum: bypassin tables..."
 		end if
@@ -1893,7 +1919,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("cerebrum calling: pwgen false "+arg1)
 	command.pwgen("false",arg1)
 	time_e = (time - time_s)
-	print( globals.dict_a.len+" passwords readied in "+time_e+" seconds." )
+	print( globals.dict_a.len+" passwords readied in "+time_e+" seconds" )
 	if arg1 == "-d" or arg2 == "-d" or arg3 == "-d" then return dict_a else return 0
 end function
 if DEBUG then print("<size=75%>loading jtr.5pk...(3.397kb)</size>")
@@ -1915,7 +1941,11 @@ command.jtr = function(arg1,arg2,arg3,arg4=0)
 		alpha_u[i] = char(c)
 		i = i + 1
 	end for
-	numbers = range(0,9)
+	numbers = []
+	nums = range(0,9)
+	for n in nums 
+		numbers.push(str(n))
+	end for
 	special = ["!","@","#","$","%","^","&","*","(",")","-","+","=","}","{","[","]",";",":","<",">",",",".","'",""""]
 
 	SET_SIZE = arg1.to_int // generate 1000 words 
