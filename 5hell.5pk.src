@@ -2,14 +2,14 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.1.5.E_falling_skies"
+ver = "4.1.5.1.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "152.945"
+size_of_5hell = "153.628"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
@@ -1103,7 +1103,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("run: "+file.path+", "+parameters)
 	globals.stack_pool("up")
 	print rr
-	if GLASSPOOL then print "-- via "+colorLightBLue+"<size=75%>GLASSPOOL"
+	if GLASSPOOL then print "-- via "+colorLightBlue+"<size=75%>GLASSPOOL"
 	cc = shell.launch(file.path, parameters)
 	globals.stack_pool("down")
 	_cascade // exit if cascade
