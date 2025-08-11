@@ -26,6 +26,8 @@ Copy the following .src files into the CodeEditor inside the Game:
 
 <pre>
  contrib.5pk.src      -->  contrib.5pk
+
+ net.5pk.src          --> net.5pk
  
  kore.5pk.src         -->  kore.5pk
 
@@ -42,6 +44,8 @@ Each file goes to /root/src
 
 <pre>
 contrib.5pk
+
+net.5pk
 
 dtools.5pk
 
