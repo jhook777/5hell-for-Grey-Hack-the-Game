@@ -2,23 +2,32 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.1.5.1.E_falling_skies"
+ver = "4.1.6.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "153.628"
+size_of_5hell = "151.944"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
 if globals.hasIndex("get_abs_path") then EXPERIMENTAL = true
 //
+// INITIALIZE GLOBALS
+if not get_custom_object.hasIndex("glob") then get_custom_object.glob = {}
+//
 // these three stubs are set below by super_import
 globals.metaxploit = null 
 globals.crypto = null 
 globals.apt_get = null
+//
+//
+// register macros
+if DEBUG then print("<size=75%>registering macros...")
+if not get_custom_object.hasIndex("macros") then get_custom_object.macros = {}
+//
 //
 globals.localip = function()
 	return localmachine.local_ip
@@ -26,30 +35,53 @@ end function
 globals.pubip = function()
 	return localmachine.public_ip
 end function
-//
-// register macros
-if DEBUG then print("<size=75%>registering macros...")
-if not get_custom_object.hasIndex("macros") then get_custom_object.macros = {}
-//
+// 
 globals.BIGBRAIN = false
 globals.GLASSPOOL = 0
-globals.command_buffer = []
-globals.shell = get_shell
 globals.metaLib = null
 globals.debugLib = null
 globals.net_session = null
-globals.localmachine = shell.host_computer
-globals.currentPath = current_path
-globals.homePath = home_dir
-globals.enumerated = []
-globals.tagged_for_scp = ""
 globals.backup_meta = null
+globals.tagged_for_scp = ""
 globals.neurobox_user = ""
 globals.neurobox_pass = ""
 globals.clip_board_delta = "" // for do
 globals.debug_username = ""
 globals.debug_password = "" // neurobox debug credentials
+//
+globals.command_buffer = []
+globals.enumerated = []
+globals.shell = get_shell
+globals.localmachine = shell.host_computer
+globals.currentPath = current_path
+globals.homePath = home_dir
 globals.instance = globals.localmachine.File(program_path)
+globals.T_BUF = [(localip+"@"+pubip)] // transmission buffer
+globals.BUFFER = [get_shell]
+//
+globals.spoolpath = 0 // 0 false, string true
+globals.SAFEWORD = "stop_code" // use @STOP (or this value) in a do script and/or in an if statement within a do script to 'break' the do loop
+globals.HERMES = false
+globals.inbox = null
+//
+globals.grepped_file = null
+globals.airing = false
+globals.mail_user = null
+globals.last_mail = null
+globals.this_mail = 0
+//
+globals.XPLOITS = []
+globals.MEMORY = null
+globals.meta_scan = []
+//
+globals.routerLib = null
+globals.portInfo = null
+globals.tarLan = null
+globals.last_whois = ""
+globals.PORT_MAP = {}
+globals.targetIP = null
+globals.targetPort = "router"
+
 //
 if DEBUG then print("<size=75%>loading dictionary...</size>")
 // this function puts the dictionary in the custom object for use between nested launches without breaking legacy dictionary calls
@@ -62,26 +94,7 @@ end function
 //// UPDATING THE DICTIONARY IS HANDLED BY COMMAND.CEREBRUM //////
 if DEBUG then ds = dict_a.len
 if DEBUG then print("<size=75%>dictionary loaded...("+(ds/1000)+"kb)</size>")
-globals.SAFEWORD = "stop_code" // use @STOP (or this value) in a do script and/or in an if statement within a do script to 'break' the do loop
-globals.routerLib = null
-globals.targetIP = null
-globals.targetPort = "router"
-globals.PORT_MAP = {}
-globals.HERMES = false
-globals.inbox = null
-globals.BUFFER = [get_shell]
-globals.XPLOITS = []
-globals.MEMORY = null
-globals.meta_scan = []
-globals.T_BUF = [(localip+"@"+pubip)] // transmission buffer
-globals.portInfo = null
-globals.tarLan = null
-globals.grepped_file = null
-globals.airing = false
-globals.mail_user = null
-globals.last_mail = null
-globals.this_mail = 0
-globals.last_whois = ""
+
 
 //
 // import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
@@ -91,15 +104,22 @@ import_code("/root/src/5phinx.5pk") // override=5phinx.5pk
 // set globals.metaxploit, globals.crypto, globals.apt_get 
 globals.super_import // located in 5phinx.5pk; include_lib latest of: metaxloit, crypto, aptclient
 //
+// import kore.5pk -- kore's domain
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/kore.5pk") // override=kore.5pk
 //
+// import dtools.5pk -- dev/dictionary tools
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/dtools.5pk") // override=dtools.5pk
 //
-// import contrib -- this contains shared functions and commands contributed by the community
+// import contrib.5pk -- this contains shared functions and commands contributed by the community
 // Do not remove the comment in the next line, it is necessary for Greybel support
 import_code("/root/src/contrib.5pk") // override=contrib.5pk
+//
+// import net.5pk -- networks tools
+// Do not remove the comment in the next line, it is necessary for Greybel support
+import_code("/root/src/net.5pk") // override=net.5pk
+//
 globals.dmanager = new DaemonManager
 dmanager.Init
 //
@@ -111,7 +131,7 @@ if DEBUG then print("<size=75%>loading clip commander...(666 licks to the center
 // newclip, to combine all clips
 // begin clip commander
 // expand by adding a CLIP map index and creating a corresponding command.[yourclip] = function(...) call below _clipboard (use existing ones as templates)
-CLIP = {"a":null,"b":null,"c":null}
+CLIP = {"a":"","b":"","c":""}
 _clipboard = function( index, arg1, arg2 )
     // index checking is done at command.clip[x] calls
     cw = colorWhite
@@ -252,7 +272,7 @@ command.clipc = function(arg1,arg2,arg3,arg4)
     return @_clipboard("c",@arg1,@arg2)
 end function
 // end clip commander
-if DEBUG then print("<size=75%>loaded clip commander...(6.489kb)")  
+if DEBUG then print("<size=75%>loaded clip commander...")  
 command.passwd = function(arg1, arg2, arg3=0, arg4=0)
   if arg1 == "help" or arg1 == "-h" then return "<u>Password || Change Password || passwd"+char(10)+"Usage: passwd [opt: user] [opt: password] -- change password for user"+char(10)+"- will prompt for missing options"
 	user = null
@@ -897,17 +917,8 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 			command.perms("-R", "g-rwx", "/")
 			command.perms("-R", "u-rwx", "/")
 			home = null 
-			
-			processes = localmachine.show_procs.split(char(10))
-			for p in processes
-				if p == "USER PID CPU MEM COMMAND" then continue
-				process = p.split(" ")
-				process_ID = process[1]
-				process_CMD = process[4]
-				if process_CMD == "Xorg" then  home = true
-			end for
 
-			if home == true then
+			if is_home == true then
 				print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- setting critical binaries to <b>g+x</b>...")
 				command.perms("g+x","/bin/sudo")
 				command.perms("g+x","/bin/psudo")
@@ -1425,54 +1436,6 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
           end function
 	return herme5
 end function
-command.malp = function(arg1, arg2, arg3=0, arg4=0)
-	if @arg1 == "-h" or @arg1 == "help" then return "malp: Memory Alpha - buffer, object and database management menu. "+char(10)+
-	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> -- Access all"+colorOrange+"</b> BUFFER "+CT+"objects from here."+char(10)+
-	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorGold+"</b>piped_object"+CT+"] -- adds ANY piped object to the "+colorOrange+"</b> BUFFER "+CT+"."+char(10)+
-	colorWhite+"</b>-- May be of any type: string, list, map, shell, file, computer, etc, et al."+char(10)+
-	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-b"+CT+"] [opt: piped_object] -- open the"+colorOrange+"</b> BUFFER "+CT+"immediately on opening malp"+char(10)+
-	"-- if an object is supplied, it's entry will be opened in the BUFFER"+char(10)+
-	"Functions: "+char(10)+
-	"[0] -- display portmap, if available"+char(10)+
-	"[1] -- display loaded exploits and requirements if known"+char(10)+
-	"[2] -- display raw scan output from met scan"+char(10)+
-	"-- performs scan if not already scanned"+char(10)+
-	"[3] -- dump memory; runs the memdump command"+char(10)+
-	"-- this will dump session info such as portmap, exploits-"+char(10)+
-	"-- and others to a file named memdump[random number].mx"+char(10)+
-	"-- feel free to request additional info dumped by this command"+char(10)+
-	"[4] -- access felix file explorer or run tree (locally or on buffered filesystem)"+char(10)+
-	colorOrange+"[5] -- the main BUFFER where objects are stored"+char(10)+
-	"-- contains contextual object handlers"+char(10)+
-	"[6] -- Air menu for cracking wifi"+char(10)+
-	"[7|q] -- exit"+char(10)+
-	"[8] -- show running processes"+char(10)+
-	"[9] -- kill processes"+char(10)+
-	"[0] exit"+char(10)+
-	"[/] -- open Cer Bios"+char(10)+
-	"[-] -- open reverse shell interface"+char(10)+
-	"[.] -- linkdb database entry"
-	if DEBUG then print("@arg1: "+typeof(@arg1))
-	open_buffer = false
-	open_entry = false
-	if @arg1 then
-		if typeof(@arg1) == "string" then 
-			if @arg1 == "-b" then 
-				open_buffer = true 
-				arg1 = @arg2 
-				arg2 = @arg3 
-				arg3 = @arg4 
-			end if
-		end if
-		if @arg1 then 
-			print "debug: malp: pushing: "+typeof(@arg1)+" to BUFFER"
-			globals.BUFFER.push(@arg1)
-			open_entry = true
-		end if
-	end if
-	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"-- oe: "+open_entry)
-	return globals.memory_alpha(open_buffer,open_entry)
-end function
 command.fwr = function(arg1, arg2, arg3=0, arg4=0) 
 	if GLASSPOOL then print(colorOrange+"fwr: ignores glasspool."+CT)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: fwr [ip] -- returns firewall rules for ip. returns local rules if no ip given."
@@ -1652,10 +1615,14 @@ command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 		arg1 = arg2 
 		arg2 = "-n"
 	end if
+	//if not arg1 then arg1 = globals.shell
 	if DEBUG then print ("<b>in rclean: obj: "+typeof(@arg1)+" opt: "+@arg2)
 	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "computer" or typeof(arg1) == "file") then return globals.rclean(arg1,arg2)
-	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@B",arg1),arg2)
-	return globals.rclean(command.clipb("@B","-m"),arg2)
+	//if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@B",arg1),arg2)
+	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean( globals._ez_clip(["@B",arg1]), arg2)
+	//return globals.rclean(command.clipb("@B","-m"),arg2)
+	
+	return globals.rclean( globals._ez_clip(["@B","-m"]), arg2)
 end function
 command.ipfit = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: ipfit -- menu to specify a way to generate ips. (wip)"+char(10)+"Recommendation: pipe the output to a file or to the clipboard."+char(10)+"e.g<b> ipfit | clipb </b>, or<b> ipfit | poke iplist </b>"
@@ -1726,7 +1693,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			"|> clipa 0 | rnip 11 | enum | enum -s | do"+char(10)+
 			"Paste this Script : "+char(10)+
 			"clipa | enum | probe"+char(10)+
-			"calc @a + 1 | clipa"+char(10)+
+			"clipa ++"+char(10)+
 			"Result:"+char(10)+
 			"set clipa to 0, produce 11 random ips, enumerate those ips, do 11 loops of: probe enum[clipa], clipa++"+char(10)+
 			"-- this runs probe on 11 random ips stored in the enum(eration) buffer using calc and the clipboard to iterate through the list."+char(10)+
@@ -1735,7 +1702,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			"|> clipa 1 | ls -a /lib | enum | enum -s | do"+char(10)+
 			"Paste this Script : "+char(10)+
 			"clipa | enum | db -l"+char(10)+
-			"calc @a + 1 | clipa"+char(10)+
+			"clipa ++"+char(10)+
 			"Result:"+char(10)+
 			"set clipa to 1, enumerate files in /lib, do [num_files+1] loops, start at 1 and run db (databaser) on each file, the error at the end is because ls returns with an extra blank line which gets enumerated at position [0] resulting in the loop being 1 over."+char(10)+
 			"<u><mark=red>=============</u></mark>"+char(10)+
@@ -1862,6 +1829,8 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			for c in cmd
 				if c == globals.SAFEWORD then break
 				//c = c.replace(" || "," |  | ") + " | return"
+				if DEBUG then print "debug: do: c: "+char(10)+": "+c
+				if c.len < 1 or c[0] == "#" then continue
 				c = c + " | return"
 				r = command.shell(c)
 				if r == "@STOP" then break
@@ -1973,8 +1942,8 @@ if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"
 "-- this value is incremented by one with each use of <B>run</b> (shell.launch)"+char(10)+
 "-- this value is decremented on return from <b>run</b>"+char(10)+
 "-- current stack_pool: <b>"+globals.stack_pool+char(10)+char(10)+
-"Usage: bios --home -- return the globals.HOME_SERVER list"+char(10)+
-"-- current HOME_SERVER: <size=75%><b>"+globals.HOME_SERVER
+"Usage: bios --home -- return the get_custom_object.HOME map"+char(10)+
+"-- current @home address: <size=75%><b>"+get_custom_object.HOME.ip
 if arg1 == "--stack" then return str(globals.stack_pool)
 if arg1 == "-C" then 
 	ilib = null
@@ -2007,7 +1976,7 @@ if arg1 == "-s" then return globals.meta_scan
 if arg1 == "-X" then return globals.XPLOITS 
 if arg1 == "-M" then return globals.MEMORY
 if arg1 == "-B" then return globals.BUFFER
-if arg1 == "--home" then return globals.HOME_SERVER
+if arg1 == "--home" then return get_custom_object.HOME.ip
 if arg1 == "-r" then 
 	if arg2 then
 		if is_valid_ip(arg2) then return get_router(arg2)
@@ -2166,42 +2135,42 @@ score = 10
 co = colorOrange
 pwf = command.tree("/etc","passwd",1,"N")
 if pwf then 
-	pwf = co + pwf.permissions 
+	pwf = co + pwf.path +CT
 	score = score - 1
 else 
 	pwf = "--null--"
 end if
 bff = command.tree("/","Bank.txt",1,"N")
 if bff then
-	bff = co + bff.parent.path 
+	bff = co + bff.parent.path +CT
 	score = score - 1
 else 
 	bff = "--null--"
 end if
 mtf = command.tree("/","Mail.txt",1,"N")
 if mtf then 
-	mtf = co + mtf.parent.path 
+	mtf = co + mtf.parent.path +CT
 	score = score - 1
 else 
 	mtf = "--null--"
 end if
 mcf = command.tree("/","Map.conf",1,"N")
 if mcf then 
-	mcf = co + mcf.parent.path 
+	mcf = co + mcf.parent.path +CT
 	score = score - 1
 else 
 	mcf = "--null--"
 end if
 bcf = command.tree("/","Browser.txt",1,"N")
 if bcf then 
-	bcf = co + bcf.parent.path 
+	bcf = co + bcf.parent.path +CT
 	score = score - 1
 else 
 	bcf = "--null--"
 end if
 clf = command.tree("/","ConfigLan.conf",1,"N")
 if clf then 
-	clf = co + clf.parent.path 
+	clf = co + clf.parent.path +CT
 	score = score - 1
 else 
 	clf = "--null--"
@@ -2386,7 +2355,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"-- by default there will be information printed before this"+char(10)+
 	"-- toggle to a minimalist prompt with: <b>prompt</b>"+char(10)+
 	"-- fires CLI commands"+char(10)+
-	colorLightBlue+"|> "+CT+"  --  by default, the GLASSPOOL prompt turns the |> blue"+char(10)+
+	colorLightBlue+"|> "+CT+"  --  by default, the GLASSPOOL prompt turns the "+colorLightBlue+"|>"+CT+" blue"+char(10)+
 	"-- this means commands execute on the remote object controlled by glasspool"+char(10)+
 	"-- see glasspool -h for more"+char(10)+
 	colorWhite+":>  "+CT+" --  this is a liminal prompt, it expects a string or empty return"+char(10)+
@@ -2394,10 +2363,10 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorWhite+"||: "+CT+" --  this is an 'any key' prompt"+char(10)+
 	"-- it takes a single keypress"+char(10)+
 	"-- this is used in 'button' driven menus"+char(10)+char(10)+
-	colorWhite+"Decision Pompts: "+CT+"[ N/Y/X ] [n/y/x]"+char(10)+
+	colorWhite+"Decision Prompts: "+CT+"[ N/Y/X ] [n/y/x]"+char(10)+
 	"-- Multiple choice prompts have a default"+char(10)+
-	"-- the default is always Capitolized and sometimes highlighted"+char(10)+
-	"-- the default is chosen if <enter> is pressed without input"+char(10)+
+	"-- the default is always Capitalized and sometimes highlighted"+char(10)+
+	"-- the default is chosen if <b><enter></b> is pressed without input"+char(10)+
 	"-- unless otherwise noted, default is chosen if input doesn't match a choice"+char(10)+
 	"E.G: |> psudo"+char(10)+
 	"Open shell? [c/y/N]"+char(10)+
@@ -2545,9 +2514,12 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	"-- this is                |</b> where hashes go when the tree command finds them"+char(10)+
 	colorGold+"@t              |</b> targetIP"+char(10)+
 	colorGold+"@p              |</b> targetPort"+char(10)+             
-	colorGold+"@home           |</b> HOME_SERVER ip address defined in 5hell.src"+char(10)+char(10)+
+	colorGold+"@home           |</b> get_custom_object.HOME server ip address defined in 5hell.src"+char(10)+
+	"-- this is                |</b> usually an attack proxy running ssh and rshell servers"+char(10)+
+	"-- please don't           |</b> use your actual home pc for this"+char(10)+
 	colorGold+"@B [index|-m]   |</b> directly reference a value in the"+colorOrange+" BUFFER "+CT+"by [index] or menu: [-m]"+char(10)+
 	colorGold+"@o [key]        |</b> directly reference a value in the custom object by key"+char(10)+
+	colorGold+"@r [index]      |</b> directly reference a shell in the rsi buffer by [index] or menu: [-m]"+char(10)
 	colorWhite+"All <b>@</b> aliases (known as ez_clips) may be escaped with the <b>\</b> character:"+char(10)+
 	"<size=75%>--eg: <b>\@a</b>, \@home"+char(10)+
 	"<size=75%>--eg: <b>clipa bob || echo @a -- will echo 'bob', while "+char(10)+
