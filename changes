@@ -2,8 +2,6 @@
 // changes:
 //
 // to do:
-// convince author of Medusa to port it to 5hell // can just wrap medusa into a command. it just works.
-// mail: add command line brutus login
 // database overhaul :(
 // tdump: wait for response feature
 // add chmod/perms to command.felix
@@ -21,6 +19,142 @@
 // todo: tree -f has a superior search algo vs regular, ancient tree
 // -- lets bring tree into the [-f]uture
 // todo: consolidate reused code in purge
+// todo: consolidate code in hashim and gopher into a single method accessible by both
+// todo: add catagory var to ALL commands: general, needsShell, needsComp, needsFile, needsLaunch, needsMeta, needsCrypto (other required objects for individual commands should be obvious)
+// todo: user_input override that allows pulling user_input from a list stored in the custom object
+// -- to be populated by scripts calling 5hell through a nested launch
+// -- need a way to secure this first
+// todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
+// 
+// 5hell.src: PASSWORD SECURITY section moved to top of 5hell.search
+// -- still commented out by default, but easier to find 
+// run: fixed typo causing crash when running from glasspool
+// sphinx: added additional "color5phinxDisplay" colorDefenition
+// silentclean: move from kore.5pk to dtools.5pk
+// kore.5pk: moved all commands except kore to a new .5pk called net.5pk
+// -- kore.5pk will contain a much expanded kore along with some new commands and possibly non-command shared functions
+// -- this will free up space in dtools, net, and 5hell.5pks
+// -- yay, room for more feature creep
+// sphinx: moved command.sphinx to kore.5pk (5phinx itself remains in 5phinx.5pk)
+// kore: will now check if we are home and disallow -S (paranoid secure) if we are home
+// kore: -r option will now generate a do.rc in rkit if one is not present
+// -- this is still in alpha
+// -- this do.rc will include a comment section with info on using do.rc and adjusting the default colors to fit a user's theme
+// kore: added --control: kore runs in daemon mode and executes commands written to an input file
+// -- this will allow controlling one or more 5hell sessions through a shared input file
+// -- and a shared output file
+// -- optionally allows spooling a log of all interactions to file
+// -- this is big
+// kore: fixed [-sc] flag being ignored
+// -- will properly run kore's secure protocol with silentclean instead of rclean
+// outmon: moved to kore.5pk
+// outmon: updated usage info
+// outmon: default interval changed to .1
+// -- default path removed; supplying a path is now requried
+// outmon: added ability to define actions on file change
+// -- see outmon -h for more
+// malp: moved to kore.5pk
+// hashim: moved to kore.5pk
+// 5phinx.5pk: moved the anti-brick at home check in perms to 5phinx.5pk for use as a shared resource
+// -- uses the same anti-brick logic as 'lock'
+// 5phinx: when setting port to 8080, IF target ip is a public ip, it will be switched to the local ip of the router at the public ip
+// -- if target ip is a lan ip, it will remain as is
+// -- this will NOT occur when using the target command
+// 5phinx.5pk: start_up_resource_configuration will skip comment lines to avoid printing blank lines to the terminal
+// bios: added color termination to security audit elements
+// rsi: swapped order of buttons to match order in buffer
+// rsi: added upload rkit button
+// -- made it button [3]
+// -- former button [3] scp has been moved to button [9]
+// air: fixed crash when invoking air when network is inactive
+// air: removed un-needed block for detect hidden when glasspool is active
+// air: will prevent aireplay invocation if monitor mode is inactive
+// -- will print a warning when air is invoked
+// -- air automatically actives monitor mode so if this happens, the card is incapable of monitor mode
+// help: fixed two typos in help_conventions
+// HOME_SERVER: @home server info moved from a list to a map
+// -- updated references throught the source code
+// -- added new elements: ~/tables/tp, ~/database.csv
+// -- the HOME map is in the get_custom_object map, making it accessible and editable by cob at runtime
+// felix: will now warn the user before allowing a run or database operation to take place
+// -- the warning informs the user that run works on the active shell object, not the file object
+// -- the warning informs the user that databasing works only on the launching shell, not the file object or the active shell (add this to usage info)
+// felix: should have less flicker when refreshing in clear_screen mode.
+// shell: the shell command will return the ip of the active computer object instead of the active shell's
+// -- this avoids confusion while in glass puddle mode (glasspool for computer objects)
+// cerebrum: will now search for both tables/tp and tables/t5 when invoked;
+// -- will check for tp first, then t5
+// -- this includes the auto import that occurs when 5hell starts up
+// cerebrum: fixed cerebrum failing to offer to auto import on invocation when tables/tp and/or tables/t5 are present
+// brutus: polished usage info a bit
+// hashim: polished usage info
+// -- adjusted default settings to better suit parse home server info 
+// clipboard: the clip spaces will now initialize as empty strings instead of null
+// glasspool: clarified that the [-m] option shows buffer shells AND rshells
+// -- making 'gp -m' more useful than 'gp @B -m'
+// ezclip: added @r [index|-m] to access an object in the reverse shell buffer
+// -- works the same as @B [index|-m]
+// -- if there is not a shell at the index given, an error will print and the replacement will be (Int: 0)
+// do: updated the 'do help extra' examples to include clipa ++
+// do: will skip comment lines;
+// -- should stop unwanted printing of blank lines in your do script execution
+// macro: will now suppress the printing of return values until the final return
+// -- this will stop the double printing of return values
+// -- this comes at the cost of not printing the return values of all but the last command
+// ----- (those values are still piped as normal, it's just the print that's suppressed)
+// -- use: macro -v [macroname] to launch a macro in verbose mode, instead
+// -- optionally: call do within the macro to get each line to print:
+// eg: macro set ok " echo dokie | echo okie" // only prints okie dokie
+// eg: macro set ok " do 1 \" echo dokie | echo okie \" " // prints dokie, then okie dokie
+// --note: macro returns it's last value, while do returns a time stamp
+// ---- make sure to use the one best suited to your nefarious doings
+// memdump: added get_custom_object elements and macro list to memory items dumped to file
+// -- excludes gco.dictionary
+//
+// 5phinx.5pk: added print override: can now specify default print color in 5hell.src 
+// -- error and warning colors are placeholders; will be implemented soon(tm)
+// -- this doesn't work for multiline prints!!!!!!!!!!!!!! fix it!!!!!!
+// sphinx: now has configurable color theme stuff
+// -- see 5hell.src for 5phinx color definitions
+// kore: added --override [colorDef] [newColor]
+// -- finally, theme compatibility!
+// -- you may change any colorDefinition in 5hell.src (any global that starts with the word 'color')
+// -- put these lines in your do.rc for custom themes without recompiling
+// -- or edit the appropriate definitions in 5hell.src to hard code changes
+// --eg kore --override colorDefault <#FFFFFFFF>
+// kore: added --silent to toggle silent print mode on and off
+// -- place this at the top and bottom of your do.rc to suppress startup output
+// -- remember it's a toggle, so match the on and off!
+// 5hell.src: added: shell --this
+// -- pushes the current active shell to the buffer
+// ---- i've been meaning to add this for a long time, just kept forgetting
+// -- keep in mind it doesn't *return* the shell since it's not actully running a command and therefore isn't "returning" at all
+// -- the utility of this is when i lose an active shell object for some reason ( such as killing an rshell i accessed via glasspool...)
+// db: will correctly link global net_session
+// -- this will allow malp to properly display net_session info after db runs
+// ssh: will now return "ssh: failed" instead of null when ssh fails
+// run: will fail if it receives "ssh: failed" as a second or third argument
+// -- this is to prevent a run occurring locally when it was meant to be remote
+// ---- when piping from ssh
+// -- I still need to think of good logic to use in run when you pipe in a non-existant shell
+// -- currently, run will execute on the active shell if not piped a valid shell
+// ---- remember this when you pipe non-existant shells from failed attacks
+// run: will print a line indicating if it is running on a target shell instead of locally
+// -- if glasspool is active and no shell is supplied,
+// ---- run will indicate it is running via glasspool
+// perms: fixed 'perms lock down' and 'perms unlock all' bug
+// silentclean: fixed silentclean ignoring piped shells/computers when they are the first argument
+// -- silentclean will now fail when it receives invalid input
+// ---- instead of running in default mode on invalid input
+// air: will report the actual number of ACKS required when selecting attack method
+// -- if max acks is > 34000 it will recommend using brutus instead of air
+// cerebrum: fixed crash while importing dictionary with: cerebrum -i @home 
+// -- the -i option will now accept any ip address (or local path)
+// -- using @home will paste the @home ip address, making usage the same
+// -- -i will now accept either tables/tp or tables/t5 as input for the dicitonary
+// jtr: fixed crash when using n:use numbers and 1:first cap only
+// -- eg: jtr 5 15 aAn 1
+// credits: added CyanMatter
 //
 // DaemonManager: added hack to move 5hell.d to move 5hell.d to rkit on initialization, if rkit exists
 // hotfix: DaemonManager will load 5hell.d to rkit, if present, on initialization instead of /root
