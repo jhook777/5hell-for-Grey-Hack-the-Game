@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.5...(151.424)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.6...(152.496)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -145,6 +145,8 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		o.push(colorCyan+"</b>cob: validating custom object...")
 		if not cobble.hasIndex("macros") then; cobble.macros = {};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
 		if not cobble.hasIndex("stack_pool") then; cobble.stack_pool = 0;o.push(colorOrange+"<size=75%>--: restoring index: stack_pool");end if
+		if not cobble.hasIndex("HOME") then ; cobble.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"};end if
+		// nested cobble.HOME validation needed
 		return o.join(char(10))
 	end function
 
@@ -1083,31 +1085,31 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
       return inf
     end if
     if selected.is_binary then // run prompt
-      if selected.name.split("\.")[-1] != "so" then
-        doit = user_input("launch "+selected.name+"? [y/N] "+char(10)+"||: ",0,1).lower
-        if doit == "y" or doit == "RightArrow" then
-          if typeof(shell) == "ftpshell" then
-            print("launch not available in ftpshell")
-            return inf
-          end if
-		  globals.stack_pool("up")
-          try = shell.launch(selected.path, user_input("params for: "+char(10)+selected.path+" "))
-		  _cascade // exit if cascade
-		  globals.stack_pool("down")
-          if try then print(try)
-        end if
-        return inf
-      else
-        if selected.path.split("/")[1] == "lib" then
-          if user_input("database this lib.so? [y/N] ||:",0,1).lower == "y" then
-            if globals.metaxploit then command.db("-l", selected.name)
-          end if
-          return inf
-        else
-          print(colorOrange+"Selected .so is not in /lib "+CT+char(10)+"aborting... ")
-          return inf
-        end if
-      end if
+		if selected.name.split("\.")[-1] != "so" then
+			doit = user_input(colorWarning+"warning: launching can only be done via a shell object;"+char(10)+"-- if the file does not exist on the active shell;"+char(10)+"---- the launch will fail"+char(10)+"Launch: "+selected.name+" ["+colorWarning+"Y(or right arrow)"+CT+"/n] ||: ",0,1).lower
+			if doit != "n" then
+				if typeof(shell) == "ftpshell" then
+					print("launch not available in ftpshell")
+					return inf
+				end if
+				globals.stack_pool("up")
+				try = shell.launch(selected.path, user_input("params for: "+char(10)+selected.path+" "))
+				_cascade // exit if cascade
+				globals.stack_pool("down")
+				if try then print(try)
+			end if
+			return inf
+		else
+			if selected.path.split("/")[1] == "lib" then
+				if user_input(colorWarning+"warning: databsing can only be done on the "+colorGreen+"launching shell"+char(10)+"-- it will not translate through glasspool"+char(10)+"Database this lib.so anyway? "+colorWarning+"Y"+CT+"/N] ||:",0,1).lower != "n" then
+					if globals.metaxploit then command.db("-l", selected.name) else print colorError+"<b>error: metaxploit not loaded!"
+				end if
+				return inf
+			else
+				print(colorOrange+"Selected .so is not in /lib "+CT+char(10)+"aborting... ")
+				return inf
+			end if
+		end if
     end if
     if selected.has_permission("r") then
       print(selected.get_content)
@@ -1221,7 +1223,8 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
       i = i + 1
     end for
     //if get then print( format_columns(output).replace(get,colorOrange+get+CT).replace(".src",colorCyan+".src"+CT).replace(".exe",colorRed+".exe"+CT).replace(".txt",colorWhite+".txt"+CT).replace(".log",colorLightBlue+".log"+CT).replace(".jpg",colorLightBlue+"</b>.jpg</color>").replace(".so",colorGold+"</b>.so</color>").replace(".html",colorCyan+".html"+CT) ) else print(format_columns(output))
-	if get then print( format_columns(output).replace(get,colorOrange+get+CT) ) else print(format_columns(output))
+	if clr < 1 then clr = 0 else clr = 1
+	if get then print( format_columns(output).replace(get,colorOrange+get+CT),clr ) else print(format_columns(output))
     return
   end function
 
@@ -1232,13 +1235,8 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     action.max = contents.len - 1
     CLEAR = -1
     while true
-      if CLEAR > 0 then
-        clear_screen
-        button_c = "<b>C</b>"
-      else
-        button_c = "<b>c</b>"
-      end if
-      path_contents(file)
+      if CLEAR > 0 then button_c = "<b>C</b>" else button_c = "<b>c</b>"
+      path_contents(file,CLEAR)
       print(colorLightBlue+currentPath+CT)
       print("[F1] help [w][a][s][d] == [^][<][v][>] [q] quit")
       print("[z] clr slct [x] select [v] paste [f] file [n] rename ")
@@ -1364,7 +1362,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		else 
 			sym_stat = "no"
 		end if
-		if DEBUG then print "checking import status: skipping symlinks"
+		if DEBUG then print "checking import status (except symlinks)"
 		imp_stat = arg1.allow_import
 		if imp_stat != "symlink" then 
 			if imp_stat then imp_stat = "yes" else imp_stat = "no"
@@ -1448,8 +1446,24 @@ command.fakepass = function(arg1=0, arg2=0, arg3=0, arg4=0)
     print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
     return 0
 end function
-command.cad = function(arg1=0, arg2=0, arg3=0, arg4=0)
-    if arg1 == "help" or arg1 == "-h" then return "cad: cloak and dagger protocol."+char(10)+"Usage: cad [optional: ip ] -- or enter rshell-server ip at prompt"+char(10)+"Creates ps.src in current path. "+char(10)+"Review ps.src and build with make or makfit into /bin"+char(10)+"Remove .src, run /bin/ps once with metaxploit.so present then remove metaxploit.so"+char(10)+"The result is a hidden backdoor on the target. Use with care."
+command.cad = function(add=0, pt=0, arg3=0, arg4=0)
+    if add == "help" or add == "-h" then return colorRed+"cad:</b> cloak and dagger protocol"+char(10)+
+	"Usage: cad [optional: ip ] [optional: port] -- create a poisoned ps.src that hides itself"+char(10)+
+	"-- prompts for ip if not passed"+char(10)+
+	"-- defaults to port 1222 if not passed"+char(10)+
+	"-- creates the file "+colorRed+"ps.src"+CT+" in the current path "+char(10)+
+	"-- it <b>does not build</b> the file; review first, then build"+char(10)+
+	"-- ps.src contains code for a poisoned <b>ps</b> binary"+char(10)+char(10)+
+	"** Review ps.src and build with make or makfit into <b>/bin/ps"+char(10)+
+	"** Remove the .src, "+char(10)+
+	"*** optionally run /bin/ps once with metaxploit.so present then remove metaxploit.so"+char(10)+
+	"*** or leave it in place and wait for the target to run it"+char(10)+
+	"*** if they do, and metaxploit.so isn't present, it will just act like normal ps"+char(10)+
+	"*** if metaxploit is present, a reverse shell will be dropped, named ps"+char(10)+
+	"*** the poisoned ps binary will hide this back door"+char(10)+
+	"***** beware! using plain old ...host_computer.show_procs will reveal the trick!"+char(10)+
+	"The result is a hidden backdoor / trojan on the target. Use with care."+char(10)+
+	"n.b. you get bonus points for extending the code to be even more nefarious"
     ps = """"+"ps"+""""
     shell = """"+"5hell"+""""
     zp = """"+"0.0%"+""""
@@ -1459,12 +1473,13 @@ command.cad = function(arg1=0, arg2=0, arg3=0, arg4=0)
     zf.shuffle
     m_path = """"+"/lib/metaxploit.so"+""""
     m = """"+"metaxploit.so"+""""
-    add = arg1
+    //add = arg1
+	if not pt then pt = "1222"
     if not add then add = """"+user_input("rshell addr:> ")+"""" else add = """"+add+""""
     if add == """"+""+"""" then return "aborting..."
     rip="ps=function();zp="+zp+";z2="+z2+";z1="+z1+";zf=[zp,z1,z2];zf.shuffle;procs = get_shell.host_computer.show_procs;k_tar = "+ps+";k_tar1 = "+shell+";processes = [];processes = procs.split(char(10));for p in processes;process = p.split(char(32));process_CMD = process[4];process_MEM = process[3];process_CPU = process[2];process_ID = process[1];process_user = process[0];if process_CMD == k_tar or process_CMD == k_tar1 then;continue;else;print(format_columns(process_user + char(32) + process_ID + char(32) + process_CPU + char(32) + process_MEM + char(32) + process_CMD));end if;end for;rng = range(1120, 9982);rng.shuffle;return(format_columns(active_user+char(32)+rng.pop+char(32)+"+zp+"+char(32)+zf.pop+char(32)+"+ps+"));end function"
     // nop
-    nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+",1222,"+ps+");exit(ps)"
+    nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+","+pt+","+ps+");exit(ps)"
     header = char(10)+"// Cloak and Dagger"+char(10)
     cd = (header+char(10)+rip+char(10)+nop)
     localmachine.touch(currentPath, "ps.src")
@@ -1497,7 +1512,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 		"then, poke a new file in rkit called r.bat"+char(10)+
 		"set it to:"+char(10)+
 		"rshell [your server ip] [some name]"+char(10)+
-		"-- if you have set HOME_SERVER then use this line instead:"+char(10)+
+		"-- if you have set get_custom_object.HOME in 5hell.src then use this line instead:"+char(10)+
 		"rshell @home [some name]"+char(10)+
 		"quit rshell_placed"+char(10)+char(10)+
 		"This will dig the target like normal, then launch 5hell with the gained root shell"+char(10)+"Once launched, a reverse shell will be dropped, the log scrubbed, rkit removed, and dig will exit both 5hell instances."
@@ -1668,7 +1683,20 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   return "returning to original 5hell session..."
 end function
 command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
-	if arg1 == "-h" or arg1 == "help" then return colorGold+"Brutus: dictionary attack psudo brute force type tool"+char(10)+"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+"(Default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords)"+char(10)+"-- on success sends <b>shell</b> to BUFFER and password to <b>clipa</b>"+char(10)+"Usage: brutus -i [/path|object] -- import dictionary (may be csv or newline separated values)"+char(10)+"-- 5hell will attempt to determine the type. Please ensure valid inputs."+char(10)+"-- accepts: path to file or folder, or piped file/folder object"+char(10)+"-- See dfit for making a.csv from newline separated dictionary file."+char(10)+"-- See cerebrum for altering onboard dict_a"+char(10)+"Advanced: brutus -s [shell_object] [ip] -- use shell_object to initiate ssh + brutus attack against ip "+char(10)+"(equal to command.ssh root@-brutus [ip] but uses the given shell instead of active shell)"
+	if arg1 == "-h" or arg1 == "help" then return colorGold+"Brutus || dictionary attack || brute force || ssh || passwords || hashes"+char(10)+char(10)+
+		"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+
+		"-- default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords"+char(10)+
+		"-- on success sends <b>shell</b> to BUFFER and password to <b>clipa</b>"+char(10)+char(10)+
+		"Usage: brutus -i [/path|object] -- import dictionary (may be csv or newline separated values)"+char(10)+
+		"-- 5hell will attempt to determine the type. Please ensure valid inputs."+char(10)+
+		"-- accepts: path to file or folder, or piped file/folder object"+char(10)+
+		"-- See dfit for making a .csv from a newline separated dictionary file."+char(10)+
+		"-- See cerebrum for altering onboard dict_a"+char(10)+char(10)+
+		"NOTE: both of the above use <b>get_shell(u,p)</b> and therefore are for local use only"+char(10)+
+		"-- ie: does not work through glasspool"+char(10)+char(10)+
+		"Advanced: brutus -s [ip] [shell_object] -- use shell_object to initiate <b>ssh</b> + brutus attack against ip "+char(10)+
+		"-- equal to <b>ssh root@-brutus [ip] 22 [ssh] </b>but uses the given shell instead of active shell"+char(10)+
+		"-- this does NOT use get_shell and therefore is not limited to local use"
 	if globals.GLASSPOOL > 0 then print colorGold+"brutus: warning: "+colorLightBlue+" GLASSPOOL</color> is active"+char(10)+"-- brutus does not translate through glasspool"+char(10)+"-- you <b>might</b> be rooting your own system"
 	dic = globals.dict_a
 	u_name = "root"
@@ -1683,11 +1711,11 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 				if typeof(arg2) == "file" then
 					dic = arg2
 				else
-					return "brutus: valid option -i [/path|file_object] -- import dictionary file"
+					return "brutus: use: brutus -i [/path|file_object] -- import dictionary file"
 				end if
 			end if
 		else
-			return "brutus: valid option -i [/path|file_object] -- import dictionary file"
+			return "brutus: use: brutus -i [/path|file_object] -- import dictionary file"
 		end if
 	end if
 	if DEBUG then print("arg1: "+arg1+char(10)+"arg2: "+arg2+char(10)+dic)
@@ -1781,7 +1809,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 	"-- @home will paste the @home ip any time it is used from the command line"+char(10)+
 	"---- not just when using cerebrum"+char(10)+
 	"-- if calling cerebrum -i internally with custom code:"+char(10)+
-	"---- be sure to pass an actual ip address or the HOME_SERVER[1] index for that param\n"+char(10)+
+	"---- be sure to pass an actual ip address or the gco.HOME.ip index for that param\n"+char(10)+
 	"Usage: cerebrum -p -- load only common player passwords (wip)\n"+char(10)+
 	"Usage: <b>cerebrum --purge</b> -- purge the onboard dictionary (to save memory)\n"+char(10)+
 	"Advanced: -- passing -d as any argument returns the onboard dictionary as a list"+char(10)+
@@ -1797,7 +1825,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 		return "cerebrum: dictionary purged."
 	end if
 	if arg1 == "-i" then
-		if not arg2 then return "crebrum: -i expects a path or file object or list."
+		if not arg2 then return "crebrum: -i expects a path or file_object or list or @home"
 		if typeof(arg2) == "list" then
 			if arg2.len > 0 then 	
 				globals.dict_a(arg2)
@@ -1810,24 +1838,23 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 		if typeof(arg2) == "string" then
 			if is_valid_ip(arg2) then
 				r_ip = arg2
-				r_p = HOME_SERVER[1]
-				r_pas = ""
-				if HOME_SERVER[3] == "password" then r_pas = user_input("@home_server_password (leave blank to abort)"+char(10)+":> ", 1) else r_pas = HOME_SERVER[3]
-				//end if
-				if r_pas.trim == "" then return("aborting...")
-				r_r = shell.connect_service(r_ip, r_p, HOME_SERVER[2], r_pas)
-				if r_r and typeof(r_r) == "shell" then
-					infile = r_r.host_computer.File(globals.HOME_SERVER[6])
-					//if not infile then return (colorRed+"cerebrum: "+globals.HOME_SERVER[6]+" not found"+"cerebrum: home_dir/rkit/tables/tp not found"+char(10)+"-- run pwgen to create the tables"+CT)
-					if infile then 
-						in_par = infile.parent 
-						inpass = r_r.host_computer.File(in_par.path+"/tp")
-						if inpass then infile = inpass
-					else 
-						return "cerebrum: unable to locate tables/tp;\n-- run <b>pwgen</b> on server or\n-- check HOME_SERVER path"
+				r_p = get_custom_object.HOME.loginport
+				r_pas = get_custom_object.HOME.pass
+				if r_pass == "password" or r_pas == "" then 
+					r_pas = user_input("@home server password (leave blank to abort)"+char(10)+":> ", 1) 
+					if r_pas.trim == "" then return("aborting...")
+					alt = user_input("Set "+r_pas+" as @home pass? [<b>Y</b>/n] ||: ",1,1).lower
+					if alt != "n" then; get_custom_object.HOME.pass = r_pas;print "-- @home pass set";else;print "-- skipping";end if
+				end if
+				r_r = globals.shell.connect_service(r_ip, r_p, get_custom_object.HOME.user, r_pas)
+				if typeof(r_r) == "shell" then
+					infile = r_r.host_computer.File(get_custom_object.HOME.tp)
+					if typeof(infile) != file then 
+						infile = r_r.host_computer.File(get_custom_object.HOME.t5)
+						if typeof(infile) != "file" then return colorWarning+"cerebrum: unable to locate tables/tp or tables/t5"+char(10)+"-- run <b>pwgen</b> on server or"+char(10)+"-- check gco.HOME.t5 or gco.HOME.tp"
 					end if
 				else
-					return (colorRed+"cerebrum: remote server unreachable."+CT)
+					return (colorRed+"cerebrum: remote server unreachable.")
 				end if
 			else
 				infile = globals.get_file(arg2)
@@ -1837,40 +1864,35 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			if typeof(arg2) == "file" then
 				infile = arg2
 			else
-				return "cerebrum: invalid type. expects /path or file_object or ip or @home"
+				return "cerebrum: invalid type; expects /path/file_or_folder or file_object or ip or @home"
 			end if
 		end if
-		print(colorGold+"<size=75%>cerebrum: importing dictionary..."+char(10)+colorGold+"<align=center><size=75%><<>></align>"+CT)
+		print(colorGold+"<size=75%>cerebrum: importing dictionary..."+char(10)+colorGold+"<align=center><size=75%><<>></align>")
 		if infile and not infile.is_binary then
-			d_b = infile.get_content
+			d_b = infile.get_content.trim
 			globals.dict_a([])
-			if d_b.indexOf(",") > 0 then
-				globals.dict_a(globals.dict_a + d_b.split(","))
-			else
-				globals.dict_a(globals.dict_a + d_b.split(char(10)))
-			end if
+			if d_b.indexOf(",") > 0 then d_b = d_b.split(",") else d_b = d_b.split(char(10))
+			d_l = []
+			for line in d_b
+				if line.indexOf("=") != null then d_l.push(line.trim.split("=")[1]) else d_l.push(line.trim)
+			end for
+			globals.dict_a(d_l)
 		else
 			if infile and infile.is_folder then
 				globals.dict_a([])
 				for dfile in infile.get_files
 					if dfile.has_permission("r") and not dfile.is_binary then
-						d_b = dfile.get_content
+						d_b = dfile.get_content.trim
 						if DEBUG then print "d_b input size: "+d_b.len
 						delim = ""
-						if d_b.indexOf(",") > 0 then
-							//globals.dict_a = globals.dict_a + dfile.get_content.split(",")
-							delim = ","
-						else
-							//globals.dict_a = globals.dict_a + dfile.get_content.split(char(10))
-							delim = char(10)
-						end if
+						if d_b.indexOf(",") != null then delim = "," else delim = char(10)
 						if globals.dict_a.len < 710000 then 
 							d_b = d_b.split(delim)
 							dl = []
 							for p in d_b 
-								if p.indexOf("=") != null then dl.push(p.split("=")[1]) else dl.push(p)								
+								if p.indexOf("=") != null then dl.push(p.trim.split("=")[1]) else dl.push(p.trim)								
 							end for 
-							globals.dict_a(globals.dict_a + dl)	
+							globals.dict_a(dl)	
 							if DEBUG then print("dict_a: "+dict_a.len)
 						else 
 							print("cerebrum: max dictionary length reached. Could not load: "+dfile.path)
@@ -1878,7 +1900,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 					end if
 				end for
 			else
-				return "cerebrum: import error [411]."
+				return "cerebrum: import error; no input file or folder"
 			end if
 		end if
 		if dict_a.len > 0 then 
@@ -1899,20 +1921,21 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 	tab = command.tree("/","tables","1","N")
 	if typeof(tab) == "file " and tab.has_permission("r") and tab.is_folder then 
 		tf = tab.get_files
-		tp = null 
-		for t in tp 
-			if t.name == "tp" then tp = t 
+		tp = null
+		for t in tf
+			if t.name == "t5" then tp = t 
+			if t.name == "tp" then tp = t // tp takes priority
 		end for
-		if typeof(tp) == "file" or not tp.is_binary then 
-			print("Detected tables/tp. Auto-import passwords?")
-			autoimport = user_input("[Y/n] (q=quit)||: ",0,1)
+		if typeof(tp) == "file" then 
+			print("Detected "+tp.path+"; Auto-import passwords?")
+			autoimport = user_input("[<b>Y</b>/n] (q=quit)||: ",0,1)
 			if autoimport.lower == "q" then return
 			if autoimport.lower != "n" then 
-				print("Calling "+colorWhite+"<u>cerebrum -i /root/tables/tp</u>")
+				print("Calling "+colorWhite+"<u>cerebrum -i "+tp.path)
 				print command.cerebrum("-i", tp.path)
 				return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds"
 			end if
-			print "cerebrum: bypassin tables..."
+			print "cerebrum: bypassing"+tp.path+"..."
 		end if
 	end if
 	print colorGold+"</b>cerebrum: working..."
@@ -2721,6 +2744,11 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	else 
 		//fire a macro
 		macmac = null
+		silent = 1
+		if arg1 == "-v" then 
+			silent = 0 // verbose
+			arg1 = arg2
+		end if
 		if gm.hasIndex(arg1) then macmac = gm[arg1] else return nsm
 		if DEBUG then print "debug: macro chain: "+char(10)+macmac
 		if typeof(macmac) != "string" then return colorOrage+"</b><size=75%>-- invalid macro; this looks more like an alias"
@@ -2731,175 +2759,9 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		for ar in macmac 
 			if ar == "@pipe" then macmac[macmac.indexOf(ar)] = arg2
 		end for
-		return command.shell(macmac)	
+		return command.shell(macmac,silent)	
 	end if
 	return 0
-end function
-command.hashim = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then
-		if arg2 and arg2 == "extra" then
-			return "Files required: /root/tables/t5/XX (XX is all files from<b> pwgen hash </b>, ascii), 5hell (bin)."+char(10)+
-			"Files created: /root/dump.txt (ascii) -- the output file with cracked passwords"+char(10)+
-			"Input format: "+char(10)+
-			"<b>user:hash "+char(10)+
-			"Once per line in /root/pass or specified path (see also <b>transmit</b>). "+char(10)+
-			"May be of type bank, mail, password."
-		else
-			return "hash || decipher || passwords || tables || md5"+char(10)+
-			colorLightBlue+"</b>Usage: hashim [-d|-f] [path] --<color=white> listen on [path] and decipher contents using tables/t5"+char(10)+
-			"-- default path is /root/pass"+char(10)+
-			"<b>Usage: hashim [-f] [opt:path] -- run once on specified path"+char(10)+
-			"-- uses /root/pass if not specified"+char(10)+
-			"<b>Usage: hashim [-d] [opt:path]-- run as a daemon on /root/pass or specified path"+char(10)+
-			"-- to end the daemon process, use the command:<b> purge -d [opt:name]"+char(10)+
-   	 		"---- or note the daemon name printed on the screen and "+char(10)+
-    		"---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
-    		"---- or delete the file entirely"+char(10)+
-    		"-- if the file cannot be created, then the process must be exited with <b>ctrl+c"+char(10)+char(10)+
-			"N.B. Please run <b>pwgen hash</b> to setup resources for hashim."+char(10)+
-			"n.b.b This command requires root access and it is recommended to use, along with pwgen,"+char(10)+
-			"-- on a dedicated server due to the number of files involved"+char(10)+
-			"-- ie try not to spam hashim servers; a single one works wonders"+char(10)+char(10)+
-			"Extra: hashim [-h|help] [extra] -- extra help page with extra help info."
-		end if
-	end if
-	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [path] -- -f == run once on specified path, -d == run in daemon mode on specified path. Default path: /root/pass."
-	if not crypto then print(colorOrange+"WARNING: crypto.so not found"+CT)
-	//dump = globals.get_file("dump.txt")
-	dump = command.tree("/","dump.txt",1,"N")
-	slash = "/"
-	if currentPath == "/" then slash = ""
-	if typeof(dump) != "file" then 
-		print command.poke(currentPath+slash+"dump.txt")
-		dump = globals.get_file("dump.txt")
-	end if
-	if not dump then return "hashim: dump.txt not found in current path."+char(10)+"hashim: unable to write dump.txt"
-	if arg2 then swap_path = arg2 else swap_path = globals.HOME_SERVER[5] // "/root/pass"//params[0]
-	swap_file = globals.get_file(swap_path)
-	if not swap_file then return("hashim: "+swap_path+" not found.") else print "hashim: found swap file: "+swap_path
-	//out_path = "/virt/out.spc"
-	//out_file = localmachine.File(out_path)
-	//if not out_file then return("404: "+out_path+" not found"+char(10)+"type<b> kore </b>without params to create (you may skip adding an ip)")
-	cache = []
-	found = false
-	daemon = true
-	if arg1 == "false" or arg1 == "-f" then daemon = false
-	hashim = function(daemon,swap_file)
-		wait(.05)
-		//if not daemon then swap_path = "/root/pass"
-		//swap_file = globals.get_file(swap_path)
-		if not swap_file then return "hashim: error: "+swap_path+" not found."
-		last_read = "" //swap_file.get_content
-		running = true
-		manager = new DaemonManager
-		daemon = manager.Start("hashim")
-		// move the tables stuff up here, not good to keep redoing it in a loop
-		print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
-		print(colorWhite+"Daemon: "+daemon+CT)
-		while (daemon and manager.Check(daemon)) or not manager.__initialized
-			found = false
-			hash = ""
-			user = ""
-			if last_read == swap_file.get_content or swap_file.get_content == "" then
-				// skip
-			else
-				time_s = time
-				last_read = swap_file.get_content.split(char(10))
-				for hash in last_read
-					found = false
-					if DEBUG then print "hash is: "+hash
-					if hash.indexOf(":") >= 0 then
-						user = hash.split(":")[0]
-						hash = hash.split(":")[1]
-					else
-						if hash.len == 32 then 
-							user = "unknown"
-						else
-							continue
-						end if
-					end if
-					hash = hash.trim
-					if DEBUG then print "hash is:"+hash+" and len is: "+hash.len
-					if hash.len != 32 then continue
-					print("["+hash+"]")
-					t_path = globals.HOME_SERVER[6]
-					t_folder = globals.get_file(t_path)
-					have_tables = false
-					if not t_folder then 
-						print "hashim: "+t_path+" not found; searching for tables..."
-						t_folder = command.tree("/","tables",1,"N")
-						if typeof(t_folder) == "file" and t_folder.is_folder then 
-							folds = t_folder.get_folders
-							for f in folds
-								if f.name == "t5" and f.is_folder then 
-									t_folder = f 
-									have_tables = true 
-								end if
-							end for
-						else 
-							print "hashim: tables not found; defaulting to cryptolib"
-						end if
-					else 
-						print "hashim: using: "+t_path
-						have_tables = true
-					end if
-					if have_tables == true then
-						files = t_folder.get_files
-						for f in files
-							if found then continue
-							lines = f.get_content.split(char(10))
-							for line in lines
-								if found then continue
-								if line == lines[0] then continue
-								spl = line.split("=")
-								h = spl[0]
-								p = spl[1]
-								if h == hash then
-									print("Hashim: " + user + ":" + colorWhite + p + CT + " found in " + (time-time_s) + " seconds.")
-									cache.push(user + ":" + p)
-									found = true
-									continue
-									if h.len != 32 then print(colorRed+"hashim: t5 table error: entry is not 32 characters"+char(10)+line+char(10)+"Line: "+lines.indexOf(line))
-								end if
-							end for
-						end for
-					end if
-					if found == true then continue
-					if crypto then
-						password = null
-						password = crypto.decipher(hash)
-						if password then
-							print("Hashim: " + user + ":" + colorWhite + password + CT + " found in " + (time-time_s) + " seconds.")
-							cache.push(user + ":" + password)
-							found = true
-							continue
-						end if
-					else 
-						print "hashim: error; no cryptolib found"
-					end if
-					print(colorRed+"Hash not found: unknown: "+hash+CT)
-					cache.push(user+":unknown")
-				end for
-				last_read = cache.join(char(10))
-				if daemon then print("Sending: "+char(10)+last_read)
-				if daemon then swap_file.set_content(last_read)
-				print("Saving to dump.txt...")
-				dump.set_content(dump.get_content+char(10)+last_read)
-				cache = []
-				print(colorLightBlue+"Hashim: completed task in "+(time-time_s)+" seconds."+CT)
-				wait(1)
-				if daemon then
-					print(colorWhite+"Listening on :"+swap_path+" for connections..."+CT)
-					print(colorWhite+"Daemon: " + daemon + CT)
-				else
-					return 0
-				end if
-			end if
-			wait(.05)
-		end while
-		return 0
-	end function
-	return hashim(daemon,swap_file)
 end function
 command.tdump = function(arg1,arg2,arg3,arg4)
 	if arg1 == "-h" or arg1 == "help" then return "Transmission Buffer Dump"+char(10)+"Usage: tdump [opt: path] -- dump tbuf (transmission buffer) to file"+char(10)+"-- writes to specified path or default path of home_directory+/pass"
@@ -3242,4 +3104,103 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 	check = new @arg1 
 	if typeof(@check) == "map" then return globals.decompiler(@arg1)
 	return "code: unkown type"
+end function
+command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then
+		return "<u>SILENTCLEAN || silentclean || log wipe || scrubber || corrupt logs"+char(10)+
+		"Usage: silentclean [opt:-d|-n|--n] [opt: shell|computer] -- corrupt the system.log"+char(10)+
+		"-- operates on active computer/shell object or piped computer/shell object"+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+"-- corrupt system.log of active computer/shell object"+char(10)+"--"+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-d"+CT+"] -- delete rkit and/or 5hell, then corrupt system.log"+char(10)+"--"+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-n"+CT+"] -- nuke system, delete rkit/5hell, corrupt system.log"+char(10)+
+		"-- use ["+colorWhite+"--n"+CT+"] on systems running <b>Xorg</b> (aka a home pc)"+char(10)+"--"+char(10)+
+		"Alias: you may use <b>sc</b> in place of <b>silentclean</b>"+char(10)+
+		"-- e.g: |><b> silentclean -d</b> is the same as:"+char(10)+
+		"--------|><b> sc -d</b>"+char(10)+
+		colorGold+"</b>-- this is defined in 5hell.src >> aliases section"+char(10)+
+		"N.B. run sc as root since /var is usually write protected."+char(10)+char(10)+
+		"<b>Silentclean now supports piped objects!"+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+" [<b>shell|computer</b>] -- run silentclean on a piped computer or shell "+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-d"+CT+"] [<b>shell|computer</b>] -- run silentclean [-d|-n] on a piped object"+char(10)+
+		"NOTE: if silentclean detects "+colorLightBlue+"Xorg "+CT+"as a running process on the machine:"+char(10)+
+		"-- it will determine you are on a home pc and require an override to execute"+char(10)+
+		"-- this is to help prevent accidentally nuking yourself"+char(10)+
+		"-- the override flag is <b>--n</b>"+char(10)+
+		"--ie: <b>silentclean --n</b>"+char(10)+char(10)+
+		"N.B. silentclean [-n|--n] will remove the following:"+char(10)+
+		colorOrange+"</b>-- /lib, /boot, /sys, 5hell, rkit"+char(10)+
+		char(10)+
+		colorGold+"Advanced: "+char(10)+
+		"By default, silentclean will create the file /var/system.bak and move it over /var/system.log."+char(10)+
+		"While this works wonders for preventing traces, when the log regenerates (as it eventually will) it will"+char(10)+
+		"generate with guest-readable permissions. To combat this, or to engage in other creative shenanigans, you"+char(10)+
+		"may create a file called 'silentclean' or rename an empty log file, or other file, as silentclean, and this"+char(10)+
+		"command (as well as rclean) will select that file to move over system.log. In this manner, the log is not"+char(10)+
+		"actually corrupted, and thus retains it's permissions when the next log write occurs."+char(10)+
+		"Naturally, this allows you to leave 'custom' log files behind in addition to just covering your tracks."
+	end if
+	store = globals.localmachine
+	_fix = function()
+		globals.localmachine = store
+		return "."
+	end function
+	//if arg1 and typeof(arg1) != "string" and arg1 != "-d" and arg1 != "-n" then print colorOrange+"silentclean: <b>ignoring</b> unsupported input"+char(10)+"-- instead: use rclean [opt:-d|-n] [piped_object]"+char(10)+"-- or open the object with glasspool then run sc [-d|-n]"+char(10)+"--eg: <b>gp -d "" sc -d """
+	if arg1 and arg1 != "-d" and arg1 != "-n" and typeof(arg1) != "shell" and typeof(arg1) != "computer" then return colorWarning+"<size=75%>silentclean: unsupported input; aborting to avoid catastrophe"
+	if arg1 or arg2 then 
+		//print colorOrange+"silentclean: warning: additional parameters detected"+char(10)+"-- silentclean does not support piped objects"+char(10)+"-- use rclean instead"
+		if typeof(arg2) == "shell" then globals.localmachine = arg2.host_computer
+		if typeof(arg2) == "computer" then globals.localmachine = arg2 
+		if typeof(arg1) == "shell" then globals.localmachine = arg1.host_computer
+		if typeof(arg1) == "computer" then globals.localmachine = arg1
+		// use _fix to restore localmachine
+		// just ignore anything else, use rclean for file objects
+	end if
+	cleaner = command.tree("/","5hell","1","N")
+	if cleaner then 
+		if cleaner.parent.name == "rkit" then cleaner = cleaner.parent
+	end if
+	syslog = globals.get_file("/var/system.log")
+	if not syslog then return "silentclean: <b>/var/system.log not found"+_fix
+
+	nuke_em = function()
+		libFolder =  globals.get_file("/lib")
+		bootFolder = globals.get_file("/boot")
+		systemFolder = globals.get_file("/sys")
+		if cleaner then cleaner.delete
+		if libFolder then libFolder.delete
+		if bootFolder then bootFolder.delete
+		if systemFolder then systemFolder.delete
+		print("Files nuked. Reboot when ready.")
+	end function
+
+	if syslog and syslog.has_permission("w") and syslog.parent.has_permission("w") then
+		// check for file named silentclean
+		syslogbak = command.tree("/","silentclean","1","N")
+		if not syslogbak then 
+			localmachine.touch("/var","system.bak")
+			syslogbak = globals.get_file("/var/system.bak")
+		end if
+		if typeof(syslogbak) == "file" then
+			//syslog.delete
+			if not syslogbak.is_binary then syslogbak.set_content("No IPs Today :D")
+		else
+			return "silentclean: write failed; permission denied"+_fix
+		end if
+		if arg1 == "-n" then 
+			if globals.localmachine.show_procs.indexOf("Xorg") == null then arg1 = "--n" else return "silentclean: "+colorOrange+"</b>detected home pc; execution halted"+_fix+char(10)+"-- re-run with "+colorWhite+"</b>silentclean --n"+CT+" to override"
+		end if
+		if arg1 == "--n" then nuke_em
+		if arg1 == "-d" or arg1 == "--n" then
+			if cleaner then cleaner.delete
+		end if
+		try = syslogbak.move("/var", "system.log")
+		syslog = globals.get_file("/var/system.log")
+		// add code to give the new file the same permissions as the original log
+		_fix
+		return try
+	else
+		return "silentclean: write failed; permission denied"+_fix
+	end if
+	_fix
+	return 0
 end function
