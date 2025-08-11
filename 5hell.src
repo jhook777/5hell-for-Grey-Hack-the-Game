@@ -28,6 +28,25 @@
 // Note: as of version 3.1.2 5hell may be loaded to the custom object.
 // see MAP OPTION below and choose one option (default has already been chosen).
 //
+//
+//
+//////////////////////////////// OPTIONAL SECURITY SECTION //////////////////////
+// ////////////////////////////// YOUR SECURITY GOES HERE //////////////////////
+// ///// customize this line fully (with something more advanced) for the most security ////////
+//   access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
+//   // if you rename access_codes be sure to edit the below line
+//   rnac = access_codes.indexes
+//   rnac.shuffle
+//   rnac = rnac.pop
+//   if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
+//     wait(300)
+//     exit("frag off, chumba")
+//   end if
+// /////////////////END SECURITY///////////////////
+//
+//
+///////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
+//
 // //////////////MAP OPTION////////////////
 // uncomment only ONE of the 'command =' lines. At least one must be selected.
 // option {} == normal 5hell mode. default.
@@ -38,18 +57,28 @@ command = {} // default
 //
 //////////END MAP OPTION//////////////////
 //
-//////////////////// BEGIN @HOME CONFIGURATION!!!!/////////////////////////////////////////////
-//-- skipping this configuration means you can't use the transmit command. up to you.
+//////////////////// BEGIN @HOME || @HOME_SERVER CONFIGURATION!!!!/////////////////////////////////////////////
+//
+/////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
+
+//
+//-- skipping the ip and password in this configuration means you can't use the transmit command. up to you.
+//-- however, you can always edit it at runtime since the values are stored in the custom object
+//-- use: shell --home [ip] or cob set HOME.ip [ip]
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
-//globals.HOME_SERVER = ["string: ip", number: ssh_port, "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/tables/t5)", number:rshell_port]
-globals.HOME_SERVER = ["ip.add.rr.ess", 22, "root", "password", "ssh", "/root/pass","/root/rkit/tables/t5", 1222]
+//get_custom_object.HOME = ["string: ip", number: ssh_port, number:rshell_port, "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/rkit/tables/t5", "string: /path/to/tables/tp (default: /root/rkit/tables/tp)"]
+get_custom_object.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"}
+// the above values are optional and may be left at default if you you don't plan to use them
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
   // @home will be replaced with your ip, no password needed in this case
   // password is needed for advanced functions, such as with the transmit command
-/////// ALWAYS USE A PASSWORD (SECURITY SECTION BELLOW command.shell) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
-////// END @HOME CONFIGURATION//////////////////////////////////////////////////
+//
+/////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
+//
+//
+////// END @HOME || @HOME_SERVER CONFIGURATION//////////////////////////////////////////////////
 //
 //
 // DEFINE COLOR PALETTE //
@@ -69,13 +98,15 @@ colorMagenta = "<color=#FF00C8FF><b>"
 colorLightBlue = "<color=#2382FFFF><b>"
 // default color for standard print override, adjust to your theme
 // use "" for your default terminal color
-colorDefault = colorGreen+"</b>"
-colorError = colorRed // not yet implemented
-colorWarning = colorOrange // not yet implemented
+colorDefault = "<color=#00FF00FF>"
+colorError = "<color=#FF0000FF><b>" // not yet implemented
+colorWarning = "<color=#FF8400FF><b>" // not yet implemented
 color5phinxText = "<color=#FFFFFFFF><b>"
-color5phinxElement = "<color=#71858DFF><b>"
 color5phinxButton = "<color=#00FFFFFF><b>"
+color5phinxElement = "<color=#71858DFF><b>"
+color5phinxDisplay = "<color=#00FFFFFF><b>"
 CT = "</color></b>"
+/// END COLOR PALETTE ////
 /////////// IMPRT LINE /////////
 //////////// change the below lines to the path where you placed 5hell.5pk //////
 // Do not remove the comments in the next two lines, they are necessary for Greybel support
@@ -151,7 +182,7 @@ command.shell = function(input=null,mute=null)
       if DEBUG then print "<b>input received: "+@input
       if typeof(input) == "list" then prompt = input
       if typeof(input) == "string" then prompt = input.replace(" \|\| "," |  | ").split(" ")
-      if prompt == [0,0,0,0,0] then return
+      if prompt == [0,0,0,0,0] then return 0
     else 
       if EXPERIMENTAL then 
       // experimental version; add prompt to command history
@@ -164,7 +195,7 @@ command.shell = function(input=null,mute=null)
     // add or remove comment characters to/from the string below
     if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#", input[0]) != null then // had to remove '/' as it was conflicting with things
       if DEBUG then print "debug: shell: skipping comment: "+prompt.join(" ")
-      return
+      return 0
     else 
       input = null
     end if
@@ -321,19 +352,19 @@ command.shell = function(input=null,mute=null)
         end if
         if @prompt[1] == "--home" then 
           if typeof(prompt[2]) == "string" and is_valid_ip(@prompt[2]) then 
-            print("shell: updating @home to: "+@prompt[2])
-            globals.HOME_SERVER[0] = @prompt[2] 
+            print("shell: updating @home to: "+prompt[2])
+            get_custom_object.HOME.ip = prompt[2] 
           else 
-            print globals.HOME_SERVER[0]
+            print get_custom_object.HOME.ip
           end if
           continue 
         end if
         print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
-        print(colorOlive+"[HOME_SERVER: "+colorWhite+globals.HOME_SERVER[0]+CT+"] ")
+        print(colorOlive+"[HOME_SERVER: "+colorWhite+get_custom_object.HOME.ip+CT+"] ")
         print(colorOlive+"[COMMANDS   : "+colorCyan+command.indexes.len+CT+"] ")
         print(colorOlive+"[PASSWORDS  : "+colorGold+globals.dict_a.len+CT+"] ")
-        print(colorOlive+"[PUBLIC_IP  : "+colorWhite+shell.host_computer.public_ip+CT+"]")
-        print(colorOlive+"[LOCAL_IP   : "+colorWhite+shell.host_computer.local_ip+CT+"]")
+        print(colorOlive+"[PUBLIC_IP  : "+colorWhite+localmachine.public_ip+CT+"]")
+        print(colorOlive+"[LOCAL_IP   : "+colorWhite+localmachine.local_ip+CT+"]")
         print(colorOlive+"[STACK_POOL : "+colorRed+get_custom_object.stack_pool+CT+"]")
         state = "in"
         if globals.GLASSPOOL then state = ""
@@ -422,19 +453,6 @@ if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
 //////////////////END IMPRTS SECTION ////////////////////////////
 //
 //
-//////////////////////////////// OPTIONAL SECURITY SECTION //////////////////////
-// ////////////////////////////// YOUR SECURITY GOES HERE //////////////////////
-// ///// customize this line fully (with something more advanced) for the most security ////////
-//   access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
-//   // if you rename access_codes be sure to edit the below line
-//   rnac = access_codes.indexes
-//   rnac.shuffle
-//   rnac = rnac.pop
-//   if user_input(colorCyan+"Cyberdeck Authentication Code ["+colorWhite+rnac+colorCyan+"]: "+CT,1,0) != access_codes[rnac] then
-//     wait(300)
-//     exit("frag off, chumba")
-//   end if
-// /////////////////END SECURITY///////////////////
 // 
 //
 if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
@@ -462,7 +480,7 @@ if DEBUG then print("<size=75%>stack_pool: ["+sp+"]")
 if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
 // auto 'do' a batch file on startup
 // unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
-// only executes if 5hell.rc is located in a folder named rkit or your Config folder
+// only executes if do.rc is located in a folder named rkit or your Config folder
 // if one exists in both, the one in Config is executed, not the one in rkit
 dorc = globals._startup_resource_configuration
 if DEBUG then print dorc
@@ -470,7 +488,7 @@ if DEBUG then print dorc
 if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib, CryptoLib, Shell...")
 emx = globals._export_metax_et_al
 if DEBUG then print("<size=75%>-- "+emx)
-if DEBUG then print("<size=75%>checking for tables/tp")
+if DEBUG then print("<size=75%>checking for tables/[tp|t5]")
 itp = globals._import_tables // import tables/tp if it exists
 if DEBUG then print itp
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
