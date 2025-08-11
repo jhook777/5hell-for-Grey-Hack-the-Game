@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.8"
-malp_version = "1.5.2"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.5...(149.007)</size>")
+sphinx_version = "2.9.9"
+malp_version = "1.5.3"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.6...(154.419)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -25,24 +25,53 @@ globals.exit = function(msg=0)
 end function
 //
 _print = @print
-globals.print = function(msg, mode=0, color=0) 
+globals.print = function(msg, mode=0, color=0,outfile=0) 
 // -- mode: 0=default, 1=clear_screen, 2=dont_print
 // -- color: 0;default, 1;error, 2;warning, otherwise supply a color code
   // --colors defined in 5hell.src 
   // --override at runtime with kore --override [colorDefinition] [new_colorCode]
   // ----eg: kore --override colorDefault <#FFFFFF>
   // --or place the line(s) in do.rc 
+// outfile: redirect output to provided output file path
   if color == 0 then color = colorDefault
   if color == 1 then color = colorError
   if color == 2 then color = colorWarn
   // --otherwise supply a color code for color
   if mode == 0 then mode = globals.SILENT
   if typeof(@msg) == "string" then 
-   msg = wrap_text(msg,color)
+    msg = globals.wrap_text(msg,color)
   else 
-    msg = color+msg+CT
+    msg = color+@msg+CT
   end if 
-  if mode < 2 then _print( msg, mode )
+  if globals.spoolpath then 
+    log = globals.get_file(spoolpath)
+    ifdbg = ""
+    //if DEBUG then ifdbg = char(10)+"- - - "+time+" - - - "// hahaha, this would be spam hell
+    if typeof(log) == "file" and log.has_permission("w") and log.has_permission("r") then 
+      if msg.len + log.get_content.len < 159000 then 
+        log.set_content(log.get_content+ifdbg+char(10)+msg) 
+      else 
+        f = log.name.split("\.")
+        n = f[0]
+        s = f[1]
+        if s.len == 3 then s = s+"1" else s = s[0:3] + str(s[-1].to_int + 1)
+        nsp = n+"."+s
+        lpp = log.parent.path
+        localmachine.touch(lpp,nsp)
+        if lpp == "/" then lpp = ""
+        newspool = globals.get_file(lpp+"/"+nsp)
+        globals.spoolpath = newspool.path
+        newspool.set_content(msg)
+        print("print: the log has reached the maximum size;"+char(10)+"-- new log file created:"+char(10)+"--: "+newspool.path,0,2)
+        print command.perms("o-rwx",newspool.path) 
+      end if
+    else 
+      _print(colorError+"<size=75%>print: cannot spool: file path or permission error")
+    end if
+  end if
+  if typeof(outfile) == "string" or typeof(outfile) == "file" then outfile = globals.get_file(outfile)
+  if typeof(outfile) == "file" and not outfile.is_binary and outfile.has_permission("w") then outfile.set_content(msg)
+  if mode < 2 then return _print( msg, mode )
   return null
 end function
 //
@@ -56,7 +85,7 @@ globals.user_input = function(prompt="",ispass=0,anykey=0,log=0)
   if EXPERIMENTAL then return _user_input(prompt,ispass,anykey,log)  else return _user_input(prompt,ispass,anykey)
 end function
 
-wrap_text = function(msg,clr)
+globals.wrap_text = function(msg,clr)
   msg = msg.split(char(10))
   mc = []
   for m in msg
@@ -92,6 +121,19 @@ end function
 
 hot_swap_libs = function() 
     return globals.super_import
+end function
+
+globals.is_home = function()
+			processes = localmachine.show_procs.split(char(10))
+      home = false
+			for p in processes
+				if p == "USER PID CPU MEM COMMAND" then continue
+				process = p.split(" ")
+				process_ID = process[1]
+				process_CMD = process[4]
+				if process_CMD == "Xorg" then home = true
+			end for
+      return home
 end function
 
 globals.get_file = function(input_string)
@@ -178,6 +220,76 @@ globals.super_import = function(import_this=0) // String: name; import requested
 end function
 // end super import
 
+
+globals.stack_pool = function(opt=null)
+  if get_custom_object.hasIndex("stack_pool") then
+    if DEBUG then print "debug: stack: turning up"
+    if opt == "up" then get_custom_object.stack_pool = get_custom_object.stack_pool + 1
+    if DEBUG then print "debug: stack: turning down"
+    if opt == "down" then get_custom_object.stack_pool = get_custom_object.stack_pool - 1
+  else 
+    if DEBUG then print "debug: stack: on"
+    get_custom_object.stack_pool = 0
+  end if 
+  return get_custom_object.stack_pool
+end function
+
+globals._import_tables = function()
+  if globals.dict_a.len > 1 then return "cerebrum: already loaded"
+  t = command.tree("/","tables","1","N")
+  if not t then return "tree: tables not found"
+  for f in t.get_folders 
+    if f.name == "tp" or f.name == "t5" then // tp takes priority
+      return command.cerebrum("-i",f.path)
+    end if
+  end for
+  return 0
+end function
+
+globals._startup_resource_configuration  = function()
+  p = null
+  r = globals.get_file(home_dir+"/Config/do.rc") // look for do.rc in ~/Config, first
+  if not r then 
+    r = command.tree("/","rkit","1","N") // look for do.rc in rkit if it isn't in /Config
+    if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
+    for f in r.get_files 
+      if f.name == "do.rc" then p = f 
+    end for
+  else 
+    p = r
+  end if 
+  if not p then return "tree: do.rc not found"
+  if p.is_binary then return "tree: do.rc is binary!"
+  if not p.has_permission("r") then return "do: do.rc is read protected"
+  c = p.get_content.split(char(10))
+  print colorGold+"<size=50%>kore:"+colorWhite+" ...<u>do.rc</u> detected, beginning resource configuration..."
+  for line in c
+    if line.len > 0 and line[0] != "#" then command.shell(line+" | return")
+  end for
+  return 0
+end function
+
+mail_user_list = function(ip_address, port)
+  if not crypto then return 0
+  return crypto.smtp_user_list( ip_address , port )
+end function
+
+// export metaxploit, crypto, shell to the custom object: called on startup
+// merge into session object when session objects become a thing
+globals._export_metax_et_al = function() 
+  s = globals.stack_pool
+  g = get_custom_object
+  m = globals.metaxploit 
+  c = globals.crypto
+  sh = globals.shell
+  ip = sh.host_computer.public_ip+" : "+sh.host_computer.local_ip
+  g["myi"+s] = ip
+  g["myx"+s] = m 
+  g["myc"+s] = c
+  g["mys"+s] = sh
+  return {"s":s,"m":m,"c":c,"sh":sh,"ip":ip}
+end function
+
 globals._ez_clip = function( in_prompt )
   for e in in_prompt 
     if DEBUG then print("z: "+@e)
@@ -188,31 +300,47 @@ globals._ez_clip = function( in_prompt )
         continue
     end if
     // done reprocessing
+    // connecting dots
     if DEBUG then print("p: "+@e)
     e_indx = in_prompt.indexOf(@e) 
     if @e == "@STOP" then in_prompt[e_indx] = @globals.SAFEWORD
     if @e == "@a" then in_prompt[e_indx] = @globals.CLIP["a"]
     if @e == "@b" then in_prompt[e_indx] = @globals.CLIP["b"]
     if @e == "@c" then in_prompt[e_indx] = @globals.CLIP["c"]
-    if @e == "@home" then in_prompt[e_indx] = @globals.HOME_SERVER[0]
+    if @e == "@home" then in_prompt[e_indx] = @get_custom_object.HOME.ip
     if @e == "@tbuf" then in_prompt[e_indx] = @globals.T_BUF.join(char(10))
     if @e == "@t" then in_prompt[e_indx] = @globals.targetIP 
     if @e == "@p" then in_prompt[e_indx] = @str(globals.targetPort)
-    if @e == "@o" then // this is getting out of hand...
+    if @e == "@r" then // moar ats! moarats! moar rats!... wait... no, no more rats
+      if in_prompt.hasIndex(e_indx+1) and typeof(in_prompt[e_indx+1]) == "string" then 
+        ind = in_prompt[e_indx+1]
+        if ind == "-m" then ind = 0
+        tsh = command.rsi("-r",ind)
+        if typeof(tsh) != "shell" then
+          print tsh
+          tsh = 0
+        end if
+        in_prompt[e_indx+1] = tsh
+        in_prompt.remove(e_indx)
+      else 
+        print globals.colorWarning+"<size=75%></b>ezclip: rsi: invalid index"
+      end if
+    end if
+    if @e == "@o" then 
       if in_prompt.hasIndex(e_indx+1) and typeof(in_prompt[e_indx+1]) == "string" and get_custom_object.hasIndex(in_prompt[e_indx+1]) then 
           in_prompt[e_indx+1] = command.cob("get",in_prompt[e_indx+1])
           in_prompt.remove(e_indx)
       else 
-          if DEBUG then print "@objects: key not found"
+          print globals.colorWarning+"<size=75%></b>ez_clip: cob: key not found"
       end if
     end if
     if @e == "@B" then 
-      b_err = colorOrange+"@BUFFER: invalid selection"
+      b_err = globals.colorWarning+"@BUFFER: invalid selection"
       if in_prompt.hasIndex(e_indx+1) then 
         if DEBUG then print "e_indx: "+e_indx
         if in_prompt[e_indx+1] == "-m" then 
           if BUFFER.len == 0 then
-            print(colorOrange+"\nBuffer empty. ")
+            print(globals.colorOrange+"\nBuffer empty. ")
             continue
           end if
           print("\nExpanding... ")
@@ -260,6 +388,7 @@ globals._ez_clip = function( in_prompt )
         end if
       end if
     end if
+    // dots connected
     // process escapes
     // hi clover, if you see this, feel free to make it magic
     if @e == "\@STOP" then in_prompt[e_indx] = "@STOP"
@@ -275,80 +404,10 @@ globals._ez_clip = function( in_prompt )
     if @e == "\@B" then in_prompt[e_indx] = "@B"
     if @e == "\@pipe" then in_prompt[e_indx] = "@pipe"
     if DEBUG then print("b: "+ in_prompt[e_indx])
+    // escapes processed
   end for
   if DEBUG then print "ezclip: returning: "+in_prompt
   return in_prompt
-end function
-
-
-
-globals.stack_pool = function(opt=null)
-  if get_custom_object.hasIndex("stack_pool") then
-    if DEBUG then print "debug: stack: turning up"
-    if opt == "up" then get_custom_object.stack_pool = get_custom_object.stack_pool + 1
-    if DEBUG then print "debug: stack: turning down"
-    if opt == "down" then get_custom_object.stack_pool = get_custom_object.stack_pool - 1
-  else 
-    if DEBUG then print "debug: stack: on"
-    get_custom_object.stack_pool = 0
-  end if 
-  return get_custom_object.stack_pool
-end function
-
-globals._import_tables = function()
-  if globals.dict_a.len > 1 then return "cerebrum: already loaded"
-  t = command.tree("/","tables","1","N")
-  if not t then return "tree: tables not found"
-  for f in t.get_folders 
-    if f.name == "tp" then 
-      return command.cerebrum("-i",f.path)
-    end if
-  end for
-  return 0
-end function
-
-globals._startup_resource_configuration  = function()
-  p = null
-  r = globals.get_file(home_dir+"/Config/do.rc") // look for do.rc in ~/Config, first
-  if not r then 
-    r = command.tree("/","rkit","1","N") // look for do.rc in rkit if it isn't in /Config
-    if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
-    for f in r.get_files 
-      if f.name == "do.rc" then p = f 
-    end for
-  else 
-    p = r
-  end if 
-  if not p then return "tree: do.rc not found"
-  if p.is_binary then return "tree: do.rc is binary!"
-  if not p.has_permission("r") then return "do: do.rc is read protected"
-  c = p.get_content.split(char(10))
-  print colorGold+"<size=50%>kore:"+colorWhite+" ...<u>do.rc</u> detected, beginning resource configuration..."
-  for line in c
-    command.shell(line+" | return")
-  end for
-  return 0
-end function
-
-mail_user_list = function(ip_address, port)
-  if not crypto then return 0
-  return crypto.smtp_user_list( ip_address , port )
-end function
-
-// export metaxploit, crypto, shell to the custom object: called on startup
-// merge into session object when session objects become a thing
-globals._export_metax_et_al = function() 
-  s = globals.stack_pool
-  g = get_custom_object
-  m = globals.metaxploit 
-  c = globals.crypto
-  sh = globals.shell
-  ip = sh.host_computer.public_ip+" : "+sh.host_computer.local_ip
-  g["myi"+s] = ip
-  g["myx"+s] = m 
-  g["myc"+s] = c
-  g["mys"+s] = sh
-  return {"s":s,"m":m,"c":c,"sh":sh,"ip":ip}
 end function
 
 globals.sus = function(a,b,c,d) // expects libname v version
@@ -387,6 +446,11 @@ dump_memory = function()
     if globals.CLIP["b"].len then buf.push( globals.CLIP["b"] )
     if globals.CLIP["c"].len then buf.push( globals.CLIP["c"] )
     buf.push(T_BUF)
+    for l in get_custom_object 
+      if l.key != "dictionary" then buf.push(l)
+    end for
+    m = command.macro("list")
+    buf.push(m)
     memdump.set_content( buf.join( char(10) ) )
     print("Memory dumped to: "+memdump.path)
     return 1
@@ -441,13 +505,13 @@ globals.decompiler = function(o)
 
     if o.indexOf("__isa") >= 0 or o.hasIndex("__isa") or o.hasIndex("classID") or typeof(o) == "pshell" or typeof(o) == "pfile" or typeof(o) == "pcomputer" or typeof(o) == "shell" or typeof(o) == "file" or typeof(o) == "computer" or typeof(o) == "ftpshell" then 
         if DEBUG then print "code: isa confirmed; verifying indexes"
+        crit = "code: "+colorError+" critical error: "+colorWhite+"the object has been invalidated"
         methods = o.__isa.indexes
         print methods
-        if methods.len < 2 then return "code: "+colorRed+"critical error; "+colorWhite+"the object has been invalidated"
-        if typeof(o) == "MetaLib" then 
-            if not p_validate(o,"version") then return "code: "+colorRed+" critical error: "+colorWhite+"the object has been invalidated"
-            print colorWhite+o.lib_name+CT+" v "+colorWhite+o.version
-        end if
+        if methods.len < 2 then return crit
+        if not p_validate(o) then return crit
+        if typeof(o) == "MetaLib" then print colorWhite+o.lib_name+CT+" v "+colorWhite+o.version 
+        if typeof(o) == "file" then print colorWhite+o.path
         for ind in methods
             print(ind+": "+o[ind])
         end for
@@ -579,24 +643,53 @@ globals.p_exe = function( obj, f_name=null ) // obj is either game object or fun
   if args.len == 3 then return o(a[0], a[1], a[2])
   if args.len == 4 then return o(a[0], a[1], a[2], a[3])
   if args.len == 5 then return o(a[0], a[1], a[2], a[3], a[4])
-  if args.len == 6 then return o(a[0], a[1], a[2], a[3], a[4], a[5])
+  if args.len >= 6 then return o(a[0], a[1], a[2], a[3], a[4], a[5])
   if args.len > 6 then return "p_exe: sadness: can't handle more than 6 args"
 end function
 
-p_validate = function( object, query )
-  if DEBUG then print "DEBUG: in p_validate"+char(10)+"validating: "+@object
-  if typeof(@object) == "function" then return 1
-  if typeof(@object) == "number" then return 1
-  test = new @object 
+p_validate = function( o, query=null )
+  if DEBUG then print "DEBUG: in p_validate"+char(10)+"validating: "+@o
+  methods = o.__isa.indexes
+  if methods.len < 2 then return 0
+  test = new @o 
   if test == null then return 0
-  if @object.hasIndex("__isa") and typeof(@object) != "string" then
-    if DEBUG then print colorGreen+"__isa index found"
-    locals.catch = @object.__isa.hasIndex(query)
-    if DEBUG then print "result: "+locals.catch
-	  return locals.catch // does the object have the index we seek?
+  if not query then
+    if DEBUG then print "debug: no query"
+    o_type = typeof(o) 
+    switch(o_type)
+    // this uh... doesn't actually do anything....
+      if DEBUG then print "debug: switch: start"
+      case("ftpshell",@p_validate(o,"start_terminal"))
+      case("shell",@p_validate(o,"start_terminal"))
+      case("computer",@p_validate(o,"get_name"))
+      case("file",@p_validate(o,"name"))
+      case("MetaLib",@p_validate(o,"version"))
+      case("MetaxploitLib",@p_validate(o,"rshell_server"))
+      case("aptclientLib",@p_validate(o,"update"))
+      case("blockchainLib",@p_validate(o,"coin_price"))
+      case("cryptoLib",@p_validate(o,"decipher"))
+      case("service",@p_validate(o,"install_service"))
+      case("SmartAppliance",@p_validate(o,"model"))
+      case("router",@p_validate(o,"bssid_name"))
+      case("port",@p_validate(o,"port_number"))
+      case("net_session",@p_validate(o,"dump_lib"))
+      case("debugLibrary",@p_validate(o,"scan"))
+      if DEBUG then print "debug: switch: firing default"
+    v = default(1)
+    return v
+  end if
+  if DEBUG then print "debug: query: "+query
+  if @o.hasIndex("__isa") and typeof(@o) != "string" then
+    if DEBUG then print colorGreen+"__isa indexes found: "+o.__isa.indexes.len
+    q = o.__isa.hasIndex(query)
+    if DEBUG then print "result: "+q
+	  if typeof(@o) == "file" then // hack to make this work for files. testing needed to see if other objects have somethign like this
+      if o.name then return q else return 0
+    end if
+    return q // does the object have the index we seek?
   else 
     if DEBUG then print colorOrange+"_isa index not found"
-    return 0
+    return 1
   end if
 end function 
 
@@ -815,6 +908,8 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
   if p_validate(shl, "host_computer") then
     target_s = colorOrange+"</b>"+shl.host_computer.local_ip+" @ <b>"+shl.host_computer.public_ip+CT
     if shl.host_computer.local_ip == localmachine.local_ip and shl.host_computer.public_ip == localmachine.public_ip then active_s = colorOrange+"</b>"+localmachine.local_ip+" @ <b>"+localmachine.public_ip+CT
+  else 
+    return colorError+"scp: target shell has been invalidated"
   end if
   if globals.GLASSPOOL then glass_stat = "active"
   print(char(10)+colorLightBlue+"<u>GLASSPOOL: "+CT+colorOrange+glass_stat+CT+"<b> Active Shell</b>: "+active_s+"</u>")
@@ -841,8 +936,8 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
       end if
       if not targ_f.has_permission("r") then return "scp: copy permission denied"
       if typeof(shl) == "shell" then return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
-      if typeof(shl) == "ftpshell" then return colorRed+"</b>scp: error; a game bug prevents ftpshell.put from functioning"//shl.put(copy_from, copy_to, globals.shell) ///////// copying
-      if typeof(shl) == "pshell" and p_validate(shl,"scp") then return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
+      if typeof(shl) == "ftpshell" then return colorError+"</b>scp: error; a game bug prevents ftpshell.put from functioning"//shl.put(copy_from, copy_to, globals.shell) ///////// copying
+      if typeof(shl) == "pshell" and p_validate(shl,"scp") then return shl.scp(copy_from, copy_to, globals.shell) else return colorWarning+"scp: p_object; invalid object or no scp function"///////// copying
       return "aborting..."
     end if
   else
@@ -1335,11 +1430,12 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
       i = 0
       if DEBUG then print("checking buffer integrity...")
       for b in globals.BUFFER //b_list
-        if DEBUG then print p_validate(@b,"name")
-        if DEBUG then print "b: "+@b
-        if typeof(@b) == "file" and not p_exe(@b,"name") then
+        if DEBUG then print "debug: validating: "+p_validate(@b)
+        if DEBUG then print "-- b: "+@b
+        if not p_validate(@b) then 
+        // if typeof(@b) == "file" and not p_exe(@b,"name") then
           globals.BUFFER.remove(globals.BUFFER.indexOf(b))
-          print("[<size=65%>malp: null file removed. skipping...</size>]")
+          print("[<size=65%>malp: invalid object removed; skipping...</size>]")
           continue
         end if
         /////////////////// BEGIN_BUFFER //////////////////////////////////////////////////
@@ -1701,6 +1797,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
           end while
           continue
         end if // end shell handler
+        // generic object handler
         if @buffer_selection.hasIndex("__isa") then
           print "Expanding: "+typeof(@buffer_selection)+"..."
           print "["+colorWhite+"c"+CT+"] add to custom object"
@@ -1760,28 +1857,28 @@ globals.transmit = function(wait_for_reply=0)
   // text to send
   send_this = globals.T_BUF.join(char(10))
   if send_this.len <= 1 then return "transmit: buffer empty"
-  
+   home = get_custom_object.HOME
   // validate settings
-  if not is_valid_ip(HOME_SERVER[0]) then return "transmit: error: please set @home ip in 5hell.src" // ["ip",port,"user","pass","service","path_to_pass"]
-  if typeof(HOME_SERVER[1]) != "number" then "transmit: error: please set @home port in 5hell.src"
+  if not is_valid_ip(home.ip) then return "transmit: error: please set @home ip in 5hell.src" // ["ip",port,"user","pass","service","path_to_pass"]
+  if typeof(home.loginport) != "number" then "transmit: error: please set @home port in 5hell.src"
 
   // connect to server. credentials compiled into 5hell.src for security
   print colorLightBlue+"transmit: connecting to database..."
-  print(colorWhite+"---sshfs----</b>"+HOME_SERVER[2]+"@"+HOME_SERVER[0]+"<b>----"+CT)
+  print(colorWhite+"---sshfs----</b>"+home.user+" @ "+home.ip+"<b>----"+CT)
   if DEBUG then 
-    print "debug: ip: "+HOME_SERVER[0]
-    print "debug: port: "+HOME_SERVER[1]+" is a "+typeof(HOME_SERVER[1])
-    print "debug: user: "+HOME_SERVER[2]
-    print "debug: pass: "+HOME_SERVER[3]
-    print "service: "+HOME_SERVER[4]
-    print "path: "+HOME_SERVER[5]
+    print "debug: ip: "+home.ip
+    print "debug: port: "+home.loginport+" is a "+typeof(home.loginport)
+    print "debug: user: "+home.user
+    print "debug: pass: "+home.pass
+    print "service: "+home.loginprotocol
+    print "path: "+home.sharedfile
   end if
-  remote = shell.connect_service(HOME_SERVER[0],HOME_SERVER[1],HOME_SERVER[2],HOME_SERVER[3],HOME_SERVER[4])
+  remote = shell.connect_service(home.ip,home.port,home.user,home.pass,home.loginprotocol)
   if typeof(remote) != "shell" and typeof(remote) != "ftpshell" then return "transmit: unable to connect to server"+char(10)+"-- check ip and credentials and try again"
-
+  //
   // make sure we have an ouput file
-  passfile = remote.host_computer.File(HOME_SERVER[5]) 
-  if not passfile then return "transmit: error: "+HOME_SERVER[5]+" not found"
+  passfile = remote.host_computer.File(home.sharedfiel) 
+  if not passfile then return "transmit: error: "+home.sharedfile+" not found"
 
   // transmit
   print "Transmitting data..."
@@ -2520,7 +2617,7 @@ secure_connect = function(shll)
     return 0
   end if
   print(targetIP)
-  if targetIP.is_lan_ip then 
+  if is_lan_ip(globals.targetIP) then 
     secure_ip = user_input("enter lan ip (<<b>enter</b>>="+targetIP+", non-int=abort"+char(10)+":> ")
   else
     secure_ip = user_input("enter lan ip (<<b>enter</b>>=abort):> ")
@@ -3026,7 +3123,12 @@ set_port = function()
   waitFor = user_input("Enter target port: ")
   if waitFor.to_int >= 1 then
     globals.targetPort = waitFor.to_int
-    print("Port changed. Please rescan metaLib.")
+    print("Port changed to: "+globals.targetPort)
+    if globals.targetPort == 8080 and is_valid_ip(globals.targetIP) and not is_lan_ip(globals.targetIP) then
+      print "-- 8080 is internal only"+char(10)+"-- updating targetIp (public ip) to <b>local ip"
+      r = get_router(globals.targetIP)
+      if not r then print "error: router at target ip not found!" else globals.targetIP = r.local_ip
+    end if
   else
     print("Invalid port. Defaulting to router.")
     globals.targetPort = "router"
@@ -3449,6 +3551,7 @@ main = function()
   EL = color5phinxElement
   TX = color5phinxText
   BT = color5phinxButton
+  TD = color5phinxDisplay
   while running
     if targetPort == 0 or targetPort == "0" then targetPort = "router"
     count = count + 1
@@ -3515,7 +3618,7 @@ main = function()
 
     //print(EL+format_columns("[ "+ TX + targetIP + CT + " ] [ " + TX + targetPort + CT +" ]"))
     if portInfo then
-      print(format_columns( EL + "[ "+ TX + targetIP + CT + " ] [ " + TX + targetPort + CT +" ]"+ char(10)+EL+"[ "+ TX + tarLan + CT +  " ] [ " + TX + portInfo.replace(" ","_") + CT+ " ]" ))
+      print(format_columns( EL + "[ "+ TD + targetIP + CT + " ] [ " + TD + targetPort + CT +" ]"+ char(10)+EL+"[ "+ TD + tarLan + CT +  " ] [ " + TD + portInfo.replace(" ","_") + CT+ " ]" ))
     end if
     if metaLib then
       print(EL+format_columns("["+TX+"MetaLib: "+CT+colorGreen+"loaded"+CT+" [" +colorGreen+ NUM_SPLOITS +CT+ "] "+TX+"Exploits Found"+CT+"]"))
