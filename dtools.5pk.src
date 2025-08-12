@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.6.1..(152.605)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.7..(152.952)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -1921,25 +1921,32 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("DEBUG: TIME: "+time_s)
 	//tab = get_shell.host_computer.File("/root/tables/tp")
 	tab = command.tree("/","tables","1","N")
-	if typeof(tab) == "file " and tab.has_permission("r") and tab.is_folder then 
-		tf = tab.get_files
-		tp = null
-		for t in tf
-			if t.name == "t5" then tp = t 
-			if t.name == "tp" then tp = t // tp takes priority
-		end for
-		if typeof(tp) == "file" then 
-			print("Detected "+tp.path+"; Auto-import passwords?")
-			autoimport = user_input("[<b>Y</b>/n] (q=quit)||: ",0,1)
-			if autoimport.lower == "q" then return
-			if autoimport.lower != "n" then 
-				print("Calling "+colorWhite+"<u>cerebrum -i "+tp.path)
-				print command.cerebrum("-i", tp.path)
-				return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds"
-			end if
-			print "cerebrum: bypassing"+tp.path+"..."
+	if DEBUG then print "debug: tab is a: "+typeof(tab)
+	if tab then 
+		autoimport = user_input("Detected "+tab.path+"; Auto-import passwords?"+char(10)+"[<b>Y</b>/n] (q=quit) ||: ",0,1)
+	// if typeof(tab) == "file " and tab.has_permission("r") and tab.is_folder then 
+	// 	if DEBUG then print "-- seeking t5/tp"
+	// 	tf = tab.get_folders
+	// 	tp = null
+	// 	for t in tf
+	// 		if t.name == "t5" then tp = t 
+	// 		if t.name == "tp" then tp = t // tp takes priority
+	// 	end for
+	// 	if typeof(tp) == "file" then 
+	// 		print("Detected "+tp.path+"; Auto-import passwords?")
+	// 		autoimport = user_input("[<b>Y</b>/n] (q=quit)||: ",0,1)
+		if autoimport.lower == "q" then return
+		if autoimport.lower != "n" then
+			return globals._import_tables 
+			//print("Calling "+colorWhite+"<u>cerebrum -i "+tp.path)
+			//print command.cerebrum("-i", tp.path)
+			//return globals.dict_a.len+" passwords imported in "+str(time-time_s)+" seconds"
 		end if
+		print "cerebrum: ignoring "+tab.path+"..."
+	else 
+		print "cerebrum: cannot find tp or t5"
 	end if
+	//end if
 	print colorGold+"</b>cerebrum: working..."
 	if DEBUG then print("cerebrum calling: pwgen false "+arg1)
 	command.pwgen("false",arg1)
