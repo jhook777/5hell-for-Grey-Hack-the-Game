@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.1.7..(138.713)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.1.7.1..(138.760)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -389,7 +389,8 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		exit ts.start_terminal
 		exit colorWhite+"Starting terminal..."
 	end if
-	if st == "3" then
+	if st == "3" then return command.infil(ts)
+	if st == "9" then
 		if GLASSPOOL then
 			print(colorLightBlue+"GLASSPOOL: "+colorOrange+"active"+colorLightBlue+" on: "+CT)
 			print(colorWhite+globals.shell.host_computer.local_ip+"@"+globals.shell.host_computer.public_ip+CT)
