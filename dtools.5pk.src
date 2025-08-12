@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.6...(152.496)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.6.1..(152.605)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -1204,7 +1204,8 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     return file_object
   end function
 
-  path_contents = function(f)
+  path_contents = function(f,clr)
+	if DEBUG then print "debug: in path_contents"
     folders = f.get_folders
     files = f.get_files
     contents = folders + files
@@ -1224,7 +1225,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     end for
     //if get then print( format_columns(output).replace(get,colorOrange+get+CT).replace(".src",colorCyan+".src"+CT).replace(".exe",colorRed+".exe"+CT).replace(".txt",colorWhite+".txt"+CT).replace(".log",colorLightBlue+".log"+CT).replace(".jpg",colorLightBlue+"</b>.jpg</color>").replace(".so",colorGold+"</b>.so</color>").replace(".html",colorCyan+".html"+CT) ) else print(format_columns(output))
 	if clr < 1 then clr = 0 else clr = 1
-	if get then print( format_columns(output).replace(get,colorOrange+get+CT),clr ) else print(format_columns(output))
+	if get then print( format_columns(output).replace(get,colorOrange+get+CT),clr ) else print(format_columns(output),clr)
     return
   end function
 
@@ -1267,6 +1268,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     end while
     return felix(file_object)
   end function
+  if DEBUG then print "debug: felix: initializing"
   if typeof(arg1) == "shell" then return init(arg1.host_computer.File("/"))
   if typeof(arg1) == "computer" then return init(arg1.File("/"))
   if typeof(arg1) == "file" then return init(arg1)
