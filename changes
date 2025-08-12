@@ -26,6 +26,12 @@
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
 // 
+// 5hell.src: fixed undefined color code and color termination
+// felix: fixed missing paramter: clr
+// air: fixed undefined "wlan"
+// p_validate: fixed broken __isa check
+// cerebrum: will offer to import tables when detected (if not already loaded)
+//
 // 5hell.src: PASSWORD SECURITY section moved to top of 5hell.search
 // -- still commented out by default, but easier to find 
 // run: fixed typo causing crash when running from glasspool
