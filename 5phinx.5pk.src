@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "2.9.9"
-malp_version = "1.5.3"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.6...(154.419)</size>")
+sphinx_version = "3.0.0"
+malp_version = "1.5.4"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.6.1..(154.517)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -649,6 +649,7 @@ end function
 
 p_validate = function( o, query=null )
   if DEBUG then print "DEBUG: in p_validate"+char(10)+"validating: "+@o
+  if typeof(@o) == "number" or typeof(@o) == "string" or not @o.hasIndex("__isa") then return 1
   methods = o.__isa.indexes
   if methods.len < 2 then return 0
   test = new @o 
