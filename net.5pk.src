@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.1.6...(138.712)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.1.6.1..(138.715)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -584,7 +584,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		dev = localmachine.network_devices
 		dsp = dev.split(char(10))
 		wl = false
-		if not localmachine.is_network_active or not localmachine.active_net_card[:4] == wlan then 
+		if not localmachine.is_network_active or not localmachine.active_net_card[:4] == "wlan" then 
 			print("air: error: network is inactive",0,1)
 			return 0 
 		end if
