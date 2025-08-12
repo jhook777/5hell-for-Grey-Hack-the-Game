@@ -38,7 +38,7 @@
 //   rnac = access_codes.indexes
 //   rnac.shuffle
 //   rnac = rnac.pop
-//   if user_input("<color=#00FFFFFF><b>Cyberdeck Authentication Code [<color=#FFFFFFFF><b>"+rnac+"</color>]: "</color>,1,0) != access_codes[rnac] then
+//   if user_input("<color=#00FFFFFF><b>Cyberdeck Authentication Code [<color=#FFFFFFFF><b>"+rnac+"</color>]: ",1,0) != access_codes[rnac] then
 //     wait(300)
 //     exit("frag off, chumba")
 //   end if
