@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.0.0"
+sphinx_version = "3.0.1"
 malp_version = "1.5.4"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.6.1..(154.517)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.7..(154.570)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -237,13 +237,13 @@ end function
 globals._import_tables = function()
   if globals.dict_a.len > 1 then return "cerebrum: already loaded"
   t = command.tree("/","tables","1","N")
-  if not t then return "tree: tables not found"
+  if not t or not t.is_folder then return "tree: tables not found"
   for f in t.get_folders 
     if f.name == "tp" or f.name == "t5" then // tp takes priority
       return command.cerebrum("-i",f.path)
     end if
   end for
-  return 0
+  return "import_tables: cannot find tp or t5"
 end function
 
 globals._startup_resource_configuration  = function()
