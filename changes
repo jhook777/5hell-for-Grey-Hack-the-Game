@@ -30,6 +30,7 @@
 // felix: fixed missing paramter: clr
 // air: fixed undefined "wlan"
 // p_validate: fixed broken __isa check
+// 5hell.src: removed errant </color> tag
 // cerebrum: will offer to import tables when detected (if not already loaded)
 //
 // 5hell.src: PASSWORD SECURITY section moved to top of 5hell.search
