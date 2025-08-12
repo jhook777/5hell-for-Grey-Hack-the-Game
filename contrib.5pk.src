@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.6...(133.605)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.7...(133.603)</size>)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
