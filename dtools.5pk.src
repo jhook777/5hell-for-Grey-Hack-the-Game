@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.7..(152.952)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.8..(152.952)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
