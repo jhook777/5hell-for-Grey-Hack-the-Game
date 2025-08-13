@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.0.1"
+sphinx_version = "3.0.2"
 malp_version = "1.5.4"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.7..(154.570)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.7..(154.573)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -35,7 +35,7 @@ globals.print = function(msg, mode=0, color=0,outfile=0)
 // outfile: redirect output to provided output file path
   if color == 0 then color = colorDefault
   if color == 1 then color = colorError
-  if color == 2 then color = colorWarn
+  if color == 2 then color = colorWarning
   // --otherwise supply a color code for color
   if mode == 0 then mode = globals.SILENT
   if typeof(@msg) == "string" then 
