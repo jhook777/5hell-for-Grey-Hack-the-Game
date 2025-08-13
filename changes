@@ -26,6 +26,8 @@
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
 // 
+// help: alias: corrected typos and corrected information regarding creating macros
+//	
 // 5hell.src: will return 0 if when input-prompt[0] is 0 or ""
 // -- moved the "extra print before the prompt" line to within the user_input/input received check
 // -- should further reduce unwanted prints when executing do.rc or other batch files
