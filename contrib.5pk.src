@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.7...(133.603)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.8...(134.932)</size>)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -2061,7 +2061,7 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.7...(133.603)
 			return "Dictionary already expaneded."
 		end if
 		print(colorGold+"0% -- loading hash_table, please wait..."+CT)
-		HASH_TABLE = {}
+		globals.HASH_TABLE = {}
 		for pw in globals.dict_a
 			HASH_TABLE[md5(pw)] = pw
 			//wait(.01)
@@ -2080,7 +2080,8 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.7...(133.603)
 		//
 		print(colorGold+"10%"+CT+" -- loading hash_table...")
 		print("<align=center>"+char(171)+char(187)+"</align>")
-		HASH_TABLE=PasswordGenerator.AllPasswords
+		//HASH_TABLE=PasswordGenerator.AllPasswords
+    if globals.HASH_TABLE.len < 1 then globals.HASH_TABLE = PasswordGenerator.AllPasswords else print "pwgen: HASH_TABLE already loaded; bypassing Markov"// trying this out, might be a bad idea
 		print(colorGold+"100%"+CT+" -- hash_table loaded...")
 		print("<b>Magnum Cerebrum: expanding onboard dictionary...</b>")
 		// globals.dict_a = HASH_TABLE.values
@@ -2092,9 +2093,39 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.7...(133.603)
 	end if
 	table = "tp"
 	if arg1 == "hash" then table = "t5"
-	table_path = get_custom_object.HOME.t5//.split("/tables/t5")[0]
-	//print(print(colorGold+"Writing tables to <u>"+home_dir+"/tables/"+table+CT))
-	print colorGold+"Writing tables to: "+table_path//+"/tables/"+table
+  table_path = get_custom_object.HOME[table]
+  t_par_path = table_path.remove("/tables/"+table)
+  t_par = globals.get_file(t_par_path) // usually /root/rkit
+  if not t_par then
+    print "pwgen: "+t_par_path+" not found;"+char(10)+"-- defaulting to currentPath"
+    t_par_path = globals.currentPath 
+    t_par = globals.get_file(t_par_path)
+    table_path = t_par_path+"/tables/"+table
+  end if
+  
+  print colorGold+"Writing tables to: "+table_path
+  command.mkdir(t_par_path+"/tables")
+  command.mkdir(table_path)
+  if not globals.get_file(table_path) then return "pwgen: write error; check permissions"
+  
+
+
+	//table_path = get_custom_object.HOME[table]//.split("/tables/t5")[0]
+	//print colorGold+"Writing tables to: "+table_path//+"/tables/"+table
+  //print command.mkdir(table_path)
+  // t_par = globals.get_file(table_path)
+  // if typeof(t_par) != "file" then 
+  //   print command.mkdir(currentPath+"/"+"tables")
+  //   t_par = globals.get_file(currentPath+"/"+table)
+  //   if typeof(t_par) != "file" then return colorWarning+"pwgen: write error; check permissions"
+  //   table_path = t_par.path
+  // end if
+  // t_par = tpar.parent
+  // command.mkdir(t_par.path)
+  //
+
+
+
 	print(colorGold+"Hash Table: ["+colorWhite+HASH_TABLE.len+"</color>]")
 	print("<align=center>"+char(171)+char(187)+"</align>")
 	out=[]
@@ -2114,8 +2145,9 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.7...(133.603)
 			print(lol+" "+out.len+" "+output.len)
 			//localmachine.touch(home_dir+"/rkit/tables/"+table,lol+"")
 			//file=localmachine.File(home_dir+"/rkit/tables/"+table+"/"+lol)
-			localmachine.touch(table_path+"/tables/"+table,lol+"")
-			file=localmachine.File(table_path+"/tables/"+table+"/"+lol)
+			localmachine.touch(table_path,lol+"")
+			file=globals.get_file(table_path+"/"+lol+"")
+      if not file then return colorWarning+"pwgen: write error; check tables path/permissions"
 			file.set_content(output)
 			command.perms("o-rwx",file)
 			out=[]
@@ -2127,8 +2159,9 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.7...(133.603)
 	if out.len > 0 then
 		lol = lol + 1
 		print(lol+" "+HASH_TABLE.len+" "+out.len)
-		localmachine.touch(table_path+"/tables/"+table,lol+"")
-		file=localmachine.File(table_path+"/tables/"+table+"/"+lol)
+		localmachine.touch(table_path,lol+"")
+		file=globals.get_file(table_path+"/"+lol+"")
+    if not file then return colorWarning+"pwgen: write error; check tables path/permissions"
 		file.set_content(out.join(char(10)))
 		command.perms("o-rwx",file)
 	end if
