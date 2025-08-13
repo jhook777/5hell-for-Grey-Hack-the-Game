@@ -26,6 +26,23 @@
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
 // 
+// 5hell.src: will return 0 if when input-prompt[0] is 0 or ""
+// -- moved the "extra print before the prompt" line to within the user_input/input received check
+// -- should further reduce unwanted prints when executing do.rc or other batch files
+// kore: fixed the default do.rc created by kore -r
+// -- removed whitespace and placed comments where they belong
+// --NOTE: invalid lines in do.rc will still cause 5hell to print a return line for that line
+// ---- comment out or remove the line to avoid this
+// rsi: correctly linked button [3] to infil command
+// pwgen: fixed creating incorrect folder structure and general not workingness
+// -- will now properly respect the paths indicated in cob.HOME.tp and cob.HOME.t5 (which are defined individually)
+// -- will write to current path if the defined parent folder of tables/t[p|5] does not exist
+// pwgen: moved HASH_TABLE to globals
+// -- this way it won't create it again if it already exists
+// -- ie when doing: pwgen | pwgen hash
+// -- will speed up the process a little bit
+// air: fixed air not properly detecting your network card or monitor mode
+//
 // 5hell.src: fixed undefined color code and color termination
 // felix: fixed missing paramter: clr
 // air: fixed undefined "wlan"
