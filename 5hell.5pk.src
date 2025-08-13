@@ -2,14 +2,14 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.1.8.E_falling_skies"
+ver = "4.1.8.1.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "151.960"
+size_of_5hell = "151.988"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
@@ -2552,7 +2552,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorWhite+"</b>remember two different formats for these similar commands."+char(10)+
 	colorWhite+"</b>The specific behavior of each is as follows:"+char(10)+
 	colorOrange+"DO: "+char(10)+
-	colorCyan+"<b> Do is essentially a 'do while' loop that executes at least once. You specify the number "+char(10)+
+	colorCyan+" Do is essentially a 'do while' loop that executes at least once. You specify the number "+char(10)+
 	colorCyan+"</b>of loops with the first argument: <b>do [some integer]</b> "+char(10)+
 	colorCyan+"</b>The <b>primary</b> way to use do is like a macro that you want repeated on a loop."+char(10)+
 	colorCyan+"</b>If there are no more arguments after the number, an editor will open (scribus) where you may"+char(10)+
@@ -2573,8 +2573,8 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"</b>is also included as the default <b>dig.bat</b>."+char(10)+
 	char(10)+
 	colorCyan+"</b>The <b>Second</b> way to use do is to define the commands on a single line, wrapped by floating quotes. "+char(10)+
-	colorLightBlue+"</bThis would look like:<b> do 5 "" rnip 1 | ping 1.1.1.1 """+char(10)+
-	colorLightBlue+"</bThis results in pinging 1.1.1.1 five times. More complex commands may be further chained by piping. "+char(10)+
+	colorLightBlue+"</b>This would look like:<b> do 5 "" rnip 1 | ping 1.1.1.1 """+char(10)+
+	colorLightBlue+"</b>This results in pinging 1.1.1.1 five times. More complex commands may be further chained by piping. "+char(10)+
 	colorLightBlue+"</b>Be sure to wrap the commands you wish to <b>do</b> in quotes* that do not touch anything "+char(10)+
 	colorLightBlue+"</b>(ie, floating) as shown above."+char(10)+
 	colorLightBlue+"<b>* If the command string is only two words, quotes are not needed. eg: do 1 ping 1.1.1.1"+char(10)+
@@ -2594,14 +2594,14 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorGold+"Macro:"+char(10)+
 	colorWhite+"</b>A macro is similar to a do script, except it is intended to be written 'on the fly.' In other words, you type "+char(10)+
 	colorWhite+"</b>the macro definition on the command line, without the editor, in most cases. If you do wish to use the editor, "+char(10)+
-	colorWhite+"</b>simply use: <b>scribus @clipa/b/c | macro [macro_name]"+char(10)+
+	colorWhite+"</b>simply use: <b>scribus @clipa/b/c | macro set [macro_name]"+char(10)+
 	colorWhite+"</b>Marco's are stored in the custom object and are executed when called by name: <b>macro [name]"+char(10)+
 	colorWhite+"</b>A macro <b>will</b> return it's final value and will not print execution time. There is no built in option "+char(10)+
-	colorWhite+"</b>to read a macro from a file, but <b>cat [file] | macro [name]</b> may be used to achieve this."+char(10)+
+	colorWhite+"</b>to read a macro from a file, however <b>cat [file] | macro set [name]</b> may be used to achieve this."+char(10)+
 	colorWhite+"</b>An example macro definition:"+char(10)+
-	colorWhite+"macro prop "" cp 5hell /bin | cp /bin/5hell rkit | kraken /bin/5hell | kraken rkit/5hell """+char(10)+
+	colorWhite+"macro set prop "" cp 5hell /bin | cp /bin/5hell rkit | kraken /bin/5hell | kraken rkit/5hell """+char(10)+
 	colorWhite+"</b>Again, it looks exactly the same as an inline do script, because it is! However, this script is stored "+char(10)+
-	colorWhite+"</b>in the custom object, </b>meaning it may be retrieved with <b>get [name]</b> and piped somewhere,"+char(10)+
+	colorWhite+"</b>in the custom object, meaning it's string may be retrieved with <b>get macro.[name]</b> and piped somewhere,"+char(10)+
 	colorWhite+"</b>such as to a file. You may absolutely fire a macro with <b>do</b>. Simply type: <b>do [#] @o [macroName]</b>"+char(10)+
 	colorWhite+"</b>and do will happily execute the macro. Likewise, as mentioned earlier, piping the </b>contents of a "+char(10)+
 	colorWhite+"</b>do script to macro will define the macro as that do script."+char(10)+
