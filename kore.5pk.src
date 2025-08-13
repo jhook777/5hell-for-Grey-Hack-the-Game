@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.1.7...(38.163)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.1.8..(37.986)</size>")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -148,14 +148,8 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 						last = new_read 
 						jb = jb + 1
 						print kc.cg+"<size=75%>kore: "+kc.cw+"input received; "+char(10)+kc.cw+"-- creating "+colorMagenta+"job"+jb+CT+" @ st+:"+time
-						//print(command.do("1","-f",kc.socket_in.path),0,0,kc.socket_out.path) // update print to redirect to socket_out
 						print(command.macro("set","job"+jb,kc.socket_in.get_content.trim.replace(char(10)," |  | ")))
 						if kc.verbose then print(command.macro("-v","job"+jb),0,0,kc.socket_out.path) else print(command.macro("job"+jb),0,0,kc.socket_out.path)
-						// if spool then 
-						// 	print "logging..."
-						// 	print command.append(kc.log_output.path,char(10)+kc.socket_out.get_content+char(10))
-						// 	// needs file size check code
-						// end if
 						print kc.cg+"<size=75%><u>kore: "+kc.cw+"listening on <u>"+kc.socket_in.path+"..."
 					end if
 					print kc.cg+"<"+kc.cw+"o</color>>"
@@ -231,14 +225,16 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 														"# * type commands exactly as if typing on 5hell's command line or writing a macro"+char(10)+
 														"# * each newline is 'pressing enter'"+char(10)+
 														"# * use the # character for comments"+char(10)+
-														"# * all comments (including these) are optional"+char(10)+
+														"# * all comments (including these) are optional (you can delete all this)"+char(10)+
+														"# * empty, uncommented lines will result in a blank line printed IF:"+char(10)+
+														"# -- you have 5hell.src set to print a line before the prompt"+char(10)+
 														"# * using do.rc is optional but it's a great place to define macros on startup"+char(10)+
 														"# NOTE: you may place do.rc in your Config folder"+char(10)+
 														"# -- this is in addition to OR instead of placing it in rkit"+char(10)+
 														"# -- the do.rc located in the <b>Config<b> folder will take priority"+char(10)+
-														" -- meaning it will be executed instead of ~/rkit/do.rc"+char(10)+
-														" -- this allows you to have a 'home' and 'away' version of do.rc"+char(10)+
-														" To Suppress output during startup;"+char(10)+
+														"# -- meaning it will be executed instead of ~/rkit/do.rc"+char(10)+
+														"# -- this allows you to have a 'home' and 'away' version of do.rc"+char(10)+
+														"# To Suppress output during startup;"+char(10)+
 														"# uncomment the below line AND the corresponding line at the bottom of the file:"+char(10)+
 														"# kore --silent"+char(10)+
 														"#"+char(10)+ 
@@ -247,23 +243,27 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 														"# kore --override colorDefault <noparse><#FFFFFFFF></noparse>"+char(10)+
 														"# kore --override color5phinxText <noparse><#00FFFFFF></noparse>"+char(10)+ 
 														"# END THEME"+char(10)+
-														"# place your commands below:"+char(10)+
-														"  "+char(10)+
-														"  "+char(10)+
-														"  "+char(10)+
+														"# remove the '#'s below and add your commands"+char(10)+
+														"#  "+char(10)+
+														"#  "+char(10)+
+														"#  "+char(10)+
 														"# end of user commands"+char(10)+
 														"# uncomment the below line to have kore secure your system on launch"+char(10)+
 														"# kore -s"+char(10)+
 														"# uncomment the line below if you uncommented the corresponding one at the top"+char(10)+
 														"# kore --silent")
-		print "kore: ensuring "+colorWhite+home_dir+"/rkit/tables"+CT+" exists..."
-		t = command.grep("-f","^tables$","/")
+		tab_path = get_custom_object.HOME[t5.remove("/t5").remove("/tp")]
+		print "kore: ensuring "+colorWhite+tab_path+CT+" exists within rkit..."
+		t = globals.get_file(tab_path)
+		if not t then t = command.grep("-f","^tables$","/")
 		if typeof(t) != "file" then 
 			print "<size=75%>kore: failed to locate tables"+char(10)+"<size=75%>-- run pwgen | pwgen hash to create? [N/y]"
-			if user_input("||: "+colorRed).lower == "y" then print command.shell("pwgen | pwgen hash") else print "kore: skipping tables..."
+			if user_input("||: "+colorRed,0,1).lower == "y" then print command.shell("pwgen || pwgen hash") else print "kore: skipping tables..."
 		else 
-			if t.parent.name != "rkit" then print command.cp(t.path,home_dir+"/rkit") else print "<size=75%>kore: tables folder already exists"
+			print colorGold+"kore: found "+colorWhite+t.path
 		end if
+		t = globals.get_file(tab_path)
+		if t.parent.name != "rkit" then t.copy(home_dir+"/rkit",t.name)
 		return 0
 	end function
 
@@ -575,7 +575,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 			"Input format: "+char(10)+
 			"-- <b>user:hash "+char(10)+
 			"-- one per line in "+get_custom_object.HOME.sharedfile+" or specified path (see also <b>transmit</b>). "+char(10)+
-			"-- ay be of type bank:hash, mail:hash, user:hash"
+			"-- may be of type bank:hash, mail:hash, user:hash"
 			"Q: Why does hashim use tables instead of the onboard dictionary?"+char(10)+
 			"A: loading both passwords and hashes into the onboard dictionary uses too much memory (it will fail)"+char(10)+
 			"-- loading the hash:pw pairs from file saves memory and saves cpu time by not using the md5() function"+char(10)+
@@ -615,9 +615,6 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 	if arg2 then swap_path = arg2 else swap_path = get_custom_object.HOME.sharedfile // "/root/pass"//params[0]
 	swap_file = globals.get_file(swap_path)
 	if not swap_file then return("hashim: "+swap_path+" not found.") else print "hashim: found swap file: "+swap_path
-	//out_path = "/virt/out.spc"
-	//out_file = localmachine.File(out_path)
-	//if not out_file then return("404: "+out_path+" not found"+char(10)+"type<b> kore </b>without params to create (you may skip adding an ip)")
 	cache = []
 	found = false
 	daemon = true
