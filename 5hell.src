@@ -135,7 +135,6 @@ command.shell = function(input=null,mute=null)
   running = true
   full_prompt = 1
   while running
-    print // an extra line before the prompt, if you want
     pipe = []  // pipe control, do not edit
     prompt = [] // prompt control, do not edit
     next = [] // pipe control, do not edit
@@ -182,8 +181,10 @@ command.shell = function(input=null,mute=null)
       if DEBUG then print "<b>input received: "+@input
       if typeof(input) == "list" then prompt = input
       if typeof(input) == "string" then prompt = input.replace(" \|\| "," |  | ").split(" ")
-      if prompt == [0,0,0,0,0] then return 0
+      //if prompt == [0,0,0,0,0] then return 0
+      if prompt[0] == 0 or prompt[0] == "" then return 0
     else 
+      print // an extra line printed before the prompt, if you want. comment out if you don't
       if EXPERIMENTAL then 
       // experimental version; add prompt to command history
         prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
