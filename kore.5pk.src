@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.1.8.1.(37.937)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.1.8.2.(37.939)</size>")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -252,7 +252,7 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 														"# kore -s"+char(10)+
 														"# uncomment the line below if you uncommented the corresponding one at the top"+char(10)+
 														"# kore --silent")
-		tab_path = get_custom_object.HOME[t5].remove("/t5")
+		tab_path = get_custom_object.HOME["t5"].remove("/t5")
 		print "kore: ensuring "+colorWhite+tab_path+CT+" exists within rkit..."
 		t = globals.get_file(tab_path)
 		if not t then t = command.grep("-f","^tables$","/")
