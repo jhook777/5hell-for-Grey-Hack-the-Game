@@ -585,7 +585,8 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		dev = localmachine.network_devices
 		dsp = dev.split(char(10))
 		wl = false
-		if not localmachine.is_network_active or not localmachine.active_net_card == "WIFI" then 
+		if DEBUG then print "debug: is_net_act: "+localmachine.is
+		if not localmachine.active_net_card == "WIFI" then 
 			print("air: error: network is inactive",0,1)
 			return 0 
 		end if
