@@ -26,6 +26,10 @@
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
 // 
+// air: removed bad is_network_active check; air will work again
+// kore: fixed crash in kore -r when creating rkit
+// kore: fixed crash in kore -r; added quotes to /HOME["t5"]
+// rclean: fixed rclean refusing to scrub index 0
 // malp: fixed [8] trying to run 5hell.d instead of 5hell
 // help: alias: corrected typos and corrected information regarding creating macros
 //	
