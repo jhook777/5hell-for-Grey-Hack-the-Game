@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.0.2"
-malp_version = "1.5.4"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.7..(154.573)</size>")
+sphinx_version = "3.0.3"
+malp_version = "1.5.5"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.7.1.(154.576)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -1738,7 +1738,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               l_path = user_input(colorLightBlue+"Enter launch_path</color></b> (<b>enter</b>=abort, 5hell=launch_first_5hell_found)"+char(10)+colorCyan+":> </b><size=75%><u>"+colorWhite)
               if l_path == "" then continue
               if l_path == "5hell" then 
-                l_path = command.grep("-p","5hell",buffer_selection)
+                l_path = command.grep("-p","^5hell$",buffer_selection)
                 if l_path == "No 5hell found, aborting..." then continue else print colorCyan+"located 5hell in "+l_path
               end if
               l_para = user_input(colorWhite+"</b>Optional launch parameters: "+char(10)+"(@a=clipa, @b=clipb, @c=clipc, <b><enter></b>=skip)"+char(10)+":> "+colorWhite)
