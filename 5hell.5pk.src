@@ -2,14 +2,14 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.1.8.1.E_falling_skies"
+ver = "4.1.8.2.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "151.988"
+size_of_5hell = "152.005"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
@@ -1608,11 +1608,11 @@ command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
 	"---- or, a not so empty system.log file..."+char(10)+
 	"Usage: rclean -d [#|shell|file|computer] -- run rclean as above and delete rkit and/or 5hell, if present"+char(10)+
 	"Usage: rclean -n [#|shell|file|computer] -- run rclean as above and delete the contents of /boot, if present"
-	if arg1 and arg1 == "-d" then 
+	if arg1 == "-d" then 
 		arg1 = arg2
 		arg2 = "-d"
 	end if 
-	if arg1 and arg1 == "-n" then 
+	if arg1 == "-n" then 
 		arg1 = arg2 
 		arg2 = "-n"
 	end if
@@ -2257,7 +2257,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, CypherRaven, 3nigma, muhahahahe, Sl3ekr, bakeneko, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, CyanMatter, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, bakeneko, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, CyanMatter, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
