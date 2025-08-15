@@ -26,13 +26,24 @@
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
 // 
+// aptm: will now complain when attempting to add an invalid repo ip
+// pwgen: reverted global.HASH_TABLE change
+// -- pwgen will rebuild the hash table on each run
+// -- this will prevent incomplete tables from being formed
+// -- this removes the potential speed boost and pwgen is back to it's original speed
+// -- this will also (temporarily) disable making custom hash_tables
+// -- i'll revisit this and figure out a good compromise
+// cerebrum: will no longer import tables if it is located in .Trash
 // air: removed bad is_network_active check; air will work again
 // air: completed the monitor mode check; air will aireplay again...
-// kore: fixed crash in kore -r when creating rkit
-// kore: fixed crash in kore -r; added quotes to /HOME["t5"]
+// kore: fixed crash in kore -r when creating rkit; added quotes to /HOME["t5"]
 // rclean: fixed rclean refusing to scrub index 0
 // malp: fixed [8] trying to run 5hell.d instead of 5hell
 // help: alias: corrected typos and corrected information regarding creating macros
+// grep: removed spammy debug lines from regex engine
+// grep: will no longer print "Function()" when it finds a match
+// -- turns out print greppy.grepped[-1]["name"] returns the string "Function()" because ["name"] is a function reference to the "name" function in the object's map
+// ---- where .name would be the result of said function
 //	
 // 5hell.src: will return 0 if when input-prompt[0] is 0 or ""
 // -- moved the "extra print before the prompt" line to within the user_input/input received check
