@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.8...(134.932)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.9...(135.023)</size>)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -2056,17 +2056,17 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.8...(134.932)
 		o[s]=1
 	end if
 	end function
-	if globals.BIGBRAIN then 
-		if arg1 == "false" then
-			return "Dictionary already expaneded."
-		end if
-		print(colorGold+"0% -- loading hash_table, please wait..."+CT)
-		globals.HASH_TABLE = {}
-		for pw in globals.dict_a
-			HASH_TABLE[md5(pw)] = pw
-			//wait(.01)
-		end for
-		print(colorGold+"100%"+CT+" -- hash_table loaded...")
+	if globals.BIGBRAIN and arg1 == "false" then 
+		//if arg1 == "false" then
+			return "Dictionary already expanded."
+		//end if
+		// print(colorGold+"0% -- loading hash_table, please wait..."+CT) // custom hash_tables currently disabled
+		// HASH_TABLE = {}
+		// for pw in globals.dict_a
+		// 	HASH_TABLE[md5(pw)] = pw
+		// 	//wait(.01)
+		// end for
+		// print(colorGold+"100%"+CT+" -- hash_table loaded...")
 	else
 		print(colorGold+"0% -- loading hash_table, please wait..."+CT)
 		if arg1 == "-t" or arg2 == "-t" then 
@@ -2080,8 +2080,9 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.1.8...(134.932)
 		//
 		print(colorGold+"10%"+CT+" -- loading hash_table...")
 		print("<align=center>"+char(171)+char(187)+"</align>")
-		//HASH_TABLE=PasswordGenerator.AllPasswords
-    if globals.HASH_TABLE.len < 1 then globals.HASH_TABLE = PasswordGenerator.AllPasswords else print "pwgen: HASH_TABLE already loaded; bypassing Markov"// trying this out, might be a bad idea
+    HASH_TABLE = {}
+		HASH_TABLE=PasswordGenerator.AllPasswords
+    //if HASH_TABLE.len <= 1 then globals.HASH_TABLE = PasswordGenerator.AllPasswords else print "pwgen: HASH_TABLE already loaded; bypassing Markov"// trying this out, might be a bad idea
 		print(colorGold+"100%"+CT+" -- hash_table loaded...")
 		print("<b>Magnum Cerebrum: expanding onboard dictionary...</b>")
 		// globals.dict_a = HASH_TABLE.values
