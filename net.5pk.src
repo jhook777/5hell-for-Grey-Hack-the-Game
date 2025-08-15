@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.1.8.3.(138.525)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.1.9...(138.590)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -2394,8 +2394,8 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	end function
 	apt.add_repo = function()
 		apt.update
-	  	if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = user_input("add repo ip:> ")
-		  return print(apt_get.add_repo(a))
+	  	if typeof(arg2) == "string" and is_valid_ip(arg2) then a = arg2 else a = user_input("add repo ip:> ")
+			if is_valid_ip(a) then return print(apt_get.add_repo(a)) else return "aptm: invalid repo ip"
 	end function
 	apt.del_repo = function()
 		apt.update
