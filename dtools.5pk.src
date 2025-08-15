@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.9...(153.115)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.9.1..(153.131)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -1896,7 +1896,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 							for p in d_b 
 								if p.indexOf("=") != null then dl.push(p.trim.split("=")[1]) else dl.push(p.trim)								
 							end for 
-							globals.dict_a(dl)	
+							globals.dict_a(globals.dict_a+dl)	
 							if DEBUG then print("dict_a: "+dict_a.len)
 						else 
 							print("cerebrum: max dictionary length reached. Could not load: "+dfile.path)
