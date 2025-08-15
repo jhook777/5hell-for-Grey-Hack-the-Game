@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.0.3"
+sphinx_version = "3.0.4"
 malp_version = "1.5.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.7.1.(154.576)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.9...(155.297)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -235,14 +235,31 @@ globals.stack_pool = function(opt=null)
 end function
 
 globals._import_tables = function()
+  if DEBUG then print "debug: in import tables:"
   if globals.dict_a.len > 1 then return "cerebrum: already loaded"
-  t = command.tree("/","tables","1","N")
-  if not t or not t.is_folder then return "tree: tables not found"
-  for f in t.get_folders 
-    if f.name == "tp" or f.name == "t5" then // tp takes priority
-      return command.cerebrum("-i",f.path)
-    end if
-  end for
+  t = globals.get_file(get_custom_object.HOME["tp"])
+  if DEBUG then print "-- t: "+t
+  if not t then 
+    g = ""
+    g = command.grep("-a","^tables$")
+    for tab in g
+      if typeof(tab) == "file" and tab.parent.name != ".Trash" then 
+        t = tab  
+      end if
+    end for
+    if DEBUG then print "-- t: "+typeof(t)+": "+t;if typeof(t) == "file" then print "-- "+t.path+char(10)+"-- "+t.get_folders
+    if not t or typeof(t) != "file" or not t.is_folder then return "grep: tables not found"
+    for f in t.get_folders 
+      if DEBUG then print "-- f: "+f.name
+      if f.name == "tp" or f.name == "t5" then // tp takes priority
+        if DEBUG then print "-- found: "+f.path
+        return command.cerebrum("-i",f.path)
+      end if
+    end for
+  else 
+    return command.cerebrum("-i",t)
+  end if
+  
   return "import_tables: cannot find tp or t5"
 end function
 
@@ -2029,6 +2046,7 @@ end function
 globals.rclean = function(arg1, arg2=0)
   t_file = null
   detection_factor = 0
+  if DEBUG then print "debug: arg1: "+arg1+ "arg2: "+arg2
   remote_clean = function(f,d=0) // file object, bool 0|1
     if typeof(f) != "file" then return "Error. Expected file got: "+f
     if not f.has_permission("r") then return "Error: scrub failed. no read permissions."
@@ -2114,6 +2132,7 @@ globals.rclean = function(arg1, arg2=0)
       return colorRed+"rclean: failed: "+catch+char(10)+colorRed+"WARNING: we left "+ detection_factor + " log entries!"
     end if
   end function
+  if typeof(arg1) == "list" then arg1 = arg1[0]
   if typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" then // arg2 is shell, not called by user
     t_shell = arg1
     t_file = t_shell.host_computer.File("/")
