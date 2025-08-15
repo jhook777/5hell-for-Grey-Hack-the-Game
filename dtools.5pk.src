@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.8..(152.952)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.9...(153.115)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -607,7 +607,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	gname = null
 
 	gp = function(grep_tar, t_f, use_re, findfile)
-		if DEBUG then print "debug: in gp; tf: "+t_f.path
+		//if DEBUG then print "debug: in grep; tf: "+t_f.path
 		if t_f.is_folder and t_f.is_binary then
 			sub_folders = t_f.get_folders
 			sub_files = t_f.get_files
@@ -624,7 +624,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 						end if
 						if findfile == true then
 							greppy.grepped.push(sub)
-							print greppy.grepped[-1]["name"]
+							//print greppy.grepped[-1].name
 							print gresult[-1]
 							globals.grepped_file = sub
 							gname = sub.name
@@ -644,7 +644,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 						end if
 						if findfile == true then
 							greppy.grepped.push(sub)
-							print greppy.grepped[-1]["name"]
+							//print greppy.grepped[-1].name
 							if DEBUG then print "debug: found "+sub.path
 							print gresult[-1]
 							globals.grepped_file = sub
@@ -1827,7 +1827,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 		return "cerebrum: dictionary purged."
 	end if
 	if arg1 == "-i" then
-		if not arg2 then return "crebrum: -i expects a path or file_object or list or @home"
+		if not arg2 then return "crebrum: -i expects a path or file_object or list or @home" else print colorGold+"<size=75%>cerebrum: importing from: "+typeof(arg2)
 		if typeof(arg2) == "list" then
 			if arg2.len > 0 then 	
 				globals.dict_a(arg2)
@@ -1860,7 +1860,9 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 				end if
 			else
 				infile = globals.get_file(arg2)
-				if DEBUG then print "infile: "+infile.path
+				if DEBUG then 
+					if typeof(infile) == "file" then print "-- infile: "+infile.path else print "-- infile: "+infile
+				end if
 			end if
 		else
 			if typeof(arg2) == "file" then
