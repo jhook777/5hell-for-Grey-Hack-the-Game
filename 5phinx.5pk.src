@@ -1895,7 +1895,7 @@ globals.transmit = function(wait_for_reply=0)
   if typeof(remote) != "shell" and typeof(remote) != "ftpshell" then return "transmit: unable to connect to server"+char(10)+"-- check ip and credentials and try again"
   //
   // make sure we have an ouput file
-  passfile = remote.host_computer.File(home.sharedfiel) 
+  passfile = remote.host_computer.File(home.sharedfile) 
   if not passfile then return "transmit: error: "+home.sharedfile+" not found"
 
   // transmit
@@ -3680,4 +3680,5 @@ main = function()
 end function
 //main
 //exit("Goodbye.")
+
 
