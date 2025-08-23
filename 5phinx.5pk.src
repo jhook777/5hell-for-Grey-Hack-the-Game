@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.0.4"
+sphinx_version = "3.0.5"
 malp_version = "1.5.5"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.1.9...(155.297)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.0...(155.559)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -247,7 +247,10 @@ globals._import_tables = function()
         t = tab  
       end if
     end for
-    if DEBUG then print "-- t: "+typeof(t)+": "+t;if typeof(t) == "file" then print "-- "+t.path+char(10)+"-- "+t.get_folders
+    if DEBUG then 
+      print "-- t: "+typeof(t)+": "+t;
+      if typeof(t) == "file" then print "-- "+t.path+char(10)+"-- "+t.get_folders
+    end if
     if not t or typeof(t) != "file" or not t.is_folder then return "grep: tables not found"
     for f in t.get_folders 
       if DEBUG then print "-- f: "+f.name
@@ -843,20 +846,26 @@ globals.trythis = function(function_reference, function_name)
   return try.this(@function_reference, function_name)
 end function 
 
-globals.rsi_purge = function()
+globals.rsi_purge = function(ktar="ALL")
   rshells = metaxploit.rshell_server
   if(typeof(rshells) == "string") then return(rshells)	
   for r in rshells
-    print colorLightBlue+"rsi: kill ALL >> "+colorWhite+r.host_computer.public_ip+ " @ "+r.host_computer.local_ip
-    processes = r.host_computer.show_procs.split(char(10))
-    for p in processes
-      if p == "USER PID CPU MEM COMMAND" then continue
-      process = p.split(" ")
-      process_ID = process[1]
-      process_CMD = process[4]
-      print "Killing: "+process_CMD+" ID: "+process_ID
-      print r.host_computer.close_program(process_ID.to_int)
-    end for
+    print colorLightBlue+"rsi: kill "+colorCyan+ktar+"</color> >> "+colorWhite+r.host_computer.public_ip+ " @ "+r.host_computer.local_ip
+    print command.kill(ktar,r)
+
+    // processes = r.host_computer.show_procs.split(char(10))
+    // for p in processes
+    //   if p == "USER PID CPU MEM COMMAND" then continue
+    //   process = p.split(" ")
+    //   process_ID = process[1]
+    //   process_CMD = process[4]
+    //   if process_CMD != exclude then 
+    //     print "Killing: "+process_CMD+" ID: "+process_ID
+    //     print r.host_computer.close_program(process_ID.to_int)
+    //   else 
+    //     print "rsi: excluding "+exclude+" from purge..."
+    //   end if
+    // end for
   end for
   return 0
 end function
@@ -1891,11 +1900,11 @@ globals.transmit = function(wait_for_reply=0)
     print "service: "+home.loginprotocol
     print "path: "+home.sharedfile
   end if
-  remote = shell.connect_service(home.ip,home.loginport,home.user,home.pass,home.loginprotocol)
+  remote = shell.connect_service(home.ip,home.port,home.user,home.pass,home.loginprotocol)
   if typeof(remote) != "shell" and typeof(remote) != "ftpshell" then return "transmit: unable to connect to server"+char(10)+"-- check ip and credentials and try again"
   //
   // make sure we have an ouput file
-  passfile = remote.host_computer.File(home.sharedfile) 
+  passfile = remote.host_computer.File(home.sharedfiel) 
   if not passfile then return "transmit: error: "+home.sharedfile+" not found"
 
   // transmit
@@ -3680,5 +3689,3 @@ main = function()
 end function
 //main
 //exit("Goodbye.")
-
-
