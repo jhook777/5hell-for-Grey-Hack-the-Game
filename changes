@@ -26,7 +26,34 @@
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
 // 
-// aptm: will now complain when attempting to add an invalid repo ip
+// mail: added missing usage info regarding logging into mail via comman line
+// --ie: mail [email] [pass]
+// -- been there for a while, i just forgot to document it
+// -- literally months... 
+// brutus: removed vestigial "arg5" that was preventing command.shell from sending any input at all to brutus
+// -- which in turn prevented passing any arguments (such as help) to brutus
+// brutus: (temporarily) disabled: brutus -s
+// -- use: ssh user@-brutus [ip] instead
+// mv: added -r flag to overwrite destination folder (prevously only possible in felix)
+// -- n.b: this is a 'rename and overwrite' command for folders
+// cerebrum: fixed dictionary not updating
+// cob: validate will include the HOME map
+// purge: -o: HOME map will be excluded when purging the custom object
+// purge: -M will correctly purge the active MetaLib object
+// purge: -r will now accept a string of PID's or process names to exclude from purging the rshell buffer
+// -- delimit with the ":" character
+// kill: will accept a string of PID's or process names to exclude from the kill
+// -- delimit with the ":" character
+// rsi: -p will accept a string of PID's or process names to exclude from the purge
+// -- delimit with the ":" character
+// soon: i'll add purge refinemnt to purging the BUFFER soonish (maybe)
+// aptm: fixed: not allowing the importation of an aptclientlib if one isn't already loaded
+// pwgen: added 'pegade' to the seed list. the game made this from "pegasus" but my generator didn't
+// -- this will result in several more password iterations being generated from this seed
+// -- you could rerun pwgen if you want, after this change, or you could just shoehorn 'pegade' into your tables and call it good
+//
+// 5phinx.5pk: startup _import_tables will no longer print debug output when not in debug mode
+// aptm: will now ignore invalid ips
 // pwgen: reverted global.HASH_TABLE change
 // -- pwgen will rebuild the hash table on each run
 // -- this will prevent incomplete tables from being formed
