@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.1.9...(138.590)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.0...(140.671)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -244,8 +244,21 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	"-- eg: rsi 1 7 | gp"+char(10)+
 	colorGreen+"Usage: rsi [-l] -- return the length of the rsi buffer"+char(10)+
 	"-- returns the number as a <b>string</b>"+char(10)+
-	colorOrange+"</b>Usage: rsi [<b>-p</b>] [opt:y] -- purge all rshells; supplying 'y' will skip confirmation"+char(10)+
-	"Usage: rsi [<b>-s|-S</b>] -- scrub logs of all rshells (if possible)"+char(10)+
+	colorOrange+"</b>Usage: rsi [<b>-p</b>] [opt:y|exclude1:exclude2:...] "+char(10)+
+	"-- close ALL processes on ALL rshells, purging all rshells in the process"+char(10)+
+	"-- supplying 'y' by itself will skip confirmation"+char(10)+
+	"-- supplying ':' followed by process names or ID's will exclude those processes from the purge"+char(10)+
+	"----ie: you may protect individual or named rshells from the purge"+char(10)+
+	"---- this also skips confirmation"+char(10)+
+	"-- if you wish to exclude a process named 'y' you must pass: <b>y:y"+char(10)+
+	"--eg: <b>rsi -p ch4r0n:ps</b> "+char(10)+
+	"---- terminate all processes on all rshells except those named ch4r0n and ps"+char(10)+
+	"--eg: <b>rsi -p 1024:4186:9009"+char(10)+
+	"---- terminate all processes on all rshells except 1024, 4186, and 9009"+char(10)+
+	"--eg: <b>rsi -p y</b> -- terminate all processes on all rshells; no exceptions"+char(10)+
+	"--eg: <b>rsi -p y:y</b> -- terminate all processes on all rshells except those named 'y'"+char(10)+
+	"-- create a "+colorMagenta+"macro"+CT+" with a whitelist to make full use of this"+char(10)+
+	colorWhite+"Usage: rsi [<b>-s|-S</b>] -- scrub logs of all rshells (if possible)"+char(10)+
 	"-- [<b>-s</b>] -- uses silentclean"+char(10)+
 	"-- [<b>-S</b>] -- uses rclean"+char(10)+
 	colorCyan+"</b>Usage: rsi [<b>-d|-D</b>] -- scrub logs on and remove <b>rkit</b> from all rshells"+char(10)+
@@ -254,7 +267,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"Usage: rsi ["+colorRed+"</b>-n|-N</color>]"+CT+" -- nuke all rshells"+char(10)+
 	"-- [<b>-n</b>] -- uses silentclean -n"+char(10)+
 	"-- [<b>-N</b>] -- uses rclean -n"+char(10)+
-	colorGold+"</b>Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is in /lib"+char(10)+
+	colorGold+"</b>Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is on the machine"+char(10)+
 	"Usage: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"+char(10)+
 	colorOrange+"Usage: rsi --export -- return the entire rshell buffer as a list"+char(10)+
 	"-- usage example: |> <b>rsi --export | enum -a | enum -b"+char(10)+
@@ -263,7 +276,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 
 	if not metaxploit then return "Error: Can't find metaxploit library in the /lib path or the current folder"
 	if not localmachine.is_network_active then return "nsl: no network connection."
-	if arg1 == "-p" then return command.purge("-r",arg2,arg3,arg4)
+	if arg1 == "-p" then return globals.rsi_purge("ALL:"+arg2)//command.purge("-r",arg2,arg3,arg4)
 	if arg1 == "stop" then 
 		rserver = null
 		rserver = include_lib("/lib/librshell.so")
@@ -282,8 +295,9 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
         lbrs = command.tree("/","librshell.so",1,"N")
         if not lbrs then return colorRed+"rsi: librshell.so not found on machine."+CT
 		rc = null
-        lib = localmachine.File("/lib")
+        lib = globals.get_file("/lib")
         if not lib then return "rsi: error, /lib missing"
+		print "rsi: attempting to install the rshell service..."
         if lib.has_permission("w") and lbrs.has_permission("r") then lbrs.copy("/lib",lbrs.name)
         rserver = include_lib("/lib/librshell.so")
         if not rserver then print("rsi: librshell.so not installed in /lib.")
@@ -2169,7 +2183,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
 	"Usage: purge [-b] [#] -- remove BUFFER entry at index #"+char(10)+
 	"Usage: purge [-t] -- purge transmit buffer (@tbuf)"+char(10)+
-	"Usage: purge [-X] -- purge XPLOITS buffer "+char(10)+
+	"Usage: purge [-x] -- purge XPLOITS buffer "+char(10)+
 	"Usage: purge [-X] -- purge the metaxploitLib object"+char(10)+
 	"USage: purge [-M] -- purge the MetaLib object"+char(10)+
 	"-- also purges XPLOITS buffer"+char(10)+
@@ -2178,6 +2192,10 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 	"Usage: purge [-e] -- purge enum buffer"+char(10)+
 	"Usage: purge [-s] -- purge tagged4scp buffer"+char(10)+
 	"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+
+	"Usage: purge [-r] [exclude1:exclude2:...] "+char(10)+
+	"-- purge the RSI buffer; excludes process names or ID's matching the excludes"+char(10)+
+	"--eg: purge -r backdoor:ps:obviousVirus"+char(10)+
+	"-- skips confirmation"+char(10)+
 	"Usage: purge [-o] -- purge custom object  (excludes: stack_pool, macro registry)"+char(10)+
 	"Usage: purge [-d] -- purge monitors (daemons)"+char(10)+
 	"Usage: purge [-p] -- purge the PORT_MAP"+char(10)+
@@ -2228,6 +2246,15 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 			return "aborting..."
 		end if
 	end if
+	if arg1 == "-X" then 
+		if not confirm then confirm = user_input("Clear the MetaxploitLib object? [y/N]",0,1)
+		if confirm.lower == "y" then 
+			globals.metaxploit = null 
+			return "MetaxploitLib purged."
+		else 
+			return "aborting..."
+		end if
+	end if
 	if arg1 == "-x" then
 		if not confirm then confirm = user_input("Clear XPLOITS: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then
@@ -2243,7 +2270,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if not confirm then confirm = user_input("Clear ENUM: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then
 			globals.enumerated = []
-			return "ENUM purged"
+			return "ENUM purged."
 		else
 			return "aborting..."
 		end if
@@ -2252,7 +2279,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		if not confirm then confirm = user_input("Clear tagged4scp: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then
 			globals.tagged_for_scp = ""
-			return "tagged4scp purged..."
+			return "tagged4scp purged."
 		else
 			return "aborting..."
 		end if
@@ -2260,15 +2287,17 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-r" then 
 		if not confirm then confirm = user_input("Clear all rshells: are you sure? [y/N]||: ",0,1)
 		if confirm.lower == "y" then
-			globals.rsi_purge
-			return "RSI buffer purged..."
+			job = "ALL"
+			if typeof(arg2) == "string" and arg2 != "y" then job = "ALL:"+arg2
+			globals.rsi_purge(job)
+			return "RSI buffer purged."
 		else
 			return "aborting..."
 		end if
 	end if	
 	if arg1 == "-o" then 
 		if not confirm then confirm = user_input("Clear custom_object: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then print "purging custom object..."
+		if confirm.lower == "y" then print "purging custom object..." else return "aborting..."
 		gco = get_custom_object
 		if DEBUG then print "debug: printing gco indexes..."
 		for index in gco.indexes
@@ -2278,9 +2307,18 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		print command.cob("validate")
 		return "custom object purged..."
 	end if
+	if arg1 == "-M" then 
+		if not confirm then confirm = user_input("Clear the loaded MetaLib object?")
+		if confirm.lower == "y" then print "purging MetaLib object..." else return "aborting..."
+		globals.metaLib = null 
+		if globals.net_session then 
+			print "purging net_session..."
+			globals.net_session = null 
+		end if
+	end if
 	if arg1 == "-m" then 
 		if not confirm then confirm = user_input("Clear all macros: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then print "purging macro registry..."
+		if confirm.lower == "y" then print "pmacro registry..." else return "aborting..."
 		print command.cob("vaidate")
 		if DEBUG then print "debug: macros: "+char(10)+get_custom_object.macros
 		get_custom_object.macros = {}
@@ -2338,13 +2376,13 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	"-- searches for and loads the latest version of each lib <b>on disk"+char(10)+
 	"---- does not run aptm upgrade"+char(10)+
 	"-- this is the same include_lib routine executed at launch"
-  	if not globals.apt_get then return "aptm: "+colorRed+"Error: no aptclientLib loaded"+CT
   	if GLASSPOOL then print(colorOrange+"Ignores Glasspool."+CT)
 	// apt menu by Plu70
 	if arg1 and typeof(arg1) == "aptclientLib" then
 		print "apt-get-menu: importing alternate aptclientLib"+char(10)+"-- pipe the old lib back to restore"+char(10)+"-- eg: liber -i /lib/aptclient.so | aptm"
 		globals.apt_get = arg1 
 	end if
+	if not globals.apt_get then return "aptm: "+colorRed+"Error: no aptclientLib loaded"+CT
 	apt = {}
 	apt.exit = function()
 		return 0
