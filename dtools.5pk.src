@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.1.9.1..(153.131)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.0...(153.729)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -1684,23 +1684,33 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   // repeat if necessary
   return "returning to original 5hell session..."
 end function
-command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
+command.brutus = function(arg1, arg2=0, arg3=0, arg4=0)
+	print "ARG1: "+arg1+char(10)
 	if arg1 == "-h" or arg1 == "help" then return colorGold+"Brutus || dictionary attack || brute force || ssh || passwords || hashes"+char(10)+char(10)+
-		"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+
+		colorWhite+"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+
 		"-- default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords"+char(10)+
 		"-- on success sends <b>shell</b> to BUFFER and password to <b>clipa</b>"+char(10)+char(10)+
-		"Usage: brutus -i [/path|object] -- import dictionary (may be csv or newline separated values)"+char(10)+
+		colorWhite+"Usage: brutus -i [/path|object] -- "+char(10)+
+		"-- import dictionary (may be csv or newline separated values)"+char(10)+
 		"-- 5hell will attempt to determine the type. Please ensure valid inputs."+char(10)+
 		"-- accepts: path to file or folder, or piped file/folder object"+char(10)+
 		"-- See dfit for making a .csv from a newline separated dictionary file."+char(10)+
 		"-- See cerebrum for altering onboard dict_a"+char(10)+char(10)+
 		"NOTE: both of the above use <b>get_shell(u,p)</b> and therefore are for local use only"+char(10)+
 		"-- ie: does not work through glasspool"+char(10)+char(10)+
-		"Advanced: brutus -s [ip] [shell_object] -- use shell_object to initiate <b>ssh</b> + brutus attack against ip "+char(10)+
-		"-- equal to <b>ssh root@-brutus [ip] 22 [ssh] </b>but uses the given shell instead of active shell"+char(10)+
+		colorGrey+"Disabled: brutus -s [ip] [shell_object] -- "+char(10)+
+		colorGrey+"-- use shell_object to initiate <b>ssh</b> + brutus attack against ip "+char(10)+
+		colorGrey+"-- equal to <b>ssh root@-brutus [ip] 22 [ssh] </b>but uses the given shell instead of active shell"+char(10)+
+		"<b>-- vvv use the command below, instead vvvv"+char(10)+char(10)+
+		colorGold+"Use: ssh root@"+colorWhite+"-brutus</color> [ip] [port] [ssh|ftp]"+char(10)+
+		"-- to brute force ssh and ftp ports"+char(10)+
+		"-- use glasspool to switch scope to the desired shell before running the attack"+char(10)+char(10)+
+		colorGold+"Use: mail [email] ["+colorWhite+"-brutus</color>]"+char(10)+
+		"-- to brute force an email"+char(10)+
 		"-- this does NOT use get_shell and therefore is not limited to local use"
 	if globals.GLASSPOOL > 0 then print colorGold+"brutus: warning: "+colorLightBlue+" GLASSPOOL</color> is active"+char(10)+"-- brutus does not translate through glasspool"+char(10)+"-- you <b>might</b> be rooting your own system"
 	dic = globals.dict_a
+	if DEBUG then print "debug: dict_len: "+dic.len
 	u_name = "root"
 	ip = ""
 	port = 22
@@ -1720,13 +1730,13 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0, arg5=0)
 			return "brutus: use: brutus -i [/path|file_object] -- import dictionary file"
 		end if
 	end if
-	if DEBUG then print("arg1: "+arg1+char(10)+"arg2: "+arg2+char(10)+dic)
+	if DEBUG then print "arg1: "+arg1+char(10)+"arg2: "+arg2+char(10)//+dic
 	if not dic then return("Dictionary: "+arg2+" not found")
 	print(colorGold+"Brutus: accessing dictionary..."+CT)
 	if arg1 == "-s" and arg2 and typeof(arg2) == "shell" then
 		print(colorLightBlue+"brutus: </b>Configuring remote attack...<b>"+CT)
 		if arg3 and arg4 then
-			if arg5 then port = arg5
+			//if arg5 then port = arg5
 			if typeof(port) != "number" then port = port.to_int
 			if typeof(port) != "number" then return colorRed+"brutus: invalid port"+CT
 			ip = arg4
