@@ -2,21 +2,21 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.1.9.E_falling_skies"
+ver = "4.2.0.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
 	DEBUG = true
 	params.remove(params.indexOf("--debug"))
 end if
-size_of_5hell = "152.039"
+size_of_5hell = "154.581"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 EXPERIMENTAL = false 
 if globals.hasIndex("get_abs_path") then EXPERIMENTAL = true
 //
-// INITIALIZE GLOBALS
-if not get_custom_object.hasIndex("glob") then get_custom_object.glob = {}
+// INITIALIZE GLOBALS SOON(tm)
+//if not get_custom_object.hasIndex("glob") then get_custom_object.glob = {}
 //
 // these three stubs are set below by super_import
 globals.metaxploit = null 
@@ -361,31 +361,46 @@ command.ps = function(arg1, arg2, arg3=0, arg4=0)
 	return output
 end function
 command.kill = function(arg1, arg2, arg3=0, arg4=0)
-	if @arg1 == 0  or @arg1 == "-h" or arg1 == "help" then return "KILL || END PROCESS || TERMINATE SCRIPT"+char(10)+
-	"Usage: kill [PID] [opt: shell|computer] -- terminate PID"+char(10)+
+	if @arg1 == 0  or @arg1 == "-h" or arg1 == "help" then return "kill || end process || terminate script"+char(10)+char(10)+
+	colorWhite+"Usage: kill [ALL|PID] [opt: shell|computer] -- terminate PID"+char(10)+
 	"-- PID should be process number or ALL"+char(10)+
 	"-- see the <b>ps</b> command for process ID's"+char(10)+
 	"--<b> kill ALL </b>will attempt to close all programs."+char(10)+
 	"n.b. if<b> kill ALL </b>kills the terminal that launched the program,"+char(10)+
 	"---- it might not complete its task."+char(10)+char(10)+
-	"Usage: kill [process_name] [opt: shell|computer] --"+char(10)+
+	colorWhite+"Usage: kill [process_name] [opt: shell|computer] --"+char(10)+
 	"-- kill processes by process name instead of PID"+char(10)+
 	"-- NOTE: kills ALL processes of that name"+char(10)+char(10)+
+	colorWhite+"Advanced: kill [ALL|process_name:exclude1:exclude2:...] [opt:computer|shell]"+char(10)+char(10)+
+	"-- seperate process names or ID's to exclude from the kill process with the '<b>:</b>' character"+char(10)+
+	"-- the first process name (or the ALL keyword) will be the kill target"+char(10)+
+	"-- all process names or ID's following the first <b>:</b> will be excluded"+char(10)+
+	"-- UNLESS the kill target is a process ID"+char(10)+
+	"--eg: <b>kill ALL:1023:5hell [shell_obj]</b> -- kill everything on the [shell] except 5hell and 1023"+char(10)+
+	"--eg: <b>kill 1023:5hell [computer_obj</b> -- kill 1023 on the [computer]; no exceptions"+char(10)+
+	"---- ie: passing a PID ignores exceptions"+char(10)+
+	"--rg: <b>kill 5hell:1023</b> -- kill all instances of 5hell on the active computer except 1023"+char(10)+char(10)+
 	"Note: piping a shell or computer object runs kill on the object instead of locally"+char(10)+
-	"Note: running kill while glasspool is active runs kill on the active object"
+	"Note: running kill while glasspool is active runs kill on the active object"+char(10)+
+	"-- unless a shell or computer is piped"
 	target_machine = globals.localmachine
-	if typeof(arg2) == "shell" then 
-		target_machine = arg2.host_computer
-	end if
-	if typeof(arg2) == "computer" then 
-		target_machine = arg2
-	end if
+	if typeof(arg2) == "shell" then target_machine = arg2.host_computer
+	if typeof(arg2) == "computer" then target_machine = arg2
+	//
+	PID = ""
+	exclude = []
 	if typeof(arg1) == "string" then 
-
-		if typeof(arg1.to_int) == "number" then PID = arg1.to_int else PID = arg1
-	else 
-		return "kill: invalid input"+char(10)+"Usage: kill [pid|process_name] [opt:shell|computer]"
+		if typeof(arg1.to_int) == "number" then 
+			PID = arg1.to_int 
+		else 
+			exclude = arg1.split(":")
+			PID = exclude.pull
+			//if typeof(PID.to_int) == "number" then PID = PID.to_int
+		end if
 	end if
+	if exclude.len < 1 then exclude = [""]
+	if typeof(PID) != "number" and typeof(PID) != "string" or PID == "" or PID == 0 then return "kill: invalid input"+char(10)+"Usage: kill [pid|process_name] [opt:shell|computer]"
+	//
 	if typeof(PID) == "string" then
 		processes = target_machine.show_procs.split(char(10))
 		killed = false
@@ -396,14 +411,16 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 			process_CMD = process[4]
 			stor = globals.localmachine
 			globals.localmachine = target_machine
-			if PID == "ALL" or PID == process_CMD then 
-				print(command.kill(process_ID))
+			if PID == "ALL"  or PID == process_CMD or PID == process_ID then 
+				if exclude.indexOf(process_CMD) == null and exclude.indexOf(process_ID) == null then print command.kill(process_ID)
 				killed = true 
 			end if
 			globals.localmachine = stor
 		end for
-		if killed == false then return "kill: process <u>" + PID + "</u> not found" else return 0
+		if killed == false and PID != "ALL" then return "kill: process <u>" + PID + "</u> not found" else return 0
 	end if
+	//
+	if DEBUG then print "debug: kill: PID: "+typeof(PID)+":"+PID
 	output = target_machine.close_program(PID)
 	if output == true then return("kill: terminating process: " + PID + "...");
 	if output then return(output)
@@ -640,17 +657,31 @@ command.rm = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "MOVE || MV || rename || I like to move it move it"+char(10)+
-	"Usage: mv [source_path|file_object] [destination_path|file_object]"+char(10)+
+	"Usage:"+colorWhite+" mv [opt:-r] [source_path|file_object] [destination_path|file_object]"+char(10)+
 	"-- move file or folder to new path"+char(10)+
 	"-- optionally rename the file"+char(10)+
 	"-- if destination is folder uses original filename, else renames"+char(10)+
 	"-- overwrites destination file if it exists and is not a folder"+char(10)+
+	"-- passing the [-r] flag will result in <b>overwriting the destination folder"+char(10)+
 	"-- if file objects are supplied then uses the object's path"+char(10)+
-	"Usage: mv [source_path|file_object] [@] -- move file to current path using original file name"+char(10)+
 	"-- e.g:<b> mv bob /burger -- moves bob to / dir and renames to burger"+char(10)+
 	"---- if /burger is a directory; moves bob into burger as /burger/bob"+char(10)+
-	"NOTE: this command moves files between folders on the machine local to the file object"+char(10)+
-	"-- please use <b>scpm</b> or BUFFER <b>scp</b> to transfer files between machines"+char(10)
+	"-- if bob is already a folder at the destination, and the [-r] flag is passed: "+char(10)+
+	"---- /burger/bob will be overwritten, otherwise the result is /burger/bob/bob"+char(10)+
+	" "+char(10)+
+	"Usage: mv [opt:-r] [source_path|file_object] [@]"+char(10)+
+	" -- move file to current path using original file name"+char(10)+
+	" ---- otherwise works as above"+char(10)+
+	"NOTE: this command moves files between folders on the active shell/computer object"+char(10)+
+	"-- please use <b>scpm</b> or BUFFER <b>scp</b> to transfer files between remote machines"+char(10)
+	
+	ow_fldr = false
+	if arg1 == "-r" then
+		ow_fldr = true
+		arg1 = arg2
+		arg2 = arg3 
+		arg3 = arg4 
+	end if
 
 	if not arg1 or not arg2 then return "mv: not enough input"
 	if typeof(arg1) != "string" and typeof(arg1) != "file" then return "mv: invalid parameters;"+char(10)+
@@ -688,7 +719,7 @@ command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
 			destination = dest.path
 		end if
 	else
-		if dest.is_folder then
+		if dest.is_folder and not ow_fldr then
 			destination = dest.path
 			final_name = file.name
 			if dest.path == file.path then destination = dest.parent.path
@@ -698,7 +729,10 @@ command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
 		end if
 	end if
 	if final_name == "@" then final_name = file.name
-	if destination == "/" then print "mv: "+file.path+" -> "+destination+final_name+"..." else print "mv: <u>"+colorWhite+file.path+" -> "+destination+"/"+final_name+"..."
+	//if destination == "/" then print "mv: "+file.path+" -> "+destination+final_name+"..." else print "mv: <u>"+colorWhite+file.path+" -> "+destination+"/"+final_name+"..."
+	slash = "/"
+	if destination == "/" then slash = "" 
+	print "mv: <u>"+colorWhite+file.path+" -> "+destination+slash+final_name+"..."
   return file.move( destination, final_name )
 end function
 command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -1175,13 +1209,18 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"-- see 5hell.src, template.5pk.src for instructions."+char(10)+
 	"Note: You may overwrite any command this way."+char(10)+char(10)+
 	colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - -"+char(10)+
-	"Usage: mail -- opens the herme5 mail menu"+char(10)+
+	colorGreen+"Usage: mail -- opens the herme5 mail menu"+char(10)+
 	"Extra: when prompted for a password you may enter:</b> -brutus"+char(10)+
 	"-- this will invoke <b>brutus</b> and attempt to crack the email password."+char(10)+
 	"-- the password will be saved to the custom object as:"+char(10)+
 	"-- key == password and value == public_ip:local_ip"+char(10)+
 	"---- this will change once i work out a better storage system bc this is not ideal"+char(10)+
-	"Extra: when viewing your inbox you may type <b>spool</b> to dump all mail to a file (up to 160kb)"
+	"-- you will be prompted to choose between the tables/tp folder on file, or"+char(10)+
+	"---- the currently loaded onboard dictionary"+char(10)+
+	"-- see: <b>brutus -h and cerebrum -h</b> for more"+char(10)+
+	"Extra: when viewing your inbox you may type <b>spool</b> to dump all mail to a file (up to 160kb)"+char(10)+char(10)+
+	colorGreen+"Usage: "+colorgold+"mail "+CT+"["+colorGold+"email"+CT+"] ["+colorGold+"password</color>|"+colorWhite+"-brutus"+CT+colorGreen+"</b>] "+char(10)+
+	"-- log into or crack the given email"+char(10)
         herme5 = function()
             mail = {}
             mail.meta = null  // metaMail object
@@ -1826,6 +1865,7 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	time_s = time
 	if DEBUG then print(cmd)
 	if cmd.len then
+		cmd = cmd.replace(char(10)," || ")
 		for i in range(1,iter)
 			for c in cmd
 				if c == globals.SAFEWORD then break
@@ -2257,7 +2297,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, bakeneko, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, CyanMatter, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, bakeneko, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, CyanMatter, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
