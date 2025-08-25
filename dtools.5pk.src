@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.0...(153.729)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.0.1...(153.700)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -1685,7 +1685,6 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   return "returning to original 5hell session..."
 end function
 command.brutus = function(arg1, arg2=0, arg3=0, arg4=0)
-	print "ARG1: "+arg1+char(10)
 	if arg1 == "-h" or arg1 == "help" then return colorGold+"Brutus || dictionary attack || brute force || ssh || passwords || hashes"+char(10)+char(10)+
 		colorWhite+"Usage: brutus -- attempt to gain root pass and shell using onboard dict_a "+char(10)+
 		"-- default onboard dict_a: ["+colorGold+globals.dict_a.len+CT+"] passwords"+char(10)+
