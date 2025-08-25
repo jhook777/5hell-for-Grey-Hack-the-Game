@@ -2,7 +2,7 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.2.0.E_falling_skies"
+ver = "4.2.1.1.E_falling_skies"
 print ver
 DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if params and params.indexOf("--debug") >= 0 then 
@@ -1219,7 +1219,7 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"---- the currently loaded onboard dictionary"+char(10)+
 	"-- see: <b>brutus -h and cerebrum -h</b> for more"+char(10)+
 	"Extra: when viewing your inbox you may type <b>spool</b> to dump all mail to a file (up to 160kb)"+char(10)+char(10)+
-	colorGreen+"Usage: "+colorgold+"mail "+CT+"["+colorGold+"email"+CT+"] ["+colorGold+"password</color>|"+colorWhite+"-brutus"+CT+colorGreen+"</b>] "+char(10)+
+	colorGreen+"Usage: "+colorGold+"mail "+CT+"["+colorGold+"email"+CT+"] ["+colorGold+"password</color>|"+colorWhite+"-brutus"+CT+colorGreen+"</b>] "+char(10)+
 	"-- log into or crack the given email"+char(10)
         herme5 = function()
             mail = {}
