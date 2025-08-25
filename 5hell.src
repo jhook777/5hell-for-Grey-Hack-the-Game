@@ -68,7 +68,7 @@ command = {} // default
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
 //get_custom_object.HOME = ["string: ip", number: ssh_port, number:rshell_port, "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/rkit/tables/t5", "string: /path/to/tables/tp (default: /root/rkit/tables/tp)"]
-get_custom_object.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"}
+if not get_custom_object.hasIndex("HOME") then get_custom_object.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"}
 // the above values are optional and may be left at default if you you don't plan to use them
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
