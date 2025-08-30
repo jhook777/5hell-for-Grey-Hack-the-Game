@@ -2,18 +2,21 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.2.1.1.E_falling_skies"
-print ver
-DEBUG = false // set to true by launching 5hell with --debug as any parameter
-if params and params.indexOf("--debug") >= 0 then 
-	DEBUG = true
-	params.remove(params.indexOf("--debug"))
+ver = "4.2.2.E_falling_skies"
+//print ver
+if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
+if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
+	globals.DEBUG = true
+	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "154.581"
+size_of_5hell = "155.897"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
-EXPERIMENTAL = false 
-if globals.hasIndex("get_abs_path") then EXPERIMENTAL = true
+//
+EXPERIMENTAL = true 
+strFunc = "" + @user_input
+if strFunc.indexOf("addToHistory") == null then EXPERIMENTAL = false
+if EXPERIMENTAL == true then print "<size=75%>5hell: running in experimental mode..."
 //
 // INITIALIZE GLOBALS SOON(tm)
 //if not get_custom_object.hasIndex("glob") then get_custom_object.glob = {}
@@ -141,13 +144,27 @@ _clipboard = function( index, arg1, arg2 )
     clip.hlp = "clipboard || clipa || clipb || clipc || clippy dippy"+char(10)+
     "There are, by default, three clipboard spaces: clipa, clipb, clipc. It is"+char(10)+
     "possible to expand beyond this limit by adding entries to the CLIP map in 5hell.5pk."+char(10)+
-    "The clipboards may store any data type or game object. EZ_CLIP allows use of the"+char(10)+
-    "aliases: "+cw+"@a"+CT+" for clip"+cw+"a"+CT+", "+cw+"@b"+CT+" for clip"+cw+"b"+CT+", and "+cw+"@c"+CT+" for clip"+cw+"c"+char(10)+
-    "when you want to reference the clipboard in an argument. For example: "+char(10)+
+	"The clipboards may store any data type or game object. "+char(10)+
+	char(10)+
+	"EZ_CLIP allows use of aliases:"+char(10)+
+    "--: "+cw+"@a"+CT+" for clip"+cw+"a"+CT+", "+cw+"@b"+CT+" for clip"+cw+"b"+CT+", and "+cw+"@c"+CT+" for clip"+cw+"c"+char(10)+
+    "---- when you want to reference the clipboard in an argument."+char(10)+
+	"For example: "+char(10)+
     colorGrey+"|> "+cw+"clipa foobar"+char(10)+
     colorGrey+"|> "+cw+"echo @a"+char(10)+
-    colorGrey+"<b>foobar"+char(10)+char(10)+
-    "Viewing help for "+clip.msg+char(10)+
+    colorGrey+"<b>foobar"+char(10)+
+	char(10)+
+	"The clipboard spaces start out as an empty string, by default.  "+char(10)+
+	"You may edit text in the clipoard directly with:"+char(10)+
+	colorGrey+"|> "+colorWhite+"scribus "+colorMagenta+"@"+colorLightBlue+"clip"+colorWhite+"[a|b|c]"+char(10)+
+	"--eg: scribus "+colorWhite+"@clipa"+CT+" | poke magnum.opus | lock"+char(10)+
+	"--<b>note</b>: scribus @clipa edits the clipboard's text"+char(10)+
+	"--<b>note</b>: scribus @a will not edit clipa but rather:"+char(10)+
+	"---- if clipa is a list of strings: will open the editor on the array and return an array"+char(10)+
+	"---- if clipa is a string: will attempt to edit a file whose name matches the first word in the string "+char(10)+
+	"---- if clipa is a text file: will edit the file"+char(10)+
+	char(10)+
+	colorGreen+ "Viewing help for "+clip.msg+char(10)+
     colorCyan+"</b>Usage: "+clip.msg+" -- returns the contents of "+clip.msg+char(10)+
     "-- stored functions are returned as a reference"+char(10)+
     colorGold+"</b>Usage: "+clip.msg+" [<b>any_value</b>] -- set "+clip.msg+" to any value"+char(10)+
@@ -162,7 +179,9 @@ _clipboard = function( index, arg1, arg2 )
     "-- passing <b>0</b> as an argument sets "+clip.msg+" to <b>string: 0"+char(10)+
 	"-- piping in an <b>int: 0</b> results in no_argument behavior: it returns "+clip.msg+char(10)+
     colorCyan+"</b>Usage: "+clip.msg+" [<b>-n</b>] -- set "+clip.msg+" to "+colorMagenta+"</b>null"+char(10)+
-    "-- this is the default starting state of the clipboard"+char(10)+
+    "-- this is useful in sme cases"+char(10)+
+	"-- note: the default starting state is an empty string"+char(10)+
+	"---- it no longer defaults to null"+char(10)+
     colorCyan+"</b>Usage: "+clip.msg+" [<b>++|--</b>] -- increment | decrement "+clip.msg+" by 1"+char(10)+
     "-- old way:<b> clipa 0 || calc @a [+|-] 1 | clipa"+char(10)+
     "-- new way:<b> clipa 0 || clipa [++|--]"+char(10)+
@@ -451,15 +470,15 @@ command.psudo = function(operation, arg2, arg3, arg4)
         if "ylus".indexOf(op) == null then return 0 else return "-"+op
     end function
 //
-    _go_time = function(user=null,pass=null)
+    _go_time = function(user=null,pass=null,open_it)
 		if DEBUG then print "debug: go time: "+char(10)+"usr: "+user+" is a: "+typeof(user)+char(10)+"pass: "+pass+" is a: "+typeof(pass)
         if not user or not pass or user == "" or pass == "" then return colorGold+"</b>psudo: aborting..."
 		if typeof(user) != "string" or typeof(pass) != "string" then return colorGold+"</b>psudo: aborting..."
         locals.sh = get_shell(user,pass)
         if typeof( locals.sh ) == "shell" then 
             colorLightBlue+"</b>malp: "+colorGreen+"success</color></b>; new shell sent to "+colorOrange+"BUFFER"
-            open_it = user_input(colorGreen+"</b>-- view context menu in "+colorOrange+"BUFFER"+CT+"? [y/<b>N</b>] ||: "+colorWhite,0,1)
-            if open_it.lower == "y" then return command.malp("-b",locals.sh) else globals.BUFFER.push(locals.sh)
+            if not open_it then open_it = user_input(colorGreen+"</b>-- view context menu in "+colorOrange+"BUFFER"+CT+"? [y/<b>N</b>] ||: "+colorWhite,0,1)
+            if open_it == 1 then return command.malp("-b",locals.sh) else globals.BUFFER.push(locals.sh)
             colorGold+"</b>psudo: returning shell object..."
             return locals.sh
         else 
@@ -500,10 +519,12 @@ command.psudo = function(operation, arg2, arg3, arg4)
 		if arg3 then psw = arg3 else psw = user_input("user passwor:> ")
 		return _go_time(usr,psw)
 	end if
-    if operation == "-s" then
+    if operation == "-s" or operation == "sf" then
+		conf = 0
+		if operation == "sf" then conf = 1
 		usr = "root"
 		if not arg2 then psw = user_input("root password:> ",1) else psw = arg2
-		return _go_time(usr,psw)
+		return _go_time(usr,psw,conf)
 	end if
     return colorGold+"</b>psudo: invalid input"+char(10)+"-- aborting..."
 end function
@@ -590,18 +611,18 @@ command.cd = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: cd [path] -- change current working directory to path"+char(10)+"Usage: cd .. -- go back to parent directory."+char(10)+"Usage: cd -- return to home directory."+char(10)+"Returns: 0 on success or string on failure."
 	if arg1 == "" then arg1 = 0
 	if not globals.get_file(globals.currentPath) then globals.currentPath = home_dir
-	cd = localmachine.File(globals.currentPath)
+	chd = localmachine.File(globals.currentPath)
 	if not arg1 then
 		globals.currentPath = globals.homePath
 		return 0
 	end if
-	if not cd then
+	if not chd then
 		globals.currentPath = "/"
 		return "cd: path error. Setting path to<b> / </b>"+char(10)+"...please try again."
 	end if
 	if arg1 == ".." then
-		if cd.name != "/" then
-			globals.currentPath = cd.parent.path
+		if chd.name != "/" then
+			globals.currentPath = chd.parent.path
 		end if
 		return 0
 	end if
@@ -1030,7 +1051,7 @@ command.mkdir = function(arg1, arg2, arg3=0, arg4=0)
 	if new_dir == "" then new_dir = "/"
 	new_dir = globals.get_file(new_dir)
 	if not new_dir then return "mkdir: unable to create "+arg1+": parent folder not found."
-	print colorGold+"<b>mkdir: creating <b>"+new_name+" in:</b> "+new_dir.path
+	print colorGold+"mkdir: creating "+colorWhite+new_name+"</color> in:</b> "+new_dir.path
 	return localmachine.create_folder( new_dir.path , new_name )
 	return 0
 end function
@@ -2303,7 +2324,7 @@ end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
 	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."
 	did = false
-	if params and params[0] == "do" then did = true
+	if globals.hasIndex("params") and globals.params.len > 0 and globals.params[0] == "do" then did = true
 	if not state or did then 
 		if not state then 
 			if user_input("Exit "+colorRed+"5hell"+char(8482)+CT+"? [y/N]"+char(10)+"||: ",0,1).lower != "y" then return "aborting shutdown..."
