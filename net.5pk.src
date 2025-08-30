@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.0...(140.671)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.2...(140.854)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -654,10 +654,13 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		waitFor = false
 		if a1 and a1 == "false" then waitFor = "false"
 		if not waitFor then waitFor = user_input("Select a network # ( m=manual, h=detect_hidden, q=quit )"+char(10)+":> ").to_int
-		// if waitFor == "h" or waitFor == "H" then
-		// 	if globals.GLASSPOOL then print(colorOrange+"Aborting: Operation not possible via GLASSPOOL."+CT)
-		// 	return 2
-		// end if
+		if waitFor == "h" or waitFor == "H" then
+		 	if globals.GLASSPOOL then 
+				print(colorOrange+"Aborting: Operation not possible via GLASSPOOL."+CT)
+				return 0
+			end if
+			return 2
+		end if
 		if waitFor < networks.len and waitFor >= 0 and typeof(waitFor) == "number" then
 			memory = networks[waitFor].split(" ")
 			print(memory)
@@ -1906,17 +1909,17 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 		if arg2 == "@home" then
 			r_ip = ""
 			r_p = "router"
-			if params and params.len > 1 then
-				r_ip = params[0]
-				r_p = params[1].to_int
+			if globals.hasIndex("params") and globals.params.len > 1 then
+				r_ip = globals.params[0]
+				r_p = globals.params[1].to_int
 			else
 				r_ip = targ.ip
 				r_p = targ.pt
 			end if
 			if not r_ip.is_valid_ip then return "linkdb: set remote ip and port with command.target [ip] [port] before using @home option."
 			r_pas = ""
-			if params and params.len > 2 then
-				r_pas = params[2]
+			if globals.hasIndex("params") and globals.params.len > 2 then
+				r_pas = globals.params[2]
 			else
 				r_pas = user_input("pass:> ", 1)
 			end if
@@ -2862,7 +2865,7 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
     if typeof(sh_ob) == "ftpshell" then return cr+"infil: unable to launch via ftpshell; returning..."
     
     print colorWhite+"<size=75%></b>Initializing sshfs "+colorLightBlue+"</b>glasspool</color> protocol..."+CT
-    print colorWhite+"</b><size=65%>-- preparing to run "+colorRed+"</b>5</color>hell silently on the target..."
+    //print colorWhite+"</b><size=65%>-- preparing to run "+colorRed+"</b>5</color>hell silently on the target..." // this is no longer possible, will always show in procs if shell.launch is used
 
     print colorWhite+"<size=75%><u>-- injecting process <u>"+cgo+"/home/guest/rkit/5hell</u></color> into 0x"+colorLightBlue+"</b>0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"
     print command.run("/home/guest/rkit/5hell",par,sh_ob)
