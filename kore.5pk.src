@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.2.0...(37.940)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.2.2...(41.908)</size>")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -262,8 +262,8 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 		else 
 			print colorGold+"kore: found "+colorWhite+t.path
 		end if
-		if t.parent.name != "rkit" then t.copy(home_dir+"/rkit",t.name)
-		return 0
+		if typeof(t) == "file" and t.parent.name != "rkit" then t.copy(home_dir+"/rkit",t.name)
+		return colorGold+"<size=75%>kore: rkit creation complete"
 	end function
 
     secure_it = function()
@@ -276,8 +276,8 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
         c = null
 		c = command.grp("-r","root","/")
 		if c then print "<size=75%>"+c
-		print "<size=75%>kore: removing /lib/kernel_module.so"
-		print "<size=75%>"+ command.rm("/lib/kernel_module.so")
+		//print "<size=75%>kore: removing /lib/kernel_module.so"
+		//print "<size=75%>"+ command.rm("/lib/kernel_module.so") // removed bc this now bricks a system
 		print "<size=75%>kore: removing /etc/passwd..." 
 		print "<size=75%>"+ command.rm("/etc/passwd")
 		print "<size=75%>kore: removing *Bank.txt..."
@@ -343,7 +343,7 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 
 	silent_print = function()
 		if globals.SILENT == 0 then globals.SILENT = 2 else globals.SILENT = 0
-		return "kore: silent_print mode toggled off" // this should not print when toggled on
+		return "<size=75%>kore: silent_print mode toggled off" // this should not print when toggled on
 	end function
      
     error = function()
@@ -363,7 +363,7 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 		//case("--command",@kore_command)
     print default(@error)
     time_f = time - time_s
-    return "kore: task complete in "+time_f+" seconds."
+    return "<size=75%>kore: task complete in "+time_f+" seconds."
 end function
 
 command.outmon = function(arg1,interval=2, act=0, react=0)
@@ -734,4 +734,59 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		return 0
 	end function
 	return hashim(daemon,swap_file)
+end function
+command.nt = function(arg1, arg2, arg3, arg4)
+	if arg1 == "help" or arg1 == "-h" then return " 5pork || new terminal || Terminal.exe || fork process || new window"+char(10)+char(10)+
+	"Usage: "+colorLightBlue+"</b>nt [opt:shell|params] [opt:shell] </color>-- open a new window and optionally pass parameters"+char(10)+
+	"-- identical to:<b> run /usr/bin/Terminal.exe [params] [shell]"+char(10)+
+	"<b>--note: if /usr/bin/Terminal.exe is not found, nt will use the first Terminal.exe it finds"+char(10)+
+	"---- if there is no Terminal.exe, the command will fail"+char(10)+
+	"-- passing a shell runs Terminal.exe on that shell object"+char(10)+
+	"-- you may pass the <b>""</b> character by escaping it with \"" "+char(10)+
+	colorCyan+"</b><size=75%>--eg: <b>zap | clipa || scpm -u ~/yourScript /home/guest @a || nt /home/guest/yourScript @a"+char(10)+
+	"--note: it is not necessary to use this to launch .exe's in a new window"+char(10)+char(10)+
+	"---- as the game will do this automatically"+char(10)+char(10)+
+	"Usage: "+colorWhite+"</b>you may achieve the same effect by ending a command line string with:<b> --nt"+char(10)+
+	"-- if using 5hell as a bash replacement and you wish to send a command with piping:"+char(10)+
+	"-- wrap the whole string (except --nt) in quotes. use \"" to escape the "" character"+char(10)+char(10)+
+	colorCyan+"<size=75%></b>--eg: |> echo "" this will execute on this shell "" || "" echo \"" on the new terminal \"" | echo \"" this will print \"" "" --nt "+char(10)+
+	"---- prints: ""this will execute on this shell"" in the active window"+char(10)+
+	"---- prints: ""this will print on the new terminal"" in the new window"+char(10)+
+	"--note:<b> |> "" echo string | echo string "" --nt "+char(10)+
+	"---- isn't a typo; you put the quotes outside of the <b>whole command string</b>"+char(10)+
+	"---- and 5hell will execute the string if your bash is 5hell"+char(10)+
+	"-- the quotes are only necessary if:"+char(10)+
+	"---- the line ending in --nt contains<b> | or ||"+char(10)+
+	"-- <b>and</b> you want them passed to the new terminal instead of evaluated"+char(10)+
+	colorCyan+"</b><size=75%>--eg: |> ls -la | poke some.txt || top --nt"+char(10)+
+	"---- will run the first two commands on the active session and run the third in a new window"+char(10)+
+	colorCyan+"</b><size=75%>--eg: |> "" ls -la | poke some.txt || top "" --nt"+char(10)+
+	"---- will run all commands in the new window"+char(10)+char(10)+
+	colorGold+"IMPORTANT NOTE: "+char(10)+
+	"-- 5porking with the <b>nt</b> command allows piping a shell"+char(10)+
+	"-- 5porking using the <b>--nt</b> flag runs on the <b>active shell</b>"+char(10)+
+	"---- switch to "+colorLightBlue+"</b>glasspool"+CT+" to use <b>--nt</b> with alternate shells"
+	use_shell = globals.shell
+	parameters = arg1
+	if typeof(parameters) == "string" then parameters=parameters.split(" ")
+	if typeof(parameters) != "list" or parameters.len < 1 then parameters=[0] // can't pass objects through launch, dump invalid params
+	if typeof(arg1) == "shell" then use_shell = arg1
+	if typeof(arg2) == "shell" then use_shell = arg2 
+	
+	hold = globals.shell 
+	globals.shell = use_shell
+	terminal = globals.get_file("/usr/bin/Terminal.exe")
+    if typeof(terminal) != "file" then terminal = command.tree("/","Terminal.exe",1,"N")
+	globals.shell = hold
+
+    if typeof(terminal) == "file" then
+        print colorRed+"<size=55%>5"+CT+colorWhite+"hell: 5porking..."
+        newprompt = ""
+		for np in parameters 
+			if np then newprompt=newprompt+@np+" "
+		end for
+		if DEBUG then print "debug: nt_prompt: "+newprompt
+        return command.run(terminal.path, newprompt.remove("--nt"),use_shell) // let's be real, --5pork is hilarious but too much to type
+    end if
+	return "shell: error; Terminal.exe not found"
 end function
