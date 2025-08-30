@@ -25,6 +25,45 @@
 // -- to be populated by scripts calling 5hell through a nested launch
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
+//
+// dig: added regex to grep for 5hell to ensure it gets "5hell" and not "5hell.d"
+// 5hell.src: juggled sanity checks to better handle new bash stuff
+// shell: fixed crash when piping int:0 to the void
+// shell: you may now launch binaries in /bin and /usr/bin by name, without pathing
+// -- just like regular bash
+// -- tab completion and command history stuff applies
+// cad: changed local var 'cd' to local var 'cad' bc we can't assign to cd
+// air: restored -h flag
+// -- not actually sure why past me disabled it
+// shell: new flag: --nt
+// -- place at end of command string to launch a new terminal and run the command in the new terminal
+// -- this is the same as running Terminal.exe with params so you may use it to send 5hell commands through --nt if 5hell is your bash
+// --eg: |> someBinary " param param parmampupampam \" param with quotes \" " --nt // launches someBinary in a new Terminal with the given params
+// -- passing '"' as a launch param is now possible
+// nt: new command to do the above but as a command
+// -- more intuitive when wrapping complex commands to be 5porked
+// --eg: nt " kraken rkit || prox " 
+// --vs: " kraken rkit || prox " --nt
+// -- both result in the same action
+// -- nt may take piped shells, then it will launch a new window using that shell
+// -- be warned launching .exe's this way counts as a start_terminal and may result in a trace
+// --eg: zap | nt Browser.exe -- opens a new terminal on the target shell and then opens the browser from that terminal
+// --vs: zap | run /usr/bin/Browser.exe -- opens the browser using the target shell; no terminal window
+// --note: remember that both count as start_terminal
+// -- nested nt launches require a pause to be passed with it _unless_ 5hell is your bash and tables/tp is present
+// ---- in which case the natural delay when importing the dictionary at launch will suffice as a delay
+// --eg: nt " nt nt \" nt nt \" "
+// 5hell.src: fixed --5pork bomb
+// -- now it's a 5pork sloth using nt
+// params: bash doesn't have a global params field which causes weird issues with 5hell so now there are a bunch of checks to avoid crashing because of it
+// exit: fixed crash on exit
+// mkdir: added highlight to new dir name in output
+// kore: fixed crash in kore -r when skipping table creation
+// shell: will specify if launch binary is named something other than 5hell
+// -- like bash
+// transmit: fixed crash caused by undefined variable "port"
+// HOME: added check to prevent overwriting cob.HOME if it already exists
+// brutus: removed errant debug line
 // 
 // mail: added missing usage info regarding logging into mail via comman line
 // --ie: mail [email] [pass]
