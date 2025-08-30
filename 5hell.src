@@ -1,19 +1,8 @@
 // Current as of version 4.0.0
 // 5hell.src by Plu70 aka ra'al aka jhook
-// 5hell.src (the code below) is open source
-// The contents of 5hell.5pk (formerly 5hell.so), however, are not open source.
-// Actually it's all open source now*
+// 5hell.src, the code below, is open source. As are all related .5pks .
 // 5hell (either the .src, the .so, the .5pk, or the combined script known simply as 5hell)
-// is available for a small 1337coin fee. After purchase 5hell may be used in whatever way
-// the end user sees fit.
-// 5hell.src may be altered in part or in whole by the end user but may ONLY
-// be distributed in it's original form. 5hell.src or 5hell as a compiled binary
-// that is distributed by a third party and altered MUST make the alteration known
-// to the end user. Failure to disclose alterations with redistribution voids
-// the license of use and may result in civil penalties. Alterations for personal
-// use are, of course, encouraged. Enjoy responsibly.
-//
-// 5hell is now covered by the MIT license which superscedes the above license.
+// is now covered by the MIT license which superscedes the former license.
 ///////////////////////// INSTRUCTIONS /////////////////////////////////////////
 
 // 5hell.src allows you to customize 5hell to your liking. You may add, remove,
@@ -251,14 +240,16 @@ command.shell = function(input=null,mute=null)
       prompt = pipe.pull // no touchy
       if next.len > 0 then prompt.push(next.pull) // no touchy
 
+      // sanity check
+      // some folks like to edit the below line to do command.cc instead of continue
+      if not prompt.len or prompt[0] == "" or prompt[0] == 0 or prompt[0] == "0" or prompt[0] == null then continue
       // prevent rogue function execution
       if typeof(@prompt[0] ) == "function" then 
         print colorRed+"shell: preventing execution of rogue function:"
         print @prompt[0]
         continue 
       end if
-      // some folks like to edit the below line to do command.cc instead of continue
-      if not prompt.len or prompt[0] == "" or prompt[0] == 0 or prompt[0] == "0" or prompt[0] == null then continue
+
       //
       if prompt[0] == "return" then 
         if not mute then print colorWhite+"<size=50%><u><color=red>5</color>hell: returning..."
@@ -292,48 +283,49 @@ command.shell = function(input=null,mute=null)
       // ############################ end customizables two ###############################
 
       // post_pre_processing
-      prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out sanity check #1
-      prompt = prompt[:5] 
-      // sanity check #2
+
       // experimental forking
-      if DEBUG then print "debug: experimental..."
+      if DEBUG then print "debug: -- begin experimental..."
       fork = false
       for pp in prompt 
-        if @pp == "--5pork" then 
+        //if @pp == "--5pork" then // let's be real, --5pork is hilarious but too much to type
+        if @pp == "--nt" then
           fork = true
-          @pp = ""
+          prompt.indexOf("--nt") = 0
         end if
-        //if @pp == "" then prompt[__pp_idx] = 0 // this interferes with the user intentionally sending "" as an argument (edge case), may have to change it, not sure if it is even needed
       end for
+
       if EXPERIMENTAL then 
         if fork then
-          terminal = globals.get_file("/usr/bin/Terminal.exe")
-          if typeof(terminal) != "file" then terminal = command.tree("/","Terminal.exe",1,"N")
-          if typeof(terminal) == "file" then
-            print colorRed+"5"+CT+colorWhite+"hell: 5porking..."
-            print command.run( terminal, prompt.join(" ") )
-          else  
-            print "shell: error; /usr/bin/Terminal.exe not found"
-          end if
+          if DEBUG then print "debug: preparing to fork"
+          // prefork sanity check 
+          prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out 
+          prompt = prompt[:5]
+          print command.nt(prompt)
+          fork = false // superfluous
           continue
         end if
-        fork = false
       end if
       // end experimental forking
-      // processing
       if DEBUG then print "-- end experimental"
+      //
+      // post experimental sanity check 
+      prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out 
+      prompt = prompt[:5]
+      //
       // you know what, there was a distinct lack of using guard clauses here
       // and i dont know if its for performance reasons but i think we
       // can sacrifice a little bit of performance for readability
       // (especially if its in this user facing code) - Clover
 
+      // command processing
       cmdName = @prompt[0]
       if typeof(@cmdName) == "function" then 
         print colorRed+"shell: preventing rogue function execution"
         continue 
       end if
       // handle case where prompt is "shell" actually
-
+      //
       if cmdName == "shell" then
         // if you'd like the 'shell' command to return additional info, do that here
         if @prompt[1] == "--this" then 
@@ -360,7 +352,8 @@ command.shell = function(input=null,mute=null)
           end if
           continue 
         end if
-        print(colorRed+instance.name+char(8482)+CT+" v "+ver+" by Plu70")
+        print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
+        if instance and instance.name != "5hell" then print colorWhite+"-- running as: "+colorRed+instance.name+char(8482)
         print(colorOlive+"[HOME_SERVER: "+colorWhite+get_custom_object.HOME.ip+CT+"] ")
         print(colorOlive+"[COMMANDS   : "+colorCyan+command.indexes.len+CT+"] ")
         print(colorOlive+"[PASSWORDS  : "+colorGold+globals.dict_a.len+CT+"] ")
@@ -378,24 +371,26 @@ command.shell = function(input=null,mute=null)
         print("<size=65%>--: use<b> shell --debug</b> to toggle debug mode")
         continue 
       end if
-
+      //
       if not command.hasIndex(cmdName) then
-        if globals.get_file(@prompt[0]) then 
-          if DEBUG then print "debug: running binary on system"
-          prompt = ["run"] + prompt // are we bash today? eff it, we're bashin' it
-          cmdName = prompt[0]
+        runpath = globals.get_file(cmdName)
+        if not runpath then runpath = globals.get_file("/bin/"+cmdName)
+        if not runpath then runpath = globals.get_file("/usr/bin/"+cmdName)
+        if runpath then 
+          prompt = ["run",runpath.path] + prompt[1:]
+          cmdName = "run"
         else
           print(cmdName+": unrecognized command (type <b>help</b> for command list)")
           continue
         end if
       end if
-
+      //
       f = @command[cmdName]
       if typeof(@f) != "function" then // san check #3
         print(colorOrange+"shell: use <b>cob get ["+f+"]</b> to retrieve element.")
         continue
       end if
-
+      //
       catch = null
       // we need this for compatibility with improperly constructed functions
       if str(@f) == "FUNCTION()" then args = 0 else args = str(@f).split(", ").len // get the number of args required by the function
@@ -497,23 +492,26 @@ print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
 //
 /////BEGIN launch_with_do CONTROL///////////////////////////////
 //
-cmd = params.join(" ") // start out as though we are not using do
-// if 'do' then we exit when we are done
-if params and params[0] == "do" then
-  cmd = "do"
-  if params.len >= 2 then cmd = cmd + " " + params[1]
-  if params.len > 2 then 
-    if params[2] == "-f" then 
-      cmd = cmd + " "" " + "do 1 -f " + params[3:].join(" ")
-      if DEBUG then print "FROM FILE"
-    else 
-      cmd = cmd + " "" " + params[2:].join(" ")
-      if DEBUG then print "FROM PARAMS"
+cmd = ""
+if globals.hasIndex("params") then 
+  cmd = params.join(" ") // start out as though we are not using do
+  // if 'do' then we exit when we are done
+  if params and params[0] == "do" then
+    cmd = "do"
+    if params.len >= 2 then cmd = cmd + " " + params[1]
+    if params.len > 2 then 
+      if params[2] == "-f" then 
+        cmd = cmd + " "" " + "do 1 -f " + params[3:].join(" ")
+        if DEBUG then print "FROM FILE"
+      else 
+        cmd = cmd + " "" " + params[2:].join(" ")
+        if DEBUG then print "FROM PARAMS"
+      end if
     end if
+    print command.quit(command.shell(cmd+" "" | return"))
   end if
-  print command.quit(command.shell(cmd+" "" | return"))
+  ////////////////END l_w_d CONTROL/////////////////
 end if
-////////////////END l_w_d CONTROL/////////////////
 //
 ///begin main///
 while true
