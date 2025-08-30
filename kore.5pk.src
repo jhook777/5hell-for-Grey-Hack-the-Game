@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.2.2...(41.908)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.2.2...(41.979)</size>")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -736,6 +736,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 	return hashim(daemon,swap_file)
 end function
 command.nt = function(arg1, arg2, arg3, arg4)
+	if EXPERIMENTAL != true then return "nt: diabled outside of nightly"
 	if arg1 == "help" or arg1 == "-h" then return " 5pork || new terminal || Terminal.exe || fork process || new window"+char(10)+char(10)+
 	"Usage: "+colorLightBlue+"</b>nt [opt:shell|params] [opt:shell] </color>-- open a new window and optionally pass parameters"+char(10)+
 	"-- identical to:<b> run /usr/bin/Terminal.exe [params] [shell]"+char(10)+
