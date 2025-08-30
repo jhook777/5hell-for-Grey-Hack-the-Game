@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.0.1...(153.700)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.2...(153.716)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -1483,13 +1483,13 @@ command.cad = function(add=0, pt=0, arg3=0, arg4=0)
     // nop
     nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+","+pt+","+ps+");exit(ps)"
     header = char(10)+"// Cloak and Dagger"+char(10)
-    cd = (header+char(10)+rip+char(10)+nop)
+    locals.cad = (header+char(10)+rip+char(10)+nop)
     localmachine.touch(currentPath, "ps.src")
     source = globals.get_file("ps.src")
     print("Cloak and Dagger Protocol v 0.4, by Plu70")
     print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
     if source then
-      source.set_content(cd)
+      source.set_content(locals.cad)
       wait(1)
       out = source.get_content
       print(out)
@@ -1585,7 +1585,7 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   if DEBUG then print "debug: checking for dig.bat in: "+kit.path
   bat_file = globals.get_file(kit.path+"/dig.bat")
   if not bat_file then 
-      command.poke(kit.path+"/dig.bat", "ifconfig -p | probe"+char(10)+"brutus | clipc"+char(10)+"grep -p 5hell | clipb"+char(10)+"run @b "" do 1 rshell @home "" @c"+char(10)+"rclean -d @c")
+      command.poke(kit.path+"/dig.bat", "ifconfig -p | probe"+char(10)+"brutus | clipc"+char(10)+"grep -p ^5hell$ | clipb"+char(10)+"run @b "" do 1 rshell @home "" @c"+char(10)+"rclean -d @c")
       bat_file = globals.get_file(kit.path+"/dig.bat")
       if not bat_file then return "dig: unable to find or create dig.bat, aborting."
   end if
