@@ -2318,7 +2318,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, bakeneko, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, CyanMatter, MrMember, Clover, Rocketorbit, Trashed, Bit, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others!")
+	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, bakeneko, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, Penelope, Andreno, Minidevil96, tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, Bit, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others!")
 	return 0
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
@@ -2784,3 +2784,4 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
+
