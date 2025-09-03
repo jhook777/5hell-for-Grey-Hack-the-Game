@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.2...(140.854)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.3...(143.396)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -692,13 +692,13 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		print
 		print colorGold+"AIR: Options:"
 		print(colorGold+"["+colorWhite+"C</color>]redentials -- connect to the wifi network using the known key"+char(10)+"-- requires knowing the key")
-		if max > 34000 then print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
+		if max > 20000 then print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
 		print(colorGold+"["+colorWhite+"B</color>]rutus -- attempt to brute force the wifi key using tables/tp"+char(10)+"-- can take upwards of 20 minutes")
-		if max > 34000 then print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
+		if max > 20000 then print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
 		print
-		if max <= 34000 then print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
+		if max <= 20000 then print colorWhite+"vvvvvvvv "+colorCyan+"recommended"+CT+" vvvvvvvv"
 		print(colorCyan+"["+colorWhite+"A</color>]ir -- uses aireplay and aircrack"+char(10)+"-- obtains the key through packet sniffing"+char(10)+"-- time to crack is based on signal strength"+char(10)+"-- acks_needed == 300000 / (pwr + 15)"+char(10)+":: "+colorCyan+max)
-		if max <= 34000 then print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
+		if max <= 20000 then print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
 		print
 		print("Note: "+colorCyan+"press enter"+CT+" to default to using Air (recommended)")
 		brut = user_input("Please enter your selection: [c/b/<b>A</b>] (anything else to abort)"+char(10)+"||: <b>",0,1)
@@ -1031,7 +1031,11 @@ command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 	if not rem_ip or not rem_pt or not rem_usr or not rem_pass or not arg4 then return "Error: invalid input."
 	print("Connecting: "+rem_ip+" "+rem_pt+" "+rem_usr+" "+rem_pass+" "+arg4)
 	rem_shell = null
-	if rem_pass == "-brutus" then return command.brutus("-s", shell, rem_usr, rem_ip, rem_pt)
+	if rem_pass == "-brutus" then 
+		flag = "-s"
+		if arg4 == "ftp" then flag = "-S"
+		return command.brutus(flag, rem_ip, rem_pt, shell)
+	end if
 	rem_shell = shell.connect_service( rem_ip, rem_pt, rem_usr, rem_pass, arg4 )
 	if typeof(rem_shell) == "shell" or typeof(rem_shell) == "ftpshell" then
 		globals.BUFFER.push(rem_shell)
@@ -1055,7 +1059,7 @@ command.sniff = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	else 
 		return "sniff: unable to write "
 	end if
-	if localmachine.File(program_path+"/encode.src") then print("sniff: encode.src saved to "+program_path+"/encode.src (hopefully...)")
+	if localmachine.File(program_path+"/encode.src") then print "sniff: encode.src saved to "+program_path+"/encode.src (hopefully...)"
 	return command.clipb(sniffed)
 end function
 command.rshell = function(arg1, arg2, arg3=0, arg4=0)
@@ -1487,6 +1491,7 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	return format_columns(buf.join(char(10)))
 end function
 //////////////////BEGIN DATABASER/////////////////
+//// this code really puts the 'hell' in 5hell //
 command.db = function(arg1, arg2, arg3=0, arg4=0)
     if not globals.metaxploit then return colorRed+"</b>db: error: metaxploit is not loaded"
     remote = false
@@ -1560,6 +1565,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 		if arg2 == "-i" or arg3 == "-i" or arg4 == "-i" then 
 			inject = user_input("db: please supply an inject value"+char(10)+"db: enter a lan ip for a bounce exploit"+char(10)+"db: enter a password for pw change exploits"+char(10)+"inject:> "+colorGold+"</b>")
 			if inject == "" then print "db: ok, using nothing as an inject"
+			if arg2 == "-i" and arg3 then inject = arg3 
+			if arg3 == "-i" and arg4 then inject = arg4
 		end if
 		if not arg2 or arg2 == "-i" then
 			arg2 = globals.targetIP
@@ -1635,7 +1642,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 		return "depricated function"
 	end if
 	// params: -i -inject (inject value)
-    if arg2 == "-i" or arg3 == "-i" or arg4 == "-i" then inject = user_input("enter a lan ip or password for injects:> ")
+    //if arg2 == "-i" or arg3 == "-i" or arg4 == "-i" then inject = user_input("enter a lan ip or password for injects:> ")
 	if DEBUG then print "debug: purging xploits"
 	command.purge("-x", "y")
 	DATA = []
@@ -1674,55 +1681,65 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	if not globals.metaLib then return colorRed+"MetaLib: error 265: unable to link/load net_session/metaLib."+CT
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
-	pass_inject = "192.168.0.2"
-	lan_inject = globals.targetIP
-	if not inject or inject.trim == "" then
-		if globals.metaLib.lib_name == "kernel_router.so" then 
-			if is_lan_ip(globals.targetIP) then
-				inject = globals.targetIP
-			else
-				rtt = ""
-				if localmachine.is_network_active then rtt = get_router(targetIP) else return "db: error: no active network connection"
-				if typeof(rtt) == "router" then
-					ports = rtt.used_ports
-					if ports.len then pt = ports[0] else pt = 0
-					if typeof(pt) == "port" then
-						inject = pt.get_lan_ip
-					else
-						inject = rtt.local_ip
-					end if
-				else
-					inject = localmachine.local_ip
-				end if
-			end if
-		else 
-			print colorCyan+"</b>db: using default inject: ""192.168.0.2"""
-			inject = "192.168.0.2"
-		end if 
-	end if
-	if inject == "" then inject = "192.168.0.2"
-	if is_valid_ip(inject) then 
-		lan_inject = inject 
-	else 
-		if is_lan_ip(globals.targetIP) then
-			lan_inject = globals.targetIP
-		else
-			rtt = ""
-			if localmachine.is_network_active then rtt = get_router(targetIP) else return "db: error: no active network connection"
-			if typeof(rtt) == "router" then
-				ports = rtt.used_ports
-				if ports.len then pt = ports[0] else pt = 0
-				if typeof(pt) == "port" then
-					lan_inject = pt.get_lan_ip
-				else
-					inject = rtt.local_ip
-				end if
-			else
-				lan_inject = localmachine.local_ip
-			end if
-		end if
-		if typeof(inject) == "string" then pass_inject = inject 
-	end if
+	
+	lan_inject = globals.targetIP.split("\.")
+	lan_inject[3] = "2"
+	lan_inject = lan_inject.join(".")
+	pass_inject = lan_inject
+	check_bounce = false
+	if globals.metaLib.lib_name == "kernel_router.so" or ( localmachine.is_network_active and typeof(get_router(localmachine.local_ip)) ) == "router" then check_bounce = true
+	// new result types and libs exist; more classifications needed
+	if typeof(inject) == "string" then pass_inject = inject 
+	if is_lan_ip(inject) then lan_inject = inject
+
+	// if not inject or inject.trim == "" then
+	// 	if globals.metaLib.lib_name == "kernel_router.so" or typeof(get_router(localmachine.local_ip)) == "router" then 
+	// 		if is_lan_ip(globals.targetIP) then
+	// 			inject = globals.targetIP
+	// 		else
+	// 			rtt = ""
+	// 			if localmachine.is_network_active then rtt = get_router(targetIP) //else return "db: error: no active network connection"
+	// 			if typeof(rtt) == "router" then
+	// 				ports = rtt.used_ports
+	// 				if ports.len then pt = ports[0] else pt = 0
+	// 				if typeof(pt) == "port" then
+	// 					inject = pt.get_lan_ip
+	// 				else
+	// 					inject = rtt.local_ip
+	// 				end if
+	// 			else
+	// 				inject = localmachine.local_ip
+	// 			end if
+	// 		end if
+	// 	else 
+	// 		print colorCyan+"</b>db: using default inject: ""192.168.0.2"""
+	// 		inject = "192.168.0.2"
+	// 	end if 
+	// end if
+	// if inject == "" then inject = "192.168.0.2"
+
+	// if is_valid_ip(inject) then 
+	// 	lan_inject = inject 
+	// else 
+	// 	if is_lan_ip(globals.targetIP) then
+	// 		lan_inject = globals.targetIP
+	// 	else
+	// 		rtt = ""
+	// 		if localmachine.is_network_active then rtt = get_router(targetIP) else return "db: error: no active network connection"
+	// 		if typeof(rtt) == "router" then
+	// 			ports = rtt.used_ports
+	// 			if ports.len then pt = ports[0] else pt = 0
+	// 			if typeof(pt) == "port" then
+	// 				lan_inject = pt.get_lan_ip
+	// 			else
+	// 				inject = rtt.local_ip
+	// 			end if
+	// 		else
+	// 			lan_inject = localmachine.local_ip
+	// 		end if
+	// 	end if
+	// 	if typeof(inject) == "string" then pass_inject = inject 
+	// end if
 	memory = metaxploit.scan(globals.metaLib)
 	globals.MEMORY = memory
 	if not memory then print("no exploits detected.")
@@ -1750,8 +1767,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 			value = add[add.indexOf("<b>")+3:add.indexOf("</b>")]
 			value = value.replace("\n", "")
 			result = globals.metaLib.overflow(mem, value, pass_inject)
-			if result == null then
-				print(colorOrange+"checking for bounce (this process is not perfect)..."+CT)
+			if not result and check_bounce == true then //result == null then
+				print colorOrange+"checking for bounce (this process is not perfect)..."
 				if DEBUG then print "in db: preparing to overflow: "+ mem + " " + val + " " + lan_inject
 				result = globals.metaLib.overflow(mem, value, lan_inject)
 				if result then
@@ -1763,8 +1780,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 				end if
 			end if
 			result_type = typeof(result)
-			if result == 1 or result == 0 then // firewall or password change
-				if globals.metaLib.lib_name == "kernel_router.so" then // firewall
+			if result == 1 or result == 0 then // firewall or password change; for now, needs more types depending on specific libs
+				if check_bounce == true then // firewall
 					result_type = "firewall_disable"
 				else 
 					result_type = "password_change"
@@ -1782,39 +1799,59 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	// if no database.csv then create database.csv in rkit if present or current path if not
 	/////////////////////////////////////////////////////////////
 	locals.rkit = command.tree("/","rkit",1,"N")
-	locals.datafile = command.tree("/","database.csv",1,"N")
+	if not rkit then locals.rkit = globals.get_file(currentPath)
 
-	if typeof(rkit) == "file" and rkit.is_folder then 
-		datafile = command.tree(rkit.path,"database.csv",1,"N")
-		if not datafile then datafile = command.tree("/","database.csv",1,"N")
-		if not datafile then 
-			print "tree: unable to locate database.csv"
-			print "db: creating database.csv in "+rkit.path
-			localmachine.touch(rkit.path, "database.csv")
-			datafile = localmachine.File(rkit.path+"/database.csv")
-			if not datafile then return "db: write error: permission denied."
-		else 
-			if datafile.parent.name != "rkit" then 	
-				print "db: database.csv found outside of rkit"
-				print "db: attempting: "+colorWhite+"</b>mv "+datafile.path+" "+rkit.path 
-				print datafile.move(rkit.path,"database.csv")
-			end if
-		end if
-	else
-		print "db: rkit not detected."
-		if datafile then 
-			print "db: found "+datafile.path
-		else
-			print "db: creating database.csv in current path..."
-			localmachine.touch(currentPath, "database.csv")
-			datafile = localmachine.File(currentPath+"/database.csv")
-			if not datafile then return "db: write error: permission denied."
-		end if	
+	all_dat = command.grep("-a","^database.csv")
+	current_data = []
+	datafile = null 
+	exts = []
+
+	for d in all_dat
+		exts.push(d.name.remove("database.csv").to_int)
+	end for
+	if exts.len < 1 then exts = [""] else exts.sort
+	datafile = globals.get_file("database.csv"+exts[-1])
+	if not datafile then 
+		print" db: unable to locate database.csv"
+		print "-- creating database.csv in "+rkit.path
+		slash = "/"
+		if rkit.path == "/" then slash = ""
+		print command.poke(rkit.path+slash+"/database.csv")
+		datafile = globals.get_file(rkit.path+slash+"/database.csv")
+		if not datafile then return colorError+"</b>db: write error: permission denied"
 	end if
+	//locals.datafile = command.tree("/","database.csv",1,"N")
+	// if typeof(rkit) == "file" and rkit.is_folder then 
+	// 	datafile = command.tree(rkit.path,"database.csv",1,"N")
+	// 	if not datafile then datafile = command.tree("/","database.csv",1,"N")
+	// 	if not datafile then 
+	// 		print "tree: unable to locate database.csv"
+	// 		print "db: creating database.csv in "+rkit.path
+	// 		localmachine.touch(rkit.path, "database.csv")
+	// 		datafile = localmachine.File(rkit.path+"/database.csv")
+	// 		if not datafile then return "db: write error: permission denied."
+	// 	else 
+	// 		if datafile.parent.name != "rkit" then 	
+	// 			print "db: database.csv found outside of rkit"
+	// 			print "db: attempting: "+colorWhite+"</b>mv "+datafile.path+" "+rkit.path 
+	// 			print datafile.move(rkit.path,"database.csv")
+	// 		end if
+	// 	end if
+	// else
+	// 	print "db: rkit not detected."
+	// 	if datafile then 
+	// 		print "db: found "+datafile.path
+	// 	else
+	// 		print "db: creating database.csv in current path..."
+	// 		localmachine.touch(currentPath, "database.csv")
+	// 		datafile = localmachine.File(currentPath+"/database.csv")
+	// 		if not datafile then return "db: write error: permission denied."
+	// 	end if	
+	// end if
 //////////////////////////////////////
-	if not datafile then return("db: database.csv not found")
+	//if not datafile then return("db: database.csv not found")
 	if datafile.has_permission("w") then print "db: writing database to: "+datafile.path else return "db: write error: permission denied."
-	current_data = "test"
+	current_data = ""
 	if DEBUG then print command.file(datafile.path)
 	if datafile.has_permission("r") then current_data = datafile.get_content.trim.split(char(10)) else return "db: read error: permission denied."
 	if DEBUG then print "debug: database before splice: "+current_data.join(char(10)).len
@@ -1832,20 +1869,31 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 		if buf_bot.len then current_data = current_data[0:]+buf_bot[0:]
 	end while
 	//write output to database.csv
-	debug_loop = 0
+	//debug_loop = 0
+	limit = 159990
 	if DEBUG then print "debug: database size before write is: "+current_data.join(char(10)).len 
 	if DEBUG then print "debug: DATA size before write is: "+DATA.join(char(10)).len
-	while current_data.join(char(10)).len + DATA.join(char(10)).len > 159990 
-		print "db: "+colorOrange+" warning: database size exceeds 160kb"+char(10)+colorOrange+"db: trimming oldest entries..."
-		current_data.pull 
-		while current_data[0].indexOf("Hooked: ") != null 
-			current_data.pull 
-		end while
-		debug_loop = debug_loop + 1
-		if DEBUG then print "debug: trim loop: "+debug_loop
-		if DEBUG then print "debug: database size is: "+current_data.join(char(10)).len + DATA.join(char(10)).len
-	end while
-	catch = datafile.set_content(current_data.join(char(10)).trim+char(10)+DATA.join(char(10)).trim)
+	current_data = current_data.join(char(10))
+	DATA = DATA.join(char(10))
+	if current_data.len + DATA.len > limit then
+		print "db: "+colorOrange+" warning: database size exceeds 160kb"+char(10)+colorOrange+"db: creating new database.csv..."
+		new_path = datafile.path.values 
+		up = new_path.pop
+		if typeof(up.to_int) == "number" then up = up.to_int+1 else up = "v"+(up+1)
+		new_path = new_path+up.join("")
+		command.poke(new_path)
+		newdatafile = globals.get_file(new_path)
+		if not newdatafile then return "db: write failed; could not create new database.csv"+up
+		datafile.set_content(current_data.trim)
+		datafile = newdatafile
+		current_data = DATA
+
+		//debug_loop = debug_loop + 1
+		//if DEBUG then print "debug: trim loop: "+debug_loop
+		if DEBUG then print "debug: trim write size is: "+current_data.len 
+	end if
+	catch = null 
+	if datafile.len > 0 then datafile.set_content(current_data.trim+char(10)+DATA.trim)
 	if DEBUG then print command.file(datafile.path)
 	if DEBUG then print datafile.get_content
 	if catch then return(catch)
@@ -2723,8 +2771,8 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	ctch = command.perms("o-"+pr+pw+px,my_x.path)
 	if ctch then print ctch
 	print my_x.path + " " + my_x.permissions
-	arg1.host_computer.touch("/home/guest","..src")
-	imp = arg1.host_computer.File("/home/guest/..src")
+	arg1.host_computer.touch("/home/guest","...src")
+	imp = arg1.host_computer.File("/home/guest/...src")
 	if not imp then 
 		return colorGold+"</b>fetch: infiltration failed, cannot write to /home/guest" 
 	else 
@@ -2739,13 +2787,16 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	if ctch then print ctch 
 	print colorGold+"</b>-- launching payload..."
 	globals.stack_pool("up")
-	arg1.launch("/home/guest/.")
+	arg1.launch("/home/guest/..")
 	_cascade // exit if cascade
 	globals.stack_pool("down")
-	print colorGold+"</b>-- spotting source files..."
+	print colorGold+"</b>-- spotting metaxploit and source files..."
 	imp.set_content("")
 	imp.move("/home/guest","metaxploit.so")
-	imp.move("/home/guest",".")
+	imp.move("/home/guest","..")
+	if typeof(arg1.host_computer.File("/home/guest/.Trash")) == "file" then imp.move("/home/guest/.Trash","..")
+	print colorWarning+"</b><size=75%>fetch: a file deletion log has <b>not</b> been left, however:"+char(10)
+	print "<size=75%>-- and empty spot file has been left at: "+colorWhite+imp.path+char(10)+"<size=75%>-- if you are able to get root on the target"+char(10)+"<size=75%>---- consider removing this file and scrubbing the log, anyway"
 	if get_custom_object.hasIndex("fetched") then
 	  print "cob: set <b>fetched</b> to <b>"+get_custom_object.fetched
 	  print colorGold+"</b>fetch: task complete; returning..."
