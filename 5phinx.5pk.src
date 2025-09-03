@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.1.7"
-malp_version = "1.5.6"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.2.(155.552)</size>")
+sphinx_version = "3.1.8"
+malp_version = "1.5.7"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.3.(155.716)</size>")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -2640,29 +2640,33 @@ end function
 
 secure_connect = function(shll)
   secure_port = targetPort
+  secure_ip = targetIP
   waitFor = user_input("Connect on port 22? [Y/n]||: ",0,1)
   if waitFor.lower == "n" then secure_port = user_input("enter port:> ").to_int else secure_port = 22
   if secure_port < 1 or typeof(secure_port) != "number" then
     print("Error: invalid port for secure connect.")
     return 0
   end if
-  print(targetIP)
+  print("target: "+targetIP)
   if is_lan_ip(globals.targetIP) then 
-    secure_ip = user_input("enter lan ip (<<b>enter</b>>="+targetIP+", non-int=abort"+char(10)+":> ")
+    secure_ip = user_input("Enter target ip (<<b>enter</b>>="+targetIP+", non-ip=abort)"+char(10)+":> ")
+    if secure_ip == "" then secure_ip = targetIP
   else
-    secure_ip = user_input("enter lan ip (<<b>enter</b>>=abort):> ")
+    secure_ip = user_input("Enter target ip (non-ip=abort):> ")
   end if
-  if secure_ip == "" then secure_ip = targetIP
+  if not is_valid_ip(secure_ip) then return 0
+
   userName = user_input("Enter remote user name (<<b>enter</b>>=root, -q=quit):> ")
   if userName == "" then userName = "root"
-  passWd = user_input("Enter remote user password (-brutus=dictinary attack, <<b>enter</b>>=quit):> ")
-  if passwd == "" then return 0
+  passWd = user_input("Enter remote user password (-brutus=dictionary attack, <<b>enter</b>>=quit):> ")
+  if passWd == "" then return 0
   print(colorWhite+"--ssh------------------------"+CT)
   remote = null
   if passWd == "-brutus" then
     print("<b>running dictionary attack...</b>")
     for d in dict_a
       remote = shll.connect_service(secure_ip, secure_port, userName, d)
+      if typeof(remote) == "shell" or typeof(remote) == "ftpshell" then break
     end for
   else
     if passWd != "" then remote = shll.connect_service(secure_ip, secure_port, userName, passWd)
