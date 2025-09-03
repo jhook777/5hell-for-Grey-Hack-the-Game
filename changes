@@ -26,6 +26,44 @@
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
 //
+// todo 
+// db: still needs to be able to self repair
+// linkdb: needs to be able to work with multiple datafiles
+// rkit: should probably make a database file strucure
+// actually fix grep's algo
+// /todo
+//
+// updated credits
+// mv: removed ellipsis from output
+// cp: removed ellipsis from output
+// help: fixed help alias' full text not displaying, which was hiding important alias information from the user
+// db: will now write a new database.csv when the last-numbered one is full
+// -- writes to the path of the last numbered file
+// -- starts at database.cvs, incriments to database.csv[N]
+// --ie database.csv1,....cas2,....csv3,...
+// -- still need to get 5hell to work with reading multiple files
+// shell: --daemons output adjusted
+// psudo: fixed -sf -- skip prompt not showing in usage info
+// -- will auto open in malp
+// psudo: fixed 'y' not opening malp when prompted
+// psudo: added -sn to skip prompt and skip malp
+// poke: updated usage info
+// poke: adjusted "file exists" output
+// malp: added -p -- push to buffer without opening malp
+// malp: fixed malp unexpectedly opening objects in the buffer under edge cases
+// psudo: added warning about traces when using start_terminal to usage info
+// calc: adjusted usage info for the 'base' fuction aka padic representation
+// -- made it easier to search for by search for when using the keyword "padic" *cough*
+// 5phinx.5pk: fixed crash in secure_connect: undefined 'passwd'
+// code: updated usage info; I really should consider breaking this into 3 different commands
+// grep: improved output when displaying matches irt symlinks and word searches file matches
+// -- updated usage info
+// file: will display the origin file of a symlink
+// sl: will return the path to the original file when symlink tests are positive
+// --eg: poke /root/a || sl /root/a /home/user/Desktop/b || sl b 
+// ----: /root/a
+// -- will return 0 when target file is not a symlink
+//
 // dig: added regex to grep for 5hell to ensure it gets "5hell" and not "5hell.d"
 // 5hell.src: juggled sanity checks to better handle new bash stuff
 // shell: fixed crash when piping int:0 to the void
