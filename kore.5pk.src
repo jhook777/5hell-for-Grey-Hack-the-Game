@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.2.2...(41.979)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.2.3...(43.286)</size>")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -525,6 +525,10 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	colorWhite+"</b>-- May be of any type: string, list, map, shell, file, computer, etc, et al."+char(10)+
 	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-b"+CT+"] [opt: piped_object] -- open the"+colorOrange+"</b> BUFFER "+CT+"immediately on opening malp"+char(10)+
 	"-- if an object is supplied, it's entry will be opened in the BUFFER"+char(10)+
+	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-p"+CT+"] [opt: piped_object] "+char(10)+
+	"-- <b>pushes</b> an entry to the "+colorOrange+"BUFFER"+CT+" but does <b>not</b> open malp"+char(10)+
+	"-- failing to pass an argument to -p results in no action"+char(10)+
+	"-- returns zero"+char(10)+char(10)+
 	"Functions: "+char(10)+
 	"[0] -- display portmap, if available"+char(10)+
 	"[1] -- display loaded exploits and requirements if known"+char(10)+
@@ -544,14 +548,16 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	"[0] exit"+char(10)+
 	"[/] -- open Cer Bios"+char(10)+
 	"[-] -- open reverse shell interface"+char(10)+
-	"[.] -- linkdb database entry"
-	if DEBUG then print("@arg1: "+typeof(@arg1))
+	"[.] -- list of database entries; "+char(10)+
+	"-- selection will be passed to <b>linkdb</b>"+char(10)
+	if DEBUG then print("@arg1: "+typeof(@arg1)+char(10)+"@arg2: "+typeof(@arg2))
 	open_buffer = false
 	open_entry = false
+	no_malp = false
 	if @arg1 then
 		if typeof(@arg1) == "string" then 
-			if @arg1 == "-b" then 
-				open_buffer = true 
+			if @arg1 == "-b" or arg1 == "-p" then 
+				if arg1 == "-p" then no_malp = true else open_buffer = true 
 				arg1 = @arg2 
 				arg2 = @arg3 
 				arg3 = @arg4 
@@ -560,7 +566,8 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 		if @arg1 then 
 			print "debug: malp: pushing: "+typeof(@arg1)+" to BUFFER"
 			globals.BUFFER.push(@arg1)
-			open_entry = true
+			if no_malp == true then return 0
+			if open_buffer then open_entry = true
 		end if
 	end if
 	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"-- oe: "+open_entry)
@@ -622,6 +629,28 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 		wait(.05)
 		//if not daemon then swap_path = "/root/pass"
 		//swap_file = globals.get_file(swap_path)
+		t_path = get_custom_object.HOME.t5
+		t_folder = globals.get_file(t_path)
+		have_tables = false
+		if not t_folder then 
+			print "hashim: "+t_path+" not found; searching for tables..."
+			t_folder = command.tree("/","tables",1,"N")
+			if typeof(t_folder) == "file" and t_folder.is_folder then 
+				folds = t_folder.get_folders
+				for f in folds
+					if f.name == "t5" and f.is_folder then 
+						t_folder = f 
+						print "hashim: using: "+t_path
+						have_tables = true 
+					end if
+				end for
+			else 
+				print "hashim: tables not found; defaulting to cryptolib"
+			end if
+		else 
+			print "hashim: using: "+t_path
+			have_tables = true
+		end if
 		if not swap_file then return "hashim: error: "+swap_path+" not found."
 		last_read = "" //swap_file.get_content
 		running = true
@@ -656,27 +685,27 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 					if DEBUG then print "hash is:"+hash+" and len is: "+hash.len
 					if hash.len != 32 then continue
 					print("["+hash+"]")
-					t_path = get_custom_object.HOME.t5
-					t_folder = globals.get_file(t_path)
-					have_tables = false
-					if not t_folder then 
-						print "hashim: "+t_path+" not found; searching for tables..."
-						t_folder = command.tree("/","tables",1,"N")
-						if typeof(t_folder) == "file" and t_folder.is_folder then 
-							folds = t_folder.get_folders
-							for f in folds
-								if f.name == "t5" and f.is_folder then 
-									t_folder = f 
-									have_tables = true 
-								end if
-							end for
-						else 
-							print "hashim: tables not found; defaulting to cryptolib"
-						end if
-					else 
-						print "hashim: using: "+t_path
-						have_tables = true
-					end if
+					// t_path = get_custom_object.HOME.t5
+					// t_folder = globals.get_file(t_path)
+					// have_tables = false
+					// if not t_folder then 
+					// 	print "hashim: "+t_path+" not found; searching for tables..."
+					// 	t_folder = command.tree("/","tables",1,"N")
+					// 	if typeof(t_folder) == "file" and t_folder.is_folder then 
+					// 		folds = t_folder.get_folders
+					// 		for f in folds
+					// 			if f.name == "t5" and f.is_folder then 
+					// 				t_folder = f 
+					// 				have_tables = true 
+					// 			end if
+					// 		end for
+					// 	else 
+					// 		print "hashim: tables not found; defaulting to cryptolib"
+					// 	end if
+					// else 
+					// 	print "hashim: using: "+t_path
+					// 	have_tables = true
+					// end if
 					if have_tables == true then
 						files = t_folder.get_files
 						for f in files
