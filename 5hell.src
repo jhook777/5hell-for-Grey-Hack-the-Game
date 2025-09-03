@@ -334,7 +334,7 @@ command.shell = function(input=null,mute=null)
           continue 
         end if
         if @prompt[1] == "--daemons" then
-          print dmanager.List
+          print format_columns(dmanager.List.join(char(10)))
           if @prompt[2] == "stop" then print dmanager.Stop(prompt[3])
           continue
         end if
@@ -353,10 +353,12 @@ command.shell = function(input=null,mute=null)
           continue 
         end if
         print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
-        if instance and instance.name != "5hell" then print colorWhite+"-- running as: "+colorRed+instance.name+char(8482)
-        print(colorOlive+"[HOME_SERVER: "+colorWhite+get_custom_object.HOME.ip+CT+"] ")
-        print(colorOlive+"[COMMANDS   : "+colorCyan+command.indexes.len+CT+"] ")
-        print(colorOlive+"[PASSWORDS  : "+colorGold+globals.dict_a.len+CT+"] ")
+        inst = colorGrey+"deleted"
+        if typeof(instance) == "file" then inst = colorRed+instance.path
+        print(colorOlive+"[INSTANCE   : "+inst+CT+"]")
+        print(colorOlive+"[HOME_SERVER: "+colorWhite+get_custom_object.HOME.ip+CT+"]")
+        print(colorOlive+"[COMMANDS   : "+colorCyan+command.indexes.len+CT+"]")
+        print(colorOlive+"[PASSWORDS  : "+colorGold+globals.dict_a.len+CT+"]")
         print(colorOlive+"[PUBLIC_IP  : "+colorWhite+localmachine.public_ip+CT+"]")
         print(colorOlive+"[LOCAL_IP   : "+colorWhite+localmachine.local_ip+CT+"]")
         print(colorOlive+"[STACK_POOL : "+colorRed+get_custom_object.stack_pool+CT+"]")
