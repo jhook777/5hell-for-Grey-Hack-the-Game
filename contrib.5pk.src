@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.2...(135.030)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.3...(135.030)</size>)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -2171,7 +2171,7 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.2...(135.030)
 end function
 if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
 
-  // glosure by rocketorbit
+  // glosure by maho_citrus
   command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
     Error = function(msg) //This is up to implementation to decide.
       return print("<color=red><noparse>" + @msg + "</noparse></color>") //reference implementation simply panics. 
