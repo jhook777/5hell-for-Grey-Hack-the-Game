@@ -1682,10 +1682,11 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
 	
-	lan_inject = globals.targetIP.split("\.")
+	lan_inject = ["192","168","0","2"]
+	if is_lan_ip(globals.targetIP) then lan_inject = globals.targetIP.split("\.") 
 	lan_inject[3] = "2"
 	lan_inject = lan_inject.join(".")
-	pass_inject = lan_inject
+	pass_inject = "*"
 	check_bounce = false
 	if globals.metaLib.lib_name == "kernel_router.so" or ( localmachine.is_network_active and typeof(get_router(localmachine.local_ip)) ) == "router" then check_bounce = true
 	// new result types and libs exist; more classifications needed
@@ -1766,7 +1767,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 			if add == address[0] then continue
 			value = add[add.indexOf("<b>")+3:add.indexOf("</b>")]
 			value = value.replace("\n", "")
-			result = globals.metaLib.overflow(mem, value, pass_inject)
+			result = globals.metaLib.overflow(mem, value, pass_inject) ////////////////////// FIRE //////////////////
 			if not result and check_bounce == true then //result == null then
 				print colorOrange+"checking for bounce (this process is not perfect)..."
 				if DEBUG then print "in db: preparing to overflow: "+ mem + " " + val + " " + lan_inject
@@ -1805,16 +1806,23 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	current_data = []
 	datafile = null 
 	exts = []
-
+	if DEBUG then print "debug: all_dat: "+all_dat
 	for d in all_dat
 		if typeof(d) != "file" then continue
+		if DEBUG then print "debug: name: "+ d.name
 		exts.push(d.name.remove("database.csv").to_int)
 	end for
 	if exts.len < 1 then exts = [""] else exts.sort
-	datafile = globals.get_file("database.csv"+exts[-1])
+	latest = "database.csv"+exts[-1]
+	if DEBUG then print "debug: latest: "+latest
+	for d in all_dat 
+		if typeof(d) != "file" then continue
+		if DEBUG then print "debug: name: "+ d.name
+		if d.name == latest then datafile = d
+	end for
 	if not datafile then 
 		print" db: unable to locate database.csv"
-		print "-- creating database.csv in "+rkit.path
+		print "-- creating database.csv in "+ rkit.path
 		slash = "/"
 		if rkit.path == "/" then slash = ""
 		print command.poke(rkit.path+slash+"/database.csv")
