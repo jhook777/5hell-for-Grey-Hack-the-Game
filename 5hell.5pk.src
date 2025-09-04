@@ -2,7 +2,7 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.2.3.E_falling_skies"
+ver = "4.2.4.E_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
