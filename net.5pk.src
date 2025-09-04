@@ -1807,7 +1807,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	exts = []
 
 	for d in all_dat
-		if typeof(d) !- "file" then continue
+		if typeof(d) != "file" then continue
 		exts.push(d.name.remove("database.csv").to_int)
 	end for
 	if exts.len < 1 then exts = [""] else exts.sort
