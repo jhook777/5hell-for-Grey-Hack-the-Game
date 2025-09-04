@@ -33,6 +33,11 @@
 // actually fix grep's algo
 // /todo
 //
+// db: fixed crash in db; name not defined
+// db: fixed other crashes
+// db: will dynamically choose a lan inject value that (hopefully) exists on the target network
+// db: will have a slightly easier time telling firewall disable exploits and bounce exploits apart
+//
 // updated credits
 // mv: removed ellipsis from output
 // cp: removed ellipsis from output
