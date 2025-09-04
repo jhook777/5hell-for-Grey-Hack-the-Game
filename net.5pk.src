@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.3...(143.396)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.3.1..(143.437)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -1807,6 +1807,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	exts = []
 
 	for d in all_dat
+		if typeof(d) !- "file" then continue
 		exts.push(d.name.remove("database.csv").to_int)
 	end for
 	if exts.len < 1 then exts = [""] else exts.sort
