@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.3...(135.030)</size>)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.4...(135.050)</size>)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -2700,7 +2700,7 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
   // regex engine, translated from C code provided by Princeton U., by Plu70
   re = {}
   re.match = function(regexp, text) 
-    if DEBUG then print("<b> in globals.re(gex)")
+    //if DEBUG then print("<b> in globals.re(gex)") // way too spammy
     if regexp[0] == "^" then
       regexp.pull
       return re.match_here(regexp,text)
