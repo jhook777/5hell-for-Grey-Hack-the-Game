@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.3.1..(143.437)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.4..(144.574)</size>")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -862,7 +862,9 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function
 command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: lanpro [ip] -- full lan scan. returns only lan addresses."+char(10)+"Does not autoset ip or portmap for 5phinx. Use<b> probe -f </b>instead."
+	if arg1 == "help" or arg1 == "-h" then return "Usage: lanpro [ip] -- full lan scan"+char(10)+
+	"-- returns newline delimited string of lan ip's"+char(10)+
+	"-- does not autoset ip or portmap for 5phinx, Use<b> probe [ip]</b>instead."
 	if not localmachine.is_network_active then return "lanpro: no network connection."
 	get = null
 	t = time
@@ -1681,14 +1683,49 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	if not globals.metaLib then return colorRed+"MetaLib: error 265: unable to link/load net_session/metaLib."+CT
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
+
+	ok = function(ip)
+		if is_valid_ip(ip) then 
+			ip = ip.split("\.")
+			if ip[3] == "1" then return false
+			return true				
+		end if
+		return false
+	end function
+
+	lan_inject = "192.168.0.2"
+	if is_valid_ip(globals.targetIP) and not is_lan_ip(globals.targetIP) then // / / /
+		remr = get_router(globals.targetIP)
+		if typeof(remr) == "router" then 
+			rdev = remr.devices_lan_ip.shuffle 
+			if DEBUG then print "debug: rdev: "+rdev
+			uip = ""
+			for ip in rdev
+				if ok(ip) then 
+					uip = ip 
+					break
+				end if
+			end for
+			
+			if not is_valid_ip(uip) then lan_inject = remr.local_ip else lan_inject = uip
+		end if
+	end if
+
+	if is_lan_ip(globals.targetIP) then 
+		lan_inject = globals.targetIP 
+		if not ok(lan_inject) then 
+			lan_inject[3] = "2"
+			lan_inject = lan_inject.join(".")
+		else 
+			lan_inject = globals.targetIP
+		end if
+	end if
+
 	
-	lan_inject = ["192","168","0","2"]
-	if is_lan_ip(globals.targetIP) then lan_inject = globals.targetIP.split("\.") 
-	lan_inject[3] = "2"
-	lan_inject = lan_inject.join(".")
 	pass_inject = "*"
 	check_bounce = false
 	if globals.metaLib.lib_name == "kernel_router.so" or ( localmachine.is_network_active and typeof(get_router(localmachine.local_ip)) ) == "router" then check_bounce = true
+	
 	// new result types and libs exist; more classifications needed
 	if typeof(inject) == "string" then pass_inject = inject 
 	if is_lan_ip(inject) then lan_inject = inject
@@ -1773,7 +1810,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 				if DEBUG then print "in db: preparing to overflow: "+ mem + " " + val + " " + lan_inject
 				result = globals.metaLib.overflow(mem, value, lan_inject)
 				if result then
-					DATA.push("Hooked: " + globals.checkUser(result) + " " + _object_color(typeof(result)) + ":bounce with " + mem + " " + value)
+					DATA.push("Hooked: " + globals.checkUser(result) + " " + typeof(result) + ":bounce with " + mem + " " + value)
 					print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(typeof(result)) + colorOrange+":bounce</color></b> with " + mem + " " + value)
 					globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result)+":bounce")
 					globals.BUFFER.push(result)
