@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.3...(155.623)</size>")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.4...(155.622)</size>")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -293,7 +293,7 @@ command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	try = localmachine.touch(dest_folder.path, final_name)
 	if try != 1 then
 		if try == "The file already exists" then 
-			if arg2 then try = "overwriting..." else arg2 = "file exists"
+			if arg2 then try = "overwriting..." else try = "file exists"
 		end if
 		print("poke: "+try)
 		// if arg2 then
