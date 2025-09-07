@@ -1021,6 +1021,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		if arg3 and typeof(arg3) == "string" or typeof(arg3) == "file" then pathFile = arg3 else return "perms: invalid path"
 		isRecursive = 1
 	end if
+	file = null
 	if typeof(pathFile) == "string" then file = globals.get_file(pathFile)
 	if typeof(pathFile) == "file" then file = pathFile 
 	if not file then return("perms: can't find " + pathFile)
@@ -2792,3 +2793,4 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
+
