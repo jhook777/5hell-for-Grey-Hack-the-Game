@@ -33,6 +33,8 @@
 // actually fix grep's algo
 // /todo
 //
+// glosure: merged pr: params is now accessed via globals
+//
 // db: fixed crash in db; name not defined
 // db: fixed other crashes
 // db: will dynamically choose a lan inject value that (hopefully) exists on the target network
