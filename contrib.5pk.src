@@ -2549,8 +2549,8 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
       end while
     end function
   
-    prepareCode = "(def BUFFER (at globals 'BUFFER')) (def params (if (hasIndex globals 'params') (at globals 'params') (list)))" //This one is hardcoded code you can run at start up.
     if not hasIndex(globals, "glosureEnv") then
+      prepareCode = "(def BUFFER (at globals 'BUFFER')) (def params (if (hasIndex globals 'params') (at globals 'params') (list)))" //This one is hardcoded code you can run at start up.
       globals.glosureEnv = Env(GlobalEnv)
       execute(prepareCode, glosureEnv)
     end if
