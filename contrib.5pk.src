@@ -2550,14 +2550,14 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
     end function
   
     if not hasIndex(globals, "glosureEnv") then
-      prepareCode = "(def BUFFER (at globals 'BUFFER')) (def params (if (hasIndex globals 'params') (at globals 'params') (list)))" //This one is hardcoded code you can run at start up.
+      prepareCode = "(def script-path (program_path)) (def BUFFER (at globals 'BUFFER')) (def params (if (hasIndex globals 'params') (at globals 'params') (list)))" //This one is hardcoded code you can run at start up.
       globals.glosureEnv = Env(GlobalEnv)
       execute(prepareCode, glosureEnv)
     end if
   
     helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
   Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
-  Glosure interpreter version: b14abb5. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
+  Glosure interpreter version: 01522aa. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
   <b>Warning: This command is a programming language! Your error may result in crash!</b>
   
   Short reference:
