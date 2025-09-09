@@ -1888,7 +1888,7 @@ globals.transmit = function(wait_for_reply=0)
    home = get_custom_object.HOME
   // validate settings
   if not is_valid_ip(home.ip) then return "transmit: error: please set @home ip in 5hell.src" // ["ip",port,"user","pass","service","path_to_pass"]
-  if typeof(home.loginport) != "number" then "transmit: error: please set @home port in 5hell.src"
+  if typeof(home.loginport) != "number" then return "transmit: error: please set @home port in 5hell.src"
 
   // connect to server. credentials compiled into 5hell.src for security
   print colorLightBlue+"transmit: connecting to database..."
@@ -1905,7 +1905,7 @@ globals.transmit = function(wait_for_reply=0)
   if typeof(remote) != "shell" and typeof(remote) != "ftpshell" then return "transmit: unable to connect to server"+char(10)+"-- check ip and credentials and try again"
   //
   // make sure we have an ouput file
-  passfile = remote.host_computer.File(home.sharedfiel) 
+  passfile = remote.host_computer.File(home.sharedfile) 
   if not passfile then return "transmit: error: "+home.sharedfile+" not found"
 
   // transmit
@@ -3694,3 +3694,4 @@ main = function()
 end function
 //main
 //exit("Goodbye.")
+
