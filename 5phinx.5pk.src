@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.1.8"
+sphinx_version = "3.1.9"
 malp_version = "1.5.7"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.4.(155.716)</size>")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.6.(157.434)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -163,11 +163,12 @@ globals.import_lib = function(grep, filepath) // String: lib_name, File: search_
     lib = null 
     fp = filepath.path
     lib = include_lib(fp)
-    if typeof(lib) == grep then 
-      if globals.hasIndex("MetaxploitLib") then 
+    if typeof(lib) == grep then  
+      if globals.hasIndex("MetaxploitLib") and typeof(globals.MetaxploitLib.lib) == "MetaxploitLib" then 
         v = globals.MetaxploitLib.lib.load(fp).version 
       else 
-        if typeof(lib) == "MetaxploitLib" then v = lib.load(fp).version
+        if typeof(lib) == "MetaxploitLib" then v = lib.load(fp)
+        if typeof(v) == "MetaLib" then v = v.version
       end if
       if DEBUG then print "found: "+lib+" v "+v
       if globals.hasIndex(grep) then 
@@ -423,6 +424,7 @@ globals._ez_clip = function( in_prompt )
     if @e == "\@p" then in_prompt[e_indx] = "@p"
     if @e == "\@o" then in_prompt[e_indx] = "@o"
     if @e == "\@B" then in_prompt[e_indx] = "@B"
+    if @e == "\@r" then in_prompt[e_indx] = "@r"
     if @e == "\@pipe" then in_prompt[e_indx] = "@pipe"
     if DEBUG then print("b: "+ in_prompt[e_indx])
     // escapes processed
@@ -567,7 +569,12 @@ globals.decompiler = function(o)
         print cb+"["+cw+"1</color>] enumerate "+cb+"["+cw+"2</color>] to cob "+cb+"["+cw+"3</color>] to buffer"+char(10)
         print cb+"["+cw+"a</color>] to clipa "+cb+"["+cw+"b</color>] to clipb "+cb+"["+cw+"c</color>]> to clipc"
         choice = user_input("||: ",0,1)
-        if choice == "1" then return command.enum(o)
+        if choice == "1" and command.hasIndex("enum") then 
+          return command.enum(o) 
+        else 
+          globals.enumerated = o 
+          return o 
+        end if
         if choice == "2" then 
             set_key = user_input("set_key (<b>enter</b>=quit):> ")
             if set_key == "" then print "aborting..."
@@ -839,7 +846,7 @@ globals.trythis = function(function_reference, function_name)
   try.evaluate = function( fname )
     globals.stack_pool("up")
     get_shell.launch( fname )
-    _cascade // exit if cascade
+    //_cascade // exit if cascade
     globals.stack_pool("down")
     return self.success
   end function
@@ -1328,14 +1335,23 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
     if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
     print
     if waitFor == "." then
-      globals.grepped_file = null
-      dBase = command.tree("/","database.csv",1,"N")
-      if not dBase then
-        print("/root/rkit/database.csv not found")
-        continue
+      // globals.grepped_file = null
+      // dBase = command.tree("/","database.csv",1,"N")
+      // if not dBase then
+      //   print("/root/rkit/database.csv not found")
+      //   continue
+      // end if
+      // dBase_contents = ""
+      // if dBase.has_permission("r") then dBase_contents = dBase.get_content.split(char(10)) else dBase_contents = "/root/rkit/database.csv: permission denied"
+      dBase_contents = []
+      dBase = command.grep("-a","^database.csv")
+      if dBase isa string then 
+        print "No database files found"
+        continue 
       end if
-      dBase_contents = ""
-      if dBase.has_permission("r") then dBase_contents = dBase.get_content.split(char(10)) else dBase_contents = "/root/rkit/database.csv: permission denied"
+      for d in dBase 
+        if d.has_permission("r") then dBase_contents = dBase_contents + d.get_content.split(char(10))
+      end for
       dbi = 0
       i = 0
       link_list = []
@@ -1776,7 +1792,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               print(colorWhite+"<size=75%><u>Injecting process "+l_path+" into 0x"+"0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"+CT)
               globals.stack_pool("up")
               print(buffer_selection.launch( l_path, l_para ) )
-              _cascade // exit if cascade
+              //_cascade // exit if cascade
               globals.stack_pool("down")
               globals.update_path
               continue
@@ -1810,8 +1826,8 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               else
                 print(colorWhite+"-ftp---"+buffer_selection.host_computer.public_ip+"-----------"+CT+char(10))
               end if
-              get_custom_object.return_value = "#!#CASCADE#!#"
-              exit buffer_selection.start_terminal
+              //get_custom_object.return_value = "#!#CASCADE#!#"
+              buffer_selection.start_terminal
               continue
             end if
             if choice == "2" then 
@@ -1888,7 +1904,7 @@ globals.transmit = function(wait_for_reply=0)
    home = get_custom_object.HOME
   // validate settings
   if not is_valid_ip(home.ip) then return "transmit: error: please set @home ip in 5hell.src" // ["ip",port,"user","pass","service","path_to_pass"]
-  if typeof(home.loginport) != "number" then return "transmit: error: please set @home port in 5hell.src"
+  if typeof(home.loginport) != "number" then return"transmit: error: please set @home port in 5hell.src"
 
   // connect to server. credentials compiled into 5hell.src for security
   print colorLightBlue+"transmit: connecting to database..."
@@ -1962,10 +1978,15 @@ globals.newtree = function(a_file,quiet=0)
       for f in system_map[i].values
           s = ""
           if f.is_symlink then s="<color=yellow>"
+          depth = f.path.split("/").len-2
+          if f.path == "/" then 
+            outprint.push( "<size=80%><color=blue><color=#2382FFFF>"+f.permissions+" "+s+f.path )
+            continue
+          end if
           if f.is_folder then 
-              outprint.push( "<size=85%><b><color=#2382FFFF>"+f.permissions+" "+s+f.path )
+              outprint.push( "<size=80%><color=blue>"+"  "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+f.path+" "+f.permissions )
           else 
-            if f.is_binary then outprint.push( "<size=80%><color=blue>|..<color=#00FFFF>"+f.permissions+" "+s+f.path) else outprint.push( "<size=80%><color=blue>|..</color><color=white>"+f.permissions+" "+s+f.path )
+            if f.is_binary then outprint.push( "<size=80%><color=blue>"+"  "*(depth+1)+"<color=#00FFFF><u>|    </u>"+s+f.path+" "+f.permissions) else outprint.push( "<size=80%><color=blue>"+"  "*(depth+1)+"<color=white> <u>|    </u>"+s+f.path+" "+f.permissions )
           end if
           output.push(f)
       end for
@@ -1975,27 +1996,36 @@ globals.newtree = function(a_file,quiet=0)
     if quiet then return 0 else return "tree: invalid input: expects folder" 
   else 
     if quiet == "2" then return output
-    if quiet != "1" then print command.enum(output) else command.enum(output)
+    if quiet != "1" then 
+      if command.hasIndex("enum") then 
+        print command.enum(output) 
+      else 
+        globals.enumerated = output 
+      end if
+    end if
   end if
   if quiet != "1" then return outprint.join(char(10))
   if DEBUG then return system_map
   return 0
 end function
 
-globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
+
+globals.list_files = function(result, grep=null, quiet=0, waitFor=0, renc=false)
   //grepped_file = "File: " + grep + " not found."
   //if not quiet then print("Expanding: " + colorLightBlue+result.path)
   if not quiet then 
     s = ""
     if result.is_symlink then s="<color=yellow>"
+    encis = ""
+    if globals.crypto and crypto.is_encrypted(result.path) and renc == true then encis = colorOrange+"</b>encrypted"
     if result.is_binary then 
       if not result.is_folder then 
         s = ""
         if result.is_symlink then s="<color=yellow>"
-        print "<size=80%><color=blue>|..<color=#00FFFF>"+result.permissions+" "+s+result.path 
+        print "<size=80%><color=blue>|..<color=#00FFFF>"+s+result.path+" "+result.permissions+" "+encis
       end if 
     else 
-      print "<size=80%><color=blue>|..</color><color=white>"+result.permissions+" "+s+result.path
+      print "<size=80%><color=blue>|..</color><color=white>"+s+result.path+" "+result.permissions+" "+encis
     end if
   end if
   if not result.is_binary then
@@ -2038,11 +2068,11 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0)
       //wait(.1)
       for folder in folders
         //if not quiet then print("Dir: " + folder.name + " " + folder.permissions)
-        if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.permissions+" "+folder.path
-        list_files(folder, grep, quiet, waitFor)
+        if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.path+" "+folder.permissions
+        list_files(folder, grep, quiet, waitFor,renc)
       end for
       for file in files
-        list_files(file, grep, quiet, waitFor)
+        list_files(file, grep, quiet, waitFor,renc)
       end for
     else
       if result.name == grep then
@@ -2099,7 +2129,7 @@ globals.rclean = function(arg1, arg2=0)
         print "rclean: "+colorRed+"nuking filesystem..."
         boot = command.tree(f,"boot",1,"N")
         lib_fold = command.tree(f,"lib",1,"N")
-        if boot then 
+        if typeof(boot) == "file" then 
             if boot.has_permission("w") then 
               print "deleting: /boot"
               boot.delete
@@ -2365,15 +2395,17 @@ globals.shell_prompt = function(passShell, waitFor=null)
     if waitFor.lower == "y" then
       if globals.GLASSPOOL then
         print("Opening shell: "+passShell.host_computer.local_ip+"@"+passShell.host_computer.public_ip+"...")
-        get_custom_object.return_value = "#!#CASCADE#!#"
-        exit passShell.start_terminal
-        globals.update_path
+        //get_custom_object.return_value = "#!#CASCADE#!#"
+        passShell.start_terminal
+        //globals.update_path
+        return 0
       else
         print("Piping shell connection...")
-        get_custom_object.return_value = "#!#CASCADE#!#"
-        exit passShell.start_terminal
-        print(colorWhite+"Terminal session queued. Exit 5hell manually to begin.") //  shouldn't need this anymore
-        globals.update_path
+        //get_custom_object.return_value = "#!#CASCADE#!#"
+        passShell.start_terminal
+        //print(colorWhite+"Terminal session queued. Exit 5hell manually to begin.") //  shouldn't need this anymore
+        //globals.update_path
+        return 0
       end if
     else
       if waitFor == "c" then
@@ -2387,8 +2419,8 @@ globals.shell_prompt = function(passShell, waitFor=null)
             globals.BUFFER.push(c_shell)
             ch = user_input("New shell sent to BUFFER. Open it? [y/N] ")
             if ch.lower == "y" then 
-              get_custom_object.return_value = "#!#CASCADE#!#"
-              exit c_shell.start_terminal
+              //get_custom_object.return_value = "#!#CASCADE#!#"
+              return c_shell.start_terminal
             end if
           else
             print("Failed to open shell. Check credentials and try again.")
@@ -2438,15 +2470,15 @@ globals._shell_prompt = function( input_shell=null, confirm=null, uu=null, pw=nu
     
   if confirm == "y" or confirm == "-y" or confirm == "-l" or confirm == "l" then 
     print colorGold+"</b>psudo: "+CT+" runnning start_terminal on this shell connection"+char(10)
-    get_custom_object.return_value = "#!#CASCADE#!#"
-    exit input_shell.start_terminal
-    print colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
-    colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
-    colorOrange+"</b>-- despite having used start_terminal."+char(10)+
-    colorOrange+"</b>-- You will need to manually exit out of 5hell to start the terminal."+char(10)+
-    colorOrange+"</b>-- Note: you must exit; do not use ctrl+c"
-    exit "This is a game bug, not mine."
-    return 0
+    ///et_custom_object.return_value = "#!#CASCADE#!#"
+    return input_shell.start_terminal
+    // print colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
+    // colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
+    // colorOrange+"</b>-- despite having used start_terminal."+char(10)+
+    // colorOrange+"</b>-- You will need to manually exit out of 5hell to start the terminal."+char(10)+
+    // colorOrange+"</b>-- Note: you must exit; do not use ctrl+c"
+    // exit "This is a game bug, not mine."
+    // return 0
   end if
 
   if confirm == "u" or confirm == "-u" or confirm == "s" or confirm == "-s" then 
@@ -2678,8 +2710,8 @@ secure_connect = function(shll)
     print(            "[4] glasspool ")
     todo = user_input("[1] run [2] start terminal [3] scp"+char(10)+"[0|q] quit ||: ",0,1)
     if todo == "2" then
-      get_custom_object.return_value = "#!#CASCADE#!#"
-      exit remote.start_terminal
+      //get_custom_object.return_value = "#!#CASCADE#!#"
+      return remote.start_terminal
     end if
     if todo == "0" then
       print "aborting..."
@@ -2690,7 +2722,7 @@ secure_connect = function(shll)
       b = user_input("parameters:> ")
       globals.stack_pool("up")
       print remote.launch(a, b)
-      _cascade // exit if cascade
+      //_cascade // exit if cascade
       globals.stack_pool("down")
     end if
     if todo == "3" then
@@ -2879,15 +2911,26 @@ display_portmap = function(bool_dump=0,pclist=0)
 
   is_known = function(lib,ver)
     if DEBUG then print +"debug: in is_known: lib: "+lib
-    dat = command.tree("/","database.csv",1,"N")
-    if typeof(dat) != "file" or not dat.has_permission("r") then return null 
+    //dat = command.tree("/","database.csv",1,"N")
+    hold_silence = SILENT 
+    globals.SILENT = 2
+    dat = []
+    alldat = command.grep("-a","^database.csv")
+    globals.SILENT = hold_silence
+    if typeof(alldat) != "list" then return 0
+    //if typeof(dat) != "file" or not dat.has_permission("r") then return null 
     //lib = lib.split(" ")
+    for f in alldat
+      if typeof(f) == "file" and f.has_permission("r") then dat.push(f.get_content)
+    end for
+    dat = dat.join(char(10))
     if lib == "employees" or lib == "criminals" or lib == "bank" or lib == "students" then lib = "sql"
     if lib != "router" then lib = "lib"+lib+".so" else lib = "kernel_"+lib+".so"
     if DEBUG then print "debug: lib: "+lib
     libver = lib+" v "+ver
     if DEBUG then print colorWhite+"debug: libver: "+libver
-    if dat.get_content.split(char(10)).indexOf(libver) != null then return 1 else return 0    
+    //if dat.get_content.split(char(10)).indexOf(libver) != null then return 1 else return 0    
+    if dat.indexOf(libver) != null then return 1 else return 0
   end function
 
   for n in port_index
@@ -3090,7 +3133,7 @@ load_lib = function(lib_path)
     print colorOrange+"load_lib: File not found. "
     return 0
   end if
-  print metaLib.lib_name + " v " + metaLib.version
+  //print metaLib.lib_name + " v " + metaLib.version
   return metaLib.lib_name + " v " + metaLib.version
 end function
 
@@ -3694,4 +3737,3 @@ main = function()
 end function
 //main
 //exit("Goodbye.")
-
