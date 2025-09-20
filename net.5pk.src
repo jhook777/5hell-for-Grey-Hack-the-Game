@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.4..(144.574)</size>")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.6..(152.635)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -230,19 +230,33 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	colorWhite+"</b>install librshell.so (usually from your hackshop). Once you have the lib, you can"+char(10)+
 	colorWhite+"</b>type <b>rsi install</b> to install and start the server. Then, navigate to your"+char(10)+
 	colorWhite+"</b>proxy's router's port 8080 using Browser.exe and forward your desired port to"+char(10)+
-	colorWhite+"</b>port 1222 at your server's lan ip. Use this ip and port when placing your rshells."+char(10)+char(10)+
-	"Usage: rsi [opt: -d|-i|install|start|stop] [opt: -r|# ] [opt: #]"+char(10)+
-	colorLightBlue+"</b>Usage: <b>rsi</b> -- open rshell_interface: listen for connections"+char(10)+
-	"-- Runs once then exits"+char(10)+
-	"Usage: rsi [<b>-d</b>] -- daemon mode, continues to listen for connections until an rshell connects."+char(10)+
-	colorCyan+"Usage: rsi [<b>-r</b>] [#] -- return the shell object at rshell index #"+char(10)+
-	"-- eg: rsi [<b>-r</b>] #  -- returns the rshell at index # as an object"+char(10)+
-	"-- eg: rsi [<b>-d</b>] [-r</b>] [1</b>] -- wait in daemon mode on an empty rshell buffer and return the first connection as an object"+char(10)+
+	colorWhite+"</b>port 1222 at your server's lan ip. Use this ip and port when placing your rshells."+char(10)+
+	colorGreen+"Usage: rsi [opt: -d|-i|install|start|stop] [opt: -r|# ] [opt: #]"+char(10)+char(10)+
+
+	colorLightBlue+"</b>Usage: <b>rsi</b> -- open rshell_interface server"+char(10)+
+	"-- access and control connected reverse shell clients"+char(10)+char(10)+
+
+	colorCyan+"</b>Usage: rsi [<b>-d|-D</b>] [opt:-r|#] -- daemon mode"+char(10)+
+	"-- listen for connections until an rshell connects"+char(10)+
+	"<b>-- opens the last (most recent) rshell on connect"+char(10)+
+	"-- ["+colorWhite+"-d"+CT+"] -- listen until 1 or more rshells have connected"+char(10)+
+	"---- stops listening immediately if 1 or more rshells are already connected"+char(10)+
+	"-- ["+colorWhite+"-]"+CT+"] -- listen until a <b>new</b> rshell has connected"+char(10)+
+	"---- use this if you don't want to purge rshells between uses"+char(10)+
+	"<b><size=75%>--note: you may pass a menu option that will be executed on the rshell when it connects:"+char(10)+
+	"----eg: <b>rsi -d 4</b> -- opens the most recent rshell connection with "+colorLightBlue+"</b>glasspool"+char(10)+
+	"----eg: <b>rsi -D 7</b> -- returns the next rshell that connects as an object"+char(10)+
+	"----eg: <b>rsi -d 3</b> -- infiltrate the most recent rshell connection"+char(10)+
+	"<b><size=75%>--note: you mass pass an option flag that will be executed when an rshell connects"+char(10)+
+	"----eg: <b>rsi -D -s</b> -- run silentclean on all rshells when a new rshell connects"+char(10)+
+	colorCyan+"</b>Usage: rsi [<b>-r</b>] [#] -- return the shell object at rshell index #"+char(10)+
+	"-- eg: rsi [<b>-r</b>] 3  -- returns the rshell at index # as an object"+char(10)+
 	colorCyan+"</b>Usage: rsi [<b>#</b>]  -- auto-selects the rshell at index [#] and opens the context menu"+char(10)+
-	"Usage: rsi [<b>#1</b>] [<b>#2</b>] -- access the rshell at index #1 and auto select option [#2]"+char(10)+
+	"<b>Usage: rsi [<b>#1</b>] [<b>#2</b>] -- access the rshell at index #1 and auto select menu option [#2]"+char(10)+
 	"-- please note, rshell indexes start at 1 not 0"+char(10)+
-	"-- eg: rsi 1 7 | gp"+char(10)+
-	colorGreen+"Usage: rsi [-l] -- return the length of the rsi buffer"+char(10)+
+	"-- eg: <b>rsi 1 7 | gp</b> -- return the first rshell as an object and open in glasspool"+char(10)+
+	"----: identical to:<b> gp -r 1"+char(10)+
+	colorGreen+"</b>Usage: rsi [<b>-l</b>] -- return the length of the rsi buffer"+char(10)+
 	"-- returns the number as a <b>string</b>"+char(10)+
 	colorOrange+"</b>Usage: rsi [<b>-p</b>] [opt:y|exclude1:exclude2:...] "+char(10)+
 	"-- close ALL processes on ALL rshells, purging all rshells in the process"+char(10)+
@@ -258,24 +272,26 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	"--eg: <b>rsi -p y</b> -- terminate all processes on all rshells; no exceptions"+char(10)+
 	"--eg: <b>rsi -p y:y</b> -- terminate all processes on all rshells except those named 'y'"+char(10)+
 	"-- create a "+colorMagenta+"macro"+CT+" with a whitelist to make full use of this"+char(10)+
-	colorWhite+"Usage: rsi [<b>-s|-S</b>] -- scrub logs of all rshells (if possible)"+char(10)+
+	colorCyan+"</b>Usage: rsi ["+colorWhite+"-s|-S"+CT+"] -- scrub logs of all rshells (if possible)"+char(10)+
 	"-- [<b>-s</b>] -- uses silentclean"+char(10)+
 	"-- [<b>-S</b>] -- uses rclean"+char(10)+
-	colorCyan+"</b>Usage: rsi [<b>-d|-D</b>] -- scrub logs on and remove <b>rkit</b> from all rshells"+char(10)+
-	"-- [<b>-k</b>] -- uses silentclean -d to delete rkit and scrub"+char(10)+
-	"-- [<b>-K</b>] -- uses rclean -d to delete rkit and scrub"+char(10)+
-	colorCyan+"Usage: rsi ["+colorRed+"</b>-n|-N</color>]"+CT+" -- nuke all rshells"+char(10)+
+	colorCyan+"</b>Usage: rsi ["+colorGold+"-k|-K"+CT+"] -- scrub logs on and remove <b>rkit</b> from all rshells"+char(10)+
+	"-- [<b>-k</b>] -- uses silentclean -d to <b>delete rkit</b> and scrub log"+char(10)+
+	"-- [<b>-K</b>] -- uses rclean -d to delete rkit and scrub log"+char(10)+
+	colorCyan+"</b>Usage: rsi ["+colorRed+"</b>-n|-N"+CT+"] -- nuke all rshells"+char(10)+
 	"-- [<b>-n</b>] -- uses silentclean -n"+char(10)+
 	"-- [<b>-N</b>] -- uses rclean -n"+char(10)+
 	colorGold+"</b>Usage: rsi [<b>-i</b>|install] -- installs the reverse shell server if librshell.so is on the machine"+char(10)+
 	"Usage: rsi [<b>start</b>|<b>stop</b>] -- start or stop the installed rshell server"+char(10)+
-	colorOrange+"Usage: rsi --export -- return the entire rshell buffer as a list"+char(10)+
+	colorOrange+"</b>Usage: rsi --export -- return the entire rshell buffer as a list"+char(10)+
 	"-- usage example: |> <b>rsi --export | enum -a | enum -b"+char(10)+
 	"---- export rsi as a list, enumerate, concatonate the list to the buffer"+char(10)+
-	"----ie: add all rshells to the buffer as individual entries"
+	"----ie: add all rshells to the buffer as individual entries"+char(10)+char(10)+
+	"NOTE: rsi is not incorporated into the DaemonManager at this time"+char(10)+
+	"-- daemon mode ends when an rshell connects"
 
-	if not metaxploit then return "Error: Can't find metaxploit library in the /lib path or the current folder"
-	if not localmachine.is_network_active then return "nsl: no network connection."
+	if not metaxploit and arg1 != "-i" and arg1 != "install" then return "Error: Can't find metaxploit library in the /lib path or the current folder"
+	if not localmachine.is_network_active then return "rsi: no network connection"
 	if arg1 == "-p" then return globals.rsi_purge("ALL:"+arg2)//command.purge("-r",arg2,arg3,arg4)
 	if arg1 == "stop" then 
 		rserver = null
@@ -293,33 +309,42 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		rserver = null
 		
         lbrs = command.tree("/","librshell.so",1,"N")
-        if not lbrs then return colorRed+"rsi: librshell.so not found on machine."+CT
+        if not lbrs then return colorRed+"rsi: librshell.so not found on machine"+CT
 		rc = null
         lib = globals.get_file("/lib")
         if not lib then return "rsi: error, /lib missing"
 		print "rsi: attempting to install the rshell service..."
         if lib.has_permission("w") and lbrs.has_permission("r") then lbrs.copy("/lib",lbrs.name)
         rserver = include_lib("/lib/librshell.so")
-        if not rserver then print("rsi: librshell.so not installed in /lib.")
+        if not rserver then return("rsi: librshell.so not installed in /lib")
         rc = rserver.install_service
 		if rc then return colorGreen+"rsi: service installed"+CT else return colorRed + "rsi: failed to install service" + CT
 	end if
+	//
+	// need a smarter daemon mode
 	print(colorLightBlue+"Listening for upcoming connections...")
-	locals.rshells = []
+	locals.rshells = globals.metaxploit.rshell_server
+	rs_start_len = rshells.len
 	one_loop = true
-	while rshells.len == 0
-		wait(.01)
+	d_mode = false
+	if arg1 == "-d" or arg1 == "-D" then d_mode = true 
+	if arg1 != "-D" then rs_start_len = 0
+	listening = true
+	while listening//while rshells.len == 0
 		rshells = metaxploit.rshell_server
 		if typeof(rshells) == "string" then return rshells
-		if rshells.len == 0 and arg1 != "-d" then 
-			if one_loop == false then return colorOrange+"</b>rsi: no reverse shells connected\n-- use<b> rsi -d </b> to run in daemon mode."+CT else one_loop = false
+		if rshells.len == 0 and not d_mode then 
+			if one_loop == false then return colorOrange+"</b>rsi: no reverse shells connected"+char(10)+"-- use<b> rsi -d </b> to run in daemon mode" else one_loop = false
 		else 
+			if rshells.len > rs_start_len then listening = false
 			one_loop = false
 		end if
 	end while
-	if arg1 == "-d" then 
+
+	if arg1 == "-d" or arg1 == "-D" then 
 		arg1 = arg2
 		arg2 = arg3 
+		arg3 = arg4
 	end if
 	return_it = false
 	if arg1 == "-r" then 
@@ -327,7 +352,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		ret = 0
 		if arg2 then 
 			ret = arg2.to_int
-			if typeof(ret) != "number" or ret > rshells.len or ret < 1 then return "rsi: invalid index. Note rshell indexes start at 1 not 0."
+			if typeof(ret) != "number" or ret > rshells.len or ret < 1 then return "rsi: invalid index. Note rshell indexes start at 1 not 0"
 			print "rsi: returning rshell ["+colorWhite+ret+CT+"]" 
 			return rshells[ret - 1]
 		end if
@@ -339,6 +364,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		return metaxploit.rshell_server
 	end if
 	if arg1 == "-s" or arg1 == "-n" or arg1 == "-k" then 
+		print "-- scrubbing rshells..."
 		football = 0
 		time_s = time
 		if arg1 == "-n" then football = "-n"		
@@ -352,6 +378,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		return "<size=75%>rsi: task complete in: "+colorOrange+time-time_s+"</color></b> seconds"
 	end if
 	if arg1 == "-S" or arg1 == "-N" or arg1 == "-K" then 
+		print "-- scrubbing rshells..."
 		time_s = time
 		for rs in rshells 
 			if arg1 == "-S" then print command.rclean(rs)
@@ -360,9 +387,13 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		end for
 		return "<size=75%>rsi: task complete in: "+colorOrange+time-time_s+"</color></b> seconds"
 	end if 
-	if arg1 then arg1 = arg1.to_int
-	if not arg1 then option = "0" else option = arg1
 	st = arg2
+	if d_mode then st = arg1
+	if typeof(arg1) == "string" then arg1 = arg1.to_int else arg1 = 0
+	option = "0"
+	if arg1 then option = arg1
+	if d_mode then option = rshells.len
+
 	rs_buf = []
 	while typeof(option) != "number" or option > rshells.len or option < 0
 		print(colorLightBlue + rshells.len + "</b> shell(s) connected:"+char(10)+"- if your expected shell isn't listed yet"+char(10)+"- press <<b>enter</b>> to refresh the page"+char(10)+"<b>Select a shell to access:"+CT)
@@ -392,16 +423,16 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	print "[7] return_object [8] fetch_binaries [9] scp"+char(10)+
 	      "[4] glasspool [5] rclean [6] run [K] kill"+char(10)+
 		  "[1] to_buffer [2] start_terminal [3] upload rkit "
-	if not st then st = user_input("[q|0] quit ||: ",0,1)
+	if typeof(st) != "string" then st = user_input("[q|0] quit ||: ",0,1)
 	if st == "0" or st.lower == "q" then return 0
 	if st.lower == "k" then print(ts.host_computer.close_program(user_input("kill pid:> ").to_int ) )
 	if st == "4" then
 		return command.glasspool(ts)
 	end if
 	if st == "2" then 
-		get_custom_object.return_value = "#!#CASCADE#!#"
-		exit ts.start_terminal
-		exit colorWhite+"Starting terminal..."
+		//get_custom_object.return_value = "#!#CASCADE#!#"
+		ts.start_terminal
+		print colorWhite+"Starting terminal..."
 	end if
 	if st == "3" then return command.infil(ts)
 	if st == "9" then
@@ -423,7 +454,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		para = user_input("params:> ",0,0)
 		globals.stack_pool("up")
 		print(ts.launch( cpath,para ))
-		_cascade // exit if cascade
+		//_cascade // exit if cascade
 		globals.stack_pool("down")
 	end if
 	if st == "7" then  
@@ -521,23 +552,71 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.secure_copy(target_shell, target_path, direction, skip)
 end function
 command.iwlist = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "<u>IWLIST || WIFI NETWORKS || WIFI POWER"+char(10)+
-	"Usage: iwlist -- returns a string containing all wifi networks in range"+char(10)+
-	"-- uses the command:<b> air false"+char(10)+
-	"note: use the <b>air</b> menu for iwconfig functionality"
-	return command.air("false")
+	if arg1 == "help" or arg1 == "-h" then return "<u>iwlist || wifi networks "+char(10)+
+	colorGreen+"Usage: iwlist -- returns a string containing all wifi networks in range"+char(10)+
+	"-- displays bssid, essid, and signal strenghth (power)"+char(10)+
+	"-- note: use <b>ifconfig -w</b> or <b>air</b> to connect wifi"+char(10)+
+	"Usage: iwlist [-a|air] -- uses the command:<b> air false</b> to display network info "
+	nets = localmachine.wifi_networks("wlan0")
+	print colorGreen+"<u><size=75%>"+colorWhite+"- - - - - - wifi networks - - - - - -"
+	if arg1 == "-a" or arg1 == "air" then
+		return command.air("false")
+	else 
+		if typeof(nets) == "list" then return nets.join(char(10))
+	end if
+	return nets	
 end function
 command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: ifconfig [option:-l|local -p|public] --  returns ip and gateway information"+char(10)+"Usage: ifconfig [-c|connect] [lan_ip] [gateway] -- connect via ethernet to gateway and request lan_ip."+char(10)+"Usage: ifconfig -d -- list network devices"
-	print(colorGreen+"- - - - - - - - - - - - - - - - - - - - - - -"+CT)
+	if arg1 == "help" or arg1 == "-h" then 
+		clb = colorLightBlue
+		return "ifconfig || iwconfig || wifi || ethernet || internet || gateway || router"+char(10)+
+			"Usage: ifconfig [opt:"+clb+"-l|-p|-c|-w|-g|-d"+CT+"] --  returns network interface information"+char(10)+char(10)+
+			"Usage: <b>ifconfig</b> -- returns connection status and ip information of active computer object"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-l"+CT+"|local] -- returns the lan ip of the active computer object"+char(10)+
+			"-- respects glasspool"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-p"+CT+"|public] -- returns the public ip of the active object computer object"+char(10)+
+			"-- respects glasspool"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-c"+CT+"|connect] [desired_lan_ip] [desired_gateway] "+char(10)+
+			"-- connect via ethernet to gateway and request lan_ip."+char(10)+
+			"-- useful for bypassing firewalls, in some cases"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-w"+CT+"|wifi] [essid|bssid] [passkey] -- manually connect to a wifi network"+char(10)+
+			"-- the computer must be in range of the wifi network in order to connect"+char(10)+
+			"-- this a slightly simpler iwconfig:"+char(10)+
+			"---- you pass an essid OR a bssid, not both"+char(10)+
+			"-- note: use <b>air</b> for cracking wifi networks or accessing wifi via a menu"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-g"+CT+"|gateway] -- returns the lan ip of the active object's gateway (router)"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-d"+CT+"|devices] -- list network devices on active computer object"+char(10)
+		end if
+	print colorGreen+"- - - - - - - - - - - - - - - - - - - - - - -"
 	dat = []
 	globals.localip = globals.localmachine.local_ip
 	globals.pubip = globals.localmachine.public_ip
-	if arg1 == "-l" or arg1 == "local" or arg2 == "-l" or arg2 == "local" then dat.push(localip)
-	if arg1 == "-p" or arg1 == "public" or arg2 == "-p" or arg2 == "public" then dat.push(pubip)
-	if arg1 == "-d" or arg2 == "-d" then
+	if arg1 == "-l" or arg1 == "local" or arg2 == "-l" or arg2 == "local" then dat.push(localip)// ?? #whyemoji.gif
+	if arg1 == "-p" or arg1 == "public" or arg2 == "-p" or arg2 == "public" then dat.push(pubip)// ??
+	if arg1 == "-d" or arg2 == "-d" or arg1 == "devices" or arg2 == "devices" then// ??
 		dat.push("___")
 		dat.push(localmachine.network_devices)
+	end if
+	if arg1 == "-w" or arg1 == "wifi" then 
+		if not arg3 then return "ifconfig: -w expects [essid|bssid] [passykey]"
+		if not localmachine.active_net_card == "WIFI" then return "iwconfig: no active WIFI card"
+		dev = localmachine.network_devices
+		if dev.indexOf("wlan0") != null then dev = "wlan0"
+		if dev.indexOf("wlan1") != null then dev = "wlan1"
+		essid = 0
+		bssid = 0
+		networks = localmachine.wifi_networks(dev)
+		if DEBUG then print "debug: networks: "+networks.join(char(10))
+		for net in networks 
+			net = net.split(" ")
+			if net[0] == arg2 or net[2] == arg2 then 
+				bssid = net[0]
+				essid = net[2]
+			end if
+		end for
+		if DEBUG then print "debug: essid: "+essid+" bssid: "+bssid
+		if not essid or not bssid then return "ifconfig: error; no such wifi network"
+		return localmachine.connect_wifi(dev,bssid,essid,arg3)
 	end if
 	if arg1 == "-c" or arg1 == "connect" then
 		device = "eth0"
@@ -548,6 +627,7 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		output = localmachine.connect_ethernet(device, address, gateway)
 		return output
 	end if
+	if arg1 == "-g" or arg1 == "gateway" then return localmachine.network_gateway
 	if arg1 == 0 and arg2 == 0 then //dat.push(pubip)
 		if localmachine.is_network_active then
 			router = get_router(localmachine.network_gateway)
@@ -1358,7 +1438,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 			if pwf then pwf.delete
 			if arg2 == "-s" or arg3 == "-s" then
 				catch = BUFFER[o].launch("/root/rkit/silentclean")
-				_cascade // exit if cascade
+				//_cascade // exit if cascade
 				if catch then
 					print(catch)
 				else
@@ -1377,8 +1457,8 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	print(colorCyan+"Kraken: task complete in </b>"+colorOrange+(time - time_s)+colorCyan+"<b> seconds."+CT)
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
 	if connect then 
-		get_custom_object.return_value = "#!#CASCADE#!#"
-		exit remote.start_terminal
+		//get_custom_object.return_value = "#!#CASCADE#!#"
+		remote.start_terminal
 	end if
 	return 0
 end function
@@ -1439,7 +1519,8 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 		for f in lib_file.get_files
 			lib = metaxploit.load(f.path)
 			if typeof(lib) != "MetaLib" then
-				buf.push("liber: "+lib_file.path+ ": unknown format")
+				//buf.push("liber: "+lib_file.path+ ": unknown format")
+				if DEBUG then print "debug: skiping: "+typeof(lib)
 			else
 				buf.push( lib.lib_name + " v " + lib.version )
 			end if
@@ -1447,19 +1528,31 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	else
 		lib = metaxploit.load(lib_file.path)
 		if typeof(lib) != "MetaLib" then
-			buf.push("liber: "+lib_file.path+ ": unknown format")
+			//buf.push("liber: "+lib_file.path+ ": unknown format")
+			if DEBUG then print "debug: skiping: "+typeof(lib)
 		else
 			buf.push( lib.lib_name + " v " + lib.version )
 		end if
 	end if
 	// check libs in buf against database
-	datbas = command.tree("/","database.csv",1,"N")
-	if DEBUG then print "debug: datbas: "+datbas
-	if DEBUG then 
-		if typeof(datbas) == "file" then print "debug: "+datbas.path 
-	end if
-	if datbas and datbas.has_permission("r") then 
-		dbase_data = datbas.get_content.split(char(10))
+	//print "<size=75%>liber: searching for database..."
+	//datbas = command.tree("/","database.csv",1,"N")
+	// if DEBUG then print "debug: datbas: "+datbas
+	// if DEBUG then 
+	// 	if typeof(datbas) == "file" then print "debug: "+datbas.path 
+	// end if
+	hold_silence = globals.SILENT
+	if not DEBUG then globals.SILENT = 2 else globals.SILENT = 0
+	datbas = command.grep("-a","^database.csv")
+	if not DEBUG then globals.SILENT = hold_silence
+	//if datbas and datbas.has_permission("r") then 
+	//	dbase_data = datbas.get_content.split(char(10))
+	if datbas.len then 
+		dbase_data = []
+		for dbf in datbas 
+			if typeof(dbf) == "file" and dbf.has_permission("r") then dbase_data = dbase_data+dbf.get_content.split(char(10))
+		end for
+
 		db_buf = []
 		for db_entry in dbase_data
 			if db_entry.indexOf("Hooked:") != null then continue
@@ -1680,7 +1773,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	else
 		if not pre_load then load_lib // this means we don't link or load a lib here
 	end if
-	if not globals.metaLib then return colorRed+"MetaLib: error 265: unable to link/load net_session/metaLib."+CT
+	if not globals.metaLib then return colorRed+"meta: unable to link/load net_session/metaLib"
 	DATA.push(lib_info)
 	if globals.metaLib then print(colorCyan+"scanning library: " + lib_info + char(10))
 
@@ -1712,7 +1805,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 
 	if is_lan_ip(globals.targetIP) then 
-		lan_inject = globals.targetIP 
+		lan_inject = globals.targetIP.split("\.") 
 		if not ok(lan_inject) then 
 			lan_inject[3] = "2"
 			lan_inject = lan_inject.join(".")
@@ -1946,31 +2039,41 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	return 0
 end function///////////////END DATABASER//////////////////
 command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Link Database"+char(10)+
-	"Uasage: linkdb [target_lib] [optional:path_to_database] "+char(10)+
-	"-- link a lib in the database that matches target_lib"+char(10)+
-	"-- eg:<b> linkdb 1.0.1</b> "+char(10)+
-	"-- prompts to link any entry that contains 1.0.1"+char(10)+
-	"Usage: linkdb [target_lib] @home -- uses connect_service to access remote database for linking"+char(10)+
-	"-- set ip, port and pw with launch params or the <b>target</b> command."+char(10)+
+	if arg1 == "help" or arg1 == "-h" then return "Link Database || databaser || xploits"+char(10)+char(10)+
+	colorWhite+"Uasage: linkdb [string:target_lib] [optional:path_to_database|ip|@home] [opt:-y] "+char(10)+
+	"-- link an entry in the database that matches target_lib"+char(10)+
+	"-- eg:<b> linkdb 1.0.1"+char(10)+
+	"-- eg:<b> linkdb ssh"+char(10)+
+	"-- eg:<b> linkdb "" libsh.so v 1.0.1 "" -y"+char(10)+
+	"-- prompts to link any entry that matches or partially matches target_lib"+char(10)+
+	"---- cycles through all matches"+char(10)+
+	"-- passing [<b>-y</b>] skips the prompt and links the first match"+char(10)+char(10)+
+	colorCyan+"Usage: linkdb [target_lib] [ip|@home] [opt:-y] -- uses connect_service to access remote database for linking"+char(10)+
+	"-- by default, will use @HOME settings"+char(10)+
+	"-- passing an ip other than @home results in a prompt for user, pass, port"+char(10)+
 	"-- eg:<b> linkdb kernel @home "+char(10)+
-	"---- connects to machine at target ip and prompts to link any entry that matches 'kernel' "
-	if not arg1 then return "linkdb: invalid input"
-	link = function(f,a,y)
-		buf = f.get_content.split(char(10))
+	"---- connects to machine at target ip and prompts to link any entry that matches 'kernel' "+char(10)+char(10)+
+	colorCyan+"Usage: linkdb [target_lib] [/path] [opt:-y] -- link using the database at path"+char(10)+
+	"--eg:<b> linkdb "" libssh.so v 1.2.3 "" /root/otherdata/database.csv -y"+char(10)+char(10)+
+	"NOTE: The database may now exist as multiple database.csv[N] files in multiple locations"+char(10)+
+	"--ie: database.csv, database.csv1, database.csv2,..."+char(10)+
+	"-- both <b>db</b> and <b>linkdb</b> will now utilize all of these files found on a system"
+	if not arg1 then return "linkdb: invalid input" else print colorCyan+"</b><size=75%>linkdb: searching for database..."
+	link = function(buf,a,y)
+		//buf = f.get_content.split(char(10))
 		found_it = false
 		done = 0 //"Database: "+a+" not found. Scan required."
 		for line in buf
 			if line.indexOf(a) >= 0 and not found_it then
 				wait_for = "y"
-				if not y then wait_for = user_input("Database: found "+line+char(10)+"Link this database? [Y/n]"+char(10)+"||: ",0,1)
+				if not y then wait_for = user_input("<size=75%>Database: found "+line+char(10)+"<size=75%>Link this database? [Y/n]"+char(10)+"||: ",0,1)
 				if wait_for != "n" and wait_for != "N" then
-					print(colorLightBlue+"Preparing to link database: "+CT+char(10)+colorOrange+"</b>"+line+"</color>")
-					print("Purging XPLOITS...")
+					print(colorLightBlue+"<size=75%>linkdb: preparing to link: "+colorOrange+"</b>"+line)
+					print("<size=75%>-- purging XPLOITS...")
 					globals.XPLOITS = []
 					globals.MEMORY = null
 					found_it = line
-					print colorOrange+"Database: link for </b>"+colorWhite+found_it+"</color> complete."+CT
+					print colorOrange+"<size=75%>linkdb: database link for "+colorWhite+found_it+"</color> successful"
 					done = 1
 					continue
 				else
@@ -1992,52 +2095,96 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 	
 	if arg1 == "no_network" then return 0 //// ???????wtf
 	boo = 0
-	file = null
+	files = []
 	if arg2 and arg2.lower == "-y" then 
 		boo = 1
 		arg2 = 0
 	end if	
-	if arg3 and arg3.lower == "-y" then boo = 1
 	if arg4 and arg4.lower == "-y" then boo = 1
-	if arg2 then
-		if arg2 == "@home" then
-			r_ip = ""
-			r_p = "router"
-			if globals.hasIndex("params") and globals.params.len > 1 then
-				r_ip = globals.params[0]
-				r_p = globals.params[1].to_int
-			else
-				r_ip = targ.ip
-				r_p = targ.pt
+	if arg3 and arg3.lower == "-y" then boo = 1
+	if arg2 then 
+		// if the passed ip is the home ip , use @home user and pass and port
+		// if not, use arg2 for ip and prompt for user and pass and assume port 22 unless arg3 != 0 
+		if is_valid_ip(arg2) or arg2 == "@home" then 
+			ip = HOME.ip
+			if arg2 == "@home" then arg2 = HOME.ip
+			port = HOME.loginport 
+			user = HOME.user 
+			pass = HOME.pass 
+			proto = HOME.logingprotocol
+			if HOME.ip != arg2 then 
+				user = user_input("<size=75%>linkdb: ip doesn't match @home"+char(10)+"<size=75%>-- please enter the login username"+char(10)+"(<<b>enter</b>>=abort):> <b>") 
+				if user == "" then return "aborting..."
+				pass = user_input("<size=75%>-- please enter the login password"+char(10)+"(<<b>enter</b>>=abort):> <b>")
+				if pass == "" then return "aborting..."
+				port = user_input("<size=75%>-- please enter the login port:"+char(10)+"(<<b>enter</b>="+colorWhite+"22"+CT+"):> <b>").to_int
+				if typeof(port) != "number" then port = 22
+				if port < 0 then port = 22
+				print "<size=75%>linkdb: connecting: "+colorGrey+user+"@"+pass+" on: "+ip+" : "+port
+			else 
+				print "<size=75%>linkdb: using @home credentials"
 			end if
-			if not r_ip.is_valid_ip then return "linkdb: set remote ip and port with command.target [ip] [port] before using @home option."
-			r_pas = ""
-			if globals.hasIndex("params") and globals.params.len > 2 then
-				r_pas = globals.params[2]
-			else
-				r_pas = user_input("pass:> ", 1)
-			end if
-			r_r = shell.connect_service(r_ip, r_p, "root", r_pas)
-			if r_r and typeof(r_r) == "shell" then
-				file = r_r.host_computer.File("/root/rkit/database.csv")
-				if not file then return (colorRed+"404: remote database not found"+CT)
-			else
-				return ("linkdb: error; remote server unreachable."+CT)
-			end if
-		else
-			file = localmachine.File(arg2+"/database.csv")
+			rems = globals.shell.connect_service(ip,port,user,pass,proto)
+			if typeof(rems) != "shell" then return "linkdb: connection failed; check credentials "
+			files = command.grep("-a","^database.csv","/",rems)
+		else 
+			file = globals.get_file(arg2)
+			if not file then return "linkdb: "+arg2+" does not lead to a valid database; aborting...." else files = [file]
 		end if
-	else
-		file = localmachine.File("/root/rkit/database.csv")
-		if not file then file = localmachine.File(current_path+"/database.csv")
-		if not file then
-			globals.grepped_file = null
-			globals.list_files(localmachine.File("/"), "database.csv", 1, "N")
-			file = globals.grepped_file
-		end if
+	else 
+		files = command.grep("-a","^database.csv","/")
 	end if
-	if file and file.has_permission("r") then 
-		catch = link(file,arg1,boo) // catch is 0 on failure
+
+	alldata = []
+	if files.len < 1 then return colorOrange+"<size=75%>linkdb: database not found"
+	for f in files 
+		if f.has_permission("r") then alldata = alldata + f.get_content.split(char(10))
+	end for
+
+
+
+
+
+	// if arg2 then
+	// 	if arg2 == "@home" then
+	// 		r_ip = ""
+	// 		r_p = "router"
+	// 		if globals.hasIndex("params") and globals.params.len > 1 then
+	// 			r_ip = globals.params[0]
+	// 			r_p = globals.params[1].to_int
+	// 		else
+	// 			r_ip = targ.ip
+	// 			r_p = targ.pt
+	// 		end if
+	// 		if not r_ip.is_valid_ip then return "linkdb: set remote ip and port with command.target [ip] [port] before using @home option."
+	// 		r_pas = ""
+	// 		if globals.hasIndex("params") and globals.params.len > 2 then
+	// 			r_pas = globals.params[2]
+	// 		else
+	// 			r_pas = user_input("pass:> ", 1)
+	// 		end if
+	// 		r_r = shell.connect_service(r_ip, r_p, "root", r_pas)
+	// 		if r_r and typeof(r_r) == "shell" then
+	// 			file = r_r.host_computer.File("/root/rkit/database.csv")
+	// 			if not file then return (colorRed+"404: remote database not found"+CT)
+	// 		else
+	// 			return ("linkdb: error; remote server unreachable."+CT)
+	// 		end if
+	// 	else
+	// 		file = localmachine.File(arg2+"/database.csv")
+	// 	end if
+	// else
+	// 	file = localmachine.File("/root/rkit/database.csv")
+	// 	if not file then file = localmachine.File(current_path+"/database.csv")
+	// 	if not file then
+	// 		globals.grepped_file = null
+	// 		globals.list_files(localmachine.File("/"), "database.csv", 1, "N")
+	// 		file = globals.grepped_file
+	// 	end if
+	// end if
+
+	// if file and file.has_permission("r") then 
+		catch = link(alldata,arg1,boo) // catch is 0 on failure
 		if catch then
 			print(catch) 
 			return 0 // return 0 on success
@@ -2045,7 +2192,7 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 			return "linkdb: database entry not found"+char(10)+
 			colorLightBlue+"-- run "+colorWhite+"db</color> or meta scan"
 		end if
-	end if
+	// end if
 	print "linkdb: database.csv not found"+char(10)+"-- run db to create it" // print this, do NOT return this or everything breaks
 	return 0
 end function
@@ -2834,7 +2981,7 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	print colorGold+"</b>-- launching payload..."
 	globals.stack_pool("up")
 	arg1.launch("/home/guest/..")
-	_cascade // exit if cascade
+	//_cascade // exit if cascade
 	globals.stack_pool("down")
 	print colorGold+"</b>-- spotting metaxploit and source files..."
 	imp.set_content("")
@@ -2966,7 +3113,7 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
 
     print colorWhite+"<size=75%><u>-- injecting process <u>"+cgo+"/home/guest/rkit/5hell</u></color> into 0x"+colorLightBlue+"</b>0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"
     print command.run("/home/guest/rkit/5hell",par,sh_ob)
-    _cascade // exit if cascade
+    //_cascade // exit if cascade
     globals.update_path
     return cgo+"<size=75%>infil: infiltration complete"
 end function
