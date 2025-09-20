@@ -28,17 +28,65 @@
 //
 // todo 
 // db: still needs to be able to self repair
-// linkdb: needs to be able to work with multiple datafiles
 // rkit: should probably make a database file strucure
 // actually fix grep's algo
-// /todo
+// encrypted file support -- partially implemented
+// make a get_database shared function
+// make a sort_database function
 //
-// glosure: merged pr: params is now accessed via globals
+// glosure: merged pull request: 'params' is now accessed via globals
+// glosure: merged pull request: added script-path
+// macro: added -f flag to import a macro from file
+// -- supports multiple lines
+// -- each newline character will be replaced by: |  |
+// ---- joining the lines together without piping output from one line to the next
+// dtools, kore.5pk: moved cad, fakepass, and dig to kore.5pk as dtools ran out of room
+// 5hell.src: added line to security section to nullify the user's access codes on successful login so they aren't hanging out in the company breakroom or whatever
+// 5phinx.5pk: fixed typos in globals.transmit that would cause crashes if called
+// 5phinx.5pk: ez_clip: added forgotten \@r to escape @r
+// 5phinx.5pk: removed instances of _cascade exit as it is no longer needed
+// liber: will now work with multiple database files
+// linkdb: will now work with multiple database files
+// -- will automatically grep all database.csv[N] files and use them
+// bios: will now detect multiple database files
+// db: fixed (yet another) crash (i don't want to talk about it)
+// db: needs to autorepair and auto-remove duplicates across multiple files
+// malp: database button will work with multiple database files
+// malp: todo: database button needs like a sort function or something
+// ifconfig: added -g|gateway: returns the gateway of the active computer object
+// ifconfig: added -w|wifi: manually connect wifi
+// -- usage info updated
+// iwlist: simplified return; returns localmachine.wifi_networks
+// -- takes bssid OR essid and then finds the other for you
+// iwlist: added -a flag; display the classic air powered iwlist
+// linkdb will read from multiple db files
+// -- don't ask why this wasn't already a thing. just don't.
+// rsi: corrected usage info: use -k|-K for deleting rkit on all rshells, not -d
+// -- -d is for daemon mode
+// rsi: added -D for extended daemon mode
+// -- -d will stop listening when -any- rshell is connected
+// -- -D will stop listening when the -next- rshell is connected
+// ----ie: -D will operate on a non-empty rshell buffer
+// -- you may follow -d|-D with a flag or menu option
+// -- see rsi help for more
+// rsi: removed cascade exit from start_terminal option
+// rsi: fixed crash caused by printing an error instead of returning an error
+// psudo: removed cascade exit from start terminal: will actually work now
+// file: added encrypt, decrypt, is_encrypted: -e, -d, -ie
+// -- unavailable if crypto.so is not loaded
+// -- works recursively on folders
+// -- folders themselves may not be encrypted, only contents
+// tree: corrected usage info re/ -f, -r, ;
+// -- trees from piped object's path, not /
+// sc: added 5hell.d to -d and -n
+// 
 //
 // db: fixed crash in db; name not defined
 // db: fixed other crashes
+// db: definitely fixed the crash
 // db: will dynamically choose a lan inject value that (hopefully) exists on the target network
 // db: will have a slightly easier time telling firewall disable exploits and bounce exploits apart
+// poke: will be less zealous about it's affirmations
 //
 // updated credits
 // mv: removed ellipsis from output
@@ -109,6 +157,7 @@
 // transmit: fixed crash caused by undefined variable "port"
 // HOME: added check to prevent overwriting cob.HOME if it already exists
 // brutus: removed errant debug line
+// aptm: fixed crash caused by metaxploit not being present when hot_swapping libs
 // 
 // mail: added missing usage info regarding logging into mail via comman line
 // --ie: mail [email] [pass]
