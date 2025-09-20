@@ -2,21 +2,18 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.2.4.E_falling_skies"
+ver = "4.2.6.E_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "156.666"
+size_of_5hell = "157.046"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
-EXPERIMENTAL = true 
-strFunc = "" + @user_input
-if strFunc.indexOf("addToHistory") == null then EXPERIMENTAL = false
-if EXPERIMENTAL == true then print "<size=75%>5hell: running in experimental mode..."
+EXPERIMENTAL = true // superfluous
 //
 // INITIALIZE GLOBALS SOON(tm)
 //if not get_custom_object.hasIndex("glob") then get_custom_object.glob = {}
@@ -497,17 +494,17 @@ command.psudo = function(operation, arg2, arg3, arg4)
         if user_input(colorGold+"</b>psudo: "+colorOrange+"warning; start_terminal ends the script!"+char(10)+
             colorGold+"psudo: "+colorOrange+"warning; start_terminal may result in an active trace"+char(10)+
             colorGold+"</b>Continue? ["+colorWhite+"y"+CT+colorGold+"</b>/"+CT+colorWhite+"N"+CT+colorGold+"</b>] ||: "+colorWhite,0,1).lower == "y" then
-				get_custom_object.return_value = "#!#CASCADE#!#"
-                exit locals.sh.start_terminal
-                exit "starting_terminal on target shell..."
-                return char(10)+
-                colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
-                colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
-                colorOrange+"</b>-- despite having used start_terminal."+char(10)+
-                colorOrange+"</b>-- You will need to manually exit out of 5hell to start the terminal."+char(10)+
-                colorOrange+"</b>-- Note: you must <b>exit</b>; do not use ctrl+c"
-                exit "This is a game bug, not mine."
-            return 0
+				//get_custom_object.return_value = "#!#CASCADE#!#"
+                print locals.sh.start_terminal
+                return "starting_terminal on target shell..."
+                //return char(10)+
+                // colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
+                // colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
+                // colorOrange+"</b>-- despite having used start_terminal."+char(10)+
+                // colorOrange+"</b>-- You will need to manually exit out of 5hell to start the terminal."+char(10)+
+                // colorOrange+"</b>-- Note: you must <b>exit</b>; do not use ctrl+c"
+                // exit "This is a game bug, not mine."
+            //return 0
 		else 
 		 	return colorGold+"</b>psudo: aborting..."
         end if
@@ -1139,7 +1136,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 			print colorWhite+"</b>-- on target shell"
 			cc = arg2.launch(arg1, parameters)
 			globals.stack_pool("down")
-			_cascade // exit if cascade
+			//_cascade // exit if cascade
 			return cc
 		end if
 		if typeof(@arg1) == "file" then 
@@ -1148,7 +1145,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 			print colorWhite+"</b>-- on target shell"
 			cc = arg2.launch(arg1.path, parameters)			
 			globals.stack_pool("down")
-			_cascade // exit if cascade
+			//_cascade // exit if cascade
 			return cc
 		end if
 		return "run: arg1 should be file or path to file"
@@ -1165,7 +1162,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 		print colorWhite+"</b>-- on target shell"
 		cc = arg3.launch(run_path, parameters)
 		globals.stack_pool("down")
-		_cascade // exit if cascade
+		//_cascade // exit if cascade
 		return cc
 	end if
 	if arg2 == "ssh: failed" or arg3 == "ssh: failed" then return "run: input shell is not a shell, received:"+char(10)+"ssh: aborting..."
@@ -1182,7 +1179,7 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if GLASSPOOL then print "-- via "+colorLightBlue+"<size=75%>GLASSPOOL"
 	cc = shell.launch(file.path, parameters)
 	globals.stack_pool("down")
-	_cascade // exit if cascade
+	//_cascade // exit if cascade
 	return cc
 end function
 command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
@@ -2068,7 +2065,7 @@ if arg1 == "-i" then
 		print "bios: sending "+inc+" to "+colorOrange+"BUFFER"+char(10)+"-- returning..."
 		return inc
 	else
-		return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+colorGreen+"kore: helper:</b> perhaps try<b> meta load [libname]"+char(10)+"-- if you meant metax.load("+arg2+")" 
+		return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+char(10)+colorGreen+"<size=75%>--: hint:</b> perhaps try<b> meta load [libname]"+char(10)+"<size=75%>-- if you meant metax.load("+arg2+")" 
 	end if
 end if
 
@@ -2168,16 +2165,29 @@ end for
 bios_info.push("<size=85%>ports: ["+pl.join("] [")+"] </size>")
 bios_info.push("<mark=red><size=50%>|</size></mark>")
 if DEBUG then print "debug: bios searching for database..."
-database = command.tree("/","database.csv",1,"N")
+//database = command.tree("/","database.csv",1,"N")
+hold = globals.SILENT 
+if not DEBUG then globals.SILENT = 2
+database_files = command.grep("-a","^database.csv")
+if not DEBUG then globals.SILENT = hold
 data_lines = "--"
 data_size = "-not_found-"
-if database then
-	if DEBUG then print "-- found database.csv: "+database.path
-	data_size = command.file("-c",database)
-	if database.has_permission("r") then data_lines = command.file("-l",database) else data_lines = "-check_perms-"
-	if data_size.to_int > "150000".to_int then data_size = colorOrange+"Warning: "+data_size+CT
+database = ""
+if database_files.len then
+	if DEBUG then print "-- found "+database_files.len+" database.csv's"
+	// data_size = command.file("-c",database)
+	// if database.has_permission("r") then data_lines = command.file("-l",database) else data_lines = "-check_perms-"
+	// if data_size.to_int > "150000".to_int then data_size = colorOrange+"Warning: "+data_size+CT
+	data_lines = 0
+	data_size = 0
+	for file in database_files
+		if file.has_permission("r") then 
+			data_lines = data_lines + file.get_content.split(char(10)).len
+			data_size = data_size + file.get_content.len
+		end if
+	end for
 end if
-bios_info.push("<size=85%>[database_size:"+data_size+"]  [database_lines:"+data_lines+"]</size>")
+bios_info.push("<size=85%>[database_files:"+database_files.len+"]  [database_size:"+data_size+"]  [database_lines:"+data_lines+"]</size>")
 bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
 bios_info.push("<size=85%>[Custom_Object: "+get_custom_object.len+" indexes]")
 bios_info.push("<size=85%>[tagged4scp: "+globals.tagged_for_scp+"]</size>")
@@ -2320,7 +2330,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("CheckUser function by: "+colorWhite+"Corvus"+CT)
 	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
-	print("Glosure by: "+colorWhite+"rocketorbit")
+	print("Glosure by: "+colorWhite+"maho_citrus")
 	print("Htop by: "+colorWhite+"redit0")
 	print("Additional code contributions by: Clover, redit0, muhahahahe, rocketorbit")
 	print("Github Readme by: "+colorWhite+"Hikaru918")
@@ -2793,4 +2803,3 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
 	return 0
 end function
-
