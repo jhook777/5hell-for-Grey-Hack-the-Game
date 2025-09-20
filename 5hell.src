@@ -30,6 +30,8 @@
 //   if user_input("<color=#00FFFFFF><b>Cyberdeck Authentication Code [<color=#FFFFFFFF><b>"+rnac+"</color>]: ",1,0) != access_codes[rnac] then
 //     wait(300)
 //     exit("frag off, chumba")
+//   else 
+//     access_codes = null
 //   end if
 // /////////////////END SECURITY///////////////////
 //
