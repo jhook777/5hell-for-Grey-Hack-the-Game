@@ -2,14 +2,14 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.2.6.E_falling_skies"
+ver = "4.2.6.1.E_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "157.046"
+size_of_5hell = "157.184"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -489,14 +489,14 @@ command.psudo = function(operation, arg2, arg3, arg4)
             return colorGold+"</b>psudo: "+colorRed+"</b>failed</color> to obtain shell object"+char(10)+colorGold+"</b>-- check credentials and try again"
         end if
     end function
-    _shell_prompt = function(sh)
-		if typeof(sh) != "shell" then return colorGold+"psudo: error, expected shell, got: "+sh
+    _shell_prompt = function(shl)
+		if typeof(shl) != "shell" then return colorGold+"psudo: error, expected shell, got: "+shl
         if user_input(colorGold+"</b>psudo: "+colorOrange+"warning; start_terminal ends the script!"+char(10)+
             colorGold+"psudo: "+colorOrange+"warning; start_terminal may result in an active trace"+char(10)+
             colorGold+"</b>Continue? ["+colorWhite+"y"+CT+colorGold+"</b>/"+CT+colorWhite+"N"+CT+colorGold+"</b>] ||: "+colorWhite,0,1).lower == "y" then
 				//get_custom_object.return_value = "#!#CASCADE#!#"
-                print locals.sh.start_terminal
-                return "starting_terminal on target shell..."
+                print "psudo: starting_terminal on target shell..."
+                return shl.start_terminal
                 //return char(10)+
                 // colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
                 // colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
@@ -512,15 +512,17 @@ command.psudo = function(operation, arg2, arg3, arg4)
 	if not operation then operation = _psudo_menu
 	if not operation then return colorGold+"</b>psudo: aborting..."
     // if it's a shell we warn and confirm
-    if typeof(operation) == "shell" then _shell_prompt(operation)
+	use_shl = globals.shell
+    if typeof(operation) == "shell" then use_shl = operation 
+	if typeof(arg2) == "shell" then use_shl = arg2	
     // otherwise we parse the flag or return if invalid flag
-    if typeof(operation) != "string" then return colorGold+"</b>psudo: aborting..."
-    if operation == "-l" or operation == "-y" then return _shell_prompt(globals.shell)
+    if typeof(operation) != "string" and typeof(operation) != "shel" then return colorGold+"</b>psudo: aborting..."
+    if operation == "-l" or operation == "-y" or typeof(operation) == "shell" then return _shell_prompt(use_shl)
 	usr = null
 	psw = null
     if operation == "-u" then 
 		if not arg2 then usr = user_input("user name:> ") else usr = arg2 
-		if arg3 then psw = arg3 else psw = user_input("user passwor:> ")
+		if arg3 then psw = arg3 else psw = user_input("user passwor:> ",1)
 		return _go_time(usr,psw)
 	end if
     if operation == "-s" or operation == "-sf" or operation == "-sn" then
