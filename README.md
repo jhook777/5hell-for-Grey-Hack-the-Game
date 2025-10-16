@@ -677,7 +677,13 @@ Further, the clipa, clipb, and clipc will use @B to reference the BUFFER:
 
 # Documentation
 <pre>
-This is the same documentation the command 'help -s' would show inside 5hell
+This is mostly the same documentation the command 'help -s' would show inside 5hell.
+ However, it is not updated as often as the built in 'help -s' and usage information
+ built into 5hell. The internal usage information is always up to date, so be sure to
+ check it against what is shown here. Additionally, there may be new commands that 
+ have not yet been documented here. Those commands will have their documentation
+ withing 5hell. Use `[command_name] [-h|help]` eg: `zap -h` to see usage info
+ for an individual command.
 </pre>
 
 ### air
