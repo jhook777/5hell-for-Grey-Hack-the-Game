@@ -24,7 +24,7 @@
 // todo: user_input override that allows pulling user_input from a list stored in the custom object
 // -- to be populated by scripts calling 5hell through a nested launch
 // -- need a way to secure this first
-// todo: a way to authenticate do.rc per user, to avoid running your targets's (or target's trap) during an attack...
+// todo: a way to authenticate do.rc per user, to avoid running your target's do.rc (or target's trap do.rc) during an attack...
 //
 // todo 
 // db: still needs to be able to self repair
@@ -33,6 +33,39 @@
 // encrypted file support -- partially implemented
 // make a get_database shared function
 // make a sort_database function
+// kraken: auto encrypt/decrypt Map.conf
+// ensure password fields do not push to input buffer
+// psudo: streamline it
+//
+// 
+// HELP.5pk: new .5pk; moved command.help to it's own file because it's 35 freakin kilobytes on it's own
+// -- 5hell.5pk now has room for moar feature creep
+// help: moved to the above .5pk
+// help: updated help guide
+// psudo: added opening piped shell to -l option as well as piping a shell to psudo without a flag
+// -- piping a shell skips confirmation
+// -- needs moar streamlining
+// reboot: new command, accepts piped objects
+// dm: new command; daemon manager; manages daemons
+// 5phinx.5pk: shortened the is_home function
+// cob: saftey checks to prevent overwriting HOME map
+// felix: now takes a path parameter; starts in the given path instead of /
+// felix: added perms/chmod button [p]
+// felix: won't print those debug lines outside of debug mode
+// zap: fixed hard crash on invalid input
+// perms: updated usage info
+// help: fixed crash in help conventions
+// macro: updated return on no input
+// updated credits
+// dig: fixed random crash when dig called zap that just randomly started happening???????????
+// -- anyway, fixed
+// air: updated usage info
+// cob: will disallow directly overwriting the HOME map
+// cob: cob.validate will ensure the HOME entry is a map
+// ez_clip: will run cob.validate before accessing @home
+// bank_heist: fixed crash caused by undefined 'tool'
+// db: added -M flag to automatically use @o myx0 for scanning without needing to meta -i @o myx0
+// -- still need to meta restore afterwards
 //
 // glosure: merged pull request: 'params' is now accessed via globals
 // glosure: merged pull request: added script-path
