@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.1.9"
-malp_version = "1.5.7"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.6.(157.434)")
+sphinx_version = "3.2.1"
+malp_version = "1.5.8"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.7.(158.458)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -125,16 +125,10 @@ hot_swap_libs = function()
 end function
 
 globals.is_home = function()
-			processes = localmachine.show_procs.split(char(10))
-      home = false
-			for p in processes
-				if p == "USER PID CPU MEM COMMAND" then continue
-				process = p.split(" ")
-				process_ID = process[1]
-				process_CMD = process[4]
-				if process_CMD == "Xorg" then home = true
-			end for
-      return home
+  for p in localmachine.show_procs.split(char(10))
+    if p.split(" ")[4] == "Xorg" then return true
+  end for
+  return false
 end function
 
 globals.get_file = function(input_string)
@@ -329,7 +323,10 @@ globals._ez_clip = function( in_prompt )
     if @e == "@a" then in_prompt[e_indx] = @globals.CLIP["a"]
     if @e == "@b" then in_prompt[e_indx] = @globals.CLIP["b"]
     if @e == "@c" then in_prompt[e_indx] = @globals.CLIP["c"]
-    if @e == "@home" then in_prompt[e_indx] = @get_custom_object.HOME.ip
+    if @e == "@home" then 
+      command.cob("validate")
+      in_prompt[e_indx] = @get_custom_object.HOME.ip
+    end if
     if @e == "@tbuf" then in_prompt[e_indx] = @globals.T_BUF.join(char(10))
     if @e == "@t" then in_prompt[e_indx] = @globals.targetIP 
     if @e == "@p" then in_prompt[e_indx] = @str(globals.targetPort)
@@ -451,6 +448,22 @@ globals.sus = function(a,b,c,d) // expects libname v version
   print "sus: failed! try again"
 	return 0
 end function
+
+globals.file_sus = function (object, final) // object:object, string:final, returns string:object or 0
+  if typeof(object) != file or typeof(final) != "string" then return 0
+    while object.name != "/"
+      object = object.parent
+    end while
+    for folder in object
+      if typeof(final) == "file" then continue
+      for file in object 
+        if file.name == final then final = file
+        if folder.name == final then final = file 
+      end for 
+    end for
+    if typeof(final) != "file" then return 0
+  return final
+end function 
 
 dump_memory = function()
   suff = range(0,9)
@@ -1980,13 +1993,13 @@ globals.newtree = function(a_file,quiet=0)
           if f.is_symlink then s="<color=yellow>"
           depth = f.path.split("/").len-2
           if f.path == "/" then 
-            outprint.push( "<size=80%><color=blue><color=#2382FFFF>"+f.permissions+" "+s+f.path )
+            outprint.push( "<size=80%><color=#2382FFFF>"+f.path+" "+s+f.permissions )
             continue
           end if
           if f.is_folder then 
-              outprint.push( "<size=80%><color=blue>"+"  "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+f.path+" "+f.permissions )
+              outprint.push( "<size=80%><color=blue>"+"   "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+f.path+" "+f.permissions )
           else 
-            if f.is_binary then outprint.push( "<size=80%><color=blue>"+"  "*(depth+1)+"<color=#00FFFF><u>|    </u>"+s+f.path+" "+f.permissions) else outprint.push( "<size=80%><color=blue>"+"  "*(depth+1)+"<color=white> <u>|    </u>"+s+f.path+" "+f.permissions )
+            if f.is_binary then outprint.push( "<size=80%><color=blue>"+"   "*depth+"<color=#00FFFF><u>|    </u>"+s+f.path+" "+f.permissions) else outprint.push( "<size=80%><color=blue>"+"   "*depth+"<color=white><u>|    </u>"+s+f.path+" "+f.permissions )
           end if
           output.push(f)
       end for
@@ -2010,29 +2023,31 @@ globals.newtree = function(a_file,quiet=0)
 end function
 
 
-globals.list_files = function(result, grep=null, quiet=0, waitFor=0, renc=false)
+globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
   //grepped_file = "File: " + grep + " not found."
   //if not quiet then print("Expanding: " + colorLightBlue+result.path)
   if not quiet then 
     s = ""
     if result.is_symlink then s="<color=yellow>"
     encis = ""
-    if globals.crypto and crypto.is_encrypted(result.path) and renc == true then encis = colorOrange+"</b>encrypted"
+    //if globals.crypto and crypto.is_encrypted(result.path) and depth == true then encis = colorOrange+"</b>encrypted" // stub
     if result.is_binary then 
       if not result.is_folder then 
         s = ""
         if result.is_symlink then s="<color=yellow>"
-        print "<size=80%><color=blue>|..<color=#00FFFF>"+s+result.path+" "+result.permissions+" "+encis
+        //print "<size=80%><color=blue><u>|  </u><color=#00FFFF>"+s+result.permissions+" "+result.path+" "+encis
+        print "<size=80%>"+"   "*(depth-1)+"<color=#00FFFF><u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
       end if 
     else 
-      print "<size=80%><color=blue>|..</color><color=white>"+s+result.path+" "+result.permissions+" "+encis
+      //print   "<size=80%><color=blue><u>|  </u><color=white>"+  s+result.permissions+" "+result.path+" "+encis
+      print  "<size=80%>"+"   "*(depth-1)+"<color=white><u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
     end if
   end if
   if not result.is_binary then
     //if not quiet then print("<size=80%>"+colorWhite+result.name + " " + result.permissions)
     if result.name == grep or result.name == "passwd" or result.name == "Bank.txt" or result.name == "Map.conf" or result.name == "Browser.txt" or result.name == "Mail.txt" then
       if not result.is_binary  then
-        if not quiet then print(result.get_content)
+        if not quiet then print "<size=75%>"+result.get_content
       else
         if not quiet then print("<size=75%>Unable to open binary file. ")
       end if
@@ -2068,11 +2083,12 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, renc=false)
       //wait(.1)
       for folder in folders
         //if not quiet then print("Dir: " + folder.name + " " + folder.permissions)
-        if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.path+" "+folder.permissions
-        list_files(folder, grep, quiet, waitFor,renc)
+        //if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.permissions+" "+folder.path
+        if not quiet then print "<size=80%><color=blue>"+"   "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+folder.permissions+" "+folder.path
+        list_files(folder, grep, quiet, waitFor,depth+1)
       end for
       for file in files
-        list_files(file, grep, quiet, waitFor,renc)
+        list_files(file, grep, quiet, waitFor,depth+1)
       end for
     else
       if result.name == grep then
@@ -2217,7 +2233,7 @@ end function
 r_hecks = function()
 
   configure_heist = function()
-    if XPLOITS == null or XPLOITS == [] then return "Scan a lib or link a db first."
+    if XPLOITS == null or XPLOITS == [] then; print "Scan a lib or link a db first.";return;end if
     print(colorGold+"Configuring Heist: "+CT+char(10))
     memory = []
     data = ""
@@ -2234,7 +2250,8 @@ r_hecks = function()
       if waitFor > 0 and waitFor <= XPLOITS.len then
         memory = XPLOITS[waitFor - 1].split(" ")
       else
-        return "Invalid selection. "
+        print "Invalid selection. "
+        return
       end if
     end if
     m = memory.pull
@@ -2254,9 +2271,9 @@ r_hecks = function()
     if ptt == "router" then ptt = 0
     tool = 0
     if not psw then tool = user_input("[<b>0</b>] Gopher [1] Hashim (q=quit)||: ",0,1)
-    if tool.lower == "q" then return "aborting..."
+    if tool.lower == "q" then; print "aborting...";return;end if
     if tool.to_int == 1 then
-      if not localmachine.File("/root/tables/t5") then return "/root/tables/t5 not found. use<b> pwgen hash </b> to generate."
+      if not localmachine.File("/root/tables/t5") then; print "/root/tables/t5 not found. use<b> pwgen hash </b> to generate.";return;end if
       print("Deciphering with Hashim.")
       tool = 1
     else
@@ -2349,7 +2366,7 @@ r_hecks = function()
         pass.set_content(globals.T_BUF.join(char(10)))
         globals.T_BUF = [(localip+"@"+pubip)]
         //globals.T_BUF = []
-        if tool then
+        if t then
           command.hashim("false")
         else
           globals.Gopher(pass)
@@ -2362,19 +2379,19 @@ r_hecks = function()
 
   rmenu = function()
     while true
-      print(colorGold+"- - - - - - - - - - - - - - - - - - -"+CT+char(10))
-      print(colorGold+"Router: "+CT+localmachine.public_ip+colorGold+" : "+CT+ localmachine.local_ip+CT)
-      print(colorGold+"////////////////////////////////////"+CT)
-      print(colorGold+"[0]"+CT+colorGreen+" - <u>Go Back</u> Nothing to see here."+CT)
-      print(colorGold+"[1]"+CT+colorGreen+" - Bank Heist"+CT)
-      print(colorGold+"[2]"+CT+colorGreen+" - LAN Probe"+CT)
-      print(colorGold+"////////////////////////////////////"+CT)
+      print colorGold+"- - - - - - - - - - - - - - - - - - -"+char(10)
+      print colorGold+"Router: "+CT+localmachine.public_ip+colorGold+" : "+CT+ localmachine.local_ip
+      print colorGold+"////////////////////////////////////"
+      print colorGold+"[0]"+CT+colorGreen+" - <u>Go Back</u> Nothing to see here."
+      print colorGold+"[1]"+CT+colorGreen+" - Bank Heist"
+      print colorGold+"[2]"+CT+colorGreen+" - LAN Probe"
+      print colorGold+"////////////////////////////////////"
       menu = user_input("(q=quit)||: ",0,1)
       if menu == "0" or menu.lower == "q" or menu == "" then return
       if menu == "1" then return configure_heist
       if menu == "2" then
         targip = user_input("Router ip: ")
-        print("<b>Scanning...</b> ")
+        print "<b>Scanning...</b> "
         if is_valid_ip(targip) then
           print command.lanpro(targip)
         else
@@ -2766,6 +2783,10 @@ globals.select_attack = function(waitFor=0,inject=0,ret=0)
   end for
   print(format_columns(data))
   if typeof(waitFor) != "string" and typeof(waitFor) != "number" then return "zap: invalid input"
+  if typeof(inject) != "string" and inject != 0 then 
+      print "<size=75%>zap: skipping invalid inject value: "+inject
+      inject = 0
+  end if
   if typeof(waitFor) == "string" then waitFor = waitFor.to_int
   if not waitFor then waitFor = user_input("Select an exploit #: ").val
   if waitFor == 0 then
@@ -3110,7 +3131,7 @@ scan_memory = function()
     end for
   end for
   for s in scanalysis
-    data = data + s + "\n"
+    data = data + s + char(10)
   end for
   print(format_columns(data))
   globals.XPLOITS = scanalysis
@@ -3130,7 +3151,7 @@ load_lib = function(lib_path)
     print "metaLib: linking "+colorLightBlue+new_lib.lib_name+"<color=blue> v </color>"+new_lib.version+char(10)
     globals.metaLib = new_lib
   else
-    print colorOrange+"load_lib: File not found. "
+    print colorOrange+"load_lib: file not found or not a library "
     return 0
   end if
   //print metaLib.lib_name + " v " + metaLib.version
