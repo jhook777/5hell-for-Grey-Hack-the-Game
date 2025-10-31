@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.6...(145.724)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.7...(147.894)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
@@ -62,6 +62,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob.err = "cob: invalid input: see <b>cob -h"
 	cob.set = function( key=0, val=0, kl="", nul=0 )
 		if not @key or not @val then return null
+		if @key == "HOME" then return "cob: use <b>set HOME.key [value]"+char(10)+"-- use<b> get HOME</b> to see available values"
 		if @val == "{}" then val = {}
 		if @val == "[]" then val = []
 		if typeof(@key) == "function" then
@@ -145,7 +146,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		o.push(colorCyan+"</b>cob: validating custom object...")
 		if not cobble.hasIndex("macros") then; cobble.macros = {};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
 		if not cobble.hasIndex("stack_pool") then; cobble.stack_pool = 0;o.push(colorOrange+"<size=75%>--: restoring index: stack_pool");end if
-		if not cobble.hasIndex("HOME") then ; cobble.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"};end if
+		if not cobble.hasIndex("HOME") or not cobble.HOME isa map then ; cobble.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"};end if
 		// nested cobble.HOME validation needed
 		return o.join(char(10))
 	end function
@@ -857,7 +858,7 @@ command.makfit = function(arg1, arg2, arg3=0, arg4=0)
 	"-- target size in bytes determines ceiling for acceptable file size"+char(10)+
 	"---- min 120000, max unlimited however it is unlikely to see > 10MB"+char(10)+
 	"-- will change the file's name back to the name of the .src when done"+char(10)+
-	"-- builds to size and outputs to parent path of .src file"+char(10)+
+	"-- builds to size and outputs to parent path of .src file"+char(10)+char(10)+
 	"Extra: makfit [-n] [target_size_in_bytes] [opt:-A] -- do not use a source file "+char(10)+
 	"-- final filename may be used when compiling any script"+char(10)+
 	"-- this allows you to find a filename without supplying a source file"+char(10)+
@@ -990,7 +991,15 @@ end function
 // felix file explorer by, Plu70
 if DEBUG then print("<size=75%>loading felix.5pk...(13.584kb)</size>")
 command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
-  if arg1 == "help" or arg1 == "-h" then return "Usage: felix -- file explorer v 0.2, (wip). Use arrow keys to navigate. Press / to manually type a path."+char(10)+"Advanced: felix [shell|computer|file] -- run felix on filesys of piped object."+char(10)+"e.g. clipb @B 1 | felix -- where BUFFER[1] contained a file, shell or computer."
+  if arg1 == "help" or arg1 == "-h" then return "Usage: felix -- file explorer v 1.2, (wip)"+char(10)+
+  "-- while running:"
+  "---- use arrow keys to navigate"+char(10)+
+  "---- press / to manually type a path"+char(10)+
+  "---- press F1 for more help"+char(10)+
+  "Usage: felix [path] -- open felix on the specified path"+char(10)+
+  "Usage: felix [shell|computer|file] -- run felix on the filesystem of piped object"+char(10)+
+  "-- e.g. clipb @B 1 | felix -- where BUFFER[1] contained a file, shell or computer"+char(10)+
+  "-- starts in the <b>/</b> directory"
   action = {}
   action.cursor = 0
   action.last = 0
@@ -998,19 +1007,34 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
   action.max = 0
 
   action.memory = null
-  action.buffer = function(arg=null)
+  action.buffer = function(arg=null) // not the global buffer
     if arg then action.memory = arg
     if not action.memory then return char(176)
     return action.memory.name
   end function
-  action.b = function(inf)
+  action.b = function(inf) // global buffer
     selected = action.get_selected(inf)
     if not selected then return inf
     globals.BUFFER.push(selected)
     conf = user_input("felix:<b> sent "+selected.name+" to BUFFER. Acces via memory_alpha.</b>"+char(10)+"press <<b>anyKey</b>> to continue",0,1)
     return inf
   end function
-  action.get_selected = function(infile)
+  action.p = function(inf) // perms
+	if not action.memory then return inf
+	chf = action.memory
+	recurse = 0 
+	if chf.is_folder and user_input("-- recursive? [<b>Y</b>/n]||: ")  != "n" then recurse = 1
+	print "-- enter user{+|-}permission strings delimited by spaces:"+char(10)+
+	"--eg: o-rwx g+x u+rwx"
+	u_string = user_input(":> ").trim
+	if u_string == "" then return inf
+	u_list = u_string.split(" ")
+	for u in u_list 
+		if recurse then command.perms("-r",u,chf) else command.perms(u,chf)
+	end for
+	return inf 
+  end function 
+  action.get_selected = function(infile) // init
     folders = infile.get_folders
     files = infile.get_files
     contents = folders + files
@@ -1029,16 +1053,16 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     end if
     return inf
   end function
-  action.z = function(f)
+  action.z = function(f) // uncopy
     if action.memory then action.memory = null
     return f
   end function
-  action.x = function(inf)
+  action.x = function(inf) // copy
     nf = action.get_selected(inf)
     if nf then action.buffer(nf)
     return inf
   end function
-  action.v = function(inf)
+  action.v = function(inf) // paste
     selected = action.get_selected(inf)
     if not selected then return inf
     if not action.memory then return inf
@@ -1081,7 +1105,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     // poke, mkdir, rename
     return f
   end function
-  action.f = function(inf)
+  action.f = function(inf) // file
     selected = action.get_selected(inf)
     if not selected then return inf
     print(command.file(selected))
@@ -1089,7 +1113,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     wait_for = user_input("press <<b>anyKey</b>> to continue",0,1)
     return inf
   end function
-  action.n = function(inf)
+  action.n = function(inf) // rename
     selected = action.get_selected(inf)
     if not selected then return inf
     new_name = user_input("rename_"+selected.name+"(null=abort):> ")
@@ -1193,6 +1217,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     print("File info:  [f] - get file info/properties for highlighted selection ")
     print("Buffit:     [b] - send highlighted selection to BUFFER ")
     print("Rename:     [n] - rename highlighted selection ")
+	print("perms:      [p] - chmod / perms command")
 
     print("_____note: launching binaries via felix does NOT activate glasspool_____")
     print("-----")
@@ -1219,8 +1244,8 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     while file_object.name != "/"
       file_object = file_object.parent
     end while
-    print("f_path: "+f_path) // debug
-    print("arg: "+arg)       // debug
+    if DEBUG then print("f_path: "+f_path)
+    if DEBUG then print("arg: "+arg)
     while file_object.path != arg.trim
       globals.grepped_file = null
       globals.list_files(file_object, f_path.pull, 1,"N") // requires 5hell or 5hell.so
@@ -1256,17 +1281,17 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
 
   ////BEGIN MAINish
   felix = function(file)
-    currentPath = file.path
+    locals.currentPath = file.path
     contents = file.get_folders + file.get_files
     action.max = contents.len - 1
     CLEAR = -1
     while true
       if CLEAR > 0 then button_c = "<b>C</b>" else button_c = "<b>c</b>"
       path_contents(file,CLEAR)
-      print(colorLightBlue+currentPath+CT)
-      print("[F1] help [w][a][s][d] == [^][<][v][>] [q] quit")
-      print("[z] clr slct [x] select [v] paste [f] file [n] rename ")
-      input = user_input("["+button_c+"] tog clrs [r] remove [b] buffit ||: ",0,1)
+      print(colorLightBlue+locals.currentPath+CT)
+      print("[F1] help [w][a][s][d] == [^][<][v][>] [x] select")
+      print("[z] clr slct [r] remove [v] paste [f] file [n] rename ")
+      input = user_input("["+button_c+"] tog clrs  [p] perms  [b] buffer it [q] quit||: ",0,1)
       print
       if input.lower == "c" then
         CLEAR = (CLEAR * (-1)) //  flipbit
@@ -1274,36 +1299,38 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
       end if
       if input.lower == "q" then return "Goodbye."
       if input == "/" then
-        input = input + user_input(input,0,0)
+        input = input + user_input(input)
         file = action.branch(file, input)
-        currentPath = file.path
+        locals.currentPath = file.path
         continue
       end if
       file = action.get(input, file)
-      currentPath = file.path
+      locals.currentPath = file.path
     end while
     return 0
   end function
   /// END MAINish
   init = function(file_object)
-    print(colorOrange+"Felix file explorer v 1.1 by Plu70"+CT)
+    print(colorOrange+"Felix file explorer v 1.2 by Plu70"+CT)
     print(colorLightBlue+"-----------------------------------------"+CT)
-    while file_object.name != "/"
-      file_object = file_object.parent
-    end while
-    return felix(file_object)
+    // while file_object.name != "/" // disabling this is experimental
+    //   file_object = file_object.parent // result should be starting felix in the directory of the file object passed
+	// end while    
+	if not file_object.is_folder then file_object = file_object.parent
+	return felix(file_object)
   end function
   if DEBUG then print "debug: felix: initializing"
   if typeof(arg1) == "shell" then return init(arg1.host_computer.File("/"))
   if typeof(arg1) == "computer" then return init(arg1.File("/"))
   if typeof(arg1) == "file" then return init(arg1)
-  return init(localmachine.File("/"))
+  startpath = "/"
+  if typeof(arg1) == "string" and typeof(globals.get_file(arg1)) == "file" then startpath = arg1
+  return init(localmachine.File(startpath))
 end function
-
 command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorGreen+"File || File Properties || Inspect File"+char(10)+
 	colorGreen+"<u>================================"+char(10)+
-	colorGreen+"Usage: <b>file [opt:-l|-c|-b|-r|-n|-p|-e|-d|-ie] [/path|file_object] [opt:shell|computer|file]</b>"+char(10)+char(10)+
+	colorGreen+"Usage: <b>file [opt:-l|-c|-b|-r|-n|-p|-P|-e|-d|-ie] [/path|file_object] [opt:shell|computer|file]</b>"+char(10)+char(10)+
 		"File shows the properties information for the given file. "+char(10)+
 		"It takes a path or file_object and returns file information as a stirng."+char(10)+char(10)+
 		colorCyan+"Usage: file [opt] [/path] -- return information about the file at /path"+char(10)+
@@ -1333,7 +1360,8 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		"---- eg: "+colorLightBlue+"</b>grep <b>-f</b> *#.log$ /var | file -b"+char(10)+
 		"-- file [<color=white>-r</color>] [path|object] [opt:object] -- return the file as an object"+char(10)+
 		"-- file [<color=white>-n</color>] [path|object] [opt:object] -- return the name of file "+char(10)+
-		"-- file [<color=white>-p</color>] [path|object] [opt:object] -- return the path of file"+char(10)+
+		"-- file [<color=white>-p|path</color>] [path|object] [opt:object] -- return the path of file"+char(10)+
+		"-- file [<color=white>-P|parent</color>] [path|object] [opt:object] -- return the parent path of file"
 		"- - - - - - - - - - - - - - - - - -"+char(10)+
 		"---- eg: <b></b>clipb @B [#] | file -p </b>-- return the path of the piped file object"+char(10)+
 		"---- eg: <b>file [opt] [path|file] [shell|computer]</b> -- run file on the remote object instead of locally"	
@@ -1348,6 +1376,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	return_enc_status = false 
 	enc_file = false 
 	dec_file = false
+	return_parent = false
 
 	if arg1.indexOf("-") >= 0 then //== "-l" or arg1 == "-c" or arg1 == "-b" then
 		if arg1 == "-e" then enc_file = true 
@@ -1361,7 +1390,8 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 			return_file = true 
 		end if
 		if arg1 == "-n" then return_name = true
-		if arg1 == "-p" then return_path = true
+		if arg1 == "-p" or arg1 == "path" then return_path = true
+		if arg1 == "-P" or arg1 == "parent" then return_parent = true
 		if arg1 == "-s" then return_size = true
 		if arg2 then arg1 = arg2 else return "file: missing path or object: file [opt] [thing] [opt:thing]"
 		arg2 = arg3
@@ -1507,6 +1537,10 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 			//print "file: returning file size..."
 			return arg1.size
 		end if
+		if return_parent then 
+			print "file: returning parent path for: "+arg1.path 
+			return arg1.parent.path 
+		end if 
 		if to_buffer then
 			globals.BUFFER.push(arg1)
 			print "file: <b>"+arg1.name+"</b> sent to <b><color=orange>BUFFER</b>"
@@ -1741,30 +1775,31 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 		else
 			if infile and infile.is_folder then
 				globals.dict_a([])
+				dl = []
 				for dfile in infile.get_files
 					if dfile.has_permission("r") and not dfile.is_binary then
 						d_b = dfile.get_content.trim
-						if DEBUG then print "d_b input size: "+d_b.len
+						//if DEBUG then print "d_b input size: "+d_b.len
 						delim = ""
 						if d_b.indexOf(",") != null then delim = "," else delim = char(10)
-						if globals.dict_a.len < 710000 then 
+						if dl.len < 710000 then 
 							d_b = d_b.split(delim)
-							dl = []
 							for p in d_b 
-								if p.indexOf("=") != null then dl.push(p.trim.split("=")[1]) else dl.push(p.trim)								
+								if p.indexOf("=") != null then dl.push(p.split("=")[1]) else dl.push(p)								
 							end for 
-							globals.dict_a(globals.dict_a+dl)	
-							if DEBUG then print("dict_a: "+dict_a.len)
+							//globals.dict_a(globals.dict_a+dl)	
+							//if DEBUG then print("dict_a: "+dict_a.len)
 						else 
 							print("cerebrum: max dictionary length reached. Could not load: "+dfile.path)
 						end if
 					end if
 				end for
+				globals.dict_a(dl)
 			else
 				return "cerebrum: import error; no input file or folder"
 			end if
 		end if
-		if dict_a.len > 0 then 
+		if dict_a.len > 1 then 
 			globals.BIGBRAIN = true
 			return "cerebrum: ["+colorGold+dict_a.len+CT+"] passwords ready. " 
 		else 
@@ -2571,7 +2606,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	colorWhite+"N.B. -- remember that ["+colorCyan+"\@pipe | @pipe</color>] goes in the "+colorCyan+"macro set</color> string"+char(10)+
 	colorWhite+"---- not in the macro call"+char(10)+
 	colorGreen+"See Also: do -h, help conventions, help alias, help automation"+char(10)
-	if not arg1 then return "Usage: macro [name] [opt: input_to_pipe]"+char(10)+"Usage: macro set [name] [string]"
+	if not arg1 then return "Usage: macro [-h|help]"+char(10)+"Usage: macro set [name] [string]"
 	command.cob("validate")
 	print colorCyan+"<size=75%><u>==========macro=========="
 	gm = get_custom_object.macros
@@ -3022,14 +3057,14 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		"N.B. run sc as root since /var is usually write protected."+char(10)+char(10)+
 		"<b>Silentclean now supports piped objects!"+char(10)+
 		"Usage: "+colorWhite+"</b>silentclean "+CT+" [<b>shell|computer</b>] -- run silentclean on a piped computer or shell "+char(10)+
-		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-d"+CT+"] [<b>shell|computer</b>] -- run silentclean [-d|-n] on a piped object"+char(10)+
+		"Usage: "+colorWhite+"</b>silentclean "+CT+"["+colorWhite+"-d|-n"+CT+"] [<b>shell|computer</b>] -- run silentclean [-d|-n] on a piped object"+char(10)+
 		"NOTE: if silentclean detects "+colorLightBlue+"Xorg "+CT+"as a running process on the machine:"+char(10)+
 		"-- it will determine you are on a home pc and require an override to execute"+char(10)+
 		"-- this is to help prevent accidentally nuking yourself"+char(10)+
 		"-- the override flag is <b>--n</b>"+char(10)+
 		"--ie: <b>silentclean --n</b>"+char(10)+char(10)+
 		"N.B. silentclean [-n|--n] will remove the following:"+char(10)+
-		colorOrange+"</b>-- /lib, /boot, /sys, 5hell, rkit"+char(10)+
+		colorOrange+"</b>-- /lib, /boot, /sys, 5hell, rkit, and 5hell.d if present"+char(10)+
 		char(10)+
 		colorGold+"Advanced: "+char(10)+
 		"By default, silentclean will create the file /var/system.bak and move it over /var/system.log."+char(10)+
@@ -3060,6 +3095,7 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if cleaner then 
 		if cleaner.parent.name == "rkit" then cleaner = cleaner.parent
 	end if
+	dmanager = command.tree("/","5hell.d","1","N") 
 	syslog = globals.get_file("/var/system.log")
 	if not syslog then return "silentclean: <b>/var/system.log not found"+_fix
 
@@ -3092,11 +3128,29 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		end if
 		if arg1 == "--n" then nuke_em
 		if arg1 == "-d" or arg1 == "--n" then
+			if dmanager then dmanager.delete
 			if cleaner then cleaner.delete
 		end if
+		sys_perm = syslog.permissions
+
 		try = syslogbak.move("/var", "system.log")
+
 		syslog = globals.get_file("/var/system.log")
 		// add code to give the new file the same permissions as the original log
+
+		log_perm = syslog.permissions
+		if log_perm != sys_perm then 
+			sp = sys_perm.values
+			lvl = ["o","u","g"]
+			mod = ["+","-"]
+			opp = ["x","r","w"]
+			for idx in range(1,9)
+
+				syslog.chmod(lvl+mod+opp)
+			end for
+
+
+		end if
 		_fix
 		return try
 	else
