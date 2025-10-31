@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.6...(135.200)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.7...(137.810)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -2169,7 +2169,7 @@ if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.6...(135.200)
 
 	return file.path
 end function
-if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
+if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(20.912kb)")
 
   // glosure by maho_citrus
   command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -2698,7 +2698,6 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
   // regex engine, translated from C code provided by Princeton U., by Plu70
   re = {}
   re.match = function(regexp, text) 
-    //if DEBUG then print("<b> in globals.re(gex)") // way too spammy
     if regexp[0] == "^" then
       regexp.pull
       return re.match_here(regexp,text)
@@ -2783,6 +2782,8 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
   end function
   // end check user //
   //
+  //
+  //
   // DAEMON manager, by redi0
   //
   DaemonManager = {
@@ -2844,6 +2845,7 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
     return lines
   end function
   
+  // original by redit0
   // DaemonManager.Init = function
   //   file = self.__comp.File(self.__filePath)
   //   if not file then
@@ -2862,6 +2864,7 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
   //   self.__initialized = 1
   // end function
 
+  // minor edit to the above function by plu70
   DaemonManager.Init = function
     file = self.__comp.File(self.__filePath)
     if not file then
@@ -2942,4 +2945,62 @@ if DEBUG then print("<size=75%>loaded ...pwgen.5pk...(19.470kb)")
     end if
     return 0
   end function
-  ////// end daemon manager /////////////
+  ////// end daemon manager by redit0 /////////////
+  //
+  // daemon manager command to support redit0's DaemonManager
+  command.dm = function(a,b,c,d)
+	if a == "help" or a == "-h" then return "Daemon Manager || daemons || demons || donuts || pete || repeat
+**
+Definition: a <b>daemon</b>, in 5hell's context, is a command
+that loops until manually terminated. These commands will write to, 
+and monitor, a special file named <b>5hell.d</b> that is generated
+when any new daemon is started, if it doesn't already exist. When a
+particular daemon's entry is removed from this file that daemon
+will stop and that 5hell session will return to it's command prompt.
+The net effect is allowing you to stop these processes without
+having to use "+colorOrange+"ctrl+c"+CT+", which would end the script.
+**
+Note: deleting 5hell.d will <b>terminate all daemons at once</b>
+and is the preferred way of doing so.
+Note: <b>silentclean [-d|-n]</b> and <b>rclean [-d|-n]</b> will
+attempt to clean up 5hell.d, if it exists."
+print char(10)+
+colorWhite+"Usage: dm [opt] [opt] -- manage daemon's operating in other terminals
+
+Usage: dm -- print active daemons
+
+Usage: dm stop [id] -- stop a specific daemon
+-- eg: <b>dm stop htop_01</b>
+
+Usage: dm stop all -- stop <b>all</b> daemons
+-- deletes 5hell.d"
+
+	print colorWhite+"- - - "+CT+colorRed+"<u>D"+colorWhite+"aemon</color> M"+colorWhite+"anager - - -"
+	dmf = command.tree("/","5hell.d","1","N")
+	if not dmf then return "dm: 5hell.d not found; no daemons detected"
+	if dmf.has_permission("r") then 
+		globals.dmanager = new DaemonManager
+		dmanager.Init
+		//if not a then return format_columns(dmanager.List.join(char(10))) else print format_columns(dmanager.List.join(char(10)))
+		if a == "stop" then 
+			if typeof(b) != "string" then 
+				print colorWhite+"Active"+colorRed+" D"+colorWhite+"aemons:"+char(10)+colorWhite+"<size=75%>ID: "
+				print format_columns(dmanager.List.join(char(10)))
+				b = user_input(colorWhite+"- - - "+char(10)+colorCyan+"</b>Enter Daemon "+colorWhite+"ID"+CT+" to stop: (<b>enter</b>=abort, all=all)"+char(10)+":> ")
+			end if
+			if b == "all" then 
+				print "-- stopping all daemons..."
+				return command.rm(dmf) 
+			else 
+				if b == "" then return "dm: aborting..."
+				print "-- stopping: "+b
+				print dmanager.Stop(b)
+			end if
+			print "dm: updating Daemon Manager..."+char(10)+"- - - - "
+		end if
+	else 
+		return "dm: 5hell.d is read protected"
+	end if
+	print colorWhite+"Listing Active"+colorRed+" D"+colorWhite+"aemons by ID:"+char(10)
+	return format_columns(dmanager.List.join(char(10)))
+end function
