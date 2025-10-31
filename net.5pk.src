@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.6..(152.635)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.7..(153.855)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -647,7 +647,28 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return dat.join(char(10))
 end function
 command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
-	if arg1 == "help" or arg1 == "-h" then return "air: aircrack menu. Saves cracked .cap files to current path and reads those files from current path. "+char(10)+"Advanced: air [-f|false] -- same as command.iwlist, prints wifi nets in range and exits."+char(10)+"Advanced: air -c [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+"Advanced: select option [h] within air to activate detection of hidden wifi signals."+char(10)+"-- You must be within range (on the same network) to detect and connect to these non-broadcasting signals."+char(10)+"-- This allows bypassing firewalls in many instances."
+	if arg1 == "help" or arg1 == "-h" then return "AIR || aircrack || aireplay || airmon || wifi cracker"+char(10)+
+	"Usage: air -- aircrack menu"+char(10)+
+	"-- allows cracking and/or connecting to in-range wifi networks"+char(10)+
+	"-- auto-calculates ACKS needed for cracking"+char(10)+
+	"-- renames resulting file.cap to [wifi_essid].cap"+char(10)+
+	"-- once cracked you may press enter to save the file to current path"+char(10)+
+	"---- or type a <b>folder path</b> to move the file to that folder"+char(10)+
+	"-- will read .cap files from anywhere on the system"+char(10)+
+	"Legend:"+char(10)+
+	"Networks appearing in: "+colorGreen+"green"+CT+" have a cracked .cap file"+char(10)+
+	"Networks appearing in: "+colorOrange+"orange"+CT+" do not have a cracked .cap file"+char(10)+char(10)+
+	"Usage: air [-f|false] -- same as the <b>iwlist</b> command"+char(10)+
+	"-- returns wifi networks in range as a string"+char(10)+char(10)+
+	"Usage: air [-c] [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+char(10)+
+	"Advanced: A wifi network might have a <b>nested wifi signal</b> within it"+char(10)+
+	"-- select option [<b>h</b>] within air to activate detection of nested wifi signals"+char(10)+
+	"-- you must be on the nested signal's host wifi network in order to detect and connect to it"+char(10)+
+	"-- this allows bypassing firewalls in many instances"+char(10)+char(10)+
+	"NOTE: you may use:"+char(10)+
+	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid] [bssid]"+char(10)+
+	"-- to manually connect to a wifi network"+char(10)+
+	"-- see <b>ifconfig -h</b> for more"
 	print("AirMenu v 0.1.3, by Plu70")
 	is_it_known = function(a)
 		chrom = ""
@@ -1205,6 +1226,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		map_file = globals.get_file(map_path)
 		if map_file then print(home_dir+"/Config/Map.conf created.") else return "kraken: write error!"
 	end if
+	if map_file.is_binary then return "kraken: "+colorError+"</b>Map.conf is binary or encrypted"
 	map_contents = map_file.get_content
 	//map read
 	print(colorCyan+"Initializing Kraken v 0.9.5 by Plu70..."+CT)
@@ -1619,17 +1641,27 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	"---- enter a lan_ip or password for the inject value at the prompt"+char(10)+
 	"Usage: db -l <color=yellow>*</color> -- db all local libs"+char(10)+char(10)+
 	"Usage: db -l -i -- choose a lib from the menu and prompt for an inject"+char(10)+
-	colorWhite+"</b>Usage: db ["+colorMagenta+"-m"+CT+"] [opt:metaLib|metaxploitLib] [opt:metaxploitLib|metaLib] [opt:inject]"+char(10)+
+	colorWhite+"</b>Usage: db ["+colorMagenta+"-m|-M"+CT+"] [opt:metaLib|metaxploitLib] [opt:metaxploitLib|metaLib] [opt:inject]"+char(10)+
 	"-- scan currently linked metaLib or piped metaLib with currently linked metaxploitLib or piped metaxploitLib"+char(10)+
-	"-- unlike other modes, this mode will not link a new metaLib"+char(10)+
+	"-- unlike other modes, this mode will <b>not</b> link a new metaLib"+char(10)+
 	"---- unless a metalib is piped to it"+char(10)+
 	"-- instead, it scans the already linked metaLib"+char(10)+
 	"-- supplying [-i] for inject results in a prompt"+char(10)+
-	"---- use <b>meta link [piped_metaLib]</b> to choose a metaLib to scan"+char(10)+
+	"-- when not piping metaxploitLib or metaLib (ie: scanning in place):"+char(10)+
+	"---- use <b>meta load [piped_metaLib]</b>, or <b>meta link [ip] [pt]</b>, to choose a metaLib to scan"+char(10)+
 	"---- use <b>meta -i [pipe_metaxploitLib]</b> to choose the scanning metaxploitLib"+char(10)+
-	"---- see <b>meta help</b> for more"+char(10)+char(10)+
+	"--eg: meta load init.so | meta -i @o myx0 || db -m || meta restore"+char(10)+
+	"-- to specify a scanning metaxploitLib object, use:"+char(10)+
+	"----:<b> db -m [metaxploitLib]"+char(10)+
+	"--eg:<b> meta load init.so | db -m @o myx0 || meta restore"+char(10)+
+	"---- see <b>meta help</b> for more"+char(10)+
+	"NOTE: passing<b> -M</b> explicitely uses <b>@o myx0</b>"+char(10)+
+	"--eg: meta load init.so | db -M"+char(10)+char(10)+
+	"N.B.: using -m or -M invokes <b>meta -i [object]</b>"+char(10)+
+	"-- you will need to manually <b>meta restore</b> to access the previous metaxploitLib"+char(10)+
 	"Note: Use <b>meta link</b> and <b>meta scan</b> to scan without databasing"+char(10)+
 	"Note: It is not possible exploit/database libs that are not in the /lib folder"+char(10)+
+	"-- you may however <b>scan</b> these libs for vulnerable addresses with <b>meta scan</b>"+char(10)+
 	"Note: the default 'inject' is '192.168.0.2' to avoid unintentional password changes"
 	if arg1 == "-h" or arg1 == "help" then return(db_usage)
 	if typeof(arg1) != "string" or ["-m","-r","-l"].indexOf(arg1) == null then return "db: invalid flag: expects -m|-r|-l"
@@ -1642,6 +1674,10 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 		print colorLightBlue+"<size=75%></b>db: preparing custom scan..."
 		if arg2 != "-i" then 
 			if DEBUG then print "debug: db -m: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4
+			if arg1 == "-M" then 
+				mob = command.cob("get","myx0")
+				if typeof(mob) == "metaxploitLib" then print command.meta("-i",mob) else print mob
+			end if
 			if typeof(arg2) == "MetaxploitLib" then print command.meta("-i",arg2) 
 			if typeof(arg3) == "MetaxploitLib" then print command.meta("-i",arg3) 
 			if typeof(arg4) == "MetaxploitLib" then print command.meta("-i",arg4) 
@@ -1746,7 +1782,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 		info = globals.metaLib.lib_name + " v " + globals.metaLib.version
 		return info
 	end function
-	load_lib = function()  // remote false
+	locals.load_lib = function()  // remote false
 		globals.metaLib = metaxploit.load(lib_path)
 		if globals.metaLib then
 			if DEBUG then print(lib_info)
@@ -1771,7 +1807,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	if remote then
 		if not pre_load then get_lib // pre_load == true means db the currently loaded metaLib (wip)
 	else
-		if not pre_load then load_lib // this means we don't link or load a lib here
+		if not pre_load then locals.load_lib // this means we don't link or load a lib here
 	end if
 	if not globals.metaLib then return colorRed+"meta: unable to link/load net_session/metaLib"
 	DATA.push(lib_info)
@@ -2351,7 +2387,7 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	return "meta: no MetaLib linked"
 	
 end function
-command.zap = function(arg1, arg2, arg3, arg4)
+command.zap = function(arg1, arg2, arg3="", arg4)
 	if arg1 == "help" or arg1 == "-h" then return "ZAP || Single Attack || overflow || exploit || hack"+char(10)+
 	"<b>Usage: zap [opt:-r] [opt:index|mem_address] [opt:inject|unsec_value] [opt:inject]"+char(10)+char(10)+
 	"Usage: "+colorRed+"zap"+colorWhite+"</b> [opt:-r]</color> -- select attack; Equivalent to 5phinx [A]"+char(10)+
@@ -2367,7 +2403,7 @@ command.zap = function(arg1, arg2, arg3, arg4)
 	"-- if successful prompts to view the object in the BUFFER"+char(10)+
 	"-- use the -r flag to skip the BUFFER prompt: "+char(10)+
 	"----eg: <b>zap -r 1 "+char(10)+
-	"--use use -r and supply and inject to skip inject prompt as well"+char(10)+
+	"-- use use -r and supply an inject to skip inject prompt as well"+char(10)+
 	"----eg: <b>zap -r 1 password"+char(10)+char(10)+
 
 	"Usage: "+colorRed+"zap"+colorWhite+"</b> [memory_address] [unsec_value] [opt:inject]</color> -- manually input overflow parameters"+char(10)+
@@ -2386,13 +2422,15 @@ command.zap = function(arg1, arg2, arg3, arg4)
 		arg2 = arg3 
 		arg3 = arg4 
 	end if 
-	if arg1 and arg2 and typeof(arg1) != "number" and typeof(arg1.to_int) != "number" then
+	if typeof(arg1) == "string" and typeof(arg1.to_int) != "number" then
 		result = null
-		if arg3 then
+		//if arg3 then
+			if typeof(arg2) != "string" then return "zap: invalid input"
+			if arg3 and typeof(arg3) != "string" then arg3 = ""
 			result = globals.metaLib.overflow( arg1, arg2, arg3 )
-		else
-			result = globals.metaLib.overflow( arg1, arg2 )
-		end if
+		//else
+			//result = globals.metaLib.overflow( arg1, arg2 )
+		//end if
 		if result and result != 1 then 
 			print "malp: sending "+typeof(result)+" to "+colorOrange+" BUFFER..."
 			globals.BUFFER.push(result)
