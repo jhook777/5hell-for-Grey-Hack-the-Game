@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.2.6...(57.875)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.2.7...(58.028)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -564,7 +564,7 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 			end if
 		end if
 		if @arg1 then 
-			print "debug: malp: pushing: "+typeof(@arg1)+" to BUFFER"
+			if DEBUG then print "debug: malp: pushing: "+typeof(@arg1)+" to BUFFER"
 			globals.BUFFER.push(@arg1)
 			if no_malp == true then return 0
 			if open_buffer then open_entry = true
@@ -1049,7 +1049,10 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   dig_this = null
   while digging 
 	if mem.len > 0 then
-  		dig_this = command.zap(mem[0],unsec_val[0],0) // get the remote shell
+		if DEBUG then print "DEBUG: zapping with: "
+		if DEBUG then print "mem[0]: "+mem[0]
+		if DEBUG then print "unsec[0]: "+unsec_val[0]
+  		dig_this = command.zap(mem[0],unsec_val[0]) // get the remote shell
 		mem.pull 
 		unsec_val.pull
 		if typeof(dig_this) == "shell" then digging = false 
@@ -1084,3 +1087,4 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   // repeat if necessary
   return "returning to original 5hell session..."
 end function
+
