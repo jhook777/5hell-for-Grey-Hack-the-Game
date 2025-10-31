@@ -35,7 +35,7 @@ Copy the following .src files into the CodeEditor inside the Game:
 
  5phinx.5pk.src       -->  5phinx.5pk
 
- help.5pk.src         --> help.5pk
+ help.5pk.src         -->  help.5pk
 </pre>
 
 Each file goes to /root/src
