@@ -58,8 +58,8 @@ command = {} // default
 //-- use: shell --home [ip] or cob set HOME.ip [ip]
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
-//get_custom_object.HOME = ["string: ip", number: ssh_port, number:rshell_port, "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/rkit/tables/t5", "string: /path/to/tables/tp (default: /root/rkit/tables/tp)"]
-if not get_custom_object.hasIndex("HOME") then get_custom_object.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"}
+// the HOME map, below, is comprised of: "string: ip", number: ssh_port, number:rshell_port, "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/rkit/tables/t5", "string: /path/to/tables/tp (default: /root/rkit/tables/tp)"
+if not get_custom_object.hasIndex("HOME") or typeof(get_custom_object.HOME) != "map" then get_custom_object.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"}
 // the above values are optional and may be left at default if you you don't plan to use them
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
@@ -176,11 +176,12 @@ command.shell = function(input=null,mute=null)
       if prompt[0] == 0 or prompt[0] == "" then return 0
     else 
       print // an extra line printed before the prompt, if you want. comment out if you don't
-      if EXPERIMENTAL then 
-      // experimental version; add prompt to command history
-        prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
-      else 
+      if NOBUFF then 
+        // don't add input to command history
         prompt = user_input(bang,0,0).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+      else 
+        // add input to command history
+        prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
       end if
     end if
     // flow control, edit with care
@@ -335,11 +336,29 @@ command.shell = function(input=null,mute=null)
           print "shell: "+colorWhite+"</b>active shell pushed to "+colorOrange+"</b>BUFFER"
           continue 
         end if
-        if @prompt[1] == "--daemons" then
-          print format_columns(dmanager.List.join(char(10)))
-          if @prompt[2] == "stop" then print dmanager.Stop(prompt[3])
-          continue
-        end if
+        // if @prompt[1] == "--daemons" then
+        //   //print format_columns(dmanager.List.join(char(10))) // generating 5hell.d on launch or when using this command has caused some issues
+        //   //if @prompt[2] == "stop" then print dmanager.Stop(prompt[3]) // so we return to the 'hack'
+        //   // (un)holy nested if statements, Batman!
+        //   dm = command.tree("/","5hell.d","1","N")
+        //   if not dm then 
+        //     print "shell: 5hell.d not found; no daemons detected"
+        //     continue
+        //   else 
+        //     if dm.has_permission("r") then 
+        //       globals.dmanager = new DaemonManager
+        //       dmanager.Init
+        //       print colorRed+"shell:"+colorWhite+" active</color> D"+colorWhite+"aemons:"+char(10)+colorWhite+"- - -"
+        //       print format_columns(dmanager.List.join(char(10)))
+        //       if @prompt[2] == "stop" then 
+        //         if @prompt[3] == "all" then dm.delete else print dmanager.Stop(prompt[3])
+        //       end if
+        //     else 
+        //       print "shell: 5hell.d is read protected"
+        //     end if
+        //   end if
+        //   continue
+        // end if
         if @prompt[1] == "--debug" then
           print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
           globals.DEBUG = not globals.DEBUG
@@ -370,8 +389,8 @@ command.shell = function(input=null,mute=null)
         print(colorOlive+"["+colorLightBlue+"GLASSPOOL  "+CT+":"+colorOrange+gp+CT+"]")
         print("<size=65%>--: use<b> shell --this </b> to push the current shell to the BUFFER")
         print("<size=65%>--: use<b> shell --home [ip]</b> to change home_server")
-        print("<size=65%>--: use<b> shell --daemons</b> to view active daemons")
-        print("<size=65%>--: use<b> shell --daemons stop [daemon_id]</b> to stop a daemon")
+        //print("<size=65%>--: use<b> shell --daemons</b> to view active daemons")
+        //print("<size=65%>--: use<b> shell --daemons stop [daemon_id]</b> to stop a daemon")
         print("<size=65%>--: use<b> shell --debug</b> to toggle debug mode")
         continue 
       end if
