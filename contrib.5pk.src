@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.7...(137.810)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.2.7...(137.877)")
   // start games made by Plu70
   bat = function(s)
       // battleship by Plu70, aka ra'al, aka jhook777  2021
@@ -2969,13 +2969,15 @@ colorWhite+"Usage: dm [opt] [opt] -- manage daemon's operating in other terminal
 
 Usage: dm -- print active daemons
 
+Usage dm stop -- terminate a daemon via menu selection
+
 Usage: dm stop [id] -- stop a specific daemon
 -- eg: <b>dm stop htop_01</b>
 
 Usage: dm stop all -- stop <b>all</b> daemons
 -- deletes 5hell.d"
 
-	print colorWhite+"- - - "+CT+colorRed+"<u>D"+colorWhite+"aemon</color> M"+colorWhite+"anager - - -"
+	print colorRed+"<u>"+colorWhite+"- - -</color> D"+colorWhite+"aemon</color> M"+colorWhite+"anager - - -"
 	dmf = command.tree("/","5hell.d","1","N")
 	if not dmf then return "dm: 5hell.d not found; no daemons detected"
 	if dmf.has_permission("r") then 
@@ -2984,7 +2986,7 @@ Usage: dm stop all -- stop <b>all</b> daemons
 		//if not a then return format_columns(dmanager.List.join(char(10))) else print format_columns(dmanager.List.join(char(10)))
 		if a == "stop" then 
 			if typeof(b) != "string" then 
-				print colorWhite+"Active"+colorRed+" D"+colorWhite+"aemons:"+char(10)+colorWhite+"<size=75%>ID: "
+				print colorWhite+"Active"+colorRed+" D"+colorWhite+"aemons:"+char(10)+colorWhite+"<size=95%>ID: "
 				print format_columns(dmanager.List.join(char(10)))
 				b = user_input(colorWhite+"- - - "+char(10)+colorCyan+"</b>Enter Daemon "+colorWhite+"ID"+CT+" to stop: (<b>enter</b>=abort, all=all)"+char(10)+":> ")
 			end if
@@ -3001,6 +3003,6 @@ Usage: dm stop all -- stop <b>all</b> daemons
 	else 
 		return "dm: 5hell.d is read protected"
 	end if
-	print colorWhite+"Listing Active"+colorRed+" D"+colorWhite+"aemons by ID:"+char(10)
+	print colorWhite+"<size=85%>Listing Active"+colorRed+" D"+colorWhite+"aemons by ID:"+char(10)
 	return format_columns(dmanager.List.join(char(10)))
 end function
