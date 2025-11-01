@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.7..(153.855)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.7.4.(154.799)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -1664,7 +1664,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	"-- you may however <b>scan</b> these libs for vulnerable addresses with <b>meta scan</b>"+char(10)+
 	"Note: the default 'inject' is '192.168.0.2' to avoid unintentional password changes"
 	if arg1 == "-h" or arg1 == "help" then return(db_usage)
-	if typeof(arg1) != "string" or ["-m","-r","-l"].indexOf(arg1) == null then return "db: invalid flag: expects -m|-r|-l"
+	if typeof(arg1) != "string" or ["-M","-m","-r","-l"].indexOf(arg1) == null then return "db: invalid flag: expects -m|-r|-l"
 	if DEBUG then print("In command.db...")
 	inject = null
 	if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4)
