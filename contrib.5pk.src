@@ -2963,8 +2963,8 @@ having to use "+colorOrange+"ctrl+c"+CT+", which would end the script.
 Note: deleting 5hell.d will <b>terminate all daemons at once</b>
 and is the preferred way of doing so.
 Note: <b>silentclean [-d|-n]</b> and <b>rclean [-d|-n]</b> will
-attempt to clean up 5hell.d, if it exists."
-print char(10)+
+attempt to clean up 5hell.d, if it exists."+char(10)+
+char(10)+
 colorWhite+"Usage: dm [opt] [opt] -- manage daemon's operating in other terminals
 
 Usage: dm -- print active daemons
