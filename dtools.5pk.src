@@ -1733,7 +1733,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 				r_ip = arg2
 				r_p = get_custom_object.HOME.loginport
 				r_pas = get_custom_object.HOME.pass
-				if r_pass == "password" or r_pas == "" then 
+				if r_pas == "password" or r_pas == "" then 
 					r_pas = user_input("@home server password (leave blank to abort)"+char(10)+":> ", 1) 
 					if r_pas.trim == "" then return("aborting...")
 					alt = user_input("Set "+r_pas+" as @home pass? [<b>Y</b>/n] ||: ",1,1).lower
@@ -1742,7 +1742,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 				r_r = globals.shell.connect_service(r_ip, r_p, get_custom_object.HOME.user, r_pas)
 				if typeof(r_r) == "shell" then
 					infile = r_r.host_computer.File(get_custom_object.HOME.tp)
-					if typeof(infile) != file then 
+					if typeof(infile) != "file" then 
 						infile = r_r.host_computer.File(get_custom_object.HOME.t5)
 						if typeof(infile) != "file" then return colorWarning+"cerebrum: unable to locate tables/tp or tables/t5"+char(10)+"-- run <b>pwgen</b> on server or"+char(10)+"-- check gco.HOME.t5 or gco.HOME.tp"
 					end if
