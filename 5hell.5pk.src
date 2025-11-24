@@ -2113,6 +2113,7 @@ if arg1 == "-M" then return globals.MEMORY
 if arg1 == "-B" then return globals.BUFFER
 if arg1 == "--home" then return get_custom_object.HOME.ip
 if arg1 == "-r" then 
+	if not localmachine.is_network_active then return "bios: no network connection"
 	if arg2 then
 		if is_valid_ip(arg2) then return get_router(arg2)
 		return "bios: get_router: invalid ip"
@@ -2203,7 +2204,7 @@ end for
 tot = folds + bins + txts
 bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] total: ["+tot+"]</size>")
 ess = "-wifi disabled-"
-if localmachine.active_net_card == "WIFI" then
+if localmachine.active_net_card == "WIFI" and localmachine.is_network_active then
 	sig = 0
 	nets = localmachine.wifi_networks("wlan0") 
 	ess = get_router.essid_name
@@ -2420,3 +2421,4 @@ command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, 
 	end if
 	exit(state)
 end function
+
