@@ -789,7 +789,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			wait(1)
 			return detect_hidden
 		end if
-		max = (300000 / ( power.remove("%").val) + 15 )
+		max = (300000 / (( power.remove("%").val) + 15))
 		print
 		print colorGold+"AIR: Options:"
 		print(colorGold+"["+colorWhite+"C</color>]redentials -- connect to the wifi network using the known key"+char(10)+"-- requires knowing the key")
