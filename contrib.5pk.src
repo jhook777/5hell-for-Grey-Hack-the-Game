@@ -3227,6 +3227,8 @@ Modes:
     end if
     i += 1
   end for
-  if mode.indexOf("drop") then return "Dropped " + str(hitCount) + " buffers"
+  if mode.indexOf("drop") != null then
+    return hitCount
+  end if
   return output[:-1]
 end function
