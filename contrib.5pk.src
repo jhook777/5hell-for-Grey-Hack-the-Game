@@ -3194,7 +3194,6 @@ Modes:
   start = globals.BUFFER.len - 1
   stop = 0
   output = ""
-  print(filter)
   for i in range(start, stop)
     buffered = globals.BUFFER[i]
     // skip buffers tws doesnt support
