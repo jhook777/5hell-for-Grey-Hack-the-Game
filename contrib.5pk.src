@@ -3006,3 +3006,197 @@ Usage: dm stop all -- stop <b>all</b> daemons
 	print colorWhite+"<size=85%>Listing Active"+colorRed+" D"+colorWhite+"aemons by ID:"+char(10)
 	return format_columns(dmanager.List.join(char(10)))
 end function
+// tws by aksu
+command.tws = function(arg1, arg2=0,arg3=0,arg4=0)
+  tws_usage = "tws || Track While Scan || Lightning fast buffer management
+Quickly display/modify the buffer
+Usage: tws [query] [opt:operation]
+-- e.g. tws s | list all shell buffers.
+-- operation defaults to list.
+Querying:
+-- every letter in a query indicates a filter of some sort
+-- filters get or'd together, meaning if a buffer hits any filter, it is operated on
+-- user level filters are an exception (see later).
+-- s: shell
+-- c: computer
+-- f: file
+-- user level filters can be used to get all buffers of matching permissions
+-- user level filters are or'd together, but not with other filters
+-- g: guest
+-- u: user
+-- r: root
+-- e.g. tws sr list | List all root shells. Not list of all shells and root buffers
+-- a query can be negated with !
+-- tws !g | List all non guest buffers
+-- cascade filters are filters that expand into multiple filters within a query
+-- e.g. U filter will add both ""user"" and ""root"" filters into the query.
+-- G: guest and up
+-- U: user and up
+-- F: file and up
+-- C: computer and up
+Modes:
+-- l: List buffers.
+-- e.g. tws Cu l | List all user level computer and shell buffers
+-- d: Drop buffers.
+-- e.g. tws f d | Drop all file buffers."
+  if not arg1 or arg1 == "help" or arg1 == "-h" then
+    if not arg2 then
+      return tws_usage
+    end if
+  end if
+  buildFilter = function(arg)
+    filter = []
+    if not arg then return filter
+    filterMap = {
+      "s": "shell",
+      "c": "computer",
+      "C": "computer+",
+      "f": "file",
+      "F": "file+",
+      "!": "not",
+      "r": "root",
+      "u": "user",
+      "U": "user+",
+      "g": "guest",
+      "G": "guest+"
+    }
+    for kv in filterMap
+      if arg.indexOf(kv.key) != null then filter.push(kv.value)
+    end for
+    // for every filter that ends in +, go over all the escalations
+    // and add all the filters right of the filters index
+    escalations = [
+      ["guest", "user", "root"],
+      ["file", "computer", "shell"]
+    ]
+    escalatedFilter = []
+    for f in filter
+      if f[-1] == "+" then
+        for e in escalations
+          i = e.indexOf(f[:-1])
+          if i != null then
+            escalatedFilter += e[i:]
+          end if
+        end for
+      else
+        escalatedFilter.push(f)
+      end if
+    end for
+    // if no access level is specific, return all
+    if escalatedFilter.indexOf("guest") == null and
+    escalatedFilter.indexOf("user") == null and
+    escalatedFilter.indexOf("root") == null then
+      escalatedFilter += ["guest", "user", "root"]
+    end if
+    // if no buffer type is specified, return all
+    if escalatedFilter.indexOf("shell") == null and
+    escalatedFilter.indexOf("computer") == null and
+    escalatedFilter.indexOf("file") == null then
+      escalatedFilter += ["file", "computer", "shell"]
+    end if
+    return escalatedFilter
+  end function
+  modes = {
+      "d": "drop",
+      "l": "list",
+  }
+  mode = ["list"]
+  filter = buildFilter(arg1)
+  allowedBuffers = ["shell", "computer", "file"]
+  if arg2 then 
+    mode = []
+    for letter in arg2
+      if modes.hasIndex(letter) then
+        mode.push(modes[letter])
+      end if
+    end for
+  end if
+  getColoredUser = function(obj)
+    user = checkUser(obj)
+    if user == "root" then return colorRed+user+CT
+    if user == "guest" then return colorGold+user+CT
+    return colorCyan+user+CT
+  end function
+  shellRow = function(shell)
+    out = ""
+    out += getColoredUser(shell)+":"+typeof(shell)
+    out += "@"+colorCyan+shell.host_computer.public_ip+CT+"/"+shell.host_computer.local_ip
+    return out
+  end function
+  computerRow = function(computer)
+    out = ""
+    out += getColoredUser(computer)+":"+typeof(computer)
+    out += "@"+colorCyan+computer.public_ip+CT+"/"+computer.local_ip
+    return out
+  end function
+  fileRow = function(f)
+    out = ""
+    out += getColoredUser(f)+":"+typeof(f)+"@"+colorCyan+f.path
+    if f.permissions[0] == "d" then out += ".d"
+    out += CT
+    out += ":"+rwxToOctal(f.permissions[1:])
+    return out
+  end function
+  rwxToOctal = function(rwx)
+    parseSection = function(sec)
+      out = 0
+      i = 1
+      for e in range(sec.len - 1)
+        if sec[e] != "-" then out += i
+        i += i
+      end for
+      return out
+    end function
+    out = ""
+    out += str(parseSection(rwx[0:3]))
+    out += str(parseSection(rwx[3:6]))
+    out += str(parseSection(rwx[6:9]))
+    return out
+  end function
+  matchFilter = function(b)
+    return filter.indexOf(typeof(buffered)) != null and
+      (filter.indexOf(checkUser(buffered)) != null or
+        (filter.indexOf("user") != null and
+          ["root", "guest"].indexOf(checkUser(buffered)) == null))
+  end function
+  xor = function(a, b)
+    return (a or b) and not (a and b)
+  end function
+  i = 0
+  hitCount = 0
+  hitBuffers = []
+  start = globals.BUFFER.len - 1
+  stop = 0
+  for i in range(start, stop)
+    buffered = globals.BUFFER[i]
+    // skip buffers tws doesnt support
+    if allowedBuffers.indexOf(typeof(@buffered)) == null then continue
+    if xor(matchFilter(@buffered),  filter.indexOf("not") != null) then
+      if mode.indexOf("list") != null then
+        row = colorOrange + "["+str(i)+"]" + CT
+        if typeof(buffered) == "shell" or typeof(buffered) == "ftpshell" then
+          row += shellRow(buffered)
+        end if
+        if typeof(buffered) == "computer" or typeof(buffered) == "ftpshell" then
+          row += computerRow(buffered)
+        end if
+        if typeof(buffered) == "file" or typeof(buffered) == "ftpshell" then
+          row += fileRow(buffered)
+        end if
+        print(row)
+      end if
+      if mode.indexOf("drop") != null then
+        if i == 0 then
+          hitCount -= 1
+        else
+          command.purge("-b", str(i))
+        end if
+      end if
+      hitCount += 1
+      hitBuffers.push(buffered)
+    end if
+    i += 1
+  end for
+  if mode.indexOf("drop") then print("Dropped " + str(hitCount) + " buffers")
+  return hitCount
+end function
