@@ -3010,7 +3010,7 @@ end function
 command.tws = function(arg1, arg2=0,arg3=0,arg4=0)
   tws_usage = "tws || Track While Scan || Lightning fast buffer management
 Quickly display/modify the buffer
-Usage: tws [query] [opt:operation]
+Usage: tws [query] [opt:modes]
 -- e.g. tws s | list all shell buffers.
 -- operation defaults to list.
 Querying:
@@ -3037,6 +3037,9 @@ Querying:
 Modes:
 -- l: List buffers.
 -- e.g. tws Cu l | List all user level computer and shell buffers
+-- p: Removes color formatting from output. Combined with l mode
+-- e.g. tws F pl | List all buffers without colors
+-- useful if you parse the output later
 -- d: Drop buffers.
 -- e.g. tws f d | Drop all file buffers."
   if not arg1 or arg1 == "help" or arg1 == "-h" then
@@ -3099,6 +3102,7 @@ Modes:
   modes = {
       "d": "drop",
       "l": "list",
+      "p": "plain"
   }
   mode = ["list"]
   filter = buildFilter(arg1)
@@ -3113,27 +3117,49 @@ Modes:
   end if
   getColoredUser = function(obj)
     user = checkUser(obj)
-    if user == "root" then return colorRed+user+CT
-    if user == "guest" then return colorGold+user+CT
+    if user == "root" then 
+      out = ""
+      if mode.indexOf("plain") == null then out += colorRed
+      out += user
+      if mode.indexOf("plain") == null then out += CT
+      return out
+    end if
+    if user == "guest" then 
+      out = ""
+      if mode.indexOf("plain") == null then out += colorGold
+      out += user
+      if mode.indexOf("plain") == null then out += CT
+      return out
+    end if
     return colorCyan+user+CT
   end function
   shellRow = function(shell)
     out = ""
     out += getColoredUser(shell)+":"+typeof(shell)
-    out += "@"+colorCyan+shell.host_computer.public_ip+CT+"/"+shell.host_computer.local_ip
+    out += "@"
+    if mode.indexOf("plain") == null then out += colorCyan
+    out += shell.host_computer.public_ip
+    if mode.indexOf("plain") == null then out += CT
+    out += "/"+shell.host_computer.local_ip
     return out
   end function
   computerRow = function(computer)
     out = ""
     out += getColoredUser(computer)+":"+typeof(computer)
-    out += "@"+colorCyan+computer.public_ip+CT+"/"+computer.local_ip
+    out += "@"
+    if mode.indexOf("plain") == null then out += colorCyan
+    out += computer.public_ip
+    if mode.indexOf("plain") == null then out += CT
+    out += "/"+computer.local_ip
     return out
   end function
   fileRow = function(f)
     out = ""
-    out += getColoredUser(f)+":"+typeof(f)+"@"+colorCyan+f.path
+    out += getColoredUser(f)+":"+typeof(f)+"@"
+    if mode.indexOf("plain") == null then out += colorCyan
+    out += f.path
     if f.permissions[0] == "d" then out += ".d"
-    out += CT
+    if mode.indexOf("plain") == null then out += CT
     out += ":"+rwxToOctal(f.permissions[1:])
     return out
   end function
@@ -3167,13 +3193,18 @@ Modes:
   hitBuffers = []
   start = globals.BUFFER.len - 1
   stop = 0
+  output = ""
+  print(filter)
   for i in range(start, stop)
     buffered = globals.BUFFER[i]
     // skip buffers tws doesnt support
     if allowedBuffers.indexOf(typeof(@buffered)) == null then continue
     if xor(matchFilter(@buffered),  filter.indexOf("not") != null) then
       if mode.indexOf("list") != null then
-        row = colorOrange + "["+str(i)+"]" + CT
+        row = ""
+        if mode.indexOf("plain") == null then row += colorOrange
+        row += "["+str(i)+"]"
+        if mode.indexOf("plain") == null then row += CT
         if typeof(buffered) == "shell" or typeof(buffered) == "ftpshell" then
           row += shellRow(buffered)
         end if
@@ -3183,7 +3214,7 @@ Modes:
         if typeof(buffered) == "file" or typeof(buffered) == "ftpshell" then
           row += fileRow(buffered)
         end if
-        print(row)
+        output += row + char(10)
       end if
       if mode.indexOf("drop") != null then
         if i == 0 then
@@ -3197,6 +3228,6 @@ Modes:
     end if
     i += 1
   end for
-  if mode.indexOf("drop") then print("Dropped " + str(hitCount) + " buffers")
-  return hitCount
+  if mode.indexOf("drop") then return "Dropped " + str(hitCount) + " buffers"
+  return output[:-1]
 end function
