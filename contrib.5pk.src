@@ -3078,7 +3078,7 @@ Modes:
         for e in escalations
           i = e.indexOf(f[:-1])
           if i != null then
-            escalatedFilter += e[i:]
+            escalatedFilter = escalatedFilter + e[i:]
           end if
         end for
       else
@@ -3089,13 +3089,13 @@ Modes:
     if escalatedFilter.indexOf("guest") == null and
     escalatedFilter.indexOf("user") == null and
     escalatedFilter.indexOf("root") == null then
-      escalatedFilter += ["guest", "user", "root"]
+      escalatedFilter = escalatedFilter + ["guest", "user", "root"]
     end if
     // if no buffer type is specified, return all
     if escalatedFilter.indexOf("shell") == null and
     escalatedFilter.indexOf("computer") == null and
     escalatedFilter.indexOf("file") == null then
-      escalatedFilter += ["file", "computer", "shell"]
+      escalatedFilter = escalatedFilter + ["file", "computer", "shell"]
     end if
     return escalatedFilter
   end function
@@ -3119,48 +3119,48 @@ Modes:
     user = checkUser(obj)
     if user == "root" then 
       out = ""
-      if mode.indexOf("plain") == null then out += colorRed
-      out += user
-      if mode.indexOf("plain") == null then out += CT
+      if mode.indexOf("plain") == null then out = out + colorRed
+      out = out + user
+      if mode.indexOf("plain") == null then out = out + CT
       return out
     end if
     if user == "guest" then 
       out = ""
-      if mode.indexOf("plain") == null then out += colorGold
-      out += user
-      if mode.indexOf("plain") == null then out += CT
+      if mode.indexOf("plain") == null then out = out + colorGold
+      out = out + user
+      if mode.indexOf("plain") == null then out = out + CT
       return out
     end if
     return colorCyan+user+CT
   end function
   shellRow = function(shell)
     out = ""
-    out += getColoredUser(shell)+":"+typeof(shell)
-    out += "@"
-    if mode.indexOf("plain") == null then out += colorCyan
-    out += shell.host_computer.public_ip
-    if mode.indexOf("plain") == null then out += CT
-    out += "/"+shell.host_computer.local_ip
+    out = out + getColoredUser(shell)+":"+typeof(shell)
+    out = out + "@"
+    if mode.indexOf("plain") == null then out = out + colorCyan
+    out = out + shell.host_computer.public_ip
+    if mode.indexOf("plain") == null then out = out + CT
+    out = out + "/"+shell.host_computer.local_ip
     return out
   end function
   computerRow = function(computer)
     out = ""
-    out += getColoredUser(computer)+":"+typeof(computer)
-    out += "@"
-    if mode.indexOf("plain") == null then out += colorCyan
-    out += computer.public_ip
-    if mode.indexOf("plain") == null then out += CT
-    out += "/"+computer.local_ip
+    out = out + getColoredUser(computer)+":"+typeof(computer)
+    out = out + "@"
+    if mode.indexOf("plain") == null then out = out + colorCyan
+    out = out + computer.public_ip
+    if mode.indexOf("plain") == null then out = out + CT
+    out = out + "/"+computer.local_ip
     return out
   end function
   fileRow = function(f)
     out = ""
-    out += getColoredUser(f)+":"+typeof(f)+"@"
-    if mode.indexOf("plain") == null then out += colorCyan
-    out += f.path
-    if f.permissions[0] == "d" then out += ".d"
-    if mode.indexOf("plain") == null then out += CT
-    out += ":"+rwxToOctal(f.permissions[1:])
+    out = out + getColoredUser(f)+":"+typeof(f)+"@"
+    if mode.indexOf("plain") == null then out = out + colorCyan
+    out = out + f.path
+    if f.permissions[0] == "d" then out = out + ".d"
+    if mode.indexOf("plain") == null then out = out + CT
+    out = out + ":"+rwxToOctal(f.permissions[1:])
     return out
   end function
   rwxToOctal = function(rwx)
@@ -3168,15 +3168,15 @@ Modes:
       out = 0
       i = 1
       for e in range(sec.len - 1)
-        if sec[e] != "-" then out += i
-        i += i
+        if sec[e] != "-" then out = out + i
+        i = i + i
       end for
       return out
     end function
     out = ""
-    out += str(parseSection(rwx[0:3]))
-    out += str(parseSection(rwx[3:6]))
-    out += str(parseSection(rwx[6:9]))
+    out = out + str(parseSection(rwx[0:3]))
+    out = out + str(parseSection(rwx[3:6]))
+    out = out + str(parseSection(rwx[6:9]))
     return out
   end function
   matchFilter = function(b)
@@ -3201,19 +3201,19 @@ Modes:
     if xor(matchFilter(@buffered),  filter.indexOf("not") != null) then
       if mode.indexOf("list") != null then
         row = ""
-        if mode.indexOf("plain") == null then row += colorOrange
-        row += "["+str(i)+"]"
-        if mode.indexOf("plain") == null then row += CT
+        if mode.indexOf("plain") == null then row = row+ colorOrange
+        row = row+ "["+str(i)+"]"
+        if mode.indexOf("plain") == null then row = row+ CT
         if typeof(buffered) == "shell" or typeof(buffered) == "ftpshell" then
-          row += shellRow(buffered)
+          row = row+ shellRow(buffered)
         end if
         if typeof(buffered) == "computer" or typeof(buffered) == "ftpshell" then
-          row += computerRow(buffered)
+          row = row+ computerRow(buffered)
         end if
         if typeof(buffered) == "file" or typeof(buffered) == "ftpshell" then
-          row += fileRow(buffered)
+          row = row+ fileRow(buffered)
         end if
-        output += row + char(10)
+        output = output + row + char(10)
       end if
       if mode.indexOf("drop") != null then
         if i == 0 then
@@ -3222,10 +3222,10 @@ Modes:
           command.purge("-b", str(i))
         end if
       end if
-      hitCount += 1
+      hitCount = hitCount + 1
       hitBuffers.push(buffered)
     end if
-    i += 1
+    i = i + 1
   end for
   if mode.indexOf("drop") != null then
     return hitCount
