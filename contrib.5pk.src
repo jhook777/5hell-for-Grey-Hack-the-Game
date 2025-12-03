@@ -3214,7 +3214,7 @@ Modes:
       end if
       if mode.indexOf("drop") != null then
         if i == 0 then
-          hitCount = hitCount + 1
+          hitCount = hitCount - 1
         else
           command.purge("-b", str(i))
         end if
@@ -3229,5 +3229,6 @@ Modes:
   end if
   return output[:-1]
 end function
+
 
 
