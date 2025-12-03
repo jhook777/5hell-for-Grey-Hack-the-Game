@@ -3061,8 +3061,7 @@ Modes:
       "u": "user",
       "U": "user+",
       "g": "guest",
-      "G": "guest+"
-    }
+      "G": "guest+" }
     for kv in filterMap
       if arg.indexOf(kv.key) != null then filter.push(kv.value)
     end for
@@ -3070,8 +3069,7 @@ Modes:
     // and add all the filters right of the filters index
     escalations = [
       ["guest", "user", "root"],
-      ["file", "computer", "shell"]
-    ]
+      ["file", "computer", "shell"] ]
     escalatedFilter = []
     for f in filter
       if f[-1] == "+" then
@@ -3102,8 +3100,7 @@ Modes:
   modes = {
       "d": "drop",
       "l": "list",
-      "p": "plain"
-  }
+      "p": "plain" }
   mode = ["list"]
   filter = buildFilter(arg1)
   allowedBuffers = ["shell", "computer", "file"]
@@ -3232,3 +3229,4 @@ Modes:
   end if
   return output[:-1]
 end function
+
