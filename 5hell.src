@@ -19,10 +19,10 @@
 //
 //
 //
-//////////////////////////////// OPTIONAL SECURITY SECTION //////////////////////
-// ////////////////////////////// YOUR SECURITY GOES HERE //////////////////////
-// ///// customize this line fully (with something more advanced) for the most security ////////
-//   access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}//////////////////////////////////////////////////////////////
+////////////////////////////////               OPTIONAL SECURITY SECTION            //////////////////////
+// //////////////////////////////              YOUR SECURITY GOES HERE              //////////////////////
+// ///// customize this line fully (with something more advanced) for the most security      ////////
+//   access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}
 //   // if you rename access_codes be sure to edit the below line
 //   rnac = access_codes.indexes
 //   rnac.shuffle
@@ -33,43 +33,60 @@
 //   else 
 //     access_codes = null
 //   end if
-// /////////////////END SECURITY///////////////////
+///////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD and/or decryption keys  !!!!! ////////////////////////////////
 //
-//
-///////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
-//
+//                                          /////////////////END SECURITY///////////////////
 // //////////////MAP OPTION////////////////
 // uncomment only ONE of the 'command =' lines. At least one must be selected.
 // option {} == normal 5hell mode. default.
 // option get_custom_object == load 5hell to custom object. EXPERIMENTAL!!!
 // choose one below:
-command = {} // default
-//command = get_custom_object // experimental, use with caution
+command = {} // default; do not change this if you don't know what you're doing!!!!!
+//command = get_custom_object // experimental, use with caution; do not change this if you don't know what you are doing!!!!
 //
 //////////END MAP OPTION//////////////////
 //
 //////////////////// BEGIN @HOME || @HOME_SERVER CONFIGURATION!!!!/////////////////////////////////////////////
 //
 /////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
-
-//
+//                  @HOME SERVER CONFIGURATION                        ////////
 //-- skipping the ip and password in this configuration means you can't use the transmit command. up to you.
 //-- however, you can always edit it at runtime since the values are stored in the custom object
 //-- use: shell --home [ip] or cob set HOME.ip [ip]
+///// ALL FIELDS ARE OPTIONAL //////
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
-// the HOME map, below, is comprised of: "string: ip", number: ssh_port, number:rshell_port, "string: username", "string: password", "string: ssh | ftp", "string: /path/to/pass (default: /root/pass)", "string: /path/to/database.csv (default: /root/rkit/database.csv)", "string: /path/to/tables/t5 (default: /root/rkit/tables/t5", "string: /path/to/tables/tp (default: /root/rkit/tables/tp)"
-if not get_custom_object.hasIndex("HOME") or typeof(get_custom_object.HOME) != "map" then get_custom_object.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"}
+if not get_custom_object.hasIndex("HOME") or typeof(get_custom_object.HOME) != "map" then 
+  get_custom_object.HOME = {
+  "ip":"ip.add.rr.ess",                 // rshell and hashim server ip address (@home)
+  "loginport":22,                       // @home ssh port
+  "rshellport":1222,                    // @home rshell port
+  "user":"root",                        // @home user
+  "pass":"password",                    // @home password
+  "loginprotocol":"ssh",                // @home login: ssh or ftp
+  "sharedfile":"/root/pass",            // @home transmit swap file (for hashim)
+  "database":"/root/rkit/database.csv", // default path for database.csv
+  "t5":"/root/rkit/tables/t5",          // default path for tables/t5
+  "tp":"/root/rkit/tables/tp",          // default path for tables/tp
+  "dorc_key":0,                         // decrypt do.rc with this key, if encrypted. leave at 0 if not in use
+  "map_key":0,                          // decrypt Map.conf with this key, if encrypted. leave at 0 if not in use
+  "classID":"at_home"}   
+end if                      
 // the above values are optional and may be left at default if you you don't plan to use them
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
   // @home will be replaced with your ip, no password needed in this case
   // password is needed for advanced functions, such as with the transmit command
+// **** you may alter these values at runtime by setting overrides in do.rc like so:
+// set HOME.key new_value
+// eg: ifconfig -p | set HOME.ip
+// -- to set the launch machine's ip as the home server; useful in ~/Config/do.rc but not so much ~/rkit/do.rc
+// ** remember Config/do.rc takes priority over rkit/do.rc **
 //
-/////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
+/////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD or encryption keys   !!!!! ////////////////////////////////
 //
 //
-////// END @HOME || @HOME_SERVER CONFIGURATION//////////////////////////////////////////////////
+//////                       END @HOME || @HOME_SERVER CONFIGURATION                   //////////////////////////////////////////////////
 //
 //
 // DEFINE COLOR PALETTE //
@@ -287,7 +304,7 @@ command.shell = function(input=null,mute=null)
 
       // post_pre_processing
 
-      // experimental forking
+      // experimental forking and tokenization
       if DEBUG then print "debug: -- begin experimental..."
       fork = false
       for pp in prompt 
@@ -296,6 +313,10 @@ command.shell = function(input=null,mute=null)
           fork = true
           prompt.indexOf("--nt") = 0
         end if
+        // tokens?
+        // if @pp == "{" and prompt.indexOf("}",prompt.indexOf(@pp)) != null then 
+        // pre_prompt = prompt[:prompt.indexOf(@pp)]
+        // token = prompt[prompt.indexOf]
       end for
 
       if EXPERIMENTAL then 
@@ -336,29 +357,7 @@ command.shell = function(input=null,mute=null)
           print "shell: "+colorWhite+"</b>active shell pushed to "+colorOrange+"</b>BUFFER"
           continue 
         end if
-        // if @prompt[1] == "--daemons" then
-        //   //print format_columns(dmanager.List.join(char(10))) // generating 5hell.d on launch or when using this command has caused some issues
-        //   //if @prompt[2] == "stop" then print dmanager.Stop(prompt[3]) // so we return to the 'hack'
-        //   // (un)holy nested if statements, Batman!
-        //   dm = command.tree("/","5hell.d","1","N")
-        //   if not dm then 
-        //     print "shell: 5hell.d not found; no daemons detected"
-        //     continue
-        //   else 
-        //     if dm.has_permission("r") then 
-        //       globals.dmanager = new DaemonManager
-        //       dmanager.Init
-        //       print colorRed+"shell:"+colorWhite+" active</color> D"+colorWhite+"aemons:"+char(10)+colorWhite+"- - -"
-        //       print format_columns(dmanager.List.join(char(10)))
-        //       if @prompt[2] == "stop" then 
-        //         if @prompt[3] == "all" then dm.delete else print dmanager.Stop(prompt[3])
-        //       end if
-        //     else 
-        //       print "shell: 5hell.d is read protected"
-        //     end if
-        //   end if
-        //   continue
-        // end if
+
         if @prompt[1] == "--debug" then
           print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
           globals.DEBUG = not globals.DEBUG
@@ -392,6 +391,7 @@ command.shell = function(input=null,mute=null)
         //print("<size=65%>--: use<b> shell --daemons</b> to view active daemons")
         //print("<size=65%>--: use<b> shell --daemons stop [daemon_id]</b> to stop a daemon")
         print("<size=65%>--: use<b> shell --debug</b> to toggle debug mode")
+        print("<size=65%>--: use<b> prompt</b> to toggle full-prompt mode")
         continue 
       end if
       //
@@ -493,24 +493,33 @@ if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
 //
 //
 //////////////////////////set-pre-launch-conditions/////////////////////////////////////
+// validate custom object
+if DEBUG then print("<size=75%>validating custom object...")
+command.cob("validate")
+// verify stack pool
 if DEBUG then print("<size=75%>verifying stack_pool...")
 sp = globals.stack_pool
 if DEBUG then print("<size=75%>stack_pool: ["+sp+"]") 
-if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
-// auto 'do' a batch file on startup
-// unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
-// only executes if do.rc is located in a folder named rkit or your Config folder
-// if one exists in both, the one in Config is executed, not the one in rkit
-dorc = globals._startup_resource_configuration
-if DEBUG then print dorc
 // export our metaxploit, crypto, shell on each startup
 if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib, CryptoLib, Shell...")
 emx = globals._export_metax_et_al
 if DEBUG then print("<size=75%>-- "+emx)
+// auto 'do' a batch file on startup
+// unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
+// only executes if do.rc is located in a folder named rkit or your Config folder
+// if one exists in both, the one in Config is executed, not the one in rkit
+if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
+dorc = globals._startup_resource_configuration
+if DEBUG then print dorc
+// import tables/tp if it exists
 if DEBUG then print("<size=75%>checking for tables/[tp|t5]")
-itp = globals._import_tables // import tables/tp if it exists
+itp = globals._import_tables 
 if DEBUG then print itp
+////////////////////////////
+////////////////////////
+/////////// the launch banner /////////////////////////
 print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
+// end launch banner
 //////////////////END prelaunch-conditions///////////////////////////////////
 //
 /////BEGIN launch_with_do CONTROL///////////////////////////////
