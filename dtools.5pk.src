@@ -1,8 +1,12 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.7...(147.894)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.8...(155.233)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
+	cy = colorCyan 
+	cw = colorWhite
+	cv = colorViolet 
+	cm = colorMagenta
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
-	colorCyan+"Usage: cob set [key] [val] -- set custom object key to val"+char(10)+
+	cy+"Usage: cob "+cw+"set"+CT+" [key] [val] -- set custom object key to val"+char(10)+
 	"-- returns string on success or error"+char(10)+
 	"-- create a map within the custom object by using<b> {}</b> as your val"+char(10)+
 	"--eg:<b> cob set newmap {}"+char(10)+
@@ -11,37 +15,41 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	"---- the map must already exist in order to add an index to the map"+char(10)+
 	"-- create a new list in the custom object by using<b> []</b> as your val"+char(10)+
 	"--eg:<b> cob set newlist []"+char(10)+
-	"---- at this time it is not possible to add to a list in the custom object"+char(10)+
-	colorCyan+"Usage: cob get [key] -- get value of custom object key"+char(10)+
-	"-- returns value at key or null"+char(10)+
+	"---- it is not possible to <b>set</b> a non-existant list index"+char(10)+
+	"------ use <b>cob push</b> instead"+char(10)+
+	cy+"Usage: cob "+cw+"get"+CT+" [key] -- get value of custom object key"+char(10)+
+	"-- returns value at key on successs, string on failure"+char(10)+
 	"-- returns @reference (pointer) if value is a function"+char(10)+
 	"-- use dot reference to retrieve nested elements of lists and maps"+char(10)+
 	"--eg: cob get foo.bar"+char(10)+
 	"--eg: cob get foo.bar.1 -- where 1 is index 1 of a list"+char(10)+
-	colorCyan+"Usage: cob return -- returns the raw custom object"+char(10)+
+	cy+"Usage: cob "+cw+"push"+CT+" [key] [value] -- push a value to a list or map"+char(10)+
+	"-- pushing an index to a map sets the value of that index to a numerical 1"+char(10)+
+	cy+"Usage: cob "+cw+"return"+CT+" -- returns the raw custom object"+char(10)+
 	"-- pipe to command.<b>code</b> to decompile the object"+char(10)+
 	"-- ie:<b> cob return | code</b>"+char(10)+
-	colorCyan+"Usage: <b>cob inspect [opt:key]</b> -- returns key/value pair information of custom object"+char(10)+
+	cy+"Usage: cob "+cw+"inspect"+CT+" [opt:key] -- returns key/value pair information of custom object"+char(10)+
 	"-- returns a string pairing each key with its [truncated] value"+char(10)+
 	"-- values are truncated to make the object easier to inspect"+char(10)+
 	"-- please use <b>cob return | code</b> if you want the raw output"+char(10)+
 	"--<b> if a key is passed and the key is a map in the custom object;"+char(10)+
 	"---- cob will <b>inspect</b> that map, instead (currently only one layer)"+char(10)+
-	colorCyan+"Usage: cob indexes -- return custom object indexes as a LIST"+char(10)+
+	cy+"Usage: cob "+cw+"indexes"+CT+" -- return custom object indexes as a LIST"+char(10)+
 	"-- pipe to the <b>string</b> command to stringify"+char(10)+
-	colorCyan+"Usage: cob search [val] --  search for index of val"+char(10)+
+	cy+"Usage: cob "+cw+"search"+CT+" [val] --  search for index of val"+char(10)+
 	"-- returns string; key or failure message."+char(10)+
 	"Inactive: cob sign -- future ability to sign custom object"+char(10)+
 	"-- currently returns 0 (zero)"+char(10)+
-	colorCyan+"Usage: cob del [key] -- delete key and its value from custom object"+char(10)+
+	cy+"Usage: cob "+cw+"del"+CT+" [key] -- delete key and its value from custom object"+char(10)+
 	"-- returns string on success or failure"+char(10)+
-	colorCyan+"Usage: cob <b>purge</b> -- purge the custom object"+char(10)+
-	colorCyan+"Usage: cob validate -- ensure the custom_object contains indexes:"+char(10)+
+	cy+"Usage: cob "+cw+"purge"+CT+" -- purge the custom object"+char(10)+
+	cy+"Usage: cob "+cw+"validate"+CT+" -- ensure the custom_object contains indexes:"+char(10)+
 	"--: macros"+char(10)+
 	"--: stack_pool"+char(10)+
 	"--: this avoids crashes when those indexes don't exist"+char(10)+
 	"--: this is run by 5hell automatically in many cases"+char(10)+
-	colorCyan+"Usage: cob install [key] -- install a function residing in the custom object at [key]"+char(10)+
+	cy+"Usage: cob "+cw+"reset"+CT+" -- reset the custom object to startup conditions "+char(10)+
+	cy+"Usage: cob "+cw+"install"+CT+" [key] -- install a function residing in the custom object at [key]"+char(10)+
 	"-- this will add the function as a 5hell command (it will show up in help)"+char(10)+
 	"-- functions must still follow the standard template to avoid errors"+char(10)+
 	"-- the funciton will not persist after 5hell is closed"+char(10)+
@@ -49,7 +57,20 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	"Advanced: the "+colorGold+"cerebrum"+CT+" command loads the dictionary to the custom object"+char(10)+
 	"-- it is loaded to custom_object.dictionary and can be removed by passing the 'purge' param to cerebrum"+char(10)+
 	"-- this is allows you to use the dictionary between nested shell.launches with only a single run of cerebrum"+char(10)+char(10)+
-	"<b>N.B.</b> -- since version 3.8.3 5hell.src contains aliases for cob set and cob get:"+char(10)+
+	colorGold+"Tokens: "+char(10)+
+	"NOTE: when passing "+colorViolet+"null"+CT+" or "+colorViolet+"0"+CT+" (zero) use tokens:"+char(10)+
+	"-- "+colorViolet+"@n"+CT+" == "+colorViolet+"null"+char(10)+
+	"-- "+colorViolet+"@z"+CT+" == "+colorViolet+"0"+char(10)+
+	"--eg: <b>set a "+colorGold+"{}"+CT+" || set a.b "+colorViolet+"@z"+CT+"</b> "+colorGrey+"// a.b == "+colorViolet+"0"+char(10)+
+	"----: <b>set a.c 0</b> "+colorGrey+"// a.c == ""0"""+char(10)+
+	"----: <b>set a."+colorViolet+"@z @n"+CT+"</b> "+colorGrey+"// a["+colorViolet+"0"+CT+"] == "+colorViolet+"null"+char(10)+
+	"----: <b>set a.0 zero</b> "+colorGrey+"// a[""0""] == ""zero"""+char(10)+
+	"Exception: a list index is always interpreted as an int"+char(10)+
+	"--eg: <b>get mylist.1</b> will retrieve mylist[1]"+char(10)+
+	"-- use "+colorMagenta+"\"+CT+" to escape these tokens"+char(10)+
+	"--eg: <b>set fido "+colorMagenta+"\"+colorViolet+"@z"+CT+colorGrey+" // fido == @z"+char(10)+
+	char(10)+
+	"<b>N.B.:</b> Since version 3.8.3 5hell.src contains aliases for cob set and cob get:"+char(10)+
 	colorGold+"Usage: set [key] [value] -- same as cob set [key] [value]"+char(10)+
 	colorGold+"Usage: get [key] -- same as cob get [key]"+char(10)+char(10)+
 	colorGold+"EZclip: you may use "+colorWhite+"@o </color>[<color=white>key</color>]</b>"+char(10)+
@@ -61,10 +82,17 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cob = {}
 	cob.err = "cob: invalid input: see <b>cob -h"
 	cob.set = function( key=0, val=0, kl="", nul=0 )
-		if not @key or not @val then return null
+		//if not @key or not @val then return null
+		if is_restricted(cobble) then return "cob: cannot set to protected game object"
+		if @key == "macros" then return "cob: <b>macros</b> is a protected map"+char(10)+"-- add/del macros with the <b>macro</b> command"
 		if @key == "HOME" then return "cob: use <b>set HOME.key [value]"+char(10)+"-- use<b> get HOME</b> to see available values"
 		if @val == "{}" then val = {}
 		if @val == "[]" then val = []
+		if @val == "@z" then val = 0
+		if @key == "@z" then key = 0
+		if @val == "\@z" then val = "@z"
+		if @key == "\@z" then key = "@z"
+		if typeof(cobble) == "list" and cobble.len <= @key then return "cob: cannot set a list index; use <b>cob push</b> instead"
 		if typeof(@key) == "function" then
 			if typeof(@val) == "function" then
 				cobble[@key] = @val
@@ -89,24 +117,60 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		return "cob: key not found"
 	end function
 
-	cob.search = function ( val=0, key=0, nil=0, nul=0 )
-		if cobble.indexOf( @val ) != null then
-		if typeof(@val) == "function" then return cobble.indexOf( @val )
-			return cobble.indexOf( val )
+	cob._push = function( key=0, valu=0 )
+		dest = command.cob("get",@key)
+		if dest == "cob: key not found" then return dest
+		if cob._inspectible(dest) then
+			if is_restricted(dest) then return "cob: cannot push to protected game object"
+			if not @valu then return "cob: invalid input; <size=75%>use <b>@z</b> for zero and <b>@n</b> for null"+char(10)+"<size=75%>-- escape with \@z, \@n"
+			if @valu == "@z" then valu = 0
+			if @valu == "@n" then valu = null
+			if @valu == "\@z" then valu = "@z"
+			if @valu == "\@n" then valu = "@n"
+			if @valu == "{}" then valu = {}
+			if @valu == "[]" then valu = []
+			dest.push(@valu)
+			return "cob: pushing "+colorGold+valu+CT+" to "+colorGold+key+CT+"..."
 		else
-			if cobble.indexOf( val ) != null then return cobble.indexOf( val )
+			return "cob: destination is not a list or map; aborting..."
+		end if
+	end function
+	// cob.search = function( val=0, key=0, nil=0, nul=0 )
+	// 	if cobble.indexOf( @val ) != null then
+	// 		if typeof(@val) == "function" then return cobble.indexOf( @val )
+	// 		return cobble.indexOf( val )
+	// 	else
+	// 		if cobble.indexOf( val ) != null then return cobble.indexOf( val )
+	// 		return "cob: value not found"
+	// 	end if
+	// end function
+	cob.search = function( valu=0, key=0, nil=0, nul=0 )
+		if cobble.indexOf( @valu ) != null then
+			if typeof(@valu) == "function" then return cobble.indexOf( @valu ) else return cobble.indexOf( valu )
+		else
 			return "cob: value not found"
 		end if
 	end function
-
 	cob.return_indexes = function(key=0,val=0,nil=0,nul=0)
 		return cobble.indexes
 	end function
-	
-	cob.inspect = function( key=0, val=0, nil=0, nul=0 )
+	cob._inspectible = function(tmpc)
+		if DEBUG then print "is_inspectibible: "+@tmpc
+		if typeof(@tmpc) == "function" or typeof(tmpc) == "number" or typeof(tmpc) == "string" then return 0
+		if typeof(tmpc) == "list" or typeof(tmpc) == "map" then return 1
+		if not tmpc then return 0
+		if tmpc.hasIndex("classID") then return 1
+		return 0
+	end function
+	// yikes, make this better in the future
+	cob.inspect = function( key=0, valu=0, nil=0, nul=0 )
+		if DEBUG then print "debug: inspecting: key"+@key+char(10)+"-- on cobble: "+@cobble
 		if @key then 
 			tmpc = command.cob("get",@key)
-			if typeof(@tmpc) == "map" then cobble = tmpc else return "cob: cannot inspect non-list/non-map;"+char(10)+"-- instead use:<b> cob get"
+			if @tmpc == "cob: key not found" then return tmpc
+			if DEBUG then print "<b>debug: tmpc is: "+@tmpc+char(10)+"-- and is a: "+typeof(@tmpc)
+			//if @tmpc and not @tmpc isa number and typeof(@tmpc) != "function" and (typeof(@tmpc) == "map" or typeof(@tmpc) == "list" or @tmpc.hasIndex("classID")) then cobble = @tmpc else return "cob: cannot inspect non-list/non-map;"+char(10)+"-- instead use:<b> cob get"
+			if cob._inspectible(@tmpc) then cobble = @tmpc else return "cob: cannot inspect non-list/non-map;"+char(10)+"-- instead use:<b> cob get"
 		end if
 		inspect_buf = []
 		value_buf = []
@@ -115,13 +179,21 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		inspect_buf.push(st)
 		value_buf.push(sv)
 		for thing in cobble 
-			parsed_value = @thing.value
-			if typeof(@thing.value) == "string" and thing.value.len > 32 then parsed_value = thing.value[:27]+"..."
-			if typeof(@thing.value) == "list" and thing.value.len > 5 then parsed_value = thing.value[:5]+["..."]
-			if typeof(@thing.value) == "map" then 
-				if str(thing.value).len > 42 then parsed_value = str(thing.value)[:42]+"...}" else parsed_value = str(thing.value)
+			indx = ""
+			if DEBUG then print "debug: cobble: "+@cobble+char(10)+"-- thing: "+@thing
+			//if @cobble isa map or (@cobble and typeof(@cobble) != "number" and typeof(@cobble) != "function" and @cobble.hasIndex("classID")) then 
+			if cob._inspectible(@cobble) and cobble isa map then parsed_value = @thing.value else parsed_value = @thing
+			//if typeof(@thing) == "map" or (@thing and typeof(@thing) != "number" and typeof(@thing) != "function" and @thing.hasIndex("classID")) then 
+			if cob._inspectible(@thing) then indx = @thing.key else indx = @cobble.indexOf(@thing)
+			ogtype = typeof(@parsed_value)
+			// trim
+			if typeof(@parsed_value) == "string" and parsed_value.len > 32 then parsed_value = parsed_value[:27]+"..."
+			if typeof(@parsed_value) == "list" and parsed_value.len > 5 then parsed_value = parsed_value[:5]+["..."]
+			//if typeof(@parsed_value) == "map" then 
+			if cob._inspectible(@parsed_value) then
+				if str(@parsed_value).len > 42 then parsed_value = str(parsed_value)[:42]+"...}" //else parsed_value = str(thing.value)
 			end if
-			inspect_buf.push(@thing.key + " "+colorWhite+":"+CT+" [" + colorGold+"</b>"+ typeof(@thing.value) + "</color>] "+colorWhite+":"+CT+" ")// + parsed_value)
+			inspect_buf.push(@indx + " "+colorWhite+":"+CT+" [" + colorGold+"</b>"+ ogtype + "</color>] "+colorWhite+":"+CT+" ")// + parsed_value)
 			value_buf.push(@parsed_value)
 		end for
 		inspect_buf.push("[end of ")
@@ -139,36 +211,45 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		end for
 		return format_buf.join(char(10))
 	end function
+	// /end yikes
 
 	cob.validate = function()
 		if DEBUG then print "debug: cob: validating custom object"
 		o=[]
 		o.push(colorCyan+"</b>cob: validating custom object...")
-		if not cobble.hasIndex("macros") then; cobble.macros = {};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
+		if not cobble.hasIndex("macros") then; cobble.macros = {"classID":"macros"};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
 		if not cobble.hasIndex("stack_pool") then; cobble.stack_pool = 0;o.push(colorOrange+"<size=75%>--: restoring index: stack_pool");end if
-		if not cobble.hasIndex("HOME") or not cobble.HOME isa map then ; cobble.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp"};end if
+		if not cobble.hasIndex("HOME") or not cobble.HOME isa map then ; cobble.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp","dorc_key":0,"map_key":0,"classID":"at_home"};end if
 		// nested cobble.HOME validation needed
-		return o.join(char(10))
+		if DEBUG then return print("debug:"+char(10)+o.join(char(10))) else return o.join(char(10))
 	end function
 
-	cob.del = function( key=0, val=0, nil=0, nul=0 )
-		if typeof(@key) == "function" then
-		if cobble.remove( @key ) then return "cob: removed key: <b>"+@key+"</b>" //else return "cob: key not found."
-		else
-		if cobble.remove( key ) then return "cob: removed key: <b>"+key+"</b>" else return "cob: key not found"
-		end if
+	cob.reset = function()
+		self.validate 
+		get_custom_object.stack_pool = 0
+		globals._startup_resource_configuration
+		globals._export_metax_et_al
+		return colorGold+"cob: </b>resource configuration reset"
 	end function
 
-	cob.sign = function( key=0, val=0, nil=0, nul=0 )
-		return cob.set( "signature" , command.code("-a", key))
+	cob.del = function( key=0, valu=0, nil=0, nul=0 )
+		// d = command.cob("get",@key)
+		// if @d == "cob: key not found" then return d
+		if is_restricted(cobble) then return "cob: cannot delete from protected game objects"
+		cobble.remove( @key )
+		return "cob: removed key: <b>"+@key+"</b> from "+typeof(cobble)
 	end function
 
-	cob.install = function(key=0, val=0, nil=0, nul=0)
+	cob.sign = function( key=0, valu=0, nil=0, nul=0 )
+		return command.cob("set","signature",command.code("-a", key))
+	end function
+
+	cob.install = function(key=0, valu=0, nil=0, nul=0)
 		g = @cob.get
-		new_command = g(key)
+		new_command = @g(key)
 		if typeof(@new_command) == "string" then return new_command + ": Install failed"
 		if typeof(@new_command) == "function" then 
-			command[key] = @new_command 
+			globals.command[key] = @new_command 
 			return "Set command."+key+" to "+@new_command
 		else 
 			return "cob: install expects a function"
@@ -177,13 +258,14 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 
 	if arg1 == "return" then return cobble
 	if arg1 == "validate" then return cob.validate
+	if arg1 == "reset" then return cob.reset
 	if arg1 == "install" then 
 		if typeof(@arg2) == "string" then return cob.install(arg2) else return "cob: install expects a (string: key) from the custom object"
 	end if
 
 	if arg1 == "set" then
 		if not @arg2 then return "cob: index cannot be zero or null"
-		//if @arg3 then
+		if @arg3 then
 			if @arg2 == "@clipa" then arg2 = @globals.CLIP["a"]
 			if @arg2 == "@clipb" then arg2 = @globals.CLIP["b"]
 			if @arg2 == "@clipc" then arg2 = @globals.CLIP["c"]
@@ -199,43 +281,56 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 					idx = kl.pop
 					kl = kl.join(".")
 					tmp_c = command.cob("get",kl)
-					if typeof(tmp_c) == "list" or typeof(tmp_c) == "map" then cobble = tmp_c else return "cob: target index is not a list or map"
+					if DEBUG then print "debug: tmp_c: "+@tmp_c
+					if @tmp_c == "cob: key not found" then return tmp_c
+					if cob._inspectible(@tmp_c) then cobble = @tmp_c else return "cob: target index is not a list or map"
 				end if
 			end if
-			if typeof(cobble) == "list" and typeof(@idx) == "string" then idx = idx.to_int
+			if typeof(@cobble) == "list" and typeof(@idx) == "string" then idx = idx.to_int
 			return cob.set( @idx, @arg3, kl )
-		//else
-		//	return "cob: invalid input: see <b>cob -h</b>"
-		//end if
+		else
+			return "cob: invalid input; <size=75%>use <b>@z</b> for zero and <b>@n</b> for null"+char(10)+"<size=75%>-- escape with \@z, \@n"
+		end if
 	end if
-	if arg1 == "get" then
+	if arg1 == "get" or arg1 == "del" then
 		if not @arg2 then return cob.err
 		kl = []
 		rl = []
 		if typeof(@arg2) == "string" then kl = arg2.split("\.") else kl = [@arg2]
 		if DEBUG then print "key list: "+kl
+		last_c = cobble
+		brok = 0
 		for k in kl 
 			g = @cob.get
 			if typeof(cobble) == "list" and typeof(@k) == "string" and typeof(k.to_int) == "number" then k = k.to_int
-			rl.push(g(@k))
-			if typeof(@rl[-1]) == "map" or typeof(@rl[-1]) == "list" then cobble = rl[-1] else break 
+			got = g(@k)
+			if @got == "cob: key not found" then return got
+			rl.push(@got)
+			if cob._inspectible(@rl[-1]) then 
+				last_c = cobble
+				cobble = rl[-1]
+			else
+				brok = 1
+				break
+			end if
 		end for
+		if arg1 == "del" then
+			if not brok then cobble = last_c
+			return cob.del(@kl[-1])
+		end if
 		return rl[-1]
 	end if
-
-	if arg1 == "indexes" then 
-		return cob.return_indexes
-	end if
-	if arg1 == "inspect" then
-		return cob.inspect(@arg2)
-	end if
+	if arg1 == "push" then return cob._push(@arg2,@arg3)
+	if arg1 == "indexes" then return cob.return_indexes
+	if arg1 == "inspect" then return cob.inspect(@arg2)
 	if arg1 == "sign" then return cob.sign(signature)
 	if arg1 == "search" then
 		if @arg2 then return cob.search( @arg2 ) else return cob.err
 	end if
-	if arg1 == "del" then
-		if @arg2 then return cob.del( @arg2 ) else return cob.err
-	end if
+	// if arg1 == "del" then
+	// 	if @arg2 == "macros.classID" or arg2 == "HOME.classID" then return "cob: "+arg2+" is a protected value"
+	// 	if @arg2 then return cob.del( @arg2 ) else return cob.err
+	// end if
 	if arg1 == "purge" then return command.purge("-o","y")
 	return cob.err
 end function
@@ -489,10 +584,11 @@ command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Gopher: decipher tool"+char(10)+"Usage: gopher [/path/to/file|file_object|hash_string|hash_list|@tbuf] -- decipher hashes using onboard dictionary or crypto.decipher."+char(10)+"-- outputs to /current_path/dump.txt"+char(10)+"-- see cerebrum for dictionary options."+char(10)+"-- gopher [/path] -- decipher contents of path"+char(10)+"-- gopher [object] -- decipher piped file object"+char(10)+"-- gopher [list] -- decipher piped list of strings"+char(10)+"-- gopher [string] -- decipher hash string (with or without preceding user: )"+char(10)+"-- gopher @tbuf -- deciphers contents of @tbuf"+char(10)+"-- tbuf is set when <b>tree</b> encounters a user:hash pair in /home or /etc/passwd"+char(10)+"-- eg: gopher user:ee11cbb19052e40b07aac0ca060c23ee or gopher ee11cbb19052e40b07aac0ca060c23ee"+char(10)+"N.B. function takes string, file_object, list. function writes to dump.txt. function returns string."+char(10)+"Advanced: gopher runs recursively on each line therefore each line of a file or list or string may:"+char(10)+"-- be a user:hash string"+char(10)+"-- be a hash string"+char(10)+"-- be a path to a file"+char(10)+"-- contain a list of the aforementioned types"
 	if not globals.crypto then print( "Warning: Crypto: not found" )
 	data = []
+		if DEBUG then print "top of gopher, input: "+char(10)+arg1
 	if typeof(arg1) != "string" and typeof(arg1) != "list" and typeof(arg1) != "file" then return "gopher: invalid input: expects string, file, or list "
-	if DEBUG then print("top of gopher")
 	if arg1 == "@tbuf" then arg1 = globals.T_BUF // deprecated, @tbuf is now a callable variable, however this remains so that @tbuf may be used in an internal call
 	if typeof(arg1) == "file" then
+		if arg1.is_folder then return command.gopher(command.tree("-f",arg1))
 		if arg1.has_permission("r") then data = arg1.get_content.split(char(10)) else return "gopher: can't read "+arg1+": permission denied."
 	end if
 	if typeof(arg1) == "string" then
@@ -994,12 +1090,14 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
   if arg1 == "help" or arg1 == "-h" then return "Usage: felix -- file explorer v 1.2, (wip)"+char(10)+
   "-- while running:"
   "---- use arrow keys to navigate"+char(10)+
+  "---- use the right arrow key to open text files and run binaries"+char(10)+
   "---- press / to manually type a path"+char(10)+
   "---- press F1 for more help"+char(10)+
   "Usage: felix [path] -- open felix on the specified path"+char(10)+
+  "-- default is to start in the <b>/</b> directory"+char(10)+
   "Usage: felix [shell|computer|file] -- run felix on the filesystem of piped object"+char(10)+
   "-- e.g. clipb @B 1 | felix -- where BUFFER[1] contained a file, shell or computer"+char(10)+
-  "-- starts in the <b>/</b> directory"
+  "-- this mode starts in the <b>/</b> directory"
   action = {}
   action.cursor = 0
   action.last = 0
@@ -1011,6 +1109,51 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     if arg then action.memory = arg
     if not action.memory then return char(176)
     return action.memory.name
+  end function
+  action.f1 = function(f)
+    print "-----
+Navigation: [w][a][s][d] or ArrowKeys
+Run|Cat:    [d] or rightArrow - launch bin, open text, scan .so, descend dir
+            -- the binary to run must exist on the active shell object
+Manual  cd: [/] - type path stating with / 
+	        -- the [/] initiates manual entry 
+Select:     [x] - selection buffer; sets item to copy from
+            -- does not tag 4 scpm
+Unselect:   [z] - remove item from selection buffer 
+Paste:      [v] - performs a paste using selection buffer
+	        -- opens a context menu for paste options
+	        ---- options: copy, move, overwrite folder
+Tag 4 scpm  [t] - tag a file for later use with scpm
+Scpm:       [s] - open the scp menu
+            -- NOTE: scpm uses shell objects
+	        ---- you must have a shell for both source and destination machines
+Remove:     [r] - deletes a file
+Clr_scrn:   [c] - toggle clear screen or regular view 
+File info:  [f] - get file info/properties for highlighted selection 
+Buffer it:  [b] - send highlighted selection to BUFFER
+Rename:     [n] - rename highlighted selection 
+Perms:      [p] - chmod / perms command
+Gopher:     [g] - run gopher to decipher text file contents
+	
+note: launching binaries via felix does NOT activate glasspool
+-- it performs shell.launch on the <b>path</b> of the binary
+-- felix runs on <b>file objects</b> and launching requires a shell object
+-- it <b>will not run</b> the binary if it is not on the active shell's system
+----"
+    user_input("press <<b>anyKey</b>> to continue",0,1)
+    return f
+  end function
+  action.s = function(inf)
+	print command.scpm(inf)
+	return inf 
+  end function
+  action.g = function(inf) 
+	if inf.is_binary then print "gopher: cannot gopher binary file" else print command.gopher(inf)
+	return inf
+  end function
+  action.t = function(inf)
+	print globals.tagged_for_scp(inf.path)
+	return inf 
   end function
   action.b = function(inf) // global buffer
     selected = action.get_selected(inf)
@@ -1142,7 +1285,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
 					return inf
 				end if
 				globals.stack_pool("up")
-				try = shell.launch(selected.path, user_input("params for: "+char(10)+selected.path+" "))
+				try = shell.launch(selected.path, user_input("enter (optional) launch params for: "+char(10)+selected.path+char(10)+":> "))
 				//_cascade // exit if cascade
 				globals.stack_pool("down")
 				if try then print(try)
@@ -1166,7 +1309,6 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     end if
     return inf
   end function
-
   action.a = function(f)
     return action.LeftArrow(f)
   end function
@@ -1177,7 +1319,6 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     end if
     return f
   end function
-
   action.w = function(f)
     return action.UpArrow(f)
   end function
@@ -1189,7 +1330,6 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     action.cursor = action.cursor - 1
     return f
   end function
-
   action.s = function(f)
     return action.DownArrow(f)
   end function
@@ -1201,30 +1341,6 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     action.cursor = action.cursor + 1
     return f
   end function
-
-  action.f1 = function(f)
-    print("-----")
-    print("Navigation: [w][a][s][d] or ArrowKeys ")
-    print("            [d] - rightArrow to: launch bin, open text, scan .so, descend dir")
-    print("Manual  cd: [/] - type path stating with / ")
-    print("               -- the [/] initiates manual entry ")
-    print("Select:     [x] - selection buffer; sets item to copy from ")
-    print("Paste:      [v] - performs a paste using selection buffer ")
-    print("               -- to highlighted selection (opens context menu) ")
-    print("Remove:     [r] - deletes file ")
-    print("Unselect:   [z] - remove item from selection buffer ")
-    print("Clr_scrn:   [c] - toggle clear screen or regular view ")
-    print("File info:  [f] - get file info/properties for highlighted selection ")
-    print("Buffit:     [b] - send highlighted selection to BUFFER ")
-    print("Rename:     [n] - rename highlighted selection ")
-	print("perms:      [p] - chmod / perms command")
-
-    print("_____note: launching binaries via felix does NOT activate glasspool_____")
-    print("-----")
-    pause = user_input("press <<b>anyKey</b>> to continue",0,1)
-    return f
-  end function
-
   action.get = function(arg, afile)
     arg = arg.trim
     if arg != "DownArrow" and arg != "UpArrow" and arg != "LeftArrow" and arg != "RightArrow" then arg = arg.lower
@@ -1236,7 +1352,6 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
       return afile
     end if
   end function
-
   action.branch = function(f, arg) // takes a file object
     file_object = f
     f_path = arg.split("/")
@@ -1289,9 +1404,10 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
       if CLEAR > 0 then button_c = "<b>C</b>" else button_c = "<b>c</b>"
       path_contents(file,CLEAR)
       print(colorLightBlue+locals.currentPath+CT)
-      print("[F1] help [w][a][s][d] == [^][<][v][>] [x] select")
-      print("[z] clr slct [r] remove [v] paste [f] file [n] rename ")
-      input = user_input("["+button_c+"] tog clrs  [p] perms  [b] buffer it [q] quit||: ",0,1)
+      print("[F1] help [w][a][s][d] == [^][<][v][>] [f] file info")
+	  print("[t] tag 4 scpm [s] scpm [g] gopher [b] buffer it")
+      print("[x] select [z] clr slct [r] remove [v] paste [n] rename ")
+      input = user_input("["+button_c+"] toggle clear  [p] perms [q] quit"+char(10)+"||: ",0,1)
       print
       if input.lower == "c" then
         CLEAR = (CLEAR * (-1)) //  flipbit
@@ -1377,7 +1493,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 	enc_file = false 
 	dec_file = false
 	return_parent = false
-
+	print
 	if arg1.indexOf("-") >= 0 then //== "-l" or arg1 == "-c" or arg1 == "-b" then
 		if arg1 == "-e" then enc_file = true 
 		if arg1 == "-d" then dec_file = true 
@@ -1430,32 +1546,40 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 
 		if enc_file or dec_file then 
 			if not globals.crypto then return colorWarning+"file: encryption error; crypto.so not loaded"
-			act = colorMagenta+"encrypt"
-			if dec_file then act = colorViolet+"decrypt"
-			print colorGreen+"</b>file: "+act+"ing</b> </color>"+arg1.path 
-			ec_files = [arg1]
+			act = colorMagenta+"</b>encrypt"
+			if dec_file then act = colorViolet+"</b>decrypt"
+			print colorGreen+"</b>file: "+act+"ing..." 
+			//ec_files = [arg1]
 			pw = arg2
 			if not pw then pw = user_input(colorGold+"</b>-- encryption key:> ",1)
-			if arg1.is_folder then ec_files = command.tree("-r",arg1.path)
-			if DEBUG then print ec_files
+			if arg1.is_folder then arg1 = command.tree("-r",arg1.path)
+			if DEBUG then print arg1
 			ts = time
-			if ec_files.len < 1 then return "file: nothing to encrypt"
+			if not arg1 or arg1.len < 1 then return "file: nothing to encrypt"
 			indnt = "<size=75%>-- "
-			for fl in ec_files
-				if not fl.is_folder then 
-					c = false
-					pth = fl.path
-					print indnt+act+"ing </color>"+pth
-					if act == colorMagenta+"encrypt" then // can't @crypto[act] -- Sadge :[
-						c = globals.crypto.encrypt(pth,pw)
-					else
-						c = globals.crypto.decrypt(pth,pw)
+			// re-cursed code follows
+			encrypt_path = function(ec_files,indnt,act,pw)
+				if globals.DEBUG then print "debug: ec_files: "+ec_files
+				for fl in ec_files
+					if not fl.is_folder then 
+						c = false
+						pth = fl.path
+						print indnt+act+"ing </color>"+pth
+						if act == colorMagenta+"</b>encrypt" then // can't @crypto[act] -- Sadge :[
+							c = globals.crypto.encrypt(pth,pw)
+						else
+							c = globals.crypto.decrypt(pth,pw)
+						end if
+						if c == true then print indnt+"</b>"+act+"ion<b> successful" else print indnt+"</b>"+act+"ion"+colorWarning+" failed!"+char(10)+indnt+colorWarning+"</b>"+c 
+					else 
+						encrypt_path(fl.get_folders,indnt,act,pw)
 					end if
-					if c == true then print indnt+"</b>"+act+"ion<b> successful" else print indnt+"</b>"+act+"ion<b> failed!"+char(10)+indnt+colorWarning+"</b>"+c 
-				end if
-			end for
+				end for
+			end function
+			if typeof(arg1) != "list" then arg1 = [arg1]
+			encrypt_path(arg1,indnt,act,pw)
 			et = str(time - ts)
-			return "<size=75%>file: task complete in [<b>"+et+"</b>] seconds"
+			return "<size=75%>file: "+act+"ion complete in [<b>"+et+"</b>] seconds"+char(10)
 		end if
 
     	imp_stat = null
@@ -1590,8 +1714,9 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0)
 		colorGold+"</b>Advanced:<b> mail [email] ["+colorWhite+"-brutus</color>]"+char(10)+
 		"-- to brute force an email using <b>mail</b> and <b>brutus<b>"+char(10)+
 		"-- this is also available when using <b>mail</b> from it's menu"+char(10)+
-		"-- this does NOT use get_shell and therefore is not limited to local use"
-	if globals.GLASSPOOL > 0 then print colorGold+"brutus: warning: "+colorLightBlue+" GLASSPOOL</color> is active"+char(10)+"-- brutus does not translate through glasspool"+char(10)+"-- you <b>might</b> be rooting your own system"
+		"-- this does NOT use get_shell and therefore is not limited to local use"+char(10)+char(10)+
+		colorWarning+"NOTE: db <u>does not</u> translate through"+colorLightBlue+" GLASSPOOL"
+	if globals.GLASSPOOL then return colorGold+"brutus: aborting: "+colorLightBlue+"GLASSPOOL</color> is active"+char(10)+"-- brutus does not translate through glasspool"+char(10)+"-- you would be rooting your own system"
 	dic = globals.dict_a
 	if DEBUG then print "debug: dict_len: "+dic.len
 	u_name = "root"
@@ -1807,7 +1932,9 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			return "cerebrum: import error. dictionary corrupted"
 		end if
 	end if
-	if globals.BIGBRAIN == true then return "Magnum Cerebrum already active."+char(10)+"Run the command: <b>cerebrum --purge</b> to reset."
+	if globals.BIGBRAIN == true then 
+		if dict_a == ["a"] then globals.BIGBRAIN = false else return "Magnum Cerebrum already active."+char(10)+"Run the command: <b>cerebrum --purge</b> to reset."
+	end if
 	print(colorGold+"<align=center> Magnum Cerebrum </align>"+CT)
 	print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - -"+CT)
 	//globals.BIGBRAIN = true
@@ -2621,13 +2748,14 @@ command.macro = function(arg1,arg2,arg3,arg4)
 	if arg1 == "-l" or arg1 == "list" then 
 		mbuf = []
 		for kv in gm 
-			mbuf.push(colorCyan+"</b>"+kv.key+" </color>>> "+colorWhite+"</b>"+kv.value)
+			if kv.key != "classID" then mbuf.push(colorCyan+"</b>"+kv.key+" </color>>> "+colorWhite+"</b>"+kv.value)
 		end for
 		return mbuf.join(char(10))
 	end if 
 	if arg1 == "del" or arg1 == "-d" then 
 		// remove a macro
 		if arg2 and gm.hasIndex(arg2) then 
+			if arg2 == "classID" then return colorError+"macro: error: classID is a protected value"
 			gm.remove(arg2)
 			return colorCyan+"-- deleted: "+colorWhite+arg2
 			//return command.cob("del",arg2)
@@ -2639,6 +2767,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		// create a macro
 		// macro set [name] [value] or macro set [name] -f [path|object]
 		if typeof(@arg3) != "string" then return "-- [-s] flag expects [string:name] [string:value]"
+		if arg2 == "classID" then return colorError+"macro: error: classID is a protected value"
 		if arg3 == "-f" then 
 			inp = []
 			f = globals.get_file(arg4)
