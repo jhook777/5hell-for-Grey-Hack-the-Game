@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.2.3"
+sphinx_version = "3.2.4"
 malp_version = "1.6.0"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.8.(157.142)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.8.1(157.143)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -3532,7 +3532,7 @@ sphinx_switch = function(resolve,tt)
       print "aborting..."
       return true
     end if
-    print(command.purge("-x","y"))
+    print(command.purge("-X","y"))
     globals.net_session = null
     print "Net_Session purged."
     globals.metaLib = null
