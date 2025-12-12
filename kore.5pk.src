@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.2.7...(58.028)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.2.8...(66.369)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -1087,4 +1087,176 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
   // repeat if necessary
   return "returning to original 5hell session..."
 end function
+command.glasspool = function(arg1,arg2,arg3,arg4)
+	if arg1 == "help" or arg1 == "-h" then return colorLightBlue+"<u>Glasspool sshfs shell/computer mirroring || GP || glassp"+char(10)+
+	"Switches scope of commands to a supplied object"+char(10)+
+	"Usage: glasspool [object: shell|computer] -- switch scope to piped object"+char(10)+
+	"Usage: glasspool [#] -- switch scope to the shell or computer at BUFFER index #"+char(10)+
+	"Usage: glasspool -r [#] -- switch scope to reverse shell at rsi index #"+char(10)+
+	"-- n.b. rshell index starts at 1 not 0 !!"+char(10)+
+	"Usage: glasspool [-m|menu] -- display BUFFER and RSI menu and switch scope to selection"+char(10)+
+	"-- unlike @B -m, glasspool -m will display <u>both</b>  BUFFER shells and rshells"+char(10)+
+	"Usage: <b>gp</b> [option] -- abreviation for glasspool, for qol"+char(10)+
+	"N.B. -- glasspool is the glassp option in rsi and malp"+char(10)+
+	"N.B. -- commands that are local only will not translate through glasspool"+char(10)+
+	"N.B. -- the term 'glass puddle' refers to glasspool in computer object mode"+char(10)+
+	"Usage: glasspool [-d] [command_string] [index|object]"+char(10)+
+	"-- execute a command or string of commands upon initialization"+char(10)+
+	"--eg: gp -d "" echo cleaning up | rclean @B 1 | return "" @B 1 "+char(10)+
+	"Usage: glasspool [-d] [command_string] [-r|-m] [index]"+char(10)+ 
+	"-- execute commands on initialization with -r|-m options"+char(10)+
+	"--eg: gp -d "" do 1 -f this.bat "" -r 1"+char(10)+
+	"--eg: macro -s bob ""echo burger "" |  | gp -d bob -m"
+	if not arg1 then return "glasspool: invalid input; <b>gp -h</b> for help"
+	gp_do = false // do we need to initiate a do script when we start galsspool?
+	obj = arg1 
+	if arg1 == "-d" then
+		if arg2 then gp_do = arg2 else return "glasspool: -d expects string"
+		obj = arg3
+		arg2 = arg4
+	end if
+	// handle switches
+	// -m display menu
+	if typeof(obj) == "string" and typeof(obj.to_int) == "number" then 
+		index = obj.to_int 
+		if index >= 0 and index < globals.BUFFER.len then obj = globals.BUFFER[index] else return "glassp: index out of range"
+	end if 
+	if obj == "-m" then 
+		temp_buf = []
+		for b in globals.BUFFER
+			if typeof(b) == "shell" or typeof(b) == "ftpshell" or typeof(b) == "computer" then temp_buf.push(b)
+		end for
+		r_index = temp_buf.len
+		if metaxploit then
+			r_buf = metaxploit.rshell_server
+			if typeof(r_buf) != "string" then temp_buf = temp_buf + r_buf
+		end if
+		print(colorLightBlue+"<size=85%><mark=blue>======================================================================</mark></size>"+CT)
+		print("<u>BUFFER contains: "+temp_buf.len+" glass objects. ["+colorWhite+"0"+CT+"] == localhost "+colorCyan+"*"+CT+" == "+colorCyan+"active shell"+CT+"</u>"+char(10)+"<size=75%><u>"+colorLightBlue+" rshells "+CT+"are listed after"+colorOrange+" BUFFER "+CT+"shells. rshells in BUFFER will be listed twice.</size></u>")
+		ti = 0
+		color_shelle = colorOrange
+		she_buf = []
+		active_icon = "<b> - </b>"
+		for tb in temp_buf
+			if ti >= r_index then color_shelle = colorLightBlue // color rshells blue
+			if typeof(tb) == "shell" or typeof(tb) == "ftpshell" then
+				if tb.host_computer.public_ip == globals.shell.host_computer.public_ip and tb.host_computer.local_ip == globals.shell.host_computer.local_ip then active_icon = colorCyan+" * "+CT
+				p_ip = tb.host_computer.public_ip
+				l_ip = tb.host_computer.local_ip
+			else 
+				p_ip = tb.public_ip
+				l_ip = tb.local_ip
+			end if
+			she_buf.push("["+colorWhite+ti+CT+"]"+active_icon+""+color_shelle+"["+checkUser(tb)+":"+typeof(tb)+"] "+CT+l_ip+" @ <b>"+p_ip+"</b>") 
+			active_icon = "<b> - </b>" // reset active icon
+			ti = ti + 1
+		end for
+		print(she_buf.join(char(10)))
+		slect = user_input("select a <b>target</b> shell (q=quit): ").to_int
+		if typeof(slect) != "number" then return "aborting..."
+		if slect >= 0 and slect < temp_buf.len then
+			obj = temp_buf[slect]
+		else
+			return "aborting..."
+		end if
+	end if
+	// -r use rshell
+	if obj == "-r" then 
+		if metaxploit then
+			r_buf = metaxploit.rshell_server
+			if typeof(r_buf) == "string" then return r_buf 
+			if r_buf.len < 1 then return "rsi: rshell buffer empty"
+			if not arg2 or typeof(arg2.to_int) != "number" then return "glassp: -r expects a number index"
+			if arg2.to_int > r_buf.len or arg2.to_int < 1 then return "glassp: index ["+arg2+"] out of range"
+			obj = r_buf[arg2.to_int - 1]
+		end if
+	end if
+	// check result. file objects are not supported at this time
+	if typeof(obj) != "shell" and typeof(obj) != "computer" then return "glassp: expects shell or computer"
+	print(colorLightBlue+"<size=75%>Initializing sshfs glasspool protocol..."+CT)
 
+	// -- handle shell
+	if typeof(obj) == "shell" then
+		// save current state
+		hold_shell = globals.shell
+		globals.shell = obj
+		globals.localmachine = shell.host_computer
+		if globals.localmachine and globals.shell then
+			globals.GLASSPOOL = globals.GLASSPOOL + 1
+			// display info/warning
+			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful. "+char(10)+
+			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
+			colorOrange+"<size=75%>glasspool: shell mirroring:"+char(10)+
+			"<size=75%>-- <color=yellow>shell</color>, <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
+			"<size=75%>---- will execute on the machine attached to the shell object"+char(10)+
+			"<size=75%>-- <b>local/general</b> category commands will execute on the local machine"
+			if typeof(globals.shell) == "ftpshell" then print colorOrange+"<size=75%>Warning: ftp shells have limited functionality"
+			// print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
+			// switch scope
+			uu = checkUser(globals.shell)
+			if uu == "root" then 
+				globals.currentPath = "/root"
+			else
+				if uu == "guest" then 
+					globals.currentPath = "/home/guest"
+				else 
+					globals.currentPath = "/home/"+uu
+				end if
+			end if
+			command.shell(gp_do)
+			// restore previous state
+			globals.shell = hold_shell
+			globals.localmachine = globals.shell.host_computer
+			globals.GLASSPOOL = globals.GLASSPOOL - 1
+			// update path
+			globals.update_path
+			print(colorLightBlue+"<size=75%>glasspool: "+colorOrange+" deactivating..."+CT)
+		else
+			globals.shell = hold_shell
+			globals.localmachine = globals.shell.host_computer
+			print(colorOrange+"<size=75%>glasspool: error: failed to initialize."+CT)
+		end if
+	end if
+
+	// -- handle computer
+	if typeof(obj) == "computer" then
+		// display info/warning.
+
+		print(colorLightBlue+"<size=75%>glasspool: initializing glass puddle computer handler...")+CT
+		// save current state
+		tem_c = globals.localmachine
+		globals.localmachine = obj
+		if globals.localmachine and globals.shell then
+			globals.GLASSPOOL = globals.GLASSPOOL + 1
+			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful "+char(10)+
+			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
+			colorOrange+"<size=75%>glasspool: computer mirroring:"+char(10)+
+			"<size=75%>-- <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
+			"<size=75%>---- will execute on the machine connected to the computer object"+char(10)+
+			"<size=75%>-- <color=yellow>shell</color> and <b>local/general commands</b> will execute on the local machine"+char(10)
+			// switch scope
+			uu = checkUser(globals.localmachine)
+			if DEBUG then print "debug: uu: "+uu
+			if uu == "root" then 
+				globals.currentPath = "/root"
+			else
+				if uu == "guest" then 
+					globals.currentPath = "/home/guest"
+				else 
+					globals.currentPath = "/home/"+uu
+				end if
+			end if
+			command.shell
+			// restore previous state
+			globals.localmachine = tem_c
+			// update path
+			globals.update_path
+			globals.GLASSPOOL = globals.GLASSPOOL - 1
+			print(colorLightBlue+"GLASS_PUDDLE: "+colorOrange+" deactivating..."+CT)
+		else 
+			globals.localmachine = tem_c
+			print(colorOrange+"glasspool: error: failed to initialize."+CT)
+		end if
+	end if
+	return 0
+end function
