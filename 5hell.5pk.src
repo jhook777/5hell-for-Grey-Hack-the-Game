@@ -2,14 +2,14 @@
 // released v 4.0.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.2.7.4.E_falling_skies"
+ver = "4.2.8.E_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "125.531"
+size_of_5hell = "134.699"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -80,6 +80,7 @@ globals.routerLib = null
 globals.portInfo = null
 globals.tarLan = null
 globals.last_whois = ""
+globals.brdc = ""
 globals.PORT_MAP = {}
 globals.targetIP = null
 globals.targetPort = "router"
@@ -464,13 +465,13 @@ command.psudo = function(operation, arg2, arg3, arg4)
 	"--nb: start_terminal results in an active trace if an administrator (root dsession) is active"+char(10)+
 	"---- scrub logs and disconnect as soon as your work is done to avoid a strike"+char(10)+char(10)+
 	colorCyan+"<u>Get_shell options:"+char(10)+"--"+char(10)+
-    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-u"+CT+"] [opt:"+colorWhite+"user"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a shell object using credentials"+char(10)+"--"+char(10)+
-	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-s|-sf"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a <b>root</b> shell object using credentials"+char(10)+
+    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-u"+CT+"] [opt:"+colorWhite+"user"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a shell object using credentials"+char(10)+
+	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-s"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a <b>root</b> shell object using credentials"+char(10)+
 	"-- passing -s will prompt to open the object's menu in malp"+char(10)+
-	"-- passing -sf will skip the prompt and go straight to the menu"+char(10)+
-	"-- both modes return the shell object on success or a string on failure"+char(10)+
-	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-sn"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- as above but skips prompt and skips malp menu"+char(10)+
-	"-- returns shell object on success, string on failure"
+	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-f"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- as above but skips prompt and goes straight to malp"+char(10)+
+	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-n"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a shell object without prompts or malp"+char(10)+
+	char(10)+
+	"NOTE: -u, -s, -f, and -n will <b>all</b> return the shell object on success, a string on failure"
 //
     _psudo_menu = function()
         print colorGold+"</b>psudo: "+CT+"["+colorWhite+"y</b>|<b>l"+CT+"] execute "+colorCyan+"</b>start_terminal"+CT+" on the currently active shell object"
@@ -487,7 +488,7 @@ command.psudo = function(operation, arg2, arg3, arg4)
 		if typeof(user) != "string" or typeof(pass) != "string" then return colorGold+"</b>psudo: aborting..."
         locals.sh = get_shell(user,pass)
         if typeof( locals.sh ) == "shell" then 
-            colorLightBlue+"</b>malp: "+colorGreen+"success</color></b>; new shell sent to "+colorOrange+"BUFFER"
+            print colorLightBlue+"</b>malp: "+colorGreen+"success</color></b>; new shell sent to "+colorOrange+"BUFFER"
             if open_it == 0 then open_it = user_input(colorGreen+"</b>-- view context menu in "+colorOrange+"BUFFER"+CT+"? [y/<b>N</b>] ||: "+colorWhite,0,1)
             if open_it == 1 or open_it == "y" or open_it == "Y" then return command.malp("-b",locals.sh) else globals.BUFFER.push(locals.sh)
             colorGold+"</b>psudo: returning shell object..."
@@ -507,15 +508,8 @@ command.psudo = function(operation, arg2, arg3, arg4)
             colorGold+"</b>Continue? ["+colorWhite+"y"+CT+colorGold+"</b>/"+CT+colorWhite+"N"+CT+colorGold+"</b>] ||: "+colorWhite,0,1).lower == "y" then
 				//get_custom_object.return_value = "#!#CASCADE#!#"
                 print "psudo: starting_terminal on active shell..."
-                return shl.start_terminal
-                //return char(10)+
-                // colorGold+"psudo:"+colorOrange+" Attention: if you are seeing this message:"+char(10)+
-                // colorOrange+"</b>-- A game anomoly has kept the script running"+char(10)+
-                // colorOrange+"</b>-- despite having used start_terminal."+char(10)+
-                // colorOrange+"</b>-- You will need to manually exit out of 5hell to start the terminal."+char(10)+
-                // colorOrange+"</b>-- Note: you must <b>exit</b>; do not use ctrl+c"
-                // exit "This is a game bug, not mine."
-            //return 0
+                print shl.start_terminal
+				return command.cob("reset")
 		else 
 		 	return colorGold+"</b>psudo: aborting..."
         end if
@@ -539,10 +533,10 @@ command.psudo = function(operation, arg2, arg3, arg4)
 		if arg3 then psw = arg3 else psw = user_input("user passwor:> ",1)
 		return _go_time(usr,psw)
 	end if
-    if operation == "-s" or operation == "-sf" or operation == "-sn" then
+    if operation == "-s" or operation == "-f" or operation == "-n" then
 		conf = 0
-		if operation == "-sf" then conf = 1
-		if operation == "-sn" then conf = -1
+		if operation == "-f" then conf = 1
+		if operation == "-n" then conf = -1
 		usr = "root"
 		if not arg2 then psw = user_input("root password:> ",1) else psw = arg2
 		return _go_time(usr,psw,conf)
@@ -778,50 +772,52 @@ command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
   return file.move( destination, final_name )
 end function
 command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
-  if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return "COPY || copy files || CP"+char(10)+
-  "Usage: cp [/old_path] [/new_path] -- copy file or folder to new_path "+char(10)+
-  "Usage: cp [/old_path] [@] -- copy old path to current path and use original file name"+char(10)+
-  "Usage: cp [/old/path] [/newpath/newname] -- make a copy of a file with a new name/path"+char(10)+
-  "Usage Example:"+char(10)+
-  "-- cp /root/file.txt @ "+char(10)+
-  "---- copies file.txt to the current directory with name: file.txt"+char(10)+
-  "Usage Example:"+char(10)+
-  "-- poke /root/haha |  | poke /root/heehee |  | cp /root/haha /root/heehee"+char(10)+
-  "---- creates files haha and heehee then copies haha over heehee, overwriting heehee"+char(10)+
-  "Usage Example:"+char(10)+
-  "-- poke haha |  | grep -p syst / | cp haha"+char(10)+
-  "---- create file haha, grep for (system.log) and return file_path, overwrite /var/system.log with haha"
-  print "<u>"+colorGreen+"= = = = ="
-  file = null
-  if typeof(arg1) == "file" then file = arg1 else file = globals.get_file(arg1) 
-  if not file then return("cp: can't find " + arg1)
-  destination = null
-  final_name = null
-  dest = globals.get_file(arg2)
-  if not dest then
-    split = arg2.split("/")
-    final_name = split.pop
-		if DEBUG then print("split: "+split)
-    if split.len and split[0] == "" then dest = globals.get_file(split.join("/")) else dest = globals.get_file(split.join("/"))
+	if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return "COPY || copy files || CP"+char(10)+
+	"Usage: cp [/old_path] [/new_path] -- copy file or folder to new_path "+char(10)+
+	"Usage: cp [/old_path] [@] -- copy old path to current path and use original file name"+char(10)+
+	"Usage: cp [/old/path] [/newpath/newname] -- make a copy of a file with a new name/path"+char(10)+
+	"Usage Example:"+char(10)+
+	"-- cp /root/file.txt @ "+char(10)+
+	"---- copies file.txt to the current directory with name: file.txt"+char(10)+
+	"Usage Example:"+char(10)+
+	"-- poke /root/haha |  | poke /root/heehee |  | cp /root/haha /root/heehee"+char(10)+
+	"---- creates files haha and heehee then copies haha over heehee, overwriting heehee"+char(10)+
+	"Usage Example:"+char(10)+
+	"-- poke haha |  | grep -p syst / | cp haha"+char(10)+
+	"---- create file haha, grep for (system.log) and return file_path, overwrite /var/system.log with haha"
+	print "<u>"+colorGreen+"= = = = ="
+	file = null
+	if typeof(arg1) == "file" then file = arg1 else file = globals.get_file(arg1) 
+	if not file then return("cp: can't find " + arg1)
+	destination = null
+	final_name = null
+	dest = globals.get_file(arg2)
+	if not dest then
+		if typeof(arg2) != "string" or arg2.trim == "" then return "cp: invalid destination"
+		asplit = arg2.split("/")
+
+		final_name = asplit.pop
+		if DEBUG then print("split: "+asplit)
+		if asplit.len and asplit[0] == "" then dest = globals.get_file(asplit.join("/")) else dest = globals.get_file(asplit.join("/"))
 		if DEBUG then print("dest: ["+dest+"]")
 		if not dest then
-      if arg2[0] == "/" then destination = "/" else destination = currentPath
-    else
-      destination = dest.path
-    end if
-  else
-    if dest.is_folder then
-      destination = dest.path
-      final_name = file.name
-    else
-      destination = dest.parent.path
-      final_name = dest.name
-    end if
-  end if
+			if arg2[0] == "/" then destination = "/" else destination = currentPath
+		else
+			destination = dest.path
+		end if
+	else
+		if dest.is_folder then
+			destination = dest.path
+			final_name = file.name
+		else
+			destination = dest.parent.path
+			final_name = dest.name
+		end if
+	end if
 	if final_name == "@" then final_name = file.name
 	if destination == "/" then print "cp: "+file.path+" => "+destination+final_name else print "cp: <u>"+colorWhite+file.path+" => "+destination+"/"+final_name+"..."
 	print colorGold+"- - - - - - - - - - - - - - - - - - - - - - -"
-  return file.copy( destination, final_name )
+	return file.copy( destination, final_name )
 end function
 command.usr = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or arg1 == "-h" or arg1 == "help" then return "USR || ADD USER || CHOWN"+char(10)+
@@ -1213,9 +1209,10 @@ command.reboot = function(a,b,c,d)
 	"Usage: reboot [opt:<b>shell|computer</b>] -- reboot the machine at target object"+char(10)+
 	"-- prompts for confirmation"+char(10)+
 	"Usage: reboot [opt:"+colorGold+"NOW"+CT+"] [<b>opt:shell|computer</b>] -- skip confirmation"+char(10)+
-	"Usage: reboot [opt:"+colorMagenta+"@"+CT+"(<b>int</b>)] [opt:<b>shell|computer</b>] -- schedule reboot"+char(10)+
+	"Usage: reboot [opt:"+colorMagenta+"@"+CT+"<b>int</b>] [opt:<b>shell|computer</b>] -- schedule reboot"+char(10)+
 	"-- <b>int</b> should be time in <b>seconds</b> to reboot"+char(10)+
 	"-- script will pause until reboot is executed"+char(10)+
+	"--eg: <b>zap | reboot @300"+char(10)+
 	"-- skips confirmation"+char(10)+
 	"Usage: reboot [opt:<b>-s|SAFE</b>] -- reboot the player's home pc into safemode"+char(10)+
 	"-- note: only works on the player's home pc when that pc's computer object is active"+char(10)+
@@ -1236,7 +1233,7 @@ command.reboot = function(a,b,c,d)
 			if typeof(rtime) != "number" or rtime < 1 or rtime > 300 then return "reboot: invalid time; expects int between 1 and 300"+char(10)+"-- aborting..."
 		end if
 		a = b 
-		b = C
+		b = c
 		c = d
 		d = 0
 	end if 
@@ -1589,35 +1586,56 @@ command.memdump = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.dump_memory
 end function
 command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
+	usg = colorWhite+"</b>Usage: "
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b><u>enumeration || ENUM || enum buffer"+char(10)+
 	"Use this to put things in a list."+char(10)+
-	colorLightBlue+"</b>Usage: enum [opt|/path|file_object|array|#]"+char(10)+
-	colorWhite+"</b>Usage: enum [list|map|string] -- enumerates a list or a newline separated string"+char(10)+
+	colorLightBlue+"</b>Usage: enum [opt|/path|file_object|array|#]"+char(10)+char(10)+
+	usg+"enum [ list | map | string ] -- enumerates a list or a newline separated string"+char(10)+
 	"-- if the string is a single word it will be interpreted as a path"+char(10)+
 	"-- multiple words on a single line (piped) will be interpreted as a single entry"+char(10)+
-	"-- use enum -a [word] to add a single word to the enum buffer"+char(10)+
-	"-- lists and maps will be enumerated by element"+char(10)+
-	colorWhite+"</b>Usage: enum [path|file_object]"+char(10)+
+	"-- use <b>enum [-a] [word]</b> to append a single word to the enum buffer"+char(10)+
+	"-- lists and maps will be enumerated by element"+char(10)+char(10)+
+	usg+"enum [ path | file_object ]"+char(10)+
 	"-- enumerate file contents as a list of strings"+char(10)+
 	"-- useful for 5hell scripting (see the '<b>do</b>' command)."+char(10)+
 	"-- e.g: enum file.txt | enum 1"+char(10)+
-	"-- use enum -a [file] to add a single file to the enum buffer"+char(10)+
 	"---- enumerate file.txt then return index [1] from the list"+char(10)+
-	"Usage: enum [-l]  -- return the length of enum buffer."+char(10)+
-	"Usage: enum [-s]  -- show the enum buffer and return the length"+char(10)+
-	"Usage: enum [-d]  -- enumerate the onboard dictionary"+char(10)+
-	"Usage: enum [#] -- return the element at index # in the enum buffer"+char(10)+
-	"UsagE: enum -r [index] -- remove the element at index"+char(10)+
-	colorGreen+"Usage: enum -i [index] [element] -- insert element at index "+char(10)+
+	"--nb: use enum [-a] [file] to append a single file to the enum buffer"+char(10)+char(10)+
+	usg+"enum ["+colorGold+"</b>#</color>]"+char(10)+
+	"-- return the element at index [#] in the enum buffer"+char(10)+
+	"-- eg: <b>lanpro | enum || enum 3 | echo"+char(10)+char(10)+
+	colorGold+"Usage: enum [</b>-d<b>] ["+colorWhite+"</b>command_string</color>] [opt:arg3]"+char(10)+
+	"-- iterate across enum buffer with <b>do"+char(10)+
+	"-- for each enumerated element:"+char(10)+
+	"---- appends the element to the end of the command string"+char(10)+
+	"---- fires the appended string through the <b>do</b> command"+char(10)+
+	"--eg: <b>rnip 15 | enum || enum -d "" probe """+char(10)+
+	"---- enumerate 15 random ips and probe them all"+char(10)+
+	"--NOTE: supplying a "+colorGold+"third argument"+CT+" enumerates that argument"+char(10)+
+	"--ie: this executes: <b>enum [arg3]</b> before operating"+char(10)+
+	"---- the operation will then execute on the <b>new</b> list"+char(10)+
+	"--eg: <b>grep -a .txt$ / | enum -d rm || enum -p"+char(10)+
+	"---- enumerate file objects for all .txt's, delete them, then purge"+char(10)+
+	"------ <size=75%>purging is necessary as the now invalid file objects can cause a crash"+char(10)+
+	"-- use macros that make use of <b>@pipe</B> for best results"+char(10)+
+	"--eg:
+	|> <b>set mem [some_address] || set val [some_val] || meta load [some_lib]
+	|> <b>macro set pwn "" zap \@o mem \@o val @pipe | sc -n ""
+	|> <b>lanpro | enum -d pwn"+char(10)+
+	"---- this rather complicated operation would result in nuking all machines on a lan<b> if:"+char(10)+
+	"------ it were run <b>on a router</b> against some_lib with a root bounce exploit"+char(10)+
+	"------ the values for the root bounce exploit were set appropriately for mem and val"+char(10)+char(10)+
+	usg+"enum [-l|--length]  -- return the length of the enum buffer"+char(10)+
+	usg+"enum [-s|--show]  -- show the enum buffer and return the length"+char(10)+
+	usg+"enum [-D]  -- enumerate the onboard dictionary"+char(10)+
+	usg+"enum [-r] [index] -- remove the element at index"+char(10)+
+	usg+"enum [-i] [index] [element] -- insert element at index "+char(10)+
 	"-- shifts everything below it down"+char(10)+
-	colorGreen+"Usage: enum -a [element] -- append element to end of enum buffer"+char(10)+
+	usg+"enum [-a] [element] -- append element to end of enum buffer"+char(10)+
 	"-- unlike enum [string] you may use enum -a [string] to append a single word to the enum buffer"+char(10)+
-	"Usage: enum [-e] -- return the enum buffer as a list"+char(10)+
-	"Usage: enum [-b]  -- concatonate the BUFFER and globals.enumerated (the enum buffer)"+char(10)+
-	"Usage: enum [-p] -- purge the enum buffer"+char(10)+
-	"Advanced: poke files.txt | lock |  | ls | append files.txt | cat files.txt | clipb | enum"+char(10)+
-	"-- Or: ls | enum -- pipe ls output to the enum buffer"+char(10)+
-	"Advanced: lanpro | enum -- scan network and enumerate all LAN addresses found. "+char(10)+
+	usg+"enum [-e] -- return the enum buffer as a list"+char(10)+
+	usg+"enum [-b]  -- concatonate the global BUFFER and enum buffer"+char(10)+
+	usg+"enum [-p] -- purge the enum buffer"+char(10)+char(10)+
 	"Note: limited map support"
 	if arg1 == null then return 0
 	if not arg1 or arg1 == "0" then
@@ -1667,13 +1685,24 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		globals.enumerated = globals.enumerated + sb
 		return "enum: list appended"
 	end if
-	if arg1 == "-d" then
+	if arg1 == "-d" then // do stuff
+		if typeof(arg2) != "string" then return "enum: invalid input; -d expects command string"
+		if arg3 then print command.enum(arg3)
+		if globals.enumerated.len < 1 then return "enum: nothing enumerated"
+		print colorGreen+"enum: iterating over list with:"+char(10)+colorCyan+"<size=65%>"+arg2
+		time_s = time
+		for e in globals.enumerated 
+			command.do("1",arg2,e)
+		end for
+		return colorGreen+"</b>enum: task complete in ["+colorWhite+str(time - time_s)+CT+colorGreen+"</b>] seconds"
+	end if
+	if arg1 == "-D" then
 		globals.enumerated = globals.dict_a[0:]
 		print("enum: <b>onboard dictionary enumerated</b>. Num entries:")
 		return globals.enumerated.len
 	end if
-	if arg1 == "-l" then return str(globals.enumerated.len)
-	if arg1 == "-s" then
+	if arg1 == "-l" or arg1 == "--length" then return str(globals.enumerated.len)
+	if arg1 == "-s" or arg1 == "--show" then
 		if not globals.enumerated.len then return 0
 		ie = 0
 		for ge in globals.enumerated
@@ -1682,9 +1711,8 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		end for
 		return globals.enumerated.len
 	end if
-	if arg1 == "-e" then
-		return globals.enumerated
-	end if
+	if arg1 == "-e" then return globals.enumerated
+
 	if typeof(arg1) == "list" then 
 		globals.enumerated = arg1
 		return "enum: list enumerated"
@@ -2015,7 +2043,12 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"-- useful for putting a delay in a chain of commands"+char(10)+
 	"-- this command uses the general function: wait(time)"+char(10)+
 	"Usage: pause [-v] [delay] -- as above but prints a notification at each pause"+char(10)+
-	"Usage: pause [-m] -- pause until manually unpaused (by pressing enter)"
+	"Usage: pause [-m] -- pause until manually unpaused"+char(10)+
+	"-- press <b>enter</b> to simply resume the script"+char(10)+
+	"-- type input to have pause echo that input"+char(10)+
+	"----ie: pipe your input to the next command"+char(10)+
+	"-- think of this as, ""pause for manual user input"""+char(10)+
+	"--eg:<b> "
 
 	time_to_wait = "1" // default wait 1 second 
 	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
@@ -2030,7 +2063,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
 	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
-	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- press <"+colorGreen+"enter"+CT+"> to continue --")
+	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- awaiting manual input :> ")//"-- press <"+colorGreen+"enter"+CT+"> to continue --")
 	if time_to_wait <= 300 and time_to_wait >= .01 then
 	else
 		time_to_wait = 1
@@ -2042,332 +2075,330 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return 0
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
-if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"+char(10)+
-"Usage: bios -- system info"+char(10)+
-"Advanced:copy the following to 5hell's command line:"+char(10)+
-"<b>mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+
-"-- replace SIZE with the maximum size of your hdd in bytes. "+char(10)+
-"-- this lets bios report the remaining hdd space"+char(10)+
-"Usage: bios -a -- return the currently loaded <color=#FFD000>aptclientlib object"+char(10)+
-"Usage: bios -m -- return the currently linked <color=#13E6CA>metaLib object"+char(10)+
-"Usage: bios -x -- return the currently loaded <color=#FF0800>metaxploitLib object"+char(10)+
-"Usage: bios -c -- return the currently loaded <color=#8C00FF>crypto object"+char(10)+
-"Usage: bios -C [cryptoLib|/path] -- replace the currently loaded <color=#64184B>crypto object"+char(10)+
-"-- eg: bios -i /lib/crypto.so | <b>bios -C"+char(10)+
-"-- eg: <b>bios -C /root/crypto.so"+char(10)+
-"Usage: bios -n -- return the currently linked <color=#0011FF>netsession object"+char(10)+
-"Usage: bios -p -- return the currently loaded <color=#69E488>port_map object as a string"+char(10)+
-"Usage: bios -P -- return the currently loaded <color=#00FF40>port_map object as a map"+char(10)+
-"Usage: bios -H -- return the currently linked <color=#E4EE58>herme5 meta.mail object"+char(10)+
-"-- returns null if not logged in to a mail account"+char(10)+
-"Usage: bios -s -- return the currently loaded <color=#8B8568>meta_scan information</color> as a string"+char(10)+
-"Usage: bios -X -- return the currently loaded <color=#065F0D>XPLOITS as a list"+char(10)+
-"Usage: bios -M -- return the current <color=#FF00C8>MEMORY object or null"+char(10)+
-"Usage: bios -B -- return the global <color=#E68A13>BUFFER as a list"+char(10)+
-"Usage: bios -r [opt: ip] -- return the <b>local<b> <color=#71858D>router object</color> [opt:ip]"+char(10)+char(10)+
-"<b>Usage: bios -i [/path] -- runs <u></b>include_lib</u><b> on /path and returns result"+char(10)+
-"-- init.so, net.so, kernel_module.so cannot be imported as they lack an API"+char(10)+
-"-- prompts for a path if path not supplied"+char(10)+
-"---- e.g.|> bios -i /lib/blockchain.so | malp "+char(10)+
-"---- returns the blockchainLib object and pipes it to malp (to the BUFFER)"+char(10)+
-"---- note: cannot include_lib net.so, init.so, kernel_module.so"+char(10)+
-"------ only libs with API's may use include_lib"+char(10)+
-"------ use meta link to load those with the metaxploitLib"+char(10)+char(10)+
-"Usage: bios --stack -- return the global stack_pool value (as a string numeral)"+char(10)+
-"-- this value is incremented by one with each use of <B>run</b> (shell.launch)"+char(10)+
-"-- this value is decremented on return from <b>run</b>"+char(10)+
-"-- current stack_pool: <b>"+globals.stack_pool+char(10)+char(10)+
-"Usage: bios --home -- return the get_custom_object.HOME map"+char(10)+
-"-- current @home address: <size=75%><b>"+get_custom_object.HOME.ip
-if arg1 == "--stack" then return str(globals.stack_pool)
-if arg1 == "-C" then 
-	ilib = null
-	if typeof(arg2) == "cryptoLib" then 
-		ilib = arg2
-		globals.cryptoLibVersion = "-.-.-"
-	end if
-	if typeof(arg2) == "string" then 
-		lib = globals.get_file(arg2)
-		if typeof(lib) == "file" then ilib = include_lib(lib.path) else return "bios: file not found"
-		if typeof(ilib) == "cryptoLib" then 
-			if metaxploit then globals.cryptoLibVersion = metaxploit.load(lib.path).version else globals.cryptoLibVersion = "-.-.-"
-		else 
-			return "bios: target file is not a cryptoLib"
+	if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"+char(10)+
+	"Usage: bios -- system info"+char(10)+
+	"Advanced:copy the following to 5hell's command line:"+char(10)+
+	"<b>mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+
+	"-- replace SIZE with the maximum size of your hdd in bytes. "+char(10)+
+	"-- this lets bios report the remaining hdd space"+char(10)+
+	"Usage: bios -a -- return the currently loaded <color=#FFD000>aptclientlib object"+char(10)+
+	"Usage: bios -m -- return the currently linked <color=#13E6CA>metaLib object"+char(10)+
+	"Usage: bios -x -- return the currently loaded <color=#FF0800>metaxploitLib object"+char(10)+
+	"Usage: bios -c -- return the currently loaded <color=#8C00FF>crypto object"+char(10)+
+	"Usage: bios -C [cryptoLib|/path] -- replace the currently loaded <color=#64184B>crypto object"+char(10)+
+	"-- eg: bios -i /lib/crypto.so | <b>bios -C"+char(10)+
+	"-- eg: <b>bios -C /root/crypto.so"+char(10)+
+	"Usage: bios -n -- return the currently linked <color=#0011FF>netsession object"+char(10)+
+	"Usage: bios -p -- return the currently loaded <color=#69E488>port_map object as a string"+char(10)+
+	"Usage: bios -P -- return the currently loaded <color=#00FF40>port_map object as a map"+char(10)+
+	"Usage: bios -H -- return the currently linked <color=#E4EE58>herme5 meta.mail object"+char(10)+
+	"-- returns null if not logged in to a mail account"+char(10)+
+	"Usage: bios -s -- return the currently loaded <color=#8B8568>meta_scan information</color> as a string"+char(10)+
+	"Usage: bios -X -- return the currently loaded <color=#065F0D>XPLOITS as a list"+char(10)+
+	"Usage: bios -M -- return the current <color=#FF00C8>MEMORY object or null"+char(10)+
+	"Usage: bios -B -- return the global <color=#E68A13>BUFFER as a list"+char(10)+
+	"Usage: bios -r [opt: ip] -- return the <b>local<b> <color=#71858D>router object</color> [opt:ip]"+char(10)+char(10)+
+	"<b>Usage: bios -i [/path] -- runs <u></b>include_lib</u><b> on /path and returns result"+char(10)+
+	"-- e.g.|> bios -i /lib/blockchain.so | code "+char(10)+
+	"---- sends the blockchainLib object to the "+colorOrange+"BUFFER"+CT+" then returns it"+char(10)+
+	"-- only libs with API's may use <b>include_lib</b>"+char(10)+
+	"---- net.so, init.so, kernel_module.so, for example, do not have API's"+char(10)+
+	"--note: use <b>meta [link|load]</b> to obtain <b>metaLib</b> objects, instead "+char(10)+char(10)+
+	"Usage: bios --stack -- return the global stack_pool value (as a string numeral)"+char(10)+
+	"-- this value is incremented by one with each use of <B>run</b> (shell.launch)"+char(10)+
+	"-- this value is decremented on return from <b>run</b>"+char(10)+
+	"-- current stack_pool: <b>"+globals.stack_pool+char(10)+char(10)+
+	"Usage: bios --home -- return the get_custom_object.HOME map"+char(10)+
+	"-- current @home address: <size=75%><b>"+get_custom_object.HOME.ip
+	if arg1 == "--stack" then return str(globals.stack_pool)
+	if arg1 == "-C" then 
+		ilib = null
+		if typeof(arg2) == "cryptoLib" then 
+			ilib = arg2
+			globals.cryptoLibVersion = "-.-.-"
 		end if
-	end if
-	if typeof(ilib) == "cryptoLib" then globals.crypto = ilib else return "bios: invalid input"
-	print colorGold+"</b>bios: global cryptoLib replaced: "+char(10)+"-- crypto.so v "+globals.cryptoLibVersion
-	return ilib
-end if	
-if arg1 == "-a" then return globals.apt_get 
-if arg1 == "-x" then return globals.metaxploit 
-if arg1 == "-c" then return globals.crypto 
-if arg1 == "-n" then return globals.net_session
-if arg1 == "-p" then return globals.display_portmap(1)
-if arg1 == "-P" then return globals.PORT_MAP
-if arg1 == "-H" then return globals.inbox
-if arg1 == "-m" then return globals.metaLib
-if arg1 == "-s" then return globals.meta_scan
-if arg1 == "-X" then return globals.XPLOITS 
-if arg1 == "-M" then return globals.MEMORY
-if arg1 == "-B" then return globals.BUFFER
-if arg1 == "--home" then return get_custom_object.HOME.ip
-if arg1 == "-r" then 
-	if not localmachine.is_network_active then return "bios: no network connection"
-	if arg2 then
-		if is_valid_ip(arg2) then return get_router(arg2)
-		return "bios: get_router: invalid ip"
-	else 
-		return get_router
-	end if
-end if
-if arg1 == "-i" then 
-	if not arg2 then 
-		arg2 = user_input("Enter path to file.so :> ")
-	end if
-	tf = globals.get_file(arg2)
-	if not tf then return "bios: "+colorRed+"</b>target file not found!"
-	inc = include_lib(tf.path)
-	if inc then 
-		globals.BUFFER.push(inc)
-		print "bios: sending "+inc+" to "+colorOrange+"BUFFER"+char(10)+"-- returning..."
-		return inc
-	else
-		return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+char(10)+colorGreen+"<size=75%>--: hint:</b> perhaps try<b> meta load [libname]"+char(10)+"<size=75%>-- if you meant metax.load("+arg2+")" 
-	end if
-end if
-
-bios_info = []
-bios_info.push("<mark=red><u>=======================================================================</u></mark>")
-bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.6_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
-ipinfo = "0.0.0.0 @ 0.0.0.0"
-if localmachine.is_network_active then ipinfo = globals.localmachine.local_ip+" @ "+globals.localmachine.public_ip
-bios_info.push("* "+current_date+" "+ipinfo+" up: "+time)
-procs = globals.localmachine.show_procs.split(char(10))
-root_procs = 0
-user_procs = 0
-guest_procs = 0
-mem_used = 0
-cpu_used = 0
-for p in procs
-	spl = p.split(" ")
-	pro_usr = spl[0]
-	pro_idn = spl[1]
-	pro_cpu = spl[2].remove("%")
-	pro_mem = spl[3].remove("%")
-	pro_nam = spl[4]
-	if pro_cpu != "CPU" then cpu_used = cpu_used + pro_cpu.val
-	if pro_mem != "MEM" then mem_used = mem_used + pro_mem.val
-	if pro_usr == "root" then
-		root_procs = root_procs + 1
-	else
-		if pro_usr == "guest" then
-			guest_procs = guest_procs + 1
-		else
-			if pro_usr != "USER" then user_procs = user_procs + 1
-		end if
-	end if
-end for
-root = localmachine.File("/")
-hdd_io = localmachine.File("/virt/hdd.io")
-h_size = "<color=red>dev_sda error</color>"
-if hdd_io then
-	h_c = hdd_io.get_content.split(char(10))
-	h_s = h_c[0].split(":")
-	h_n = 0
-	if h_s.len > 1 then h_n = h_s[1].val
-	if h_n then h_size = h_n - root.size.val
-end if
-if globals.stack_pool >= 15 then stack_print = "depleted; further nested launches not possible" else stack_print = globals.stack_pool
-bios_info.push("<mark=red><size=85%>|</size></mark>")
-bios_info.push("<size=85%>Macula Registry: [stack_pool:"+colorRed+stack_print+CT+"] </size>")
-bios_info.push("<size=85%>root_procs [<b>"+root_procs+"</b>] user_procs [<b>"+user_procs+"</b>]  guest_procs [<b>"+guest_procs+"</b>] t:<b> "+(procs.len-1)+"</b></size>")
-bios_info.push("<size=85%>cpu_usage: ["+cpu_used+"%] mem_usage: ["+mem_used+"%] temp: <color=red>therm_io not found</color></size>")
-bios_info.push("<size=85%>[cpu:<mark=green>|"+"|"*(cpu_used/4)+"</mark>"+"_"*((100-cpu_used)/4)+"]   [ram:<mark=green>"+"|"*(mem_used/4+1)+"</mark>"+"_"*((100-mem_used)/4)+"]</size>")
-hdd=(root.size.val / 1000000)
-if typeof(h_size) == "number" then h_size = h_size / 1000000
-bios_info.push("<size=85%>[hdd_used: <b>"+str(hdd)+" </b>MB]  [hdd_free: "+h_size+" MB]</size>")
-allfiles = command.tree("-r","/")
-folds = 0
-bins = 0
-txts = 0
-tot = 0
-for f in allfiles
-	if f.is_folder then 
-		folds = folds + 1
-	else if f.is_binary then 
-		bins = bins + 1
-	else
-		txts = txts + 1
-	end if
-end for
-tot = folds + bins + txts
-bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] total: ["+tot+"]</size>")
-ess = "-wifi disabled-"
-if localmachine.active_net_card == "WIFI" and localmachine.is_network_active then
-	sig = 0
-	nets = localmachine.wifi_networks("wlan0") 
-	ess = get_router.essid_name
-	_get_wifi = function(networks)
-		for net in networks 
-			n = net.split(" ")
-			if DEBUG then print "debug: n is: "+n+" and n[1] is: "+n[2]
-			if ess == n[2] then
-				sig = n[1].replace("%","")
-				sig = sig.to_int
-				if DEBUG then print "debug: sig strength is: "+sig+"%"
-				return sig 
+		if typeof(arg2) == "string" then 
+			lib = globals.get_file(arg2)
+			if typeof(lib) == "file" then ilib = include_lib(lib.path) else return "bios: file not found"
+			if typeof(ilib) == "cryptoLib" then 
+				if metaxploit then globals.cryptoLibVersion = metaxploit.load(lib.path).version else globals.cryptoLibVersion = "-.-.-"
+			else 
+				return "bios: target file is not a cryptoLib"
 			end if
-		end for
-		return 0
-	end function
-	sig = _get_wifi(nets)
-	sig_not = 100 - sig
-	bios_info.push("<size=85%>[wifi_signal:<mark=green>|"+"|"*(sig/2)+"</mark>"+"_"*(sig_not/2)+"]</size>")
-end if
-dl = localmachine.network_devices.split(char(10))
-bios_info.push("<size=85%>["+dl.join("] [")+localmachine.active_net_card+"] ["+ess+"]")
-ports = localmachine.get_ports
-pl = []
-for p in ports
-	pl.push(p.port_number)
-end for
-bios_info.push("<size=85%>ports: ["+pl.join("] [")+"] </size>")
-bios_info.push("<mark=red><size=50%>|</size></mark>")
-if DEBUG then print "debug: bios searching for database..."
-//database = command.tree("/","database.csv",1,"N")
-hold = globals.SILENT 
-if not DEBUG then globals.SILENT = 2
-database_files = command.grep("-a","^database.csv")
-if not DEBUG then globals.SILENT = hold
-data_lines = "--"
-data_size = "-not_found-"
-database = ""
-if database_files.len then
-	if DEBUG then print "-- found "+database_files.len+" database.csv's"
-	// data_size = command.file("-c",database)
-	// if database.has_permission("r") then data_lines = command.file("-l",database) else data_lines = "-check_perms-"
-	// if data_size.to_int > "150000".to_int then data_size = colorOrange+"Warning: "+data_size+CT
-	data_lines = 0
-	data_size = 0
-	for file in database_files
-		if file.has_permission("r") then 
-			data_lines = data_lines + file.get_content.split(char(10)).len
-			data_size = data_size + file.get_content.len
+		end if
+		if typeof(ilib) == "cryptoLib" then globals.crypto = ilib else return "bios: invalid input"
+		print colorGold+"</b>bios: global cryptoLib replaced: "+char(10)+"-- crypto.so v "+globals.cryptoLibVersion
+		return ilib
+	end if	
+	if arg1 == "-a" then return globals.apt_get 
+	if arg1 == "-x" then return globals.metaxploit 
+	if arg1 == "-c" then return globals.crypto 
+	if arg1 == "-n" then return globals.net_session
+	if arg1 == "-p" then return globals.display_portmap(1)
+	if arg1 == "-P" then return globals.PORT_MAP
+	if arg1 == "-H" then return globals.inbox
+	if arg1 == "-m" then return globals.metaLib
+	if arg1 == "-s" then return globals.meta_scan
+	if arg1 == "-X" then return globals.XPLOITS 
+	if arg1 == "-M" then return globals.MEMORY
+	if arg1 == "-B" then return globals.BUFFER
+	if arg1 == "--home" then return get_custom_object.HOME.ip
+	if arg1 == "-r" then 
+		if not localmachine.is_network_active then return "bios: no network connection"
+		if arg2 then
+			if is_valid_ip(arg2) then return get_router(arg2)
+			return "bios: get_router: invalid ip"
+		else 
+			return get_router
+		end if
+	end if
+	if arg1 == "-i" then 
+		if not arg2 then 
+			arg2 = user_input("Enter path to file.so :> ")
+		end if
+		tf = globals.get_file(arg2)
+		if not tf then return "bios: "+colorRed+"</b>target file not found!"
+		inc = include_lib(tf.path)
+		if inc then 
+			globals.BUFFER.push(inc)
+			print "bios: sending "+inc+" to "+colorOrange+"BUFFER"+char(10)+"-- returning..."
+			return inc
+		else
+			return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+char(10)+colorGreen+"<size=75%>--: hint:</b> perhaps try<b> meta load [libname]"+char(10)+"<size=75%>-- if you meant metax.load("+arg2+")" 
+		end if
+	end if
+
+	bios_info = []
+	bios_info.push("<mark=red><u>=======================================================================</u></mark>")
+	bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.6_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
+	ipinfo = "0.0.0.0 @ 0.0.0.0"
+	if localmachine.is_network_active then ipinfo = globals.localmachine.local_ip+" @ "+globals.localmachine.public_ip
+	bios_info.push("* "+current_date+" "+ipinfo+" up: "+time)
+	procs = globals.localmachine.show_procs.split(char(10))
+	root_procs = 0
+	user_procs = 0
+	guest_procs = 0
+	mem_used = 0
+	cpu_used = 0
+	for p in procs
+		spl = p.split(" ")
+		pro_usr = spl[0]
+		pro_idn = spl[1]
+		pro_cpu = spl[2].remove("%")
+		pro_mem = spl[3].remove("%")
+		pro_nam = spl[4]
+		if pro_cpu != "CPU" then cpu_used = cpu_used + pro_cpu.val
+		if pro_mem != "MEM" then mem_used = mem_used + pro_mem.val
+		if pro_usr == "root" then
+			root_procs = root_procs + 1
+		else
+			if pro_usr == "guest" then
+				guest_procs = guest_procs + 1
+			else
+				if pro_usr != "USER" then user_procs = user_procs + 1
+			end if
 		end if
 	end for
-end if
-bios_info.push("<size=85%>[database_files:"+database_files.len+"]  [database_size:"+data_size+"]  [database_lines:"+data_lines+"]</size>")
-bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
-bios_info.push("<size=85%>[Custom_Object: "+get_custom_object.len+" indexes]")
-bios_info.push("<size=85%>[tagged4scp: "+globals.tagged_for_scp+"]</size>")
-bios_info.push("[tbuf:<size=60%>"+globals.T_BUF.join(" ")+"</size>]</size>")
-if typeof(@CLIP["a"]) == "string" then
-	bios_info.push("[clipa:<size=60%>"+CLIP["a"].replace(char(10),", "))
-else
-	bios_info.push("[clipa:<size=60%>"+@CLIP["a"])
-end if
-if typeof(@CLIP["b"]) == "string" then
-	bios_info.push("[clipb:<size=60%>"+CLIP["b"].replace(char(10),"</size=60%>, "))
-else
-	bios_info.push("[clipb:<size=60%>"+@CLIP["b"])
-end if
-if typeof(@CLIP["c"]) == "string" then
-	bios_info.push("[clipc:<size=60%>"+CLIP["c"].replace(char(10),"</size=60%>, "))
-else
-	bios_info.push("[clipc:<size=60%>"+@CLIP["c"])
-end if
-mscan = "-none-"
-if globals.meta_scan then mscan = "ready"
-bios_info.push("<size=85%>[portmap:"+globals.PORT_MAP.len+"] [xploits: "+globals.NUM_SPLOITS+"] [metascan: ]</size>")
-bios_info.push("<size=85%>[dict_a:"+colorGold+globals.dict_a.len+CT+"]  [dict_size: "+dict_a.join(", ").len+"]</size>")
-bios_info.push("<mark=red><size=50%>|</size></mark>")
-score = 10
-co = colorOrange
-pwf = command.tree("/etc","passwd",1,"N")
-if pwf then 
-	pwf = co + pwf.path +CT
-	score = score - 1
-else 
-	pwf = "--null--"
-end if
-bff = command.tree("/","Bank.txt",1,"N")
-if bff then
-	bff = co + bff.parent.path +CT
-	score = score - 1
-else 
-	bff = "--null--"
-end if
-mtf = command.tree("/","Mail.txt",1,"N")
-if mtf then 
-	mtf = co + mtf.parent.path +CT
-	score = score - 1
-else 
-	mtf = "--null--"
-end if
-mcf = command.tree("/","Map.conf",1,"N")
-if mcf then 
-	mcf = co + mcf.parent.path +CT
-	score = score - 1
-else 
-	mcf = "--null--"
-end if
-bcf = command.tree("/","Browser.txt",1,"N")
-if bcf then 
-	bcf = co + bcf.parent.path +CT
-	score = score - 1
-else 
-	bcf = "--null--"
-end if
-clf = command.tree("/","ConfigLan.conf",1,"N")
-if clf then 
-	clf = co + clf.parent.path +CT
-	score = score - 1
-else 
-	clf = "--null--"
-end if
-unsec_files = 0
-unsec_dirs = 0
-for file in allfiles
-	fp = file.permissions.values 
-	if fp[-1] != "-" or fp[-2] != "-" or fp[-3] != "-" then 
-		if file.is_folder then unsec_dirs = unsec_dirs + 1 else unsec_files = unsec_files + 1
-	end if	
-end for
-if unsec_files then score = score - 1
-if unsec_dirs then score = score - 1
-log = localmachine.File("/var/system.log")
-log_size = 0
-log_is_binary = 0
-log_permissions = "-log-missing-"
-if log then
-	log_size = log.size
-	log_is_binary = log.is_binary
-	log_permissions = log.permissions
-end if
-log_ps = log_permissions.values
-if log_ps[-2] != "-" or log_ps[-3] != "-" then score = score - 1
-if score == 10 then 
-	score = colorGreen+str(score) 
-	else if score < 2 then 
-		score = colorRed+str(score)
+	root = localmachine.File("/")
+	hdd_io = localmachine.File("/virt/hdd.io")
+	h_size = "<color=red>dev_sda error</color>"
+	if hdd_io then
+		h_c = hdd_io.get_content.split(char(10))
+		h_s = h_c[0].split(":")
+		h_n = 0
+		if h_s.len > 1 then h_n = h_s[1].val
+		if h_n then h_size = h_n - root.size.val
+	end if
+	if globals.stack_pool >= 15 then stack_print = "depleted; further nested launches not possible" else stack_print = globals.stack_pool
+	bios_info.push("<mark=red><size=85%>|</size></mark>")
+	bios_info.push("<size=85%>Macula Registry: [stack_pool:"+colorRed+stack_print+CT+"] </size>")
+	bios_info.push("<size=85%>root_procs [<b>"+root_procs+"</b>] user_procs [<b>"+user_procs+"</b>]  guest_procs [<b>"+guest_procs+"</b>] t:<b> "+(procs.len-1)+"</b></size>")
+	bios_info.push("<size=85%>cpu_usage: ["+cpu_used+"%] mem_usage: ["+mem_used+"%] temp: <color=red>therm_io not found</color></size>")
+	bios_info.push("<size=85%>[cpu:<mark=green>|"+"|"*(cpu_used/4)+"</mark>"+"_"*((100-cpu_used)/4)+"]   [ram:<mark=green>"+"|"*(mem_used/4+1)+"</mark>"+"_"*((100-mem_used)/4)+"]</size>")
+	hdd=(root.size.val / 1000000)
+	if typeof(h_size) == "number" then h_size = h_size / 1000000
+	bios_info.push("<size=85%>[hdd_used: <b>"+str(hdd)+" </b>MB]  [hdd_free: "+h_size+" MB]</size>")
+	allfiles = command.tree("-r","/")
+	folds = 0
+	bins = 0
+	txts = 0
+	tot = 0
+	for f in allfiles
+		if f.is_folder then 
+			folds = folds + 1
+		else if f.is_binary then 
+			bins = bins + 1
+		else
+			txts = txts + 1
+		end if
+	end for
+	tot = folds + bins + txts
+	bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] total: ["+tot+"]</size>")
+	ess = "-wifi disabled-"
+	if localmachine.active_net_card == "WIFI" and localmachine.is_network_active then
+		sig = 0
+		nets = localmachine.wifi_networks("wlan0") 
+		ess = get_router.essid_name
+		_get_wifi = function(networks)
+			for net in networks 
+				n = net.split(" ")
+				if DEBUG then print "debug: n is: "+n+" and n[1] is: "+n[2]
+				if ess == n[2] then
+					sig = n[1].replace("%","")
+					sig = sig.to_int
+					if DEBUG then print "debug: sig strength is: "+sig+"%"
+					return sig 
+				end if
+			end for
+			return 0
+		end function
+		sig = _get_wifi(nets)
+		sig_not = 100 - sig
+		bios_info.push("<size=85%>[wifi_signal:<mark=green>|"+"|"*(sig/2)+"</mark>"+"_"*(sig_not/2)+"]</size>")
+	end if
+	dl = localmachine.network_devices.split(char(10))
+	bios_info.push("<size=85%>["+dl.join("] [")+localmachine.active_net_card+"] ["+ess+"]")
+	ports = localmachine.get_ports
+	pl = []
+	for p in ports
+		pl.push(p.port_number)
+	end for
+	bios_info.push("<size=85%>ports: ["+pl.join("] [")+"] </size>")
+	bios_info.push("<mark=red><size=50%>|</size></mark>")
+	if DEBUG then print "debug: bios searching for database..."
+	//database = command.tree("/","database.csv",1,"N")
+	hold = globals.SILENT 
+	if not DEBUG then globals.SILENT = 2
+	database_files = command.grep("-a","^database.csv")
+	if not DEBUG then globals.SILENT = hold
+	data_lines = "--"
+	data_size = "-not_found-"
+	database = ""
+	if database_files.len then
+		if DEBUG then print "-- found "+database_files.len+" database.csv's"
+		// data_size = command.file("-c",database)
+		// if database.has_permission("r") then data_lines = command.file("-l",database) else data_lines = "-check_perms-"
+		// if data_size.to_int > "150000".to_int then data_size = colorOrange+"Warning: "+data_size+CT
+		data_lines = 0
+		data_size = 0
+		for file in database_files
+			if file.has_permission("r") then 
+				data_lines = data_lines + file.get_content.split(char(10)).len
+				data_size = data_size + file.get_content.len
+			end if
+		end for
+	end if
+	bios_info.push("<size=85%>[database_files:"+database_files.len+"]  [database_size:"+data_size+"]  [database_lines:"+data_lines+"]</size>")
+	bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
+	bios_info.push("<size=85%>[Custom_Object: "+get_custom_object.len+" indexes]")
+	bios_info.push("<size=85%>[tagged4scp: "+globals.tagged_for_scp+"]</size>")
+	bios_info.push("[tbuf:<size=60%>"+globals.T_BUF.join(" ")+"</size>]</size>")
+	if typeof(@CLIP["a"]) == "string" then
+		bios_info.push("[clipa:<size=60%>"+CLIP["a"].replace(char(10),", "))
+	else
+		bios_info.push("[clipa:<size=60%>"+@CLIP["a"])
+	end if
+	if typeof(@CLIP["b"]) == "string" then
+		bios_info.push("[clipb:<size=60%>"+CLIP["b"].replace(char(10),"</size=60%>, "))
+	else
+		bios_info.push("[clipb:<size=60%>"+@CLIP["b"])
+	end if
+	if typeof(@CLIP["c"]) == "string" then
+		bios_info.push("[clipc:<size=60%>"+CLIP["c"].replace(char(10),"</size=60%>, "))
+	else
+		bios_info.push("[clipc:<size=60%>"+@CLIP["c"])
+	end if
+	mscan = "-none-"
+	if globals.meta_scan then mscan = "ready"
+	bios_info.push("<size=85%>[portmap:"+globals.PORT_MAP.len+"] [xploits: "+globals.NUM_SPLOITS+"] [metascan: ]</size>")
+	bios_info.push("<size=85%>[dict_a:"+colorGold+globals.dict_a.len+CT+"]  [dict_size: "+dict_a.join(", ").len+"]</size>")
+	bios_info.push("<mark=red><size=50%>|</size></mark>")
+	score = 10
+	co = colorOrange
+	pwf = command.tree("/etc","passwd",1,"N")
+	if pwf then 
+		pwf = co + pwf.path +CT
+		score = score - 1
 	else 
-		score = colorOrange+str(score)
-end if
-bios_info.push("<size=85%>Security Audit Score: "+score+"/10</size>")
-bios_info.push("<size=60%>[unsecured_files:"+unsec_files+"]  [unsecured_directories: "+unsec_dirs+" ]</size>")
-bios_info.push("<size=60%>[/etc/passwd:"+pwf+"] [Mail.txt:"+mtf+"] [Bank.txt:"+bff+"]</size>")
-bios_info.push("<size=60%>[Map.conf:"+mcf+"] [Browser.txt:"+bcf+"] [ConfigLan.conf:"+clf+"]</size>")
-bios_info.push("<mark=red><size=50%>|</size></mark>")
+		pwf = "--null--"
+	end if
+	bff = command.tree("/","Bank.txt",1,"N")
+	if bff then
+		bff = co + bff.parent.path +CT
+		score = score - 1
+	else 
+		bff = "--null--"
+	end if
+	mtf = command.tree("/","Mail.txt",1,"N")
+	if mtf then 
+		mtf = co + mtf.parent.path +CT
+		score = score - 1
+	else 
+		mtf = "--null--"
+	end if
+	mcf = command.tree("/","Map.conf",1,"N")
+	if mcf then 
+		mcf = co + mcf.parent.path +CT
+		score = score - 1
+	else 
+		mcf = "--null--"
+	end if
+	bcf = command.tree("/","Browser.txt",1,"N")
+	if bcf then 
+		bcf = co + bcf.parent.path +CT
+		score = score - 1
+	else 
+		bcf = "--null--"
+	end if
+	clf = command.tree("/","ConfigLan.conf",1,"N")
+	if clf then 
+		clf = co + clf.parent.path +CT
+		score = score - 1
+	else 
+		clf = "--null--"
+	end if
+	unsec_files = 0
+	unsec_dirs = 0
+	for file in allfiles
+		fp = file.permissions.values 
+		if fp[-1] != "-" or fp[-2] != "-" or fp[-3] != "-" then 
+			if file.is_folder then unsec_dirs = unsec_dirs + 1 else unsec_files = unsec_files + 1
+		end if	
+	end for
+	if unsec_files then score = score - 1
+	if unsec_dirs then score = score - 1
+	log = localmachine.File("/var/system.log")
+	log_size = 0
+	log_is_binary = 0
+	log_permissions = "-log-missing-"
+	if log then
+		log_size = log.size
+		log_is_binary = log.is_binary
+		log_permissions = log.permissions
+	end if
+	log_ps = log_permissions.values
+	if log_ps[-2] != "-" or log_ps[-3] != "-" then score = score - 1
+	if score == 10 then 
+		score = colorGreen+str(score) 
+		else if score < 2 then 
+			score = colorRed+str(score)
+		else 
+			score = colorOrange+str(score)
+	end if
+	bios_info.push("<size=85%>Security Audit Score: "+score+"/10</size>")
+	bios_info.push("<size=60%>[unsecured_files:"+unsec_files+"]  [unsecured_directories: "+unsec_dirs+" ]</size>")
+	bios_info.push("<size=60%>[/etc/passwd:"+pwf+"] [Mail.txt:"+mtf+"] [Bank.txt:"+bff+"]</size>")
+	bios_info.push("<size=60%>[Map.conf:"+mcf+"] [Browser.txt:"+bcf+"] [ConfigLan.conf:"+clf+"]</size>")
+	bios_info.push("<mark=red><size=50%>|</size></mark>")
 
 
-bios_info.push("<size=85%>[/var/system.log: "+log_size+" bytes || is_binary: "+log_is_binary+" || perms: "+log_permissions+" ]")
-bios_info.push("<mark=red><size=50%>|</size></mark>")
-bios_info.push("*<size=50%> (obvious stub needs obvious improvement)</size>")
-bios_info.push("*<size=50%> see <b>bios -h</b> for additional usage info.")
-bios_info.push("<mark=red><u>=======================================================================</u></mark>")
+	bios_info.push("<size=85%>[/var/system.log: "+log_size+" bytes || is_binary: "+log_is_binary+" || perms: "+log_permissions+" ]")
+	bios_info.push("<mark=red><size=50%>|</size></mark>")
+	bios_info.push("*<size=50%> (obvious stub needs obvious improvement)</size>")
+	bios_info.push("*<size=50%> see <b>bios -h</b> for additional usage info.")
+	bios_info.push("<mark=red><u>=======================================================================</u></mark>")
 
-return bios_info.join(char(10))
+	return bios_info.join(char(10))
 end function
 command.cname = function(arg1,arg2,arg3,arg4)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: cname -- returns the name of the currently active computer_object"
@@ -2379,7 +2410,202 @@ command.whoami = function(arg1,arg2,arg3,arg4)
 	"-- if GLASSPOOL is active; returns best guess at active user"
 	if GLASSPOOL then return checkUser(localmachine) else return active_user
 end function
-
+command.rnip = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "Usage: rnip [iter] [optional: delimiter] -- produce [iter] random ip addressses and"+char(10)+"return as a string with optional [delimiter] (default newline)"+char(10)+"e.g. rnip 100 ,  -- returns a string of 100 ips seperated by a comma"
+	loop = 1
+	delimiter = char(10)
+	if arg1 then loop = arg1.to_int
+	if arg2 then delimiter = arg2
+	rng = range(1,223)
+	rnd = range(0,223)
+	rand_ip = []
+	if loop < 1 then return "rnip: iteration must be a positive integer."
+	for i in range(1,loop)
+		rng.shuffle
+		rnd.shuffle
+		sub = rnd[0]
+		rnd.shuffle
+		ito = rnd[0]
+		rnd.shuffle
+		rand_ip.push([rng[0], rnd[0], ito, sub].join("."))
+	end for
+	return rand_ip.join(delimiter)
+end function
+// new purge
+command.purge = function(arg1, arg2, arg3=0, arg4=0)
+	if not arg1 or arg1 == "-h" or arg1 == "help" then return "PURGE || clear buffer || feels bad"+char(10)+
+	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
+	"Usage: purge [-b] [#] -- remove BUFFER entry at index #"+char(10)+
+	"-- for advanced BUFFER management see the <b>tws -h</b>"+char(10)+
+	"Usage: purge [-t] -- purge transmit buffer (@tbuf)"+char(10)+
+	"Usage: purge [-x] -- purge the metaxploitLib object"+char(10)+
+	"Usage: purge [-X] -- purge XPLOITS buffer "+char(10)+
+	"Usage: purge [-m] -- purge macro registry"+char(10)+
+	"USage: purge [-M] -- purge the MetaLib object"+char(10)+
+	"-- also purges XPLOITS buffer"+char(10)+
+	"Usage: purge [-c] -- purge CC command buffer "+char(10)+
+	"Usage: purge [-e] -- purge enum buffer"+char(10)+
+	"Usage: purge [-s] -- purge tagged4scp buffer"+char(10)+
+	"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+
+	"Usage: purge [-r] [exclude1:exclude2:...] "+char(10)+
+	"-- purge the RSI buffer; excludes process names or ID's matching the excludes"+char(10)+
+	"--eg: purge -r backdoor:ps:obviousVirus"+char(10)+
+	"-- skips confirmation"+char(10)+
+	"-- for advanced rsi management see <b>rsi -h</b>"+char(10)+
+	"Usage: purge [-o] -- purge custom object  (excludes: stack_pool, macro registry)"+char(10)+
+	"Usage: purge [-p] -- purge the PORT_MAP"+char(10)+
+	"Usage: purge [-d] -- purge monitors"+char(10)+
+	"--ie: purge all daemons"+char(10)+
+	"-- use the <b>dm</b> command to stop indivudual daemons"+char(10)+
+	"--eg: dm stop htop_01"+char(10)+
+	"Advanced: purge [opt] [y] -- skip confirmation "+char(10)
+	if DEBUG then print "debug: starting new_purge with inputs: "+arg1+" and "+arg2
+	p = {}
+	p.a = "purge: aborting..."
+	p.a2 = arg2
+	p.done = function(l)
+		return "purge: <b>"+l+"</b> purged"
+	end function
+	p.confirm = function(lbl)
+		if self.a2 == "y" then return 1 
+		if user_input("Clear <b>"+lbl+"</b>: are you sure? [y/<b>N</b>]||: ",0,1).lower == "y" then return 1
+		return 0
+	end function
+	p.buf = function()
+		l = colorOrange+"BUFFER"+CT
+		if not p.confirm(l) then return p.a
+		if not p.a2 or p.a2 == "y" then 
+			globals.BUFFER = [get_shell]
+			return p.done(l)
+		end if
+		if typeof(p.a2.to_int) == "number" then p.a2 = p.a2.to_int else return p.a
+		if globals.BUFFER.hasIndex(p.a2) then globals.BUFFER.remove(p.a2) else return "purge: invalid index"
+		return  p.done(l+"["+p.a2+"]")
+	end function 
+	p.tbf = function()
+		l = "Transmission Buffer"
+		if not p.confirm(l) then return p.a
+		globals.T_BUF = [(localip+"@"+pubip)]
+		return  p.done(l)
+	end function
+	p.mxp = function()
+		l = "Global MetaxploitLib"
+		if not p.confirm(l) then return p.a
+		globals.metaxploit = null
+		return p.done(l)
+	end function
+	p.xpl = function()
+		l = "XPLOITS"
+		if not p.confirm(l) then return p.a
+		globals.MEMORY = null
+		globals.XPLOITS = []
+		globals.meta_scan = []
+		return p.done(l)
+	end function
+	p.mcr = function()
+		l = "Macro Registry"
+		if not p.confirm(l) then return p.a
+		print command.cob("vaidate")
+		if DEBUG then print "debug: macros: "+char(10)+get_custom_object.macros
+		get_custom_object.macros = {}
+		return p.done(l)
+	end function
+	p.mlb = function()
+		l = "Global MetaLib"
+		if not p.confirm(l) then return p.a
+		globals.metaLib = null 
+		if globals.net_session then 
+			print "purging net_session..."
+			globals.net_session = null 
+		end if
+		return p.done(l)
+	end function
+	p.ccb = function()
+		l = "Command Buffer"
+		if not p.confirm(l) then return p.a
+		globals.command_buffer = []
+		return p.done(l)
+	end function
+	p.enm = function()
+		l = "Enum Buffer"
+		if not p.confirm(l) then return p.a
+		globals.enumerated = []
+		return p.done(l)
+	end function
+	p.t4s = function()
+		l = "Tagged 3 SCP"
+		if not p.confirm(l) then return p.a
+		globals.tagged_for_scp = ""
+		return p.done(l)
+	end function
+	p.rsi = function()
+		l = "Rshell Buffer"
+		if not p.confirm(l) then return p.a
+		job = "ALL"
+		if typeof(p.a2) == "string" and p.a2 != "y" and p.a2 != "ALL" then job = "ALL:"+p.a2
+		globals.rsi_purge(job)
+		return p.done(l)
+	end function
+	p.cob = function()
+		l = "Custom Object"
+		if not p.confirm(l) then return p.a
+		gco = get_custom_object
+		if DEBUG then print "debug: printing gco indexes..."
+		for index in gco.indexes
+			if DEBUG then print index
+			if index != "__isa" and index != "classID" and index != "macros" and index != "stack_pool" then gco.remove(index)
+		end for
+		gco.macros = {"classID":"macros"}
+		print command.cob("validate")
+		return p.done(l)
+	end function
+	p.dmn = function()
+		l = "Daemons"
+		if not p.confirm(l) then return p.a
+		manager = new DaemonManager
+		manager.Init
+		if manager.__initialized and manager.__file then
+			if not p.confirm(l) then return p.a
+			if not p.a2 or p.a2 == "y" then
+				print colorGold+"purge: stopping all daemons..."
+				result = manager.__file.delete
+				if typeof(result) == "string" and result.len > 0 then return colorWarning+"purge: Error deleting rshell.d: " + result
+				return p.done(l) 
+			end if
+			result = null
+			if typeof(p.a2) == "string" then	result = manager.Stop(p.a2)
+			if not result then return colorWarning+"purge: failed to stop: "+p.a2
+		else
+			return colorWarning+"purge: Error starting daemon manager"
+		end if
+		return p.done(l)
+	end function
+	p.pmp = function()
+		l = "PORTMAP"
+		if not p.confirm(l) then return p.a
+		globals.PORT_MAP = {}
+		return p.done(l)
+	end function
+	p._ = function()
+		return "purge: valid options: -b, -t, -x, -X, -m, -M, -c, -e, -s, -r, -o, -d, -p"
+	end function
+    switch(arg1)
+        case("-b",@p.buf)
+        case("-t",@p.tbf)
+        case("-x",@p.mxp)
+        case("-X",@p.xpl)
+        case("-m",@p.mcr)
+        case("-M",@p.mlb)
+        case("-c",@p.ccb)
+        case("-e",@p.enm)
+        case("-s",@p.t4s)
+		case("-r",@p.rsi)
+		case("-o",@p.cob)
+		case("-d",@p.dmn)
+		case("-p",@p.pmp)
+	return default(@p._)
+	return 0
+end function
 command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "credits"
 	logo = []
@@ -2402,13 +2628,13 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
 	print("Glosure by: "+colorWhite+"maho_citrus")
 	print("Htop by: "+colorWhite+"redit0")
+	print("TWS by: "+colorWhite+"Aksu")
 	print("Additional code contributions by: Clover, redit0, muhahahahe, rocketorbit")
 	print("Github Readme by: "+colorWhite+"Hikaru918")
-	print("5hell Discord by: "+colorWhite+"Redit0")
+	print("5hell Discord and Daemon Manager by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
-	print("beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
-	print("Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Notepid, bakeneko, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, Bit, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others!")
-	return 0
+	print("Beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
+	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Notepid, bakeneko, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, Bit, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
 	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."
@@ -2421,4 +2647,3 @@ command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, 
 	end if
 	exit(state)
 end function
-
