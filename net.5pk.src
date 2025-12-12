@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.7.5.(154.823)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.8.(149.786)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -51,179 +51,6 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "<b>Transmit</b> -- t_buf transmission protocol"+char(10)+"Usage: transmit [opt: 1|0] --  transmit @t_buf to your @home server. "+char(10)+"-- set @home credentials in 5hell.src before building 5hell"+char(10)+"-- options: 1 == wait for reply, 0 (or blank) == don't wait for reply"+char(10)+"-- use with hashim running on the @home server"
 	return globals.transmit(arg1)
 end function
-command.glasspool = function(arg1,arg2,arg3,arg4)
-	if arg1 == "help" or arg1 == "-h" then return colorLightBlue+"<u>Glasspool sshfs shell/computer mirroring || GP || glassp"+char(10)+
-	"Switches scope of commands to a supplied object"+char(10)+
-	"Usage: glasspool [object: shell|computer] -- switch scope to piped object"+char(10)+
-	"Usage: glasspool [#] -- switch scope to the shell or computer at BUFFER index #"+char(10)+
-	"Usage: glasspool -r [#] -- switch scope to reverse shell at rsi index #"+char(10)+
-	"-- n.b. rshell index starts at 1 not 0 !!"+char(10)+
-	"Usage: glasspool [-m|menu] -- display BUFFER and RSI menu and switch scope to selection"+char(10)+
-	"-- unlike @B -m, glasspool -m will display <u>both</b>  BUFFER shells and rshells"+char(10)+
-	"Usage: <b>gp</b> [option] -- abreviation for glasspool, for qol"+char(10)+
-	"N.B. -- glasspool is the glassp option in rsi and malp"+char(10)+
-	"N.B. -- commands that are local only will not translate through glasspool"+char(10)+
-	"N.B. -- the term 'glass puddle' refers to glasspool in computer object mode"+char(10)+
-	"Usage: glasspool [-d] [command_string] [index|object]"+char(10)+
-	"-- execute a command or string of commands upon initialization"+char(10)+
-	"--eg: gp -d "" echo cleaning up | rclean @B 1 | return "" @B 1 "+char(10)+
-	"Usage: glasspool [-d] [command_string] [-r|-m] [index]"+char(10)+ 
-	"-- execute commands on initialization with -r|-m options"+char(10)+
-	"--eg: gp -d "" do 1 -f this.bat "" -r 1"+char(10)+
-	"--eg: macro -s bob ""echo burger "" |  | gp -d bob -m"
-	if not arg1 then return "glasspool: invalid input; <b>gp -h</b> for help"
-	gp_do = false // do we need to initiate a do script when we start galsspool?
-	obj = arg1 
-	if arg1 == "-d" then
-		if arg2 then gp_do = arg2 else return "glasspool: -d expects string"
-		obj = arg3
-		arg2 = arg4
-	end if
-	// handle switches
-	// -m display menu
-	if typeof(obj) == "string" and typeof(obj.to_int) == "number" then 
-		index = obj.to_int 
-		if index >= 0 and index < globals.BUFFER.len then obj = globals.BUFFER[index] else return "glassp: index out of range"
-	end if 
-	if obj == "-m" then 
-		temp_buf = []
-		for b in globals.BUFFER
-			if typeof(b) == "shell" or typeof(b) == "ftpshell" or typeof(b) == "computer" then temp_buf.push(b)
-		end for
-		r_index = temp_buf.len
-		if metaxploit then
-			r_buf = metaxploit.rshell_server
-			if typeof(r_buf) != "string" then temp_buf = temp_buf + r_buf
-		end if
-		print(colorLightBlue+"<size=85%><mark=blue>======================================================================</mark></size>"+CT)
-		print("<u>BUFFER contains: "+temp_buf.len+" glass objects. ["+colorWhite+"0"+CT+"] == localhost "+colorCyan+"*"+CT+" == "+colorCyan+"active shell"+CT+"</u>"+char(10)+"<size=75%><u>"+colorLightBlue+" rshells "+CT+"are listed after"+colorOrange+" BUFFER "+CT+"shells. rshells in BUFFER will be listed twice.</size></u>")
-		ti = 0
-		color_shelle = colorOrange
-		she_buf = []
-		active_icon = "<b> - </b>"
-		for tb in temp_buf
-			if ti >= r_index then color_shelle = colorLightBlue // color rshells blue
-			if typeof(tb) == "shell" or typeof(tb) == "ftpshell" then
-				if tb.host_computer.public_ip == globals.shell.host_computer.public_ip and tb.host_computer.local_ip == globals.shell.host_computer.local_ip then active_icon = colorCyan+" * "+CT
-				p_ip = tb.host_computer.public_ip
-				l_ip = tb.host_computer.local_ip
-			else 
-				p_ip = tb.public_ip
-				l_ip = tb.local_ip
-			end if
-			she_buf.push("["+colorWhite+ti+CT+"]"+active_icon+""+color_shelle+"["+checkUser(tb)+":"+typeof(tb)+"] "+CT+l_ip+" @ <b>"+p_ip+"</b>") 
-			active_icon = "<b> - </b>" // reset active icon
-			ti = ti + 1
-		end for
-		print(she_buf.join(char(10)))
-		slect = user_input("select a <b>target</b> shell (q=quit): ").to_int
-		if typeof(slect) != "number" then return "aborting..."
-		if slect >= 0 and slect < temp_buf.len then
-			obj = temp_buf[slect]
-		else
-			return "aborting..."
-		end if
-	end if
-	// -r use rshell
-	if obj == "-r" then 
-		if metaxploit then
-			r_buf = metaxploit.rshell_server
-			if typeof(r_buf) == "string" then return r_buf 
-			if r_buf.len < 1 then return "rsi: rshell buffer empty"
-			if not arg2 or typeof(arg2.to_int) != "number" then return "glassp: -r expects a number index"
-			if arg2.to_int > r_buf.len or arg2.to_int < 1 then return "glassp: index ["+arg2+"] out of range"
-			obj = r_buf[arg2.to_int - 1]
-		end if
-	end if
-	// check result. file objects are not supported at this time
-	if typeof(obj) != "shell" and typeof(obj) != "computer" then return "glassp: expects shell or computer"
-	print(colorLightBlue+"<size=75%>Initializing sshfs glasspool protocol..."+CT)
-
-	// -- handle shell
-	if typeof(obj) == "shell" then
-		// save current state
-		hold_shell = globals.shell
-		globals.shell = obj
-		globals.localmachine = shell.host_computer
-		if globals.localmachine and globals.shell then
-			globals.GLASSPOOL = globals.GLASSPOOL + 1
-			// display info/warning
-			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful. "+char(10)+
-			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
-			colorOrange+"<size=75%>glasspool: shell mirroring:"+char(10)+
-			"<size=75%>-- <color=yellow>shell</color>, <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
-			"<size=75%>---- will execute on the machine attached to the shell object"+char(10)+
-			"<size=75%>-- <b>local/general</b> category commands will execute on the local machine"
-			if typeof(globals.shell) == "ftpshell" then print colorOrange+"<size=75%>Warning: ftp shells have limited functionality"
-			// print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
-			// switch scope
-			uu = checkUser(globals.shell)
-			if uu == "root" then 
-				globals.currentPath = "/root"
-			else
-				if uu == "guest" then 
-					globals.currentPath = "/home/guest"
-				else 
-					globals.currentPath = "/home/"+uu
-				end if
-			end if
-			command.shell(gp_do)
-			// restore previous state
-			globals.shell = hold_shell
-			globals.localmachine = globals.shell.host_computer
-			globals.GLASSPOOL = globals.GLASSPOOL - 1
-			// update path
-			globals.update_path
-			print(colorLightBlue+"<size=75%>glasspool: "+colorOrange+" deactivating..."+CT)
-		else
-			globals.shell = hold_shell
-			globals.localmachine = globals.shell.host_computer
-			print(colorOrange+"<size=75%>glasspool: error: failed to initialize."+CT)
-		end if
-	end if
-
-	// -- handle computer
-	if typeof(obj) == "computer" then
-		// display info/warning.
-
-		print(colorLightBlue+"<size=75%>glasspool: initializing glass puddle computer handler...")+CT
-		// save current state
-		tem_c = globals.localmachine
-		globals.localmachine = obj
-		if globals.localmachine and globals.shell then
-			globals.GLASSPOOL = globals.GLASSPOOL + 1
-			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful "+char(10)+
-			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
-			colorOrange+"<size=75%>glasspool: computer mirroring:"+char(10)+
-			"<size=75%>-- <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
-			"<size=75%>---- will execute on the machine connected to the computer object"+char(10)+
-			"<size=75%>-- <color=yellow>shell</color> and <b>local/general commands</b> will execute on the local machine"+char(10)
-			// switch scope
-			uu = checkUser(globals.localmachine)
-			if DEBUG then print "debug: uu: "+uu
-			if uu == "root" then 
-				globals.currentPath = "/root"
-			else
-				if uu == "guest" then 
-					globals.currentPath = "/home/guest"
-				else 
-					globals.currentPath = "/home/"+uu
-				end if
-			end if
-			command.shell
-			// restore previous state
-			globals.localmachine = tem_c
-			// update path
-			globals.update_path
-			globals.GLASSPOOL = globals.GLASSPOOL - 1
-			print(colorLightBlue+"GLASS_PUDDLE: "+colorOrange+" deactivating..."+CT)
-		else 
-			globals.localmachine = tem_c
-			print(colorOrange+"glasspool: error: failed to initialize."+CT)
-		end if
-	end if
-	return 0
-end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "<b><u>Reverse Shell Interface || RSI Daemon || Install rshell server"+char(10)+
 	colorWhite+"</b>Using rsi requires first setting an rshell server. To do so, rent a proxy, then"+char(10)+
@@ -241,7 +68,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	"<b>-- opens the last (most recent) rshell on connect"+char(10)+
 	"-- ["+colorWhite+"-d"+CT+"] -- listen until 1 or more rshells have connected"+char(10)+
 	"---- stops listening immediately if 1 or more rshells are already connected"+char(10)+
-	"-- ["+colorWhite+"-]"+CT+"] -- listen until a <b>new</b> rshell has connected"+char(10)+
+	"-- ["+colorWhite+"-D"+CT+"] -- listen until a <b>new</b> rshell has connected"+char(10)+
 	"---- use this if you don't want to purge rshells between uses"+char(10)+
 	"<b><size=75%>--note: you may pass a menu option that will be executed on the rshell when it connects:"+char(10)+
 	"----eg: <b>rsi -d 4</b> -- opens the most recent rshell connection with "+colorLightBlue+"</b>glasspool"+char(10)+
@@ -309,16 +136,33 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		rserver = null
 		
         lbrs = command.tree("/","librshell.so",1,"N")
-        if not lbrs then return colorRed+"rsi: librshell.so not found on machine"+CT
+        if not lbrs then 
+			print "rsi: librshell.so missing"+char(10)+"-- attempting to download..."
+			if globals.apt_get then print command.aptm("-i","librshell.so") else return "rsi: aptclientLib not loaded;"+char(10)+"-- unable to obtain librshell.so"+char(10)+"-- aborting..."
+		    lbrs = command.tree("/","librshell.so",1,"N")
+		end if
+		if typeof(lbrs) != "file" then return colorWarning+"rsi:</b> unable to locate or install librshell.so"
 		rc = null
         lib = globals.get_file("/lib")
-        if not lib then return "rsi: error, /lib missing"
+        if not lib then return colorError+"rsi: error;</b> /lib is missing!"
+
 		print "rsi: attempting to install the rshell service..."
         if lib.has_permission("w") and lbrs.has_permission("r") then lbrs.copy("/lib",lbrs.name)
         rserver = include_lib("/lib/librshell.so")
-        if not rserver then return("rsi: librshell.so not installed in /lib")
+        if not rserver then return colorError+"rsi: failed:</b> librshell.so not installed in /lib"
         rc = rserver.install_service
-		if rc then return colorGreen+"rsi: service installed"+CT else return colorRed + "rsi: failed to install service" + CT
+		if rc then print colorLightBlue+"</b>rsi: service installed" else return colorRed + "rsi: failed to install service:<size=75%> "+rc
+		print "To complete setup:"+char(10)+
+			colorGreen+"<size=75%>-- Use your Browser.exe to navigate to: "+colorWhite+localmachine.network_gateway+":8080"+char(10)+
+			colorGreen+"<size=75%>-- Add an entry that forwards the rshell port:"+char(10)+
+			colorGreen+"<size=75%>---- usually port "+colorWhite+"1222"+CT+" to port "+colorWhite+"1222"+char(10)+
+			colorGreen+"<size=75%>---- at lan_ip: "+colorWhite+localmachine.local_ip
+		brwsr = command.grep("-f","^Browser.exe$")
+		if typeof(brwsr) == "file" then 
+			opn = user_input(colorLightBlue+"<size=75%>rsi: open "+colorWhite+"Browser.exe "+localmachine.network_gateway+":8080</color>?"+char(10)+colorWhite+"<size=75%></b>[<b>Y</b></b>/n]||: ",0,1)
+			if opn != "n" then print command.run(brwsr,localmachine.network_gateway+":8080")
+		end if
+		return "rsi: task complete"
 	end if
 	//
 	// need a smarter daemon mode
@@ -661,12 +505,15 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	"Usage: air [-f|false] -- same as the <b>iwlist</b> command"+char(10)+
 	"-- returns wifi networks in range as a string"+char(10)+char(10)+
 	"Usage: air [-c] [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+char(10)+
+	"Usage: air [-a] [essid|bssid] -- run aireplay on a network from the command line"+char(10)+
+	"-- you may supply <b>either</b> bssid or essid, not both"+char(10)+char(10)+
 	"Advanced: A wifi network might have a <b>nested wifi signal</b> within it"+char(10)+
 	"-- select option [<b>h</b>] within air to activate detection of nested wifi signals"+char(10)+
 	"-- you must be on the nested signal's host wifi network in order to detect and connect to it"+char(10)+
-	"-- this allows bypassing firewalls in many instances"+char(10)+char(10)+
+	"-- this allows bypassing firewalls in many instances"+char(10)+
+	"-- this does not translate through GLASSPOOL"+char(10)+char(10)+
 	"NOTE: you may use:"+char(10)+
-	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid] [bssid]"+char(10)+
+	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid|bssid]"+char(10)+
 	"-- to manually connect to a wifi network"+char(10)+
 	"-- see <b>ifconfig -h</b> for more"
 	print("AirMenu v 0.1.3, by Plu70")
@@ -695,7 +542,8 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		return data
 	end function
 
-	scan_wifi = function(a1,detect_hidden)
+	scan_wifi = function(waitFor=false,detect_hidden,wego)
+		if waitFor == "-a" then waitFor == "a"
 		print(command.ifconfig)
 		dev = localmachine.network_devices
 		dsp = dev.split(char(10))
@@ -706,6 +554,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			return 0 
 		end if
 		mon = false
+		if not globals.crypto then print("<size=75%>Warning: crypto.so not found; aireplay is unavailable")
 		if not crypto.airmon("start", "wlan0") then print("<size=75%>Warning: monitor mode not enabled"+char(10)+"-- aireplay unavailable",0,2) else mon = true
 		print(colorGreen+"- - - - - - - - - - - - - - - - - - - - - - -"+CT)
 		print(format_columns("DEV NAME MON"+char(10)+dev))
@@ -752,9 +601,9 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		end if
 		networks = networks + output
 		print(data_stream(networks))
-		waitFor = false
-		if a1 and a1 == "false" then waitFor = "false"
-		if not waitFor then waitFor = user_input("Select a network # ( m=manual, h=detect_hidden, q=quit )"+char(10)+":> ").to_int
+		//waitFor = false
+		//if a1 and a1 == "false" then waitFor = "false"
+		if not waitFor then waitFor = user_input("Select a network # ( m=manual, h=detect_hidden, q=quit )"+char(10)+":> ")
 		if waitFor == "h" or waitFor == "H" then
 		 	if globals.GLASSPOOL then 
 				print(colorOrange+"Aborting: Operation not possible via GLASSPOOL."+CT)
@@ -762,14 +611,15 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			end if
 			return 2
 		end if
-		if waitFor < networks.len and waitFor >= 0 and typeof(waitFor) == "number" then
+		if waitFor isa string and waitFor.to_int isa number then waitFor = waitFor.to_int
+		if waitFor < networks.len and waitFor >= 0 and typeof(waitFor) == "number" then	
 			memory = networks[waitFor].split(" ")
 			print(memory)
 			bssid = memory[0]
 			power = memory[1]
 			essid = memory[2]
 		else
-			if waitFor.lower == "m" then
+			if waitFor == "m" then
 				bssid = user_input("bssid:> ")
 				essid = user_input("essid:> ")
 				if bssid == "" or essid == "" then return 0
@@ -777,19 +627,31 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				if power == "" then return 0
 				memory = [bssid, power, essid]
 			else
-				return 0
+				if wego then 
+					for net in networks
+						net = net.split(" ")
+						if wego == net[0] or wego == net[2] then 
+							bssid = net[0]
+							power = net[1]
+							essid = net[2]
+						end if
+					end for
+				else 
+					return 0
+				end if
 			end if
 		end if
 		passw = null
 		cap_fl = command.tree("/",essid+".cap",1,"N")
 		if typeof(cap_fl) == "file" then passw = crypto.aircrack( cap_fl.path )
-		if passw then
+		if passw and not wego then
 			print(passw + "@" + bssid)
 			print("Connection status: [" + localmachine.connect_wifi("wlan0", bssid, essid, passw) + "]"+char(10))
 			wait(1)
 			return detect_hidden
 		end if
-		max = (300000 / (( power.remove("%").val) + 15))
+		max = (300000 / (( power.remove("%").val) + 15 ))
+		if typeof(max) != "number" then return colorError+"air: critical error; max acks == "+max
 		print
 		print colorGold+"AIR: Options:"
 		print(colorGold+"["+colorWhite+"C</color>]redentials -- connect to the wifi network using the known key"+char(10)+"-- requires knowing the key")
@@ -802,10 +664,10 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		if max <= 20000 then print colorWhite+"^^^^^^^^ "+colorCyan+"recommended"+CT+" ^^^^^^^^"
 		print
 		print("Note: "+colorCyan+"press enter"+CT+" to default to using Air (recommended)")
-		brut = user_input("Please enter your selection: [c/b/<b>A</b>] (anything else to abort)"+char(10)+"||: <b>",0,1)
+		if wego then brut = "a" else brut = user_input("Please enter your selection: [c/b/<b>A</b>] (anything else to abort)"+char(10)+"||: <b>",0,1)
 		if brut == "" then brut = "a"
-		if brut.lower != "b" and brut.lower != "c" and brut.lower != "a" then return "aborting..."
-		if brut.lower == "b" then
+		if brut != "b" and brut != "c" and brut != "a" then return "aborting..."
+		if brut == "b" then
 			d_count = 0
 			time_s = time
 			print("Trying: "+colorGold+dict_a.len+CT+" passwords..."+char(10)+"<b>This may take some time...</b>")
@@ -825,9 +687,9 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 				wait(.01)
 			end for
 		end if
-		if brut.lower == "c" then
+		if brut == "c" then
 			ur_p = user_input("network credentials (q=quit):> ")
-			if ur_p.lower == "q" then return "aborting..."
+			if ur_p == "q" then return "aborting..."
 			try = localmachine.connect_wifi("wlan0", bssid, essid, ur_p)
 			if try == 1 then print(essid+" @ "+bssid) else try = colorRed+try+CT
 			print("Connection status: [" + try + "]"+char(10))
@@ -862,6 +724,8 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		end if
 		//max = (300000 / ( power.remove("%").val) + 15 )
 		max = max + 10 // just in case
+		if not globals.crypto then return colorError+"<size=75%>air: error: crypto.so not found"
+		if globals.DEBUG then print "debug: bssid: "+bssid+" essid: "+essid+" max: "+max
 		status = crypto.aireplay(bssid, essid, max)
 		if status then print(status) else print("Scan complete.")
 		print("Processing...")
@@ -882,8 +746,8 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			print("...file saved as " + essid+".cap")
 			print("The key is:<b> "+crypto.aircrack(globals.currentPath + "/" + essid + ".cap")+"</b>")
 			if user_input(colorCyan+"Would you like to move "+cap.path+" to another folder? "+char(10)+"[<b>N</b>/y] ||: ",0,1).lower == "y"then
-				dir = user_input(colorCyan+"Please enter the destination folder (leave blank to abort): "+char(10)+":> ")
-				if dir == "" then return "aborting..."
+				dir = user_input(colorCyan+"Please enter the destination folder (relative paths accepted): "+char(10)+"(<<b>enter</b>>=abort):> ")
+				if dir.trim == "" then return "aborting..."
 				return command.mv(cap.path,dir)
 			end if
 		end if
@@ -899,8 +763,14 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			return "usage: air -c [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"
 		end if
 	end if
+	goto = 0
+	if arg1 == "-a" then
+		if not arg2 then return "air: [-a] expects essid or bssid; aborting..." else goto = arg2 
+	end if
 	while scw
-		scw = scan_wifi(arg1,scw)
+		scw = scan_wifi(arg1,scw,goto)
+		arg1 = 0
+		goto = 0
 	end while
 	return "air: exiting..."
 end function
@@ -935,10 +805,13 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	"---- when probing locally; the machine does not exist or is busted"+char(10)+
 	colorGrey+"-- grey: port info: no lib.so / no response"+char(10)+
 	colorLightBlue+"NOTE:"+CT+" if both port info and lan ip are grey;"+char(10)+
-	"-- the machine likely does not exist (but not always)" 
+	"-- the machine likely does not exist (but not always)"
 	if not localmachine.is_network_active then return "probe: no network connection."
+	if arg1 == "-b" then 
+		if PORT_MAP then return globals.brdc else return "probe: error; no portmap loaded"
+	end if
 	if arg1 =="-s" or arg1 == "show" then
-		if PORT_MAP then return globals.last_whois+char(10)+"- - - - - - - - - - - - - - -"+char(10)+globals.display_portmap(1) else return "probe: error; no portmap loaded"
+		if PORT_MAP then return globals.last_whois+char(10)+globals.brdc+char(10)+"- - - - - - - - - - - - - - -"+char(10)+globals.display_portmap(1) else return "probe: error; no portmap loaded"
 	end if
 	if arg1 then globals.targetIP = arg1
 	if arg2 then globals.targetPort = arg2.to_int
@@ -957,7 +830,6 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg2 or ( (arg1 == "-f" or arg1 == "-q") and not arg3) then globals.targetPort = "router"
 	if arg4 and arg4 == "1" then
 		return who_scan(get,0,1)
-		return 0
 	end if
 	return who_scan(get,0,0)
 	return 0
@@ -1205,7 +1077,9 @@ end function
 command.prox = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "KRAKEN shortcut || proxy tunneling"+char(10)+"
 	Usage: prox -- use kraken to route through proxy net and open terminal at end"+char(10)+
-	"-- equivalent to<b> kraken connect"
+	"-- equivalent to<b> kraken connect"+char(10)+
+	"-- if Map.conf is encrypted you may pass a decryption key as an argument"+char(10)+
+	"---- otherwise you will be prompted for the key"
 	return command.kraken("connect", arg1, arg2)
 	return 0
 end function
@@ -1213,11 +1087,51 @@ if DEBUG then print("<size=75%>loading ...kraken.5pk...(10.875b)</size>")
 // gonna have to completely reqrite kraken, otherwise it's going to become impossible to maintain
 command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	kraken_help = function()
-		return "Usage: kraken [optional: upload_path] propagate file or folder to all proxies, chlock, delete /etc/passwd using Config/Map.conf"+char(10)+"shortcuts: kraken connect == prox"+char(10)+"shortcuts: kraken scrub == scrub"+char(10)+"Usage: kraken [/path|prox|scrub|-l|buffer] -- shells will be sent to BUFFER."+char(10)+"New: kraken [command] [-s] -- run silentclean locally on each proxy after command. (if silentclean is installed on that system)"+char(10)+"Advanced: kraken [add|del|show] [opt:ip] [opt:pass] -- add|remove items to|from Map.conf or display current map."+char(10)+"Usage:<b> kraken show -p </b>-- show proxy list with passwords."+char(10)+"New:<b> kraken -l </b> -- download logs from proxies (and then scrub)"+char(10)+"Usage: kraken -- launch kraken menu"+char(10)+"NEW: kraken will no longer scrub logs by default! "+char(10)+"-- please use <b>kraken scrub</b> or the shortcut <b>scrub</b> to clean corrupt proxy logs."+char(10)+"Logs are still scrubbed by default when running:"+char(10)+"-- kraken -l, kraken connect, prox (shorcut for kraken connect)"+char(10)+"-- kraken scrub, scrub (shorcut for kraken scrub)"+char(10)+"Kraken will <b>not</b> autoscrub for:"+char(10)+"-- kraken [path] and/or  kraken buffer"
+		return "proxy management || release the kraken || upload || download || rental server"+char(10)+
+		"Usage: kraken [opt: upload_path] -- propagate file or folder to all proxies"+char(10)+
+		"-- uses ~/Config/Map.conf"+char(10)+
+		"-- does <b>not</b> scrub the log after uploading"+char(10)+char(10)+
+		"Usage: kraken prox -- tunnel through each proxy and start_terminal on the last"+char(10)+
+		"-- each proxy uses ssh to connect to the next, in order"+char(10)+
+		"-- start_terminal will be used on the endpoint proxy"+char(10)+
+		"-- scrubs the logs before starting the terminal"+char(10)+
+		"--note: this mode has been aliased to the "+colorCyan+"prox"+CT+" command (<b>prox -h</b>)"+char(10)+
+		"Usage: kraken prox [opt:"+colorLightBlue+"-g"+CT+"] -- tunnel through each proxy <b>w/o</b> starting the terminal"+char(10)+
+		"-- opens the final shell in the chain in "+colorLightBlue+"glasspool"+CT+" instead"+char(10)+
+		"-- all shells in the chain remain in the "+colorOrange+"BUFFER"+char(10)+char(10)+
+		"Usage: kraken scrub -- tunnel through proxy chain and corrupt the log on each"+char(10)+
+		"--note: this mode has been aliased to the "+colorCyan+"scrub"+CT+" command (<b>scrub -h</b>)"+char(10)+
+		"-- <b>kraken scrub / scrub</b> will:"+char(10)+
+		"---- corrupt the log on each proxy in the chain"+char(10)+
+		"---- remove /etc/passwd from each proxy in the chain"+char(10)+
+		"---- lock file permissions on each proxy in the chain"+char(10)+char(10)+
+		"Usage: kraken [buffer] -- shells will be sent to BUFFER with no further action"+char(10)+char(10)+
+		//"New: kraken [command] [-s] -- run silentclean each proxy after the command"+char(10)+
+		//"--eg: kraken /root/rkit -s"+char(10)+char(10)+
+		"Usage: kraken add [opt:ip] [opt:pass] -- add items to Map.conf"+char(10)+char(10)+
+		"Usage: kraken del [index] -- remove the entry at index"+char(10)+
+		"Usage: kraken show [opt:-p] -- display proxy list"+char(10)+
+		"-- passing<b> -p</b> will display the list with passwords"+char(10)+char(10)+
+		"Usage: kraken [-l|logs]  -- download system.log from proxies and then scrub"+char(10)+
+		"-- system.logs are saved as: <b>system-#.log"+char(10)+
+		"-- # is in the reverse order of the proxy chain"+char(10)+
+		"---- the <b>endpoint</b> log will have the lowerst number"+char(10)+
+		"-- logs are<b> not</b> overwritten on each run; mind your drive space"+char(10)+char(10)+
+		colorGold+"Usage: kraken -- launch the kraken proxy management menu"+char(10)+
+		char(10)+
+		"NOTE: kraken will only scrub logs when using:"+char(10)+
+		"-- scrub, prox, [-l|logs]"+char(10)+char(10)+
+		colorGold+"Encryption"+CT+colorWhite+" and "+CT+colorGold+"Kraken"+char(10)+
+		"-- kraken will [offer to] decrypt Map.conf if it is encrypted"+char(10)+
+		"---- files decrypted this way will be re-encrypted"
 	end function
 	if arg1 == "-h" or arg1 == "help" then return kraken_help
 	map_path = home_dir + "/Config/Map.conf"
 	map_file = globals.get_file(map_path)
+	kraken_done = function(msg="kraken: task complete")
+		if outer.isenc then print command.file("-e",outer.map_file.path,outer.enckey)
+		return msg
+	end function
 	if not map_file then
 		print( "kraken: map.conf not found. " )
 		mak_map = user_input("Create it? [Y/n] ||: ",0,1)
@@ -1226,7 +1140,24 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		map_file = globals.get_file(map_path)
 		if map_file then print(home_dir+"/Config/Map.conf created.") else return "kraken: write error!"
 	end if
-	if map_file.is_binary then return "kraken: "+colorError+"</b>Map.conf is binary or encrypted"
+	isenc = false
+	enckey = 0
+	if map_file.is_binary then 
+		if globals.crypto.is_encrypted(map_file.path) == 1 then
+			print colorGold+"kraken: Map.conf is encrypted"
+			if globals.GLASSPOOL then print colorWarning+"kraken: warning "+colorLightBlue+"GLASSPOOL"+CT+" is active"+char(10)+"<b><size=75%>-- the active cryptoLib must match the active shell!"+char(10)+"<b><size=75%>---- other wise the wrong file will be targetted"
+			isenc = true
+			enckey = arg2
+			if arg2 == "-p" or arg1 == "del" then enckey = arg3 
+			if arg1 == "add" then enckey = arg4
+			if not enckey then enckey = command.cob("get","HOME.map_key") 
+			if globals.DEBUG then print "debug: map path: "+map_file.path+char(10)+"-- arg1: "+arg1+", enckey: "+enckey
+			print command.file("-d",map_file.path,enckey)
+		else
+			return "kraken: "+colorError+"</b>cannot open binary file: "+map_file.path
+		end if
+		if map_file.is_binary then return "kraken: "+colorWarning+"decryption failed; aborting..."
+	end if
 	map_contents = map_file.get_content
 	//map read
 	print(colorCyan+"Initializing Kraken v 0.9.5 by Plu70..."+CT)
@@ -1304,7 +1235,9 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		new_map = globals.get_file(map_path)
 		if not new_map then return "kraken: error; Map.conf vanished!"
 		if new_map.has_permission("w") then new_map.set_content(final) else return "kraken: write error, Map.conf not saved!"
-		return colorOrange+"</b>kraken: saved map to "+new_map.path
+		outer.map_file = new_map
+		//if outer.isenc then print command.file("-e",new_map.path,outer.enckey)
+		return kraken_done(colorGold+"</b>kraken: saved map to "+new_map.path)
 	end function
 
 	MAP.parse = function()
@@ -1342,13 +1275,16 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end function
 
 	scrub = false
+	secure = false
 	connect = false
+	glass = false
 	get_logs = false
 	map_file = localmachine.File(home_dir + "/Config/Map.conf")
 	//MAP.init(map_file.get_content)
 	MAP.init(map_contents)
 	MAP.parse
 	time_e = (time - time_s)
+	//if isenc then print command.file("-e",map_file.path,enckey)
 	print("...init completed in ["+colorOrange+time_e+CT+"] seconds.")
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
 	waitFor = null
@@ -1359,38 +1295,26 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	print(colorOrange+"</b>Logs <u>will</u> be scrubbed for: <b>kraken connect</b> and the <b>prox</b> command.")
 	last_shell = shell
 	if not waitFor then waitFor = user_input("["+colorCyan+"/path/to_file_or_folder"+CT+"] = upload to all proxies and BUFFER shells"+char(10)+"["+colorWhite+"prox"+CT+"] route through proxies and open shell at last proxy "+char(10)+"["+colorWhite+"-l"+CT+"] download (then scrub) proxy logs and BUFFER shells"+char(10)+"["+colorWhite+"scrub"+CT+"] scrub logs on all proxies and BUFFER shells"+char(10)+"["+colorWhite+"show"+CT+"] show ips of proxies in map"+char(10)+"["+colorWhite+"add"+CT+"] add proxy to map "+char(10)+"["+colorWhite+"del"+CT+"] remove proxy from map "+char(10)+"["+colorWhite+"buffer"+CT+"] = add all proxies to BUFFER without scrubbing"+char(10)+"[help] show help"+" [q]=quit "+char(10)+"kraken:> ",0,0)
-	if waitFor == "q" or waitFor == "Q" or waitFor == "" then return "Aborting..."
+	if globals.DEBUG then "debug: user input: "+arg1+" "+arg2+" "+arg3+" "+arg4+"-- waitFor: "+waitFor
+	if waitFor == "q" or waitFor == "Q" or waitFor == "" then return kraken_done("Aborting...")
 	if waitFor == "help" or waitFor == "-h" then return kraken_help
 	if typeof(waitFor) == "file" then waitFor = waitFor.path
-	if typeof(waitFor) != "string" then return "kraken: invalid input: expects file_object or string"
-	if waitFor.split(" ")[0] == "show" then
-		if waitFor.split(" ").len > 1 then return proxy.show(waitFor.split(" ")[1])
-		return proxy.show(arg2)
+	if typeof(waitFor) != "string" then return kraken_done("kraken: invalid input: expects file_object or string")
+	if waitFor == "show" then
+		//if waitFor.split(" ").len > 1 then 
+		proxy.show(arg2)
+		return kraken_done//proxy.show(arg2)
 	end if
-	if waitFor.split(" ")[0] == "-l" then
-		get_logs = true
-		if localmachine.File("/root/logs") then
-			print("kraken: found /root/logs/ ")
-		else
-			mklog = user_input("/root/logs not found. create it? [Y/n] ||: ",0,1)
-			if mklog == "n" then return
-			localmachine.create_folder("/root", "logs")
-			if localmachine.File("/root/logs") then print("kraken: created /root/logs") else return "kraken: write error: unable to create /root/logs"
-		end if
-		print("kraken: saving proxy logs to /root/logs")
-		print("Logs are numbered in reverse order. First in Map.conf will have <b>highest</b> number.")
-		print("e.g. 5 total proxies: the first in map.conf will be saved as system-5.log and the last will be system-1.log")
-		print("<size=85%><u>logs will not be overwritten when re-running this command. mind your drive space.</u></size>")
-	end if
+	wf = waitFor.split(" ")[0]
 	if waitFor == "add" then
 		nip = arg2
 		npa = arg3
 		if not arg2 then nip = user_input("add_ip:> ")
-		if nip == "" then return "aborting..."
+		if nip == "" then return kraken_done("krake: aborting...")
 		if not arg3 then npa = user_input("add_pass:> ",1,0)
-		if npa == "" then return "aborting..."
-		if not is_valid_ip(nip) then return "Kraken: invalid ip."
-		if npa == "" or npa == " " then return "Kraken: invalid password."
+		if npa == "" then return kraken_done("kraken: aborting...")
+		if not is_valid_ip(nip) then return kraken_done("kraken: invalid ip.")
+		if npa == "" or npa == " " then return kraken_done("kraken: invalid password.")
 		print("Adding: "+nip+char(10)+proxy.add(nip, npa))
 		proxy.show
 		return proxy.save
@@ -1399,10 +1323,29 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		proxy.show
 		del_me = arg2
 		if not del_me then del_me = user_input("del# (q=quit):> ")
-		if del_me == "" or del_me == " " or del_me.lower == "q" then return "aborting..."
+		if del_me == "" or del_me == " " or del_me.lower == "q" then return kraken_done("aborting...")
 		print(proxy.del(del_me))
 		proxy.show
 		return proxy.save
+	end if
+	if not localmachine.is_network_active then return colorError+"</b>kraken: <b>no network connection!"
+	if wf == "-l" or wf == "logs" then
+		get_logs = true
+		if localmachine.File("/root/logs") then
+			print("kraken: found /root/logs/ ")
+		else
+			mklog = user_input("kraken: /root/logs not found"+char(10)+"-- create it? [<b>Y</b>/n] ||: ",0,1)
+			if mklog == "n" then return kraken_done( "kraken: aborting...")
+			localmachine.create_folder("/root", "logs")
+			if localmachine.File("/root/logs") then print("kraken: created /root/logs") else return kraken_done( "kraken: write error: unable to create /root/logs")
+		end if
+		print("kraken: saving proxy logs to /root/logs")
+		print
+		print "NOTE: logs are numbered in reverse order;"+char(10)+
+		"-- the first in Map.conf will have <b>highest</b> number"+char(10)+
+		"-- the endpoint proxy will have the lowest number"
+		print("e.g. 5 total proxies: the first in map.conf will be saved as system-5.log and the last will be system-1.log")
+		print("<size=85%><u>logs will not be overwritten when re-running this command; mind your drive space.</u></size>")
 	end if
 	buffer = false
 	if waitFor == "buffer" then buffer = true
@@ -1410,14 +1353,19 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		scrub = true
 		if waitFor == "connect" or waitFor == "prox" then
 			connect = true
-			if not proxy["accounts"].len then return "kraken: no proxy found."
+			if not proxy["accounts"].len then return kraken_done( "kraken: no proxy found.")
+			if arg2 == "-g" then
+				connect = false 
+				glass = true 
+			end if
 		end if
 	else
 		scrub = false
 	end if
+	if waitFor == "secure" then secure = true
 	fileOrFolder = "scrub"
 	if not scrub and not buffer then fileOrFolder = localmachine.File(waitFor)
-	if not fileOrFolder then return "kraken: file not found."
+	if not fileOrFolder then return kraken_done( "kraken: file not found.")
 	upload_path = "scrub"
 	if not scrub and not buffer then upload_path = fileOrFolder.path
 	destination_path = "scrub"
@@ -1427,12 +1375,12 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	for prx in proxy["accounts"]
 		print("<b>Connecting: </b>" + prx.value.user + "@" + "***************" + " " + prx.value.ip)
 		remote = last_shell.connect_service(prx.value.ip, 22, prx.value.user, prx.value.password)
-		if typeof(remote)  != "shell" then return "Connection failed."
+		if typeof(remote)  != "shell" then return kraken_done( "kraken: connection failed.")
 		if not scrub and not buffer then shell.scp(upload_path, destination_path, remote)
 		BUFFER.push(remote)
 		last_shell = remote
 	end for
-	if not remote then return "kraken: connection error"
+	if not remote then return kraken_done( "kraken: connection error")
 	o = 0
 	for el in range(1,proxy["accounts"].len)
 		o = o - 1
@@ -1450,6 +1398,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 				if get_logs then print(colorOrange+"</b>Kraken: log missed!<b>"+CT)
 			end if
 		end if
+		if secure then print command.glasspool("-d","kore -sc || return",BUFFER[0])
 		if scrub then
 			print("Scrubbing log...")
 			root = BUFFER[o].host_computer.File("/")
@@ -1476,13 +1425,18 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 			end if
 		end if
 	end for
-	print(colorCyan+"Kraken: task complete in </b>"+colorOrange+(time - time_s)+colorCyan+"<b> seconds."+CT)
+	//if isenc then print command.file("-e",enckey)
+	print colorCyan+"kraken: all shells sent to "+colorOrange+"BUFFER"
+	print(colorCyan+"-- task complete in [</b>"+colorOrange+(time - time_s)+colorCyan+"<b>] seconds."+CT)
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
-	if connect then 
-		//get_custom_object.return_value = "#!#CASCADE#!#"
-		remote.start_terminal
+	if connect or glass then 
+		if DEBUG then print "debug: connect: "+connect+char(10)+"debug: glass: "+glass
+		hold = globals.shell 
+		globals.shell = remote
+		if connect == true then print command.psudo("-l",remote) else print command.glasspool(remote) // we want glass to mimic connect's behavior if the user uses start_terminal after using glass
+		globals.shell = hold 
 	end if
-	return 0
+	return kraken_done
 end function
 
 //////data3a5e////////////////
@@ -1626,6 +1580,14 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	"-- "+colorWhite+"shell obtained on port ##"+char(10)+
 	colorOrange+"Note:</b> logs may be left in other ways. See: "+colorGreen+"help logs"+CT+" for more."+char(10)+char(10)+
 	"Note: targetIP and targetPort are set with <b>probe</b> and/or <b>target</b>"+char(10)+char(10)+
+	"Note: db will catagorize "+colorOrange+"bounce exploits"+CT+" when it finds them"+char(10)+
+	"-- this process, however, is imperfect due to a game update"+char(10)+
+	"---- this will be fixed, eventually"+char(10)+
+	"-- a "+colorOrange+"bounce exploit"+CT+" is an exploit that:"+char(10)+
+	"---- when run on a router and provided with a LAN ip as an inject"+char(10)+
+	"---- returns a computer object for the machine at the specified LAN ip"+char(10)+
+	"-- db will make an attempt at guessing a LAN ip to use if one is not provided"+char(10)+
+	"---- rerun the attack using <b>zap or roil</b> with the desired IP once identified"+char(10)+char(10)+
 	colorWhite+"</b>Usage: db ["+colorRed+"-r"+CT+"] [opt:ip] [opt:port] [opt:inject]"+char(10)+
 	"-- scans given port and databases results"+char(10)+
 	"-- uses targetIP and targetPort if not supplied"+char(10)+
@@ -1633,7 +1595,8 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	"---- enter a lan_ip or password for the inject value at the prompt"+char(10)+
 	"Usage: db -r [ip] <color=yellow>*</color> -- db all ports at given ip"+char(10)+
 	"Usage: db -r <color=yellow>*</color> -- db all ports of targetIP"+char(10)+char(10)+
-	"Usage: db -r -i -- "+char(10)+
+	"Usage: db -r -i [opt:ip] -- set an inject value to use to detect bounces"+char(10)+
+	"-- prompt for ip if not supplied"+char(10)+
 	colorWhite+"</b>Usage: db ["+colorCyan+"-l"+CT+"] [opt:lib_name] [opt:inject]"+char(10)+
 	"-- scan a local lib and database resutls"+char(10)+
 	"-- brings up menu if lib_name not supplied"+char(10)+
@@ -1666,6 +1629,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return(db_usage)
 	if typeof(arg1) != "string" or ["-M","-m","-r","-l"].indexOf(arg1) == null then return "db: invalid flag: expects -m|-r|-l"
 	if DEBUG then print("In command.db...")
+	if GLASSPOOL then print colorWarning+"db: warning "+colorLightBlue+" GLASSPOOL </color>is active!"+char(10)+"<size=75>-- db does not translate through glasspool"+char(10)+"<size=75>-- libraries scanned are linked to the metaxploit object"+char(10)+"<size=75>---- and might not exist on the active shell"+char(10)
 	inject = null
 	if DEBUG then print("db: arg2: "+arg2+" arg3: "+arg3+" arg4: "+arg4)
     // params: -m -metaLib (scan linked metaLib or piped metaLib)
@@ -1687,15 +1651,15 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 			// add some error checking here ^
 			// we check for -i after we check for all the other flags
 		end if
-		if not globals.metaLib then return "db: link or pipe a metaLib before using -m" else print colorLightBlue+"<size=75%></b>db: custom scan ready"
+		if not globals.metaLib then return "db: link, load, or pipe a metaLib before using -m" else print colorLightBlue+"<size=75%></b>db: custom scan ready"
 	end if
 	if not globals.metaxploit then return "metaxploit.so not found"
     // params: -r|-R -remote (scan remote target)
 	if arg1.lower == "-r" then
 		remote = true
 		if arg2 == "-i" or arg3 == "-i" or arg4 == "-i" then 
-			inject = user_input("db: please supply an inject value"+char(10)+"db: enter a lan ip for a bounce exploit"+char(10)+"db: enter a password for pw change exploits"+char(10)+"inject:> "+colorGold+"</b>")
-			if inject == "" then print "db: ok, using nothing as an inject"
+			if not arg3 then inject = user_input("db: please supply an inject value"+char(10)+"--: enter a lan ip for a bounce exploit"+char(10)+"--: enter a password for pw change exploits"+char(10)+"inject:>"+colorGold+"</b> ")
+			if inject == "" then print colorWarning+"</b>db: ok, using nothing as an inject"
 			if arg2 == "-i" and arg3 then inject = arg3 
 			if arg3 == "-i" and arg4 then inject = arg4
 		end if
@@ -2096,6 +2060,8 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 	"-- both <b>db</b> and <b>linkdb</b> will now utilize all of these files found on a system"
 	if not arg1 then return "linkdb: invalid input" else print colorCyan+"</b><size=75%>linkdb: searching for database..."
 	link = function(buf,a,y)
+		print("<size=75%>linkdb: purging XPLOITS...")
+		print command.purge("-x","y")
 		//buf = f.get_content.split(char(10))
 		found_it = false
 		done = 0 //"Database: "+a+" not found. Scan required."
@@ -2105,7 +2071,6 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 				if not y then wait_for = user_input("<size=75%>Database: found "+line+char(10)+"<size=75%>Link this database? [Y/n]"+char(10)+"||: ",0,1)
 				if wait_for != "n" and wait_for != "N" then
 					print(colorLightBlue+"<size=75%>linkdb: preparing to link: "+colorOrange+"</b>"+line)
-					print("<size=75%>-- purging XPLOITS...")
 					globals.XPLOITS = []
 					globals.MEMORY = null
 					found_it = line
@@ -2176,49 +2141,6 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 	for f in files 
 		if typeof(f) == "file" and f.has_permission("r") then alldata = alldata + f.get_content.split(char(10))
 	end for
-
-
-
-
-
-	// if arg2 then
-	// 	if arg2 == "@home" then
-	// 		r_ip = ""
-	// 		r_p = "router"
-	// 		if globals.hasIndex("params") and globals.params.len > 1 then
-	// 			r_ip = globals.params[0]
-	// 			r_p = globals.params[1].to_int
-	// 		else
-	// 			r_ip = targ.ip
-	// 			r_p = targ.pt
-	// 		end if
-	// 		if not r_ip.is_valid_ip then return "linkdb: set remote ip and port with command.target [ip] [port] before using @home option."
-	// 		r_pas = ""
-	// 		if globals.hasIndex("params") and globals.params.len > 2 then
-	// 			r_pas = globals.params[2]
-	// 		else
-	// 			r_pas = user_input("pass:> ", 1)
-	// 		end if
-	// 		r_r = shell.connect_service(r_ip, r_p, "root", r_pas)
-	// 		if r_r and typeof(r_r) == "shell" then
-	// 			file = r_r.host_computer.File("/root/rkit/database.csv")
-	// 			if not file then return (colorRed+"404: remote database not found"+CT)
-	// 		else
-	// 			return ("linkdb: error; remote server unreachable."+CT)
-	// 		end if
-	// 	else
-	// 		file = localmachine.File(arg2+"/database.csv")
-	// 	end if
-	// else
-	// 	file = localmachine.File("/root/rkit/database.csv")
-	// 	if not file then file = localmachine.File(current_path+"/database.csv")
-	// 	if not file then
-	// 		globals.grepped_file = null
-	// 		globals.list_files(localmachine.File("/"), "database.csv", 1, "N")
-	// 		file = globals.grepped_file
-	// 	end if
-	// end if
-
 	// if file and file.has_permission("r") then 
 		catch = link(alldata,arg1,boo) // catch is 0 on failure
 		if catch then
@@ -2301,8 +2223,9 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 	
 		if arg1 == "import" or arg1 == "-i" then 
 			if not arg2 or (typeof(arg2) != "string" and typeof(arg2) != "MetaxploitLib") then return "meta: -i expects a metaxploitLib object or a path to a metaxploit.so"
-			print "<size=75%>meta: backing up current metaxploit object"
-			globals.backup_meta = globals.metaxploit
+			//print "<size=75%>meta: backing up current metaxploit object"
+			//globals.backup_meta = globals.metaxploit
+			print "<size=75%>meta: importing MetaxploitLib..."
 			globals.metaxploit = null
 			target_lib = null
 			if typeof(arg2) == "string" then 
@@ -2316,13 +2239,13 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 				if typeof(arg2) == "string" then reason = "-- invalid path" else reason = "-- invalid input"
 				return "meta: metaxploit import failed: "+char(10)+reason+char(10)+"meta: backup metaxploit restored"
 			end if
-			return colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"<size=75%>meta: use <b>meta restore</b> to revert back to the last metaxploitLib"+char(10)+"<size=75%>-- the hot_swap_libs option in <b>aptm</b> will restore local metaxploit.so"
+			return colorWhite+"<u>meta: a new metaxploitLib has been imported!"+char(10)+"<size=75%>-- to revert back to the launch metaxploitLib use:"+char(10)+"<size=75%>---- <b>meta restore"+char(10)+"<size=75%>---- <b>hot_swap_libs</b> option in <b>aptm"
 		end if
 	
 		if arg1 == "restore" then 
 			if globals.backup_meta then 
 				globals.metaxploit = globals.backup_meta 
-				if typeof(globals.metaxploit) == "MetaxploitLib" then return "meta: previous metaxploitLib restored" else return colorRed+"meta: error! backup metaxploitLib corrupted!"+char(10)+"-- use <b>meta -i [/path]</b> to manually restore"
+				if typeof(globals.metaxploit) == "MetaxploitLib" then return "meta: backup metaxploitLib restored" else return colorRed+"meta: error! backup metaxploitLib corrupted!"+char(10)+"-- use <b>meta -i [/path]</b> to manually restore"
 			else 
 				return "meta: no backup metaxploitLib to restore"
 			end if
@@ -2400,12 +2323,12 @@ command.zap = function(arg1, arg2, arg3="", arg4)
 	"-- passing an inject value skips the inject prompt after the menu"+char(10)+
 	"----eg: <b>zap 1"+char(10)+
 	"----eg: <b>zap 1 192.168.0.2"+char(10)+
+	"-- passing an inject value is for password change exploits and "+colorOrange+"bounce exploits"+char(10)+
 	"-- if successful prompts to view the object in the BUFFER"+char(10)+
 	"-- use the -r flag to skip the BUFFER prompt: "+char(10)+
 	"----eg: <b>zap -r 1 "+char(10)+
 	"-- use use -r and supply an inject to skip inject prompt as well"+char(10)+
 	"----eg: <b>zap -r 1 password"+char(10)+char(10)+
-
 	"Usage: "+colorRed+"zap"+colorWhite+"</b> [memory_address] [unsec_value] [opt:inject]</color> -- manually input overflow parameters"+char(10)+
 	"-- skips all prompts"+char(10)+
 	"--eg: <b>zap 0x2D7A08D5 effectsetfocusonshowso password"+char(10)+char(10)+
@@ -2421,7 +2344,15 @@ command.zap = function(arg1, arg2, arg3="", arg4)
 		arg1 = arg2 
 		arg2 = arg3 
 		arg3 = arg4 
-	end if 
+	end if
+	if arg1 and arg1.indexOf(char(32)) != null then 
+		a = arg1.split(char(32))
+		arg4 = arg3
+		arg3 = arg2
+		arg2 = a[1]
+		arg1 = a[0]
+		if typeof(arg1) or typeof(arg2) or typeof(arg3) != "string" then return "zap: error; invalid input"
+	end if
 	if typeof(arg1) == "string" and typeof(arg1.to_int) != "number" then
 		result = null
 		//if arg3 then
@@ -2438,6 +2369,7 @@ command.zap = function(arg1, arg2, arg3="", arg4)
 		print colorRed+"</b>zap: "+colorWhite+"</b>returning..."
 		return result
 	end if
+
 	return globals.select_attack(arg1,arg2,ret)
 end function
 command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
@@ -2459,180 +2391,6 @@ command.roil = function(arg1, arg2=0, arg3=0, arg4=0)
 	globals.roil(arg1)
 	return 0
 end function
-// consolidate all the reused code in this command
-command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "PURGE || clear buffer || feels bad"+char(10)+
-	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
-	"Usage: purge [-b] [#] -- remove BUFFER entry at index #"+char(10)+
-	"Usage: purge [-t] -- purge transmit buffer (@tbuf)"+char(10)+
-	"Usage: purge [-x] -- purge XPLOITS buffer "+char(10)+
-	"Usage: purge [-X] -- purge the metaxploitLib object"+char(10)+
-	"USage: purge [-M] -- purge the MetaLib object"+char(10)+
-	"-- also purges XPLOITS buffer"+char(10)+
-	"Usage: purge [-m] -- purge macro registry"+char(10)+
-	"Usage: purge [-c] -- purge CC command buffer "+char(10)+
-	"Usage: purge [-e] -- purge enum buffer"+char(10)+
-	"Usage: purge [-s] -- purge tagged4scp buffer"+char(10)+
-	"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+
-	"Usage: purge [-r] [exclude1:exclude2:...] "+char(10)+
-	"-- purge the RSI buffer; excludes process names or ID's matching the excludes"+char(10)+
-	"--eg: purge -r backdoor:ps:obviousVirus"+char(10)+
-	"-- skips confirmation"+char(10)+
-	"Usage: purge [-o] -- purge custom object  (excludes: stack_pool, macro registry)"+char(10)+
-	"Usage: purge [-d] -- purge monitors (daemons)"+char(10)+
-	"Usage: purge [-p] -- purge the PORT_MAP"+char(10)+
-	"Advanced: purge [opt] [y] -- skip confirmation "+char(10)+
-	"Advanced: purge -d [daemon_name] -- remove monitor process with the specified identifier" 
-	confirm = arg2
-	if arg1 == "-p" then 
-		if not confirm then confirm = user_input("Clear PORT_MAP: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
-			globals.PORT_MAP = {}
-			return "PORT_MAP purged."
-		else
-			return "aborting..."
-		end if
-	end if
-	if arg1 == "-b" then
-		if confirm == "0" then return "purge: cannot purge the launch shell."
-		if typeof(confirm) != "number" and typeof(confirm.to_int) == "number" then confirm = confirm.to_int
-		if not confirm then confirm = user_input("Clear BUFFER: are you sure? [y/N] ||: ",0,1)
-		if confirm == "y" or confirm == "Y" then
-			globals.BUFFER = [get_shell]
-			if globals.GLASSPOOL then globals.BUFFER.push(globals.shell)
-			return "BUFFER purged."
-		else
-			if typeof(confirm) == "number" then 
-				print("purging...")
-				if globals.BUFFER.hasIndex(confirm) then return globals.BUFFER.remove(confirm) else return "purge: invalid index"
-			else
-				return "aborting..."
-			end if
-		end if
-	end if
-	if arg1 == "-t" then
-		if not confirm then confirm = user_input("Clear T_BUF: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
-			globals.T_BUF = [(localip+"@"+pubip)]
-			return "T_BUF purged."
-		else
-			return "aborting..."
-		end if
-	end if
-	if arg1 == "-c" then
-		if not confirm then confirm = user_input("Clear CC: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
-			globals.command_buffer = []
-			return "CC purged."
-		else
-			return "aborting..."
-		end if
-	end if
-	if arg1 == "-X" then 
-		if not confirm then confirm = user_input("Clear the MetaxploitLib object? [y/N]",0,1)
-		if confirm.lower == "y" then 
-			globals.metaxploit = null 
-			return "MetaxploitLib purged."
-		else 
-			return "aborting..."
-		end if
-	end if
-	if arg1 == "-x" then
-		if not confirm then confirm = user_input("Clear XPLOITS: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
-			globals.MEMORY = null
-			globals.XPLOITS = []
-			globals.meta_scan = []
-			return "XPLOITS purged."
-		else
-			return "aborting..."
-		end if
-	end if
-	if arg1 == "-e" then
-		if not confirm then confirm = user_input("Clear ENUM: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
-			globals.enumerated = []
-			return "ENUM purged."
-		else
-			return "aborting..."
-		end if
-	end if
-	if arg1 == "-s" then
-		if not confirm then confirm = user_input("Clear tagged4scp: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
-			globals.tagged_for_scp = ""
-			return "tagged4scp purged."
-		else
-			return "aborting..."
-		end if
-	end if
-	if arg1 == "-r" then 
-		if not confirm then confirm = user_input("Clear all rshells: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then
-			job = "ALL"
-			if typeof(arg2) == "string" and arg2 != "y" then job = "ALL:"+arg2
-			globals.rsi_purge(job)
-			return "RSI buffer purged."
-		else
-			return "aborting..."
-		end if
-	end if	
-	if arg1 == "-o" then 
-		if not confirm then confirm = user_input("Clear custom_object: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then print "purging custom object..." else return "aborting..."
-		gco = get_custom_object
-		if DEBUG then print "debug: printing gco indexes..."
-		for index in gco.indexes
-			if DEBUG then print index
-			if index != "__isa" and index != "classID" and index != "macros" and index != "stack_pool" then gco.remove(index)
-		end for
-		print command.cob("validate")
-		return "custom object purged..."
-	end if
-	if arg1 == "-M" then 
-		if not confirm then confirm = user_input("Clear the loaded MetaLib object?")
-		if confirm.lower == "y" then print "purging MetaLib object..." else return "aborting..."
-		globals.metaLib = null 
-		if globals.net_session then 
-			print "purging net_session..."
-			globals.net_session = null 
-		end if
-	end if
-	if arg1 == "-m" then 
-		if not confirm then confirm = user_input("Clear all macros: are you sure? [y/N]||: ",0,1)
-		if confirm.lower == "y" then print "pmacro registry..." else return "aborting..."
-		print command.cob("vaidate")
-		if DEBUG then print "debug: macros: "+char(10)+get_custom_object.macros
-		get_custom_object.macros = {}
-		return "macros purged..."
-	end if
-	if arg1 == "-d" then
-		manager = new DaemonManager
-		manager.Init
-		if manager.__initialized and manager.__file then
-			if not confirm then confirm = user_input("Stop daemons: are you sure? [y/N]||: ",0,1)
-			if typeof(confirm) == "string" and confirm.lower == "y" then
-				print "stopping daemons..."
-				result = manager.__file.delete
-				if typeof(result) == "string" and result.len > 0 then return "Error deleting rshell.d: " + result
-				return "daemons stopped successfully."
-			else if typeof(confirm) == "string" and confirm.lower != "n" then
-				result = manager.Stop(confirm)
-				if result then return ""
-				return "failed to stop " + confirm
-			else if typeof(confirm) == "string" and confirm.lower == "n" then
-				return "aborting..."
-			else
-				return "invalid entry: " + @confirm
-			end if
-		else
-			return "Error starting daemon manager"
-		end if
-	end if
-	return "valid options: -t OR -c OR -b OR -d OR -e OR -s OR -r OR -m OR -x OR -o OR -p"
-end function
-// cobble, get_custom_object interface by Plu70
-if DEBUG then print("<size=75%>loading cobble.5pk...(6.251kb)</size>")
 command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	if arg1 == "-h" or arg1 == "help" then return "<u>Apt-Get Menu</u>"+char(10)+"Usage: aptm -- apt-get menu: "+char(10)+
 	"-- manage apt functions"+char(10)+
@@ -2650,9 +2408,10 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	"-- if not provided, the install path will be the repository's default"+char(10)+
 	"-- this is usually /bin or /lib or /usr/bin"+char(10)+char(10)+
 	"Usage: <b>aptm [-a] [repo_ip] </b>-- add a repository's ip to /etc/apt/sources.txt"+char(10)+char(10)+
-	"Usage: <b>aptm [-d] [repo_ip] </b>-- remove a repository's ip from /etc/apt/sources.txt"+char(10)+char(10)+
+	"Usage: <b>aptm [-d] [repo_ip|repo_index] </b>-- remove a repository's ip from /etc/apt/sources.txt"+char(10)+char(10)+
 	"Usage: <b>aptm [-u] [/path/filename] </b>-- check for a new version of a file"+char(10)+char(10)+
-	"Usage: <b>aptm [-s] [opt:filename] </b>-- search repositorys for filename"+char(10)+
+	"Usage: <b>aptm [-s] [opt:filename] </b>-- search repositories for filename"+char(10)+
+	"-- searches all repos in sources.txt"+char(10)+
 	"-- shows all available files if no filename is provided"+char(10)+char(10)+
 	"Usage: <b>aptm [--hotswap] </b>-- reload metaxploit.so, crypto.so, and aptclient.so from disk"+char(10)+
 	"-- searches for and loads the latest version of each lib <b>on disk"+char(10)+
@@ -2664,7 +2423,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		print "apt-get-menu: importing alternate aptclientLib"+char(10)+"-- pipe the old lib back to restore"+char(10)+"-- eg: liber -i /lib/aptclient.so | aptm"
 		globals.apt_get = arg1 
 	end if
-	if not globals.apt_get then return "aptm: "+colorRed+"Error: no aptclientLib loaded"+CT
+	if not globals.apt_get and arg1 != "--hotswap" then return "aptm: "+colorRed+"Error: no aptclientLib loaded"+char(10)+"-- reload with: aptm --hotswap"
 	apt = {}
 	apt.exit = function()
 		return 0
@@ -2714,35 +2473,66 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	end function
 	apt.add_repo = function()
 		apt.update
-	  	if typeof(arg2) == "string" and is_valid_ip(arg2) then a = arg2 else a = user_input("add repo ip:> ")
+	  	if typeof(arg2) == "string" and is_valid_ip(arg2)then a = arg2 else a = user_input("Add repo ip:> ")
 			if is_valid_ip(a) then return print(apt_get.add_repo(a)) else return "aptm: invalid repo ip"
 	end function
 	apt.del_repo = function()
 		apt.update
-		if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = user_input("del repo ip:> ")
+		rl = apt.list_repos
+		if rl.len < 1 then return print("aptm: no repositories to delete")
+		i = 0
+		for r in rl 
+			print colorGreen+"["+colorWhite+i+CT+"] "+colorYellow+r
+		end for
+		if arg2 and ( (typeof(arg2) == "string" and arg2 != "" ) or typeof(arg2.to_int) == "number") then
+			a = arg2
+		else
+			a = user_input("Delete repo ip or index (<<b>enter<b>>=abort):> ")
+		end if
+		if a == "" then return print("aptm: aborting...")
+		if not is_valid_ip(a) then 
+			if typeof(a.to_int) != "number" then return "aptm: invalid index or ip"
+			a = a.to_int
+			if a >= 0 and a < rl.len then a = rl[a] else return print("aptm: invalid index")
+		end if
 		return print(apt_get.del_repo(a)) 
 	end function
+	apt.list_repos = function()
+		apt.update
+		sources = globals.get_file("/etc/apt/sources.txt")
+		if not sources then return print(colorWarning+"aptm: can't find or create sources.txt!")
+		if sources.has_permission("r") then sources = sources.get_content else return print(colorWarning+"aptm: sourcs.txt is read protected")
+		sources = sources.split(char(10))
+		for line in sources 
+			sources[sources.indexOf(line)] = line.split(":")[0].split("""")[1]
+		end for
+		reps = []
+		for s in sources 
+			if is_valid_ip(s) then reps.push(s)
+		end for
+		return reps
+	end function
 	apt.install = function()
-		if typeof(arg2) == "string" and arg2 != "" then return print(apt_get.install(arg2,arg3)) else return print(apt_get.install(user_input("install:> "), user_input("directory:> ")))
+		if typeof(arg2) == "string" and arg2 != "" then return print(apt_get.install(arg2,arg3)) else return print(apt_get.install(user_input("Install File(<<b>enter</b>>=abort):><b> "), user_input("Install Directory (<<b>enter</b>>=default)"+char(10)+":> ")))
 	end function
 	apt.search = function()
 		apt.update
-		if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = (user_input("search:> "))
+		if typeof(arg2) == "string" and arg2 != "" then a = arg2 else a = (user_input("search (<<b>enter</b>>=all):> "))
 		return print(apt_get.search(a))
 	end function
 	apt.show = function()
 		apt.update
 		print("_____________________________________________"+char(10))
-		rb = apt_get.show(user_input("show repo:> "))
+		rb = apt_get.show(user_input("Show repo (<<b>enter</b>>=all):> "))
 	  return print(char(10)+rb)
 	end function
 	apt.hot_swap = function()
 		globals.super_import
-		print "Libraries hot_swapped."
+		print "aptm: libraries hot_swapped."
 		return 1
 	end function
 	apt.update = function()
-	  print "<size=75%>Checking repositories..."
+	  print "<size=75%>Updating repositories..."
 	  return print(apt_get.update)
 	end function
 	
@@ -2800,7 +2590,7 @@ command.smtp = function(arg1,arg2=0,arg3=0,arg4=0)
 	end if
 	if arg2 and typeof(arg2.to_int) == "number" then tar_port = arg2.to_int
 	if not tar_port then 
-		if globals.targetPort then tar_port = globals.targetPort else return "smtp: invalid or unsupplied port"
+		if globals.targetPort then tar_port = globals.targetPort else tar_port = 25 // return "smtp: invalid or unsupplied port"
 	end if
 	print colorGreen+"smtp: pulling from "+CT+colorWhite+tar_ip+colorGreen+": "+CT+tar_port+CT+"..."
 	ml = globals.mail_user_list(tar_ip,tar_port)
@@ -3038,27 +2828,6 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	end if
 	return 0
 end function
-command.rnip = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "Usage: rnip [iter] [optional: delimiter] -- produce [iter] random ip addressses and"+char(10)+"return as a string with optional [delimiter] (default newline)"+char(10)+"e.g. rnip 100 ,  -- returns a string of 100 ips seperated by a comma"
-	loop = 1
-	delimiter = char(10)
-	if arg1 then loop = arg1.to_int
-	if arg2 then delimiter = arg2
-	rng = range(1,223)
-	rnd = range(0,223)
-	rand_ip = []
-	if loop < 1 then return "rnip: iteration must be a positive integer."
-	for i in range(1,loop)
-		rng.shuffle
-		rnd.shuffle
-		sub = rnd[0]
-		rnd.shuffle
-		ito = rnd[0]
-		rnd.shuffle
-		rand_ip.push([rng[0], rnd[0], ito, sub].join("."))
-	end for
-	return rand_ip.join(delimiter)
-end function
 command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: porter [port] [comma,or,newline,separated,ip,list] --  print lib version of service on port, if any, for given ip address(es)"
 	if not localmachine.is_network_active then return "nsl: no network connection."
@@ -3154,4 +2923,51 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
     //_cascade // exit if cascade
     globals.update_path
     return cgo+"<size=75%>infil: infiltration complete"
+end function
+command.flood = function(fip,fpt,c,d)
+	if fip == "help" or fip == "-h" then return "flood connection || ddos || denial of service
+
+Usage: <b>flood [opt:ip] [opt:port]</b> -- ddos a target server running a service
+-- uses global target ip and/or port if not supplied
+-- sets global target ip and/or port if supplied
+-- obtains both net_session and metalib on target
+-- initiates flood_connection on the net_session
+
+Usage: <b>flood [net_session]</b> -- runs flood_connection on the piped object
+-- does not alter targetIP or targetPort
+
+<b>N.B.: if a DDOS attack is successful, the target will be temporarily offline.
+That is: it will be rebooted.
+The number if instances required to DDOS a target <b>depends on the network speed</b>
+of the target. Each instance must be run <b>from a unique network</b>. Since players
+are limited in the number of terminal windows they may open, the player may need
+<b>other players</b> to attack the target in unison to be successful."
+	if not globals.metaxploit then return colorWarning+"flood: no metaxploitLib loaded!"
+	if fip and not is_valid_ip(fip) then
+		if not is_valid_ip(globals.targetIP) then return "flood: please set or supply a target ip" else fip = globals.targetIP 
+	end if
+	if not fip then return "flood: invalid ip; aborting..."
+	if not fpt then 
+		if not globals.targetPort or globals.targetPort != "router" then fpt = 0 else fpt = globals.targetPort
+	end if
+	if typeof(fpt) != "number" and typeof(fpt.to_int) != "number" then return "flood: invalid port; aborting..."
+	print command.target(fip,fpt)
+	catch = command.meta("link",fip,fpt)
+	if typeof(catch) == "MetaLib" then 
+		print colorLightBlue+"Opening the flood-gates!"+char(10)+colorWarning+"-- use <</b>ctrl+c<b>> to cancel"
+		print globals.net_session.flood_connection
+	end if
+	return 0
+end function
+command.curl = function(a,b,c,d)
+	if a == "help" or a == "-h" then return "Usage: curl [opt:shell|file|computer] -- display the website.html, if readable"
+	if a and typeof(a) != "shell" and typeof(a) != "computer" and typeof(a) != "file" then return "curl: invalid object type"
+	return globals.curl(a)
+end function
+command.netdump = function(a,b,c,d)
+	if a == "help" or a == "-h" then return "Usage: netdump [opt:-r]"+char(10)+
+	"-- returns information for the currently linked net_session"+char(10)+
+	"-- use <b>bios -n</b> to obtain the raw NetSession object"
+	// needs: -g -- num gateway connections, -p -- num port forwards, -ru -- num registered users, -u -- is user active, -r -- is root active
+	if globals.net_session then return globals.netdump.join(char(10)) else return "netdump: no net_session"
 end function
