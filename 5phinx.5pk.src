@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 2.9 by Plu70
 
 //Define Globals
-sphinx_version = "3.2.1"
-malp_version = "1.5.8"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.7.(158.458)")
+sphinx_version = "3.2.3"
+malp_version = "1.6.0"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.8.(157.142)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -205,6 +205,7 @@ globals.super_import = function(import_this=0) // String: name; import requested
 	end for
 	//
 	globals.metaxploit = globals.MetaxploitLib.lib 
+  globals.backup_meta = globals.metaxploit
 	globals.metaLibVersion = globals.MetaxploitLib.version
   globals.meta_path = globals.MetaxploitLib.path //  legacy, deprecated
 	//
@@ -258,7 +259,6 @@ globals._import_tables = function()
   else 
     return command.cerebrum("-i",t)
   end if
-  
   return "import_tables: cannot find tp or t5"
 end function
 
@@ -274,11 +274,22 @@ globals._startup_resource_configuration  = function()
   else 
     p = r
   end if 
-  if not p then return "tree: do.rc not found"
-  if p.is_binary then return "tree: do.rc is binary!"
-  if not p.has_permission("r") then return "do: do.rc is read protected"
+  if not p then return "tree: do.rc not found" else print colorGold+"<size=50%>kore:"+colorWhite+" <u>do.rc</u> detected..."
+  reenc = 0
+  if p.is_binary then 
+    if globals.crypto and globals.crypto.is_encrypted(p.path) == 1 then 
+      reenc = command.cob("get","HOME.dorc_key")
+      if not reenc then reenc = user_input("rc: do.rc is encrypted"+char(10)+"decryption_key (<<b>enter</b>>=abort):> ") 
+      if reenc.trim == "" then return "aborting..."
+      print command.file("-d",p.path,reenc)
+    end if
+    if p.is_binary then return "rc: cannot open binary file"
+  end if
+  if not p.has_permission("r") then return "rc: do.rc is read protected"
+  print "<size=75%>-- reading contents..."
   c = p.get_content.split(char(10))
-  print colorGold+"<size=50%>kore:"+colorWhite+" ...<u>do.rc</u> detected, beginning resource configuration..."
+  if reenc then print command.file("-e",p.path,reenc)
+  print "<size=75%>-- beginning resource configuration..."
   for line in c
     if line.len > 0 and line[0] != "#" then command.shell(line+" | return")
   end for
@@ -304,6 +315,44 @@ globals._export_metax_et_al = function()
   g["myc"+s] = c
   g["mys"+s] = sh
   return {"s":s,"m":m,"c":c,"sh":sh,"ip":ip}
+end function
+
+globals.is_restricted = function(obj)
+  switch(typeof(@obj))
+    case("shell",1)
+    case("pshell",1)
+    case("ftpshell",1)
+    case("computer",1)
+    case("pcompuer",1)
+    case("ftpComputer",1)
+    case("file",1)
+    case("pfile",1)
+    case("ftpFile",1)
+    case("aptclientLib",1)
+    case("blockchainLib",1)
+    case("coin",1)
+    case("ctfEvent",1)
+    case("cryptoLib",1)
+    case("debugLibrary",1)
+    case("function",1)
+    case("MetaLib",1)
+    case("MetaMail",1)
+    case("MetaxploitLib",1)
+    case("NetSession",1)
+    case("null",1)
+    case("number",1)
+    case("port",1)
+    case("router",1)
+    case("prouter",1)
+    case("service",1)
+    case("SmartAppliance",1)
+    case("subwallet",1)
+    case("TrafficNet",1)
+    case("wallet",1)
+    case("list",0)
+    case("map",0)
+    case("string",0)
+  return default(0)
 end function
 
 globals._ez_clip = function( in_prompt )
@@ -345,10 +394,13 @@ globals._ez_clip = function( in_prompt )
         print globals.colorWarning+"<size=75%></b>ezclip: rsi: invalid index"
       end if
     end if
-    if @e == "@o" then 
-      if in_prompt.hasIndex(e_indx+1) and typeof(in_prompt[e_indx+1]) == "string" and get_custom_object.hasIndex(in_prompt[e_indx+1]) then 
-          in_prompt[e_indx+1] = command.cob("get",in_prompt[e_indx+1])
-          in_prompt.remove(e_indx)
+    if @e == "@o" then
+      if in_prompt.hasIndex(e_indx+1) then//and typeof(in_prompt[e_indx+1]) == "string" and get_custom_object.hasIndex(in_prompt[e_indx+1]) then 
+          get = command.cob("get",in_prompt[e_indx+1])
+          if get != "cob: key not found" then
+            in_prompt[e_indx+1] = command.cob("get",in_prompt[e_indx+1])
+            in_prompt.remove(e_indx)
+          end if
       else 
           print globals.colorWarning+"<size=75%></b>ez_clip: cob: key not found"
       end if
@@ -542,7 +594,8 @@ globals.decompiler = function(o)
     if o.indexOf("__isa") >= 0 or o.hasIndex("__isa") or o.hasIndex("classID") or typeof(o) == "pshell" or typeof(o) == "pfile" or typeof(o) == "pcomputer" or typeof(o) == "shell" or typeof(o) == "file" or typeof(o) == "computer" or typeof(o) == "ftpshell" then 
         if DEBUG then print "code: isa confirmed; verifying indexes"
         crit = "code: "+colorError+" critical error: "+colorWhite+"the object has been invalidated"
-        methods = o.__isa.indexes
+        methods = o.indexes
+        if o.hasIndex("__isa") then methods = o.__isa.indexes
         print methods
         if methods.len < 2 then return crit
         if not p_validate(o) then return crit
@@ -617,11 +670,11 @@ end function
 globals.p_exe = function( obj, f_name=null ) // obj is either game object or function
   if DEBUG then print("debug: In P_EXE: "+@obj+": "+f_name)
   if typeof(@obj) != "function" and not p_validate(obj, f_name) then return "p_exe: invalid input; expects object or function"
-  if typeof(@obj) == "function" then 
-    foo = @obj 
-  else 
+  foo = @obj 
+  if typeof(@obj) != "function" then 
     if f_name then foo = @obj[f_name] else return "p_exe: missing function name"
   end if
+  if typeof(@foo) != "function" then return foo
   args = str(@foo).split( "FUNCTION" )[1].split(", ")
   if DEBUG then print "debug: args input: "+args
   if args.len == 1 then 
@@ -755,38 +808,75 @@ end function
 //  case(...)
 // default( @action )
 // returns: result of action
+///// Plu70 switch
+///////// BEGIN SWITCH
+// Usage:
+// switch(variable)
+//     case( condition, @action )
+//  case( condition, @action )
+//  case(...)
+// default( @action )
+// returns: result of action
 
 _switch = {}
 _switch.var = ""
 _switch.set_var = function( input )
   if DEBUG then print "-switch: input: "+@input
-	_switch.var = @input
+    _switch.var = @input
 end function
 _switch.case_list = []
 _switch.case = function( condition, action )
-	_switch.case_list.push( {condition:@action} )
+    _switch.case_list.push( {condition:@action} )
 end function
 _switch.default = function( action )
-	// evaluate switch
-	if _switch.case_list.len > 0 then
-		for line in _switch.case_list
-			if @line.hasIndex(_switch.var) then 
+    // evaluate switch
+    if _switch.case_list.len > 0 then
+        for line in _switch.case_list
+            if @line.hasIndex(_switch.var) then 
         if DEBUG then print "_switch.var: "+_switch.var
-				s = @line[_switch.var]
-				_switch.var = ""
-				_switch.case_list = []
-				return s
-			end if
-		end for
-		_switch.var = ""
-		_switch.case_list = []
-		return action
-	end if
+                s = @line[_switch.var]
+                _switch.var = ""
+                _switch.case_list = []
+                return s
+            end if
+        end for
+        _switch.var = ""
+        _switch.case_list = []
+        return action
+    end if
 end function
 globals.switch = @_switch.set_var
 globals.case = @_switch.case
 globals.default = @_switch.default
-///////////// END SWITCH
+///////////// END Plu70 SWITCH
+
+///// 0x0 switch // still in testing
+// _switch = {}
+// _switch.var = ""
+// _switch.set_var = function( input )
+//     if DEBUG then print "-switch: input: "+@input
+//     _switch.var = @input
+// end function
+// _switch.case_map = {}
+// _switch.case = function( condition, action )
+//     _switch.case_map[@condition] = @action
+// end function
+// _switch.default = function( action )
+//     // evaluate switch
+//     if _switch.case_map.hasIndex(@_switch.var) then 
+//         if DEBUG then print "_switch.var: "+@_switch.var
+//         result = _switch.case_map[@_switch.var]
+//     else
+//         result = @action
+//     end if
+//     _switch.var = ""
+//     _switch.case_map = {}
+//     return @result
+// end function
+// globals.switch = @_switch.set_var
+// globals.case = @_switch.case
+// globals.default = @_switch.default
+// ///////////// END SWITCH
 if DEBUG then print("<size=75%>loaded _switch engine...</size>")
 
 globals.get_binaries = function(source_shell,dest_folder,onlylogs=0)
@@ -892,20 +982,29 @@ globals.rsi_purge = function(ktar="ALL")
 end function
 
 globals.netdump = function()
-  if not p_validate(globals.net_session, "get_num_conn_gateway") then return 1
-  print(colorLightBlue+"</b>    [-] Gateway_connections:   ["+globals.net_session.get_num_conn_gateway+"]")
-  print(colorLightBlue+"</b>    [-] Port_forwards:    ["+globals.net_session.get_num_portforward+"]")
-  print(colorLightBlue+"</b>    [-] Registered users: ["+globals.net_session.get_num_users+"]")
-  if globals.net_session.is_any_active_user == true then print(colorLightBlue +"</b>    [-] A user is active.") else print(colorLightBlue+"</b>    [-] No active user.")
-  if globals.net_session.is_root_active_user == true then print(colorLightBlue+"</b>    [-] Root is active.") else print(colorLightBlue  +"</b>    [-] Root is inactive.")
-  return 0
+  if not globals.net_session then 
+    if DEBUG then print "debug: netdump: no net_session"
+    return ["","","","","","",""]
+  end if
+  if DEBUG then print "debug: netdump working..."
+  if not p_validate(globals.net_session, "get_num_conn_gateway") then return ["-no net_session connected-","","","","","",""]
+  locals.metaLib = globals.net_session.dump_lib
+  nd = [colorLightBlue+"</b>Netsession linked to: "]
+  nd.push(colorLightBlue+"</b>"+locals.metaLib.lib_name + " v " + locals.metaLib.version+CT)
+  nd.push(colorLightBlue+"</b>    [-] Gateway_connections:  ["+globals.net_session.get_num_conn_gateway+"]")
+  nd.push(colorLightBlue+"</b>    [-] Port_forwards:        ["+globals.net_session.get_num_portforward+"]")
+  nd.push(colorLightBlue+"</b>    [-] Registered users:     ["+globals.net_session.get_num_users+"]")
+  if globals.net_session.is_any_active_user == true then nd.push(colorLightBlue +"</b>    [-] A user is active.") else nd.push(colorLightBlue+"</b>    [-] No active user.")
+  if globals.net_session.is_root_active_user == true then nd.push(colorLightBlue+"</b>    [-] Root is active.") else nd.push(colorLightBlue  +"</b>    [-] Root is inactive.")
+  if DEBUG then "netdump: returning: "+nd
+  return nd
 end function
 
 fw_rules = function()
   print(get_router(targetIP).firewall_rules)
 end function
 
-// takes object, returns file object or string; sends file object and string to buffer
+// // takes object, returns file object or string; sends file object and string to buffer
 curl = function(hacked_thing) 
   html = null
   html_content = null
@@ -1315,27 +1414,29 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
   buffered_filesys = null
   viewing = true
   print banner
-  if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
+  if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion)
   print
   while viewing
     print banner
-    if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
+    if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion)
     print
     print
-    if PORT_MAP then print(colorLightBlue+"[0] Portmap Loaded. "+CT)
-    if XPLOITS then print(colorLightBlue+"[1] XPLOITS loaded: ["+NUM_SPLOITS+"] "+CT)
+    if PORT_MAP then print(colorLightBlue+"[0] Portmap Loaded. ")
+    if XPLOITS then print(colorLightBlue+"[1] XPLOITS loaded: ["+NUM_SPLOITS+"] ")
     if metaLib then
       linked = "MetaLib"
       if globals.net_session then linked = "Netsession"
-      print(colorLightBlue+"[2] "+linked+" linked to: "+ metaLib.lib_name + " v " + metaLib.version+CT)
-      if meta_scan then
-        print(colorLightBlue+"</b>    [+] MetaLib source decompiled."+CT)
+      print colorLightBlue+"[2] "+linked+" linked to: "+ globals.metaLib.lib_name + " v " + globals.metaLib.version
+      if globals.net_session and netdump then
+        netdump.pull 
+        netdump.pull
+        print netdump.join(char(10))
       end if
-      if globals.net_session then netdump
+      if meta_scan then print(colorLightBlue+"</b>    [+] MetaLib source decompiled.")
     end if
-    if MEMORY or XPLOITS.len or PORT_MAP then print(colorLightBlue+"[3] Dump Memory "+CT)
+    if MEMORY or XPLOITS.len or PORT_MAP then print(colorLightBlue+"[3] Dump Memory ")
     print(colorLightBlue+"[4] File manager")
-    if BUFFER.len > 0 then print(colorOrange+"</b>+[5] [Storing: "+BUFFER.len+" buffer objects]"+CT)
+    if BUFFER.len > 0 then print(colorOrange+"</b>+[5] [Storing: "+BUFFER.len+" buffer objects]")
     print(colorGold+"</b>[6] Air [/] cBios [-] RSI [.] dBase" )
     print(colorGold+"</b>[7] Go Back   [8] Procs   [9] Kill  ")
     if DEBUG then print("prompt ready: ")
@@ -1345,7 +1446,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
       waitFor = user_input(colorGold+"(q=quit)||: ",0,1)
     end if
     print banner
-    if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion + CT)
+    if metaxploit then print(colorWhite + "MetaXploit.so v " + metaLibVersion + " // " + "Crypto.so v " + cryptoLibVersion)
     print
     if waitFor == "." then
       // globals.grepped_file = null
@@ -2555,27 +2656,29 @@ globals.hooked_comp = function(result)
     end for
 
     if p_i.len >= 1 then print(p_i.join(char(10))) else print(colorWhite+"<size=75%>[no port info to display]</size>"+CT)
-    print(colorWhite+"<size=75%><u>=============================</u></size>"+CT)
-    print("[K] - kill [G] - glassp [c] curl ")
-    print("[7] iwlist [8] iwconfig [9] chUnlock")
-    print("[4] chngpw [5] sclean   [6] useradd")
-    pause = user_input("[1] home   [2] passfile [3] dump tbuf \n[0|q] quit [d] decompiler ||: ",0,1)
+    print colorWhite+"<size=75%><u>=============================
+[K] - kill [G] - glassp [C] curl
+[7] iwlist [8] iwconfig [9] chUnlock
+[4] chngpw [5] sclean   [6] useradd
+[1] home   [2] passfile [3] dump tbuf"
+    if globals.T_BUF.len > 1 then print "[T] transmit tbuf       [-] decipher tbuf"
+    pause = user_input("[0|q] quit [d] decompiler ||: ",0,1)
+    // replace the following with a _switch
     if pause == "d" then 
       print(globals.decompiler(result))
       continue
     end if
-    if pause == "0" or pause == "q" then hooking = false
+    if pause == "0" or pause.lower == "q" then hooking = false
     if pause.lower == "k" then print(result.close_program(user_input(colorWhite+"pid to kill:> "+CT).to_int ) )
-    if pause.lower == "g" then
-      command.glasspool(result)
-    end if
-    if pause.lower == "c" then
-      print( globals.curl(result) )
+    if pause.lower == "g" then print command.glasspool(result)
+    if pause.lower == "c" then print( globals.curl(result) )
+    if pause.lower == "t" then print command.transmit("1")
+    if pause == "-" then 
+      print command.gopher(globals.T_BUF)
+      globals.T_BUF = [(localip+"@"+pubip)]
     end if
     if pause == "1" then
-      if homefolder then
-        list_files(homefolder)
-      end if
+      if homefolder then list_files(homefolder)
     end if
     if pause == "2" then
       if passfile then
@@ -2584,9 +2687,7 @@ globals.hooked_comp = function(result)
         print("Error: file /etc/passwd not found")
       end if
     end if
-    if pause == "3" then
-      command.tdump
-    end if
+    if pause == "3" then command.tdump
     if pause == "4" then
       user = user_input("Changing password for user (default: root): ")
       if user == "" or user == " " or user == null then user = "root"
@@ -2657,7 +2758,7 @@ globals.hooked_comp = function(result)
           for d in dict_a
             if result.connect_wifi("wlan0",bssid,essid,d) == 1 then
               print("Connection swapped to "+essid)
-              return
+              continue
             end if
             print("Failed to swap connection. Key not found.")
           end for
@@ -2671,7 +2772,7 @@ globals.hooked_comp = function(result)
         new_ip = user_input("enter new ip:> ")
         if new_ip == "" or not is_valid_ip(new_ip) then
           print("aborting...")
-          return
+          continue
         else
           result.connect_ethernet("eth0", new_ip, gateway)
         end if
@@ -2922,7 +3023,7 @@ end function
 
 display_portmap = function(bool_dump=0,pclist=0)
   port_index = globals.PORT_MAP.indexes
-  display = ""
+  display = []
   cw = colorWhite+"</b>"
   cr = colorRed+"</b>"
   cm = colorMagenta+"</b>"
@@ -2966,10 +3067,11 @@ display_portmap = function(bool_dump=0,pclist=0)
     if typeof(pclist) == "list" and pclist.indexOf(PORT_MAP[n][4]) == null then ci = cgr
     pi1 = PORT_MAP[n][2]
     pi2 = PORT_MAP[n][3]
+    if pi2 == "switch" then ik = cr
     if pi1 == "unknown" then; ik = cgr;pi1="no";if ci == cgr then pi2 = "machine" else pi2="response";end if
     cp = colorGreen+"</b>"
-    if PORT_MAP[n][1] == "closed" or PORT_MAP[n][1] == "Detected" then cp = cr
-    if PORT_MAP[n][0] == "Firewall" then ci = cr
+    if PORT_MAP[n][1] == "closed" or PORT_MAP[n][1] == "Firewall" then cp = cr
+    if PORT_MAP[n][0] == "Hardware" then ci = cr
     stat = PORT_MAP[n][1]
     if PORT_MAP[n][0] == "8080" or PORT_MAP[n][0] == 8080 then 
       ci = cm
@@ -2977,12 +3079,13 @@ display_portmap = function(bool_dump=0,pclist=0)
       cp = cm
       if get_switch(PORT_MAP[n][4]) != null then; stat = "switch";cp=cr; end if
     end if
-    display = display + (ci+PORT_MAP[n][0] + " " + cp+stat + " " + ik+pi1 + " " + ik+pi2+ " " + ci+PORT_MAP[n][4] + char(10))
+    //display = display + (ci+PORT_MAP[n][0] + " " + cp+stat + " " + ik+pi1 + " " + ik+pi2+ " " + ci+PORT_MAP[n][4] + char(10))
+    display.push(ci+PORT_MAP[n][0] + " " + cp+stat + " " + ik+pi1 + " " + ik+pi2+ " " + ci+PORT_MAP[n][4])
   end for
 
   update_port_info
-  if bool_dump then return format_columns(display)
-  print(format_columns(display))
+  if bool_dump then return format_columns(display.join(char(10)))
+  print(format_columns(display.join(char(10))))
   return 0
 end function
 
@@ -3013,7 +3116,7 @@ make_portmap = function(router, comps, q_bool)
     if DEBUG then print "--got: "+cpl
     if typeof(cpl) == "string" then
       if DEBUG then print "debug: computer port list is a string: firewall detected"
-      services[cip] = ["Firewall", "Detected", "@","addr:", cip]
+      services[cip] = ["Hardware", "Firewall", "from","switch", cip]
     else
       if DEBUG then print "debug: computer port list is a list:"+cpl
       for cp in cpl
@@ -3038,7 +3141,6 @@ make_portmap = function(router, comps, q_bool)
   display_portmap(q_bool,comps)
   return 0
 end function
-
 who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no longer used
   ip = globals.targetIP
   //tally = 255
@@ -3091,9 +3193,9 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
     if get_router.public_ip == get_router(ip).public_ip then clist = globals.lan_probe(get_router(ip),"local").split(char(10)) else clist = globals.lan_probe(get_router(ip),"remote").split(char(10))
     //clist.sort
     numComps = clist.len
-    brdc = "Broadcasting: "+t_router.essid_name + " : " + t_router.bssid_name
-    if brdc == "Broadcasting:  : " then brdc = "Broadcasting: -wifi disabled-"
-    if not quiet then print("Found: " + numComps + " machines connected to: " + t_router.local_ip+char(10)+brdc)
+    globals.brdc = "Broadcasting: "+t_router.essid_name + " : " + t_router.bssid_name
+    if globals.brdc == "Broadcasting:  : " then globals.brdc = "-wifi disabled-"
+    if not quiet then print("Found: " + numComps + " machines connected to: " + t_router.local_ip+char(10)+globals.brdc)
     if not quiet then 
       for c in clist 
         print(colorWhite+c)
@@ -3202,8 +3304,9 @@ get_lib = function(waitFor=0,this_lib=null)
   if DEBUG then print "debug: calling net_use"
   if port == "router" then
     globals.net_session = metaxploit.net_use( address )
-    if typeof(globals.net_session) == "netsession" then globals.routerLib = globals.net_session.dump_lib
+    if typeof(globals.net_session) == "netsession" then globals.routerLib = globals.net_session.dump_lib else globals.routerLib = null
   else
+    globals.routerLib = null
     globals.net_session = metaxploit.net_use( address, port )
   end if
   if not globals.net_session then
@@ -3425,7 +3528,15 @@ sphinx_switch = function(resolve,tt)
     return true
   end if
   if resolve == "-" then
-    print(command.purge("-x"))
+    if user_input("Purge: netsession, metaLib, exploits?"+char(10)+"[<b>Y</b>/n]||: ",0,1) == "n" then 
+      print "aborting..."
+      return true
+    end if
+    print(command.purge("-x","y"))
+    globals.net_session = null
+    print "Net_Session purged."
+    globals.metaLib = null
+    print "MetaLib purged."
     return true
   end if
   if resolve == "+" or resolve == "=" then
@@ -3483,7 +3594,7 @@ sphinx_switch = function(resolve,tt)
     return true
   end if
   if resolve == "3" or resolve.lower == "d" then
-    if globals.metaLib and tt == "local" then
+    if globals.metaLib and not globals.net_session then
       confirm = user_input("Scan local lib: "+globals.metaLib.lib_name+" and update database? [Y/n] ||: ",0,1)
       if confirm.lower != "n" then command.db("-l", metaLib.lib_name) else print("aborting...")
       return true
@@ -3539,82 +3650,7 @@ end function
 
 
 print_help = function()
-  print(colorRed+"Sphinx</color> v" + sphinx_version + ",<color=white> by Plu70   </b></color>running on localhost: "+localmachine.local_ip)
-  print("<b>////////////////////////////////////////////</b>"+CT)
-  print("<b>Press the key in </b>[ ]<b>'s to activate a command:")
-  print("A MetaLib is a scanned library (e.g. libssh 1.0.1) aka a<b> lib </b>")
-  print("A vuln is a vulnerability in a MetaLib that may be exploited")
-  print
-  print(colorWhite+"To begin, select an ip and port to target:")
-  print(colorCyan+"</b>["+colorWhite+"4</b></color>] or ["+colorWhite+"i</b></color>] - set target IP and port \n-- <b>leave blank to default to current gateway")
-  print(colorCyan+"</b>["+colorWhite+"5</b></color>] or ["+colorWhite+"p</b></color>] - manually change target port without changing target IP")
-  print(colorCyan+"</b>["+colorWhite+"0</b></color>] or ["+colorWhite+"w</b></color>] - port scan (nmap) target IP"+char(10)+
-  "-- if target IP is not a router, 5phinx will attempt to locate the router, halfheartedly")
-  print(colorCyan+"</b>["+colorWhite+"+</b></color>] or ["+colorWhite+"=</b></color>] - connect or load MetaLib"+char(10)+
-  "--: [<b>y</b>] or <b>enter</b> establishes a net_session</b> "+char(10)+
-  "--: this leaves a connection established log on servers but not on routers"+char(10)+
-  "--: selecting [<b>l</b>] instead loads a <b>local lib</b> for scanning/exploiting")
-  print("--: if the target MetaLib is known in the database 5phinx will automatically link the entry\n--: and load the vulns (xploits) into memory")
-  print("["+colorWhite+"-</b></color>] - will unload the currently loaded MetaLib and clear vulns in memory")
-  print(colorCyan+"</b>["+colorWhite+"1</b></color>] or ["+colorWhite+"s</b></color>] - scan MetaLib at target IP:port and load vulns (xploits) into memory."+char(10)+
-  "--: this does <u>not</u> update the database"+char(10)+
-  "--: while the vuln requirements may be viewed in malp option [2] "+char(10)+
-  "--: the information is not stored"+char(10)+
-  "--: this is useful if you: want to scan a target without writing to the target's filesystem"+char(10)+
-  "--: or you want to scan a target without overwriting you current database entry")
-  print(colorCyan+"</b>["+colorWhite+"2</b></color>] or ["+colorWhite+"r</b></color>] - perform 'hail mary' attack using all vulns (xploits) loaded into memory"+char(10)+
-  "--: does not database results")
-  print(colorCyan+"<b>["+colorWhite+"3</b></color>] or ["+colorWhite+"d</b></color>] - scans the target IP and port"+char(10)+
-  "--: if a local metaLib has been loaded with [<b>=</b>] then db will database that instead of the target IP"+char(10)+
-  "--: attacks using all exploits found"+char(10)+
-  "--: <b>updates the database</b> with the results</b>"+char(10)+
-  "--: loads vulns (xploits) to memory"+char(10)+
-  "--: will overwrite the entry if a lib is databased again"+char(10)+
-  "--: it is not necessary to link a remote lib with [=] to use db on a remote target") 
-  print(colorCyan+"["+colorWhite+"a</b></color>] - select a single attack from memory to launch at the target"+char(10)+
-  "--: the same as the <b>zap</b> command"+char(10)+
-  "--: to manually enter a [mem] [string] press enter at the menu and fill in the values")
-  print(colorCyan+"</b>["+colorWhite+".</b></color>] - run the <b>dig</b> command against the target (see dig -h)"+char(10)+
-  "--: if dig.bat is not in rkit, a very basic dig.bat will be created"+char(10)+
-  "--: edit dig.bat to perform whatever tasks you want dig to auto-execute when attacking the target"+char(10)+
-  "--: dig uses the 'do' command to perform actions"+char(10)+
-  "--: you may include instructions in dig.bat to launch other bat files with do"+char(10)+
-  "--: any bat file, including dig.bat, may contain a call to shell.launch 5hell with a 'do' launch parameter"+char(10)+
-  "--: this allows you to spread 5hell like the plague"+char(10)+
-  "--: dig does not support digging /lib, use a do script for that")
-  print(colorCyan+"</b>["+colorWhite+"*</b></color>] or ["+colorWhite+"/</b></color>] - run <b>db</b> against all libs or ports in /lib or at target IP"+char(10)+
-  "--: if a local lib is linked then all libs in /lib will be databased"+char(10)+
-  "--: if no lib is linked then all libs in /lib will be databased"+char(10)+
-  "--: link a net_session with a port or router on the target to db all reachable ports")
-  print("--:<b> all results from <b>[2], [3], [.], [*], and [a]</b> "+char(10)+
-  "--: are sent to the "+colorOrange+"BUFFER</color></b> in memory alpha")
-  print("[6] - access the mail command"+char(10)+
-  "--: may also use the down arrow key")
-  print(colorCyan+"<b>["+colorOrange+"7</b></color>] or ["+colorOrange+"m</b></color>] - access the malp command (Memory Alpha)\n--: you may also use the <u>"+colorOrange+"left_arrow</u>"+CT+" key")
-  print("--: from malp select "+colorOrange+"[5] to access the BUFFER")
-  print("[8] - access an extra menu, may also use the right arrow key")
-  print("[9] - access bank heist, may also use the up arrow key\n--: n.b. bank heist is kinda crappy\n--: and bank accounts contain almost nothing")
-  print(colorCyan+"</b>["+colorWhite+"z</b></color>] - wipe the local system.log"+char(10)+
-  "--: sets log to a text file of size 0"+char(10)+
-  "--: when returning to 5phinx's main menu, if the log has changed, an alert will print")
-  print("["+colorWhite+"F1</b></color>] or [?] - access this help file ")
-  print("[<b>q</b>] - leave 5phinx and return to 5hell \n--: preserves state so you may return"+char(10)+"--: shares state with 5hell")
-  print
-  print("n.b. running <b>probe [ip [port] from 5hell's cli will set the target IP and port for 5phinx")
-  print("n.b. <b>zap</b>  in 5hell is the same as [<b>a</b>] in 5phinx")
-  print("n.b. <b>roil</b> in 5hell is the same as [<b>2</b>] in 5phinx")
-  print("n.b. <b>meta link|load</b> in 5hell is the same as [<b>=</b>]/[<b>+</b>] in 5phinx")
-  print("n.b. <b>database.csv</b> is always <b>written</b> to /root/rkit/database.csv")
-  print("n.b. <b>database.csv</b> may be read from anywhere (uses first copy found on system)")
-  print("n.b. convention is to keep a copy of 5hell, metaxploit, crypto, database.csv"+char(10)+
-  "--: in /root/rkit along with other useful tools for easy uploading"+char(10)+
-  "--: you may use <b>kore -r</b> to quickly construct the rkit")
-  print
-  print("5hell/5phinx does not phone home and therefore does not autoupdate"+char(10)+
-  "--: 5hell is now open source so the above is a moot point")
-  print("5hell/5phinx is a product of Ra'al Tek and is written by jhook777 aka Plu70 aka Ra'al")
-  print("all rights reserved 2020-2025")
-  print
+  sphinx_help
   stop = user_input("press <<b>anyKey</b>> to continue",0,1)
 end function
 
@@ -3651,6 +3687,7 @@ main = function()
   BT = color5phinxButton
   TD = color5phinxDisplay
   while running
+    TD = color5phinxDisplay
     if targetPort == 0 or targetPort == "0" then targetPort = "router"
     count = count + 1
     if count > 7 then count = 1
@@ -3669,8 +3706,8 @@ main = function()
     target_type = "local"
     print
     print(colorRed+"5phinx"+char(8482)+colorWhite+"<size=90%></b> v "+sphinx_version+", by Plu70 :: localhost: "+localmachine.local_ip+CT)
-    print(EL+"<b>/////////////////////////////////////////////")
-    if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then
+    print(EL+"<b>/////////////////////////////////////////////////////////")
+    if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so" or metaLib.lib_name == "blockchain.so" or metaLib.lib_name == "smratappliance.so" or metaLib.lib_name == "iot.so") then
       target_type = "local"
     end if
     if PORT_MAP then
@@ -3684,6 +3721,7 @@ main = function()
         if typeof(PI[0]) == "string" and portInfo != "" and portInfo != "???" then
           target_type = "computer"
         end if
+        if PI[0] == "repository" then target_type = "repository"
         if PI[0] == "libcam" or PI[0] == "cam" then target_type = "camera"
         if PI[0] == "http" then target_type = "http"
         if PI[0] == "ssh" then target_type = "ssh"
@@ -3691,20 +3729,24 @@ main = function()
         if PI[0] == "employees" or PI[0] == "criminals" or PI[0] == "students" or PI[0] == "bank" then target_type = "sql"
         if PI[0] == "smtp" then target_type = "mail"
         if PI[0] == "smartappliance" then target_type = "appliance"
+        if PI[0] == "smartphone" then target_type = "smartphone"
+        if PI[0] == "ftp" then target_type = "ftp"
       end if
-      if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then target_type = "local"
-
+      //if metaLib and (metaLib.lib_name == "metaxploit.so" or metaLib.lib_name == "crypto.so" or metaLib.lib_name == "net.so" or metaLib.lib_name == "init.so" or metaLib.lib_name == "kernel_module.so" or metaLib.lib_name == "libmail.so"  or metaLib.lib_name == "aptclient.so") then target_type = "local"
+      if globals.metaLib and not globals.net_session then target_type = "local"
       if target_type == "camera" then   target_type = EL+"________"+TX+"CAMERA"+CT+"_________"+CT
       if target_type == "computer" then target_type = EL+"________"+TX+"SERVER"+CT+"_________"+CT
       if target_type == "router" then   target_type = EL+"________"+TX+"ROUTER"+CT+"_________"+CT
       if target_type == "http" then     target_type = EL+"______"+TX+"WEB_SERVER"+CT+"_______"+CT
       if target_type == "local" then    target_type = EL+"________"+TX+"LOCAL"+CT+"__________"+CT
       if target_type == "ssh" then      target_type = EL+"______"+TX+"SSH_SERVER"+CT+"_______"+CT
+      if target_type == "ftp" then      target_type = EL+"______"+TX+"FTP_SERVER"+CT+"_______"+CT
       if target_type == "rshell" then   target_type = EL+"_____"+TX+"RSHELL_SERVER"+CT+"_____"+CT
       if target_type == "sql" then      target_type = EL+"______"+TX+"SQL_SERVER"+CT+"_______"+CT
       if target_type == "mail" then     target_type = EL+"______"+TX+"MAIL_SERVER"+CT+"______"+CT
-      if target_type == "appliance" then target_type =EL+"________"+TX+"DEVICE"+CT+"_________"+CT
-                          
+      if target_type == "appliance" or target_type == "smarphone" then target_type = EL+"________"+TX+"DEVICE"+CT+"_________"+CT
+      if target_type == "sql" then      target_type = EL+"______"+TX+"REPOSITORY"+CT+"_______"+CT
+      if target_type == "" then target_type =         EL+"_______"+TX+"UNKNOWN"+CT+"________"+CT
       print(TX+"Target:"+EL+target_type+CT+"Port Map:"+colorGreen+" Loaded")
     else             
       if targetIP then
@@ -3716,42 +3758,44 @@ main = function()
 
     //print(EL+format_columns("[ "+ TX + targetIP + CT + " ] [ " + TX + targetPort + CT +" ]"))
     if portInfo then
+      if target_type == EL+"________"+TX+"LOCAL"+CT+"__________"+CT then TD = color5phinxElement
       print(format_columns( EL + "[ "+ TD + targetIP + CT + " ] [ " + TD + targetPort + CT +" ]"+ char(10)+EL+"[ "+ TD + tarLan + CT +  " ] [ " + TD + portInfo.replace(" ","_") + CT+ " ]" ))
     end if
     if metaLib then
-      print(EL+format_columns("["+TX+"MetaLib: "+CT+colorGreen+"loaded"+CT+" [" +colorGreen+ NUM_SPLOITS +CT+ "] "+TX+"Exploits Found"+CT+"]"))
-      print(EL+format_columns("["+TX+"MetaLib: "+CT+colorGreen+metaLib.lib_name + " v " + metaLib.version+CT+"]"))
+      print EL+format_columns("["+TX+"MetaLib: "+CT+colorGreen+"loaded"+CT+" [" +colorGreen+ NUM_SPLOITS +CT+ "] "+TX+"Exploits Found"+CT+"]")
+      print EL+format_columns("["+TX+"MetaLib: "+CT+colorGreen+metaLib.lib_name + " v " + metaLib.version+CT+"]")
+      print EL+"<size=75%>["+BT+"-"+CT+"]"+TX+" "+colorGreen+"  ="+CT+" un-link metaLib"+char(10)+
+            EL+"<size=75%>["+BT+"="+EL+"|"+CT+"+"+CT+"]"+TX+colorGreen+" = "+CT+"link new metaLib"
     else
       print(EL+"["+TX+"MetaLib: "+colorWarning+"not loaded"+CT+CT+"] "+TX+"press "+CT+"["+BT+"="+CT+"]"+TX+" or "+CT+"["+BT+"+"+CT+"]"+TX+" to link")
     end if
-    if alert then
-      print(colorError + "[/var/system.log: I/O detected " + logSize + "  bytes]"+char(10)+colorError+"-- Alert! /var/system.log size has changed!")
-    else
-      print(EL+"["+TX+"Log I/O: " + logSize + " bytes"+CT+"]")
-    end if
+    print(EL+"["+TX+"Log I/O: " + logSize + " bytes"+CT+"]")
+    if alert then print(colorError+"<size=75%>-- Alert! /var/system.log has changed size!")
     print
     print EL+"["+BT+"F1"+CT+"]"+TX+" for <b>help"
-    if globals.HERMES == true then
-      print(EL+"000"+mail_widget(count))
-    else     
-      print(EL+"000102030405060708090<b>.")
-    end if
+    netinfo = netdump
+    //if globals.HERMES == true then disabled indefinitely
+      //print(EL+"000"+mail_widget(count))
+    //else   
+      print EL+"000102030405060708090<b>. "+netinfo[0]
+    //end if
     if targetIP then
-      print(EL+"0["+BT+"0"+CT+"]...."+BT+"P"+CT+TX+"ROBE"+CT+".....09<b>.")
-      print(EL+"00["+BT+"1"+CT+"]..."+BT+"S"+CT+TX+"CAN"+CT+"..070809<b>.")
+      print EL+"0["+BT+"0"+CT+"]...."+BT+"P"+CT+TX+"ROBE"+CT+".....09..</b> "+netinfo[1]
+      print EL+"00["+BT+"1"+CT+"]..."+BT+"S"+CT+TX+"CAN"+CT+"..070809..</b>"+netinfo[2]
     else
-      print(EL+"000102030405060708090<b>.")
-      print(EL+"000102030405060708090<b>.")
+      //print EL+"000102030405060708090<b>..</b>"+netinfo[1]
+      print EL+"0["+BT+"0"+CT+"]...."+BT+"P"+CT+TX+"ROBE"+CT+".....09..</b> "+netinfo[1]
+      print EL+"000102030405060708090<b>..</b>"+netinfo[2]
     end if
     if targetIP and targetPort then
-      print(EL+"000.["+BT+"2"+CT+"]."+BT+"R"+CT+TX+"OIL"+CT+"....0809<b>.")
-      print(EL+"000..["+BT+"3"+CT+"]"+BT+"D"+CT+TX+"BASER"+CT+"...809<b>.")
+      print EL+"000.["+BT+"2"+CT+"]."+BT+"R"+CT+TX+"OIL"+CT+"....0809..</b>"+netinfo[3]
+      print EL+"000..["+BT+"3"+CT+"]"+BT+"D"+CT+TX+"BASER"+CT+"...809..</b>"+netinfo[4]
     else
-      print(EL+"001"+TX+" SET IP WITH "+CT+"["+BT+"4"+CT+"] 0<b>.")
-      print(EL+"000"+TX+" SET PT WITH "+CT+"["+BT+"5"+CT+"] 0<b>.")
+      print EL+"001"+TX+" SET IP WITH "+CT+"["+BT+"4"+CT+"] 0..</b>"+netinfo[3]
+      print EL+"000"+TX+" SET PT WITH "+CT+"["+BT+"5"+CT+"] 0..</b>"+netinfo[4]
     end if
-    print(EL+"["+BT+"."+CT+"]DIG.["+BT+"4"+CT+"]<b>IP</b>.["+BT+"5"+CT+"]<b>PORT</b>.")
-    print(EL+"["+BT+"Q"+CT+"]["+BT+"A"+CT+"]["+BT+"Z"+CT+"]["+BT+char(177)+CT+"].6"+BT+"v"+CT+"7"+BT+"<"+CT+"8"+BT+">"+CT+"9"+BT+"^"+CT+".")
+    print EL+"["+BT+"."+CT+"]DIG.["+BT+"4"+CT+"]<b>IP</b>.["+BT+"5"+CT+"]<b>PORT</b>..</b>"+netinfo[5]
+    print EL+"["+BT+"Q"+CT+"]["+BT+"A"+CT+"]["+BT+"Z"+CT+"]["+BT+char(177)+CT+"].6"+BT+"v"+CT+"7"+BT+"<"+CT+"8"+BT+">"+CT+"9"+BT+"^"+CT+".</b>"+netinfo[6]
     option = user_input(EL+"[0][1][2][3][4][5]<b>||: ",0,1)
     running = sphinx_switch(option,target_type)
   end while
