@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.2.8...(125.093)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.2.8.2..(125.121)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
@@ -20,13 +20,14 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		"and download metaxploit.so from it. Then launch 5hell and type:"+char(10)+
 		"<b>kore -r</b> and follow the prompts. Optionally generate the rainbow tables."+char(10)+char(10)+
 		colorWhite+"<u>Hack your first target (optimized for 10-key pad):"+char(10)
+
 		print colorGold+"probe [ip]"+CT+" -- to perform a whois and portscan on a target ip "+char(10)+
 		colorGold+"-- it sets the target IP in 5phinx (sphinx) as well"+char(10)+
 		colorGold+"sphinx"+CT+" -- bring up the pentest tool; 5phinx"+char(10)+
 		"-- "+colorGold+"press [0]"+CT+" to view the portmap again, if you wish"+char(10)+
 		"-- "+colorGold+"press [4]"+CT+" to change the target ip, if needed"+char(10)+
 		"-- "+colorGold+"press [5]"+CT+" to change the target port, if needed"+char(10)+
-		"-- "+colorGold+"press [=] or [+]"+CT+" to connect a local or remote metaLib"
+		"-- "+colorGold+"press [=] or [+]"+CT+" to connect a local or remote metaLib"+char(10)+
 		"-- "+colorGold+"press [3]"+CT+" to database the target lib, if unknown "+char(10)+
 		"---- ignore [1] and [2], for now"+char(10)+
 		"---- any results obtained by the databasing are stored in the "+colorOrange+"BUFFER"+char(10)+
@@ -34,7 +35,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		"---- use the left arrow key (or [7]) again when you want to return to the main menu"+char(10)+
 		"-- assuming* you obtained a shell object from the databasing, "+colorGold+"select a shell object by index"+char(10)+
 		"----* you may need to rerun an attack after fulfilling some requirements"+char(10)+
-		"----* use the left arrow key (or [7]) to return to the main menu, then:"
+		"----* use the left arrow key (or [7]) to return to the main menu, then:"+char(10)+
 		"----* "+colorGold+"press [a]"+CT+" to select and fire a single attack from a menu"+char(10)+
 		"----* return to the buffered shell in malp"+char(10)+
 		"-- "+colorGold+"press [3]"+CT+" to upload your <b>rkit</b> to the target and automatically launch 5hell"+char(10)+
@@ -44,6 +45,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		"-- "+colorGold+"type /home/guest/rkit/5hell"+CT+" to launch 5hell as root"+char(10)+
 		"*** "+char(10)+
 		"Congratulations! You've successfully gotten root on your first target!"+char(10)
+
 		print "Use "+colorGold+"felix"+CT+" -- as a file explorer and BUFFER files/folders"
 		print "Explore the other commands, many are utility. Some are quite advanced."
 		print "You may hack from the command line, instead of 5phinx, for more precision."
