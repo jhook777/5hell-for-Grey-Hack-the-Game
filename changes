@@ -35,8 +35,83 @@
 // make a sort_database function
 // kraken: auto encrypt/decrypt Map.conf
 // ensure password fields do not push to input buffer
-// psudo: streamline it
 //
+// tws: added new command contributed by Aksu
+// -- thanks Aksu!
+// credits: added Aksu for contributing tws
+// resource configuration: if do.rc is encrypted, 5hell will [attempt to] decrypt it 
+// -- will re-encrypt once read if it was decrypted
+// @HOME: added map_enc and dorc_enc fields to HOME map
+// -- will be used to decrypt Map.conf and do.rc, respectively, if they are encrypted
+// kraken: added -g -- glasspool to kraken
+// kraken: will now decrypt encrypted map.conf
+// -- prompts for encryption key if not supplied
+// -- will reencrypt if the file was encrypted
+// -- will not encrypt if the file was not originally encrypted
+// ---- use file -e to encrypt manually
+///--- update usage info
+// meta: "meta restore" will now restore the the launch metaxploitLib instead of the last
+// netdump: new command, gives access to net_session info
+// flood: new command for running DDOS attacks on a target
+// glasspool: moved to kore.5pk because net.5pk ran out of room
+// 5phinx.5pk: added transmit and decipher tbuf buttons to computer handler
+// -- removed errant returns from computer handler
+// sphinx: added netdump/net_session info to main page
+// sphinx: updated main page information irt metalib, target
+// sphinx: fixed bug where sphinx would not db local libs
+// sphinx: target ip info will be greyed out when target is al ocal lib
+// sphinx: will properly clear xploits, metalib, netsession when using [-]
+// sphinx: F1 help text moved to help.5pk
+// linkdb: will clear xploits when run
+// merged pull request for linkdb
+// felix: added tag 4 scp, gopher, run buttons
+// -- experimental; felix traditionally operates with only file objects
+// brutus: disabled use of brutus in glasspool
+// bios: fixed crash on inactive network
+// pwgen: added seed: Duke
+// reboot: fixed crash when using the command
+// rsi: corrected typo in usage info
+// rsi: added instructions and easy button for opening the browser to forward the port when using rsi install
+// cerebrum: will now consider ["a"] as dictionary not loaded and not request a purge before continuing
+// cp: fixed crash when arg2 is whitespace
+// probe: "firewall detected @ addr:" changed to "Hardware firewall from switch" to clarify that it is a hardware firewall from a switch and not a software firewall from router settings
+// -- these will always be underneath of a switch, for easy identification
+// probe: updated display info for a router's wifi broadcasting status;
+// -- the "Broadcasting: " line will only display if wifi is actually being broadcast by the target rotuer
+// ---- otherwise prints "-wifi disabled-"
+// probe: added -b flag to return only the boradcast status of the last probe
+// probe: probe [-s|show] will now return the broadcast status of the last probe
+// globals.get_lib: globals.routerLib set to null when the target isn't a router
+// dm: fixed errant print in usage info
+// db: enabled the -M flag
+// db: fixed -i prompting for inject when an inject has been supplied
+// db: added glasspool warning // todo: make a video showing how this is meant to work
+// air: removed troublesome .lowers
+// air: added -a flag for command line aireplay
+// -- takes either bssid or essid
+// gopher: will now run recursively when the infile is a folder
+// psudo: streamlined get_shell options: now -s, -f, -n
+// -- use: psudo -n
+// ---- to obtain a root shell without prompts or the malp menu
+// psudo: will reset the custom object when exiting from a start_terminal
+// cob: added cob reset to manually reset resource configuration // htis is crash recovery!
+// -- validates custom object
+// -- resets my*0, stack_pool
+// -- reruns do.rc
+// -- useful after a crash; for best results use: cob purge | cob reset
+// -- automatically runs after returning from a psudo -l (aka starting terminal via psudo)
+// cob: purging the custom object will now also purge macros
+// cob: greatly improved map manipulation within cob
+// cob: improved list manipulation within cob
+// code: universal object handler will now handle custom player objects
+// -- inlcuding those that do not contain functions
+// purge: purging the custom object will now also purge macros
+// curl: new command; prints /Public/htdocs/website.html for localmachine or piped object
+// -- simply calls globals.curl
+// purge: purging the BUFFER in glasspool no longer results in a duplicate shell entry
+// purge: rewritten and moved to 5hell.5pk
+// aptm: delete repo now takes index as well as ip
+// macro: added classID: macros; macro set and del are restricted from altering it
 // 
 // HELP.5pk: new .5pk; moved command.help to it's own file because it's 35 freakin kilobytes on it's own
 // -- 5hell.5pk now has room for moar feature creep
