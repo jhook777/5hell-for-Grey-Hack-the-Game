@@ -56,8 +56,7 @@ command = {} // default; do not change this if you don't know what you're doing!
 ///// ALL FIELDS ARE OPTIONAL //////
 //// important: don't comment it out, just leave at default values if you aren't going to use it.
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
-if not get_custom_object.hasIndex("HOME") or typeof(get_custom_object.HOME) != "map" then 
-  get_custom_object.HOME = {
+globals.AT_HOME = {
   "ip":"ip.add.rr.ess",                 // rshell and hashim server ip address (@home)
   "loginport":22,                       // @home ssh port
   "rshellport":1222,                    // @home rshell port
@@ -71,7 +70,7 @@ if not get_custom_object.hasIndex("HOME") or typeof(get_custom_object.HOME) != "
   "dorc_key":0,                         // decrypt do.rc with this key, if encrypted. leave at 0 if not in use
   "map_key":0,                          // decrypt Map.conf with this key, if encrypted. leave at 0 if not in use
   "classID":"at_home"}   
-end if                      
+if not get_custom_object.hasIndex("HOME") or not ( get_custom_object.HOME isa map or get_custom_object.HOME isa at_home ) then  get_custom_object.HOME = globals.AT_HOME
 // the above values are optional and may be left at default if you you don't plan to use them
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
 // for example with: rshell @home
