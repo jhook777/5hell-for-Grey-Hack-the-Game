@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.8.1.(149.788)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.8.4.(149.860)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -2482,7 +2482,8 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		if rl.len < 1 then return print("aptm: no repositories to delete")
 		i = 0
 		for r in rl 
-			print colorGreen+"["+colorWhite+i+CT+"] "+colorYellow+r
+			print colorGreen+"["+colorWhite+i+CT+"] "+colorGold+r
+			i = i + 1
 		end for
 		if arg2 and ( (typeof(arg2) == "string" and arg2 != "" ) or typeof(arg2.to_int) == "number") then
 			a = arg2
@@ -2502,14 +2503,16 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		sources = globals.get_file("/etc/apt/sources.txt")
 		if not sources then return print(colorWarning+"aptm: can't find or create sources.txt!")
 		if sources.has_permission("r") then sources = sources.get_content else return print(colorWarning+"aptm: sourcs.txt is read protected")
+		sources = sources.replace(""""," ").replace(":"," ").trim
 		sources = sources.split(char(10))
-		for line in sources 
-			sources[sources.indexOf(line)] = line.split(":")[0].split("""")[1]
-		end for
 		reps = []
-		for s in sources 
-			if is_valid_ip(s) then reps.push(s)
+		for line in sources 
+			line = line.split(" ")
+			for l in line
+				if is_valid_ip(l) then reps.push(l)
+			end for
 		end for
+		if DEBUG then print "debug: reps: "+reps
 		return reps
 	end function
 	apt.install = function()
