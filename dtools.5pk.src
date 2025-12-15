@@ -1,46 +1,55 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.8...(155.233)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.8.3..(155.823)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
 	cw = colorWhite
 	cv = colorViolet 
 	cm = colorMagenta
+	cg = colorGold
 	usage_info = "<u>Cobble || custom object || cob || meta buffer</u>"+char(10)+
 	cy+"Usage: cob "+cw+"set"+CT+" [key] [val] -- set custom object key to val"+char(10)+
 	"-- returns string on success or error"+char(10)+
-	"-- create a map within the custom object by using<b> {}</b> as your val"+char(10)+
-	"--eg:<b> cob set newmap {}"+char(10)+
-	"-- you may set a key within an existing map with the dot reference:"+char(10)+
-	"--eg:<b> cob set newmap.submap {}\n--eg:<b> cob set newmap.foo bar"+char(10)+
+	cg+"Maps:"+char(10)+
+	"-- create a map within the custom object by using "+cg+"{}"+CT+" as your val"+char(10)+
+	"--eg:<b> cob set newmap "+cg+"{}"+char(10)+
+	"-- you may set a key within an existing map usign <b>dot syntax</b>:"+char(10)+
+	"--eg:<b> cob set newmap.submap "+cg+"{}"+char(10)+
+	"--eg:<b> cob set newmap.submap.foo bar"+char(10)+
 	"---- the map must already exist in order to add an index to the map"+char(10)+
-	"-- create a new list in the custom object by using<b> []</b> as your val"+char(10)+
-	"--eg:<b> cob set newlist []"+char(10)+
+	"-- create a new list in the custom object by using "+cg+"[]"+CT+" as your val"+char(10)+
+	"--eg:<b> cob set newlist "+cg+"[]"+char(10)+
 	"---- it is not possible to <b>set</b> a non-existant list index"+char(10)+
 	"------ use <b>cob push</b> instead"+char(10)+
 	cy+"Usage: cob "+cw+"get"+CT+" [key] -- get value of custom object key"+char(10)+
 	"-- returns value at key on successs, string on failure"+char(10)+
 	"-- returns @reference (pointer) if value is a function"+char(10)+
 	"-- use dot reference to retrieve nested elements of lists and maps"+char(10)+
-	"--eg: cob get foo.bar"+char(10)+
-	"--eg: cob get foo.bar.1 -- where 1 is index 1 of a list"+char(10)+
+	"--eg: <b>cob get foo.bar"+char(10)+
+	"--eg: <b>cob get foo.bar.1</b> -- where 1 is index 1 of a list"+char(10)+
 	cy+"Usage: cob "+cw+"push"+CT+" [key] [value] -- push a value to a list or map"+char(10)+
 	"-- pushing an index to a map sets the value of that index to a numerical 1"+char(10)+
+	"-- you may push lists and maps by passing "+cg+"[]"+CT+" and "+cg+"{}"+CT+" respectively"+char(10)+
+	"--eg: <b>cob set newlist [] || cob push newlist {} || cob set newlist.0.a b"+char(10)+
+	"----: <b>get newlist.0.a | echo "+colorGrey+"// b"+char(10)+
 	cy+"Usage: cob "+cw+"return"+CT+" -- returns the raw custom object"+char(10)+
 	"-- pipe to command.<b>code</b> to decompile the object"+char(10)+
 	"-- ie:<b> cob return | code</b>"+char(10)+
 	cy+"Usage: cob "+cw+"inspect"+CT+" [opt:key] -- returns key/value pair information of custom object"+char(10)+
 	"-- returns a string pairing each key with its [truncated] value"+char(10)+
 	"-- values are truncated to make the object easier to inspect"+char(10)+
-	"-- please use <b>cob return | code</b> if you want the raw output"+char(10)+
-	"--<b> if a key is passed and the key is a map in the custom object;"+char(10)+
-	"---- cob will <b>inspect</b> that map, instead (currently only one layer)"+char(10)+
+	"-- please use <b>cob get</b> if you want the actual element"+char(10)+
+	"-- passing a "+cw+"key"+CT+" will "+cw+"inspect"+CT+" the key, if possible"+char(10)+
+	"--eg: <b>cob inspect HOME</b>"+char(10)+
+	"-- use <b>dot syntax</b> to traverse maps and lists:"+char(10)+
+	"--eg: <b>cob inspect mys0.__isa"+char(10)+
 	cy+"Usage: cob "+cw+"indexes"+CT+" -- return custom object indexes as a LIST"+char(10)+
 	"-- pipe to the <b>string</b> command to stringify"+char(10)+
 	cy+"Usage: cob "+cw+"search"+CT+" [val] --  search for index of val"+char(10)+
-	"-- returns string; key or failure message."+char(10)+
-	"Inactive: cob sign -- future ability to sign custom object"+char(10)+
-	"-- currently returns 0 (zero)"+char(10)+
+	"-- returns string; key or failure message"+char(10)+
+	colorGrey+"Inactive: cob sign -- future ability to sign custom object"+char(10)+
 	cy+"Usage: cob "+cw+"del"+CT+" [key] -- delete key and its value from custom object"+char(10)+
+	"-- use <b>dot syntax</b> to traverse maps and lists"+char(10)+
+	"--eg: cob del dictionary.33"+char(10)+
 	"-- returns string on success or failure"+char(10)+
 	cy+"Usage: cob "+cw+"purge"+CT+" -- purge the custom object"+char(10)+
 	cy+"Usage: cob "+cw+"validate"+CT+" -- ensure the custom_object contains indexes:"+char(10)+
@@ -184,7 +193,7 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 			//if @cobble isa map or (@cobble and typeof(@cobble) != "number" and typeof(@cobble) != "function" and @cobble.hasIndex("classID")) then 
 			if cob._inspectible(@cobble) and cobble isa map then parsed_value = @thing.value else parsed_value = @thing
 			//if typeof(@thing) == "map" or (@thing and typeof(@thing) != "number" and typeof(@thing) != "function" and @thing.hasIndex("classID")) then 
-			if cob._inspectible(@thing) then indx = @thing.key else indx = @cobble.indexOf(@thing)
+			if cob._inspectible(@thing) and typeof(@cobble) != "list" then indx = @thing.key else indx = @cobble.indexOf(@thing)
 			ogtype = typeof(@parsed_value)
 			// trim
 			if typeof(@parsed_value) == "string" and parsed_value.len > 32 then parsed_value = parsed_value[:27]+"..."
@@ -217,15 +226,26 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 		if DEBUG then print "debug: cob: validating custom object"
 		o=[]
 		o.push(colorCyan+"</b>cob: validating custom object...")
-		if not cobble.hasIndex("macros") then; cobble.macros = {"classID":"macros"};o.push(colorOrange+"<size=75%>--: restoring index: macros");end if
+		if not cobble.hasIndex("macros") then
+			cobble.macros = {"classID":"macros"}
+			o.push(colorOrange+"<size=75%>--: restoring index: macros")
+		else 
+			if not cobble.macros.hasIndex("classID") then cobble.macros.classID = "macros"
+		end if
 		if not cobble.hasIndex("stack_pool") then; cobble.stack_pool = 0;o.push(colorOrange+"<size=75%>--: restoring index: stack_pool");end if
-		if not cobble.hasIndex("HOME") or not cobble.HOME isa map then ; cobble.HOME = {"ip":"ip.add.rr.ess", "loginport":22, "rshellport":1222, "user":"root", "pass":"password", "loginprotocol":"ssh", "sharedfile":"/root/pass","database":"/root/rkit/database.csv", "t5":"/root/rkit/tables/t5", "tp":"/root/rkit/tables/tp","dorc_key":0,"map_key":0,"classID":"at_home"};end if
+		if not cobble.hasIndex("HOME") or not ( cobble.HOME isa map or cobble.HOME isa at_home ) then cobble.HOME = globals.AT_HOME
+		if not cobble.HOME.hasIndex("classID") then cobble.HOME.classID = "at_home"
 		// nested cobble.HOME validation needed
 		if DEBUG then return print("debug:"+char(10)+o.join(char(10))) else return o.join(char(10))
 	end function
 
 	cob.reset = function()
-		self.validate 
+		self.validate
+		gathi = globals.AT_HOME.indexes
+		gathi.sort
+		for elm in gathi
+			cobble.HOME[elm] = globals.AT_HOME[elm]
+		end for
 		get_custom_object.stack_pool = 0
 		globals._startup_resource_configuration
 		globals._export_metax_et_al
