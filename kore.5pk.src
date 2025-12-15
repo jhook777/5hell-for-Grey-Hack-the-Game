@@ -1029,8 +1029,8 @@ command.dig = function(arg1,arg2=0,arg3=0,arg4=0)
 	ml = command.meta("link")
 	if typeof(ml) != "MetaLib" then return "dig: unable to connect;"+char(10)+"-- firewall or bad ip:"+char(10)+"--: "+ml
 	//ldb = command.linkdb(ml.name+" v "+ml.version)
-	if globals.XPLOITS == null then print command.db("-r")
-	if globals.XPLOITS == null then return "dig: database error!"+char(10)+"-- ffs, quid facis, Plutus?"+char(10)+"-- figere stercus"  // if shell exploit, exploit target
+	if not globals.XPLOITS or globals.XPLOITS == [] then print command.db("-r")
+	if not globals.XPLOITS or globals.XPLOITS == [] then return "dig: database error!"+char(10)+"-- ffs, quid facis, Plutus?"+char(10)+"-- figere stercus"  // if shell exploit, exploit target
   mem = []
   unsec_val = []
   
