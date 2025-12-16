@@ -1,9 +1,9 @@
-// Sphinx Hacking Interface v 2.9 by Plu70
+// Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.2.4"
+sphinx_version = "3.2.5"
 malp_version = "1.6.0"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.8.1(157.143)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.9(157.141)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
