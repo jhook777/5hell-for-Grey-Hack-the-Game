@@ -1,10 +1,10 @@
 //
 // changes:
 //
-// to do:
+//// To Do:
+////
 // database overhaul :(
 // tdump: wait for response feature
-// add chmod/perms to command.felix
 // add custom theme config
 // add a way to tell grep to ignore specific folders
 // expand tree -f to take both path and object as params (jk have to start over) 
@@ -13,28 +13,35 @@
 // absolutely must update the databasing system
 // -- a single flat file is not sufficient
 // update chop and grep to use piped strings
-//
-// todo: kraken
 // todo: db
 // todo: tree -f has a superior search algo vs regular, ancient tree
 // -- lets bring tree into the [-f]uture
-// todo: consolidate reused code in purge
 // todo: consolidate code in hashim and gopher into a single method accessible by both
 // todo: add catagory var to ALL commands: general, needsShell, needsComp, needsFile, needsLaunch, needsMeta, needsCrypto (other required objects for individual commands should be obvious)
 // todo: user_input override that allows pulling user_input from a list stored in the custom object
 // -- to be populated by scripts calling 5hell through a nested launch
 // -- need a way to secure this first
 // todo: a way to authenticate do.rc per user, to avoid running your target's do.rc (or target's trap do.rc) during an attack...
-//
-// todo 
-// db: still needs to be able to self repair
+// db: still needs to be able to self repair // mostly implemented
 // rkit: should probably make a database file strucure
 // actually fix grep's algo
-// encrypted file support -- partially implemented
 // make a get_database shared function
 // make a sort_database function
-// kraken: auto encrypt/decrypt Map.conf
 // ensure password fields do not push to input buffer
+////
+//// To Done:
+//
+// credits: updated
+// db: fixed crash when writing new database.csv#
+// aptm: fixed crash when deleting repo ips
+// cob: push and inspect are now aliases for cob push and cob inspect
+// --eg: push mylist val == cob push mylist val
+// --eg: inspect HOME == cob inspect HOME
+// cob: reset will ensure restorition of hard coded values
+// cob: validate will ensure HOME and macros have their classID
+// cob: updated usage examples
+// enum: now has built in 'do' (actually from previous update just forgot to include it in the changes)
+// pwgen: added seed: I2n4Kh3Kd8
 //
 // tws: added new command contributed by Aksu
 // -- thanks Aksu!
