@@ -58,8 +58,8 @@ command = {} // default; do not change this if you don't know what you're doing!
 // edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
 globals.AT_HOME = {
   "ip":"ip.add.rr.ess",                 // rshell and hashim server ip address (@home)
-  "loginport":22,                       // @home ssh port
-  "rshellport":1222,                    // @home rshell port
+  "loginport":22,                       // @home ssh port; int
+  "rshellport":1222,                    // @home rshell port; int
   "user":"root",                        // @home user
   "pass":"password",                    // @home password
   "loginprotocol":"ssh",                // @home login: ssh or ftp
@@ -67,8 +67,8 @@ globals.AT_HOME = {
   "database":"/root/rkit/database.csv", // default path for database.csv
   "t5":"/root/rkit/tables/t5",          // default path for tables/t5
   "tp":"/root/rkit/tables/tp",          // default path for tables/tp
-  "dorc_key":0,                         // decrypt do.rc with this key, if encrypted. leave at 0 if not in use
-  "map_key":0,                          // decrypt Map.conf with this key, if encrypted. leave at 0 if not in use
+  "dorc_key":0,                         // decrypt do.rc with this key; string, if encrypted. leave at 0 if not in use
+  "map_key":0,                          // decrypt Map.conf with this key; string, if encrypted. leave at 0 if not in use
   "classID":"at_home"}   
 if not get_custom_object.hasIndex("HOME") or not ( get_custom_object.HOME isa map or get_custom_object.HOME isa at_home ) then  get_custom_object.HOME = globals.AT_HOME
 // the above values are optional and may be left at default if you you don't plan to use them
@@ -286,7 +286,7 @@ command.shell = function(input=null,mute=null)
       if get_custom_object.macros.hasIndex(prompt[0]) then prompt = ["macro"]+prompt
       // end macro replacement
       if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f"]+prompt[1:]
-      if prompt[0] == "set" or prompt[0] == "get" then prompt = ["cob"]+prompt
+      if prompt[0] == "set" or prompt[0] == "get" or prompt[0] == "inspect" or prompt[0] == "push" then prompt = ["cob"]+prompt
       //if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!! // this is now a command!
       if prompt[0] == "exit" then prompt[0] = "quit"      // caution: too many shortcuts may slow down the script
       if prompt[0] == "sc" then prompt[0] = "silentclean"
