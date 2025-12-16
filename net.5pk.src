@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.8.4.(149.860)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.9...(149.917)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -2018,8 +2018,10 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 		print "db: "+colorOrange+" warning: database size exceeds 160kb"+char(10)+colorOrange+"db: creating new database.csv..."
 		new_path = datafile.path.values 
 		up = new_path.pop
-		if typeof(up.to_int) == "number" then up = up.to_int+1 else up = "v"+(up+1)
-		new_path = new_path+up.join("")
+		if typeof(up.to_int) == "number" then up = str(up.to_int+1) else up = "v1"
+		new_path = new_path.join("")
+		new_path = new_path+up
+		print "db: creating: "+new_path
 		command.poke(new_path)
 		newdatafile = globals.get_file(new_path)
 		if not newdatafile then return "db: write failed; could not create new database.csv"+up
