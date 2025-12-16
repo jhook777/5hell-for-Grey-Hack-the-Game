@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.2.8.2..(125.121)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.2.9...(125.117)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
