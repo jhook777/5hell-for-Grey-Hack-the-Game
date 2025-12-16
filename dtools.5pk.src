@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.8.3..(155.823)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.9...(156.027)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -53,8 +53,9 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	"-- returns string on success or failure"+char(10)+
 	cy+"Usage: cob "+cw+"purge"+CT+" -- purge the custom object"+char(10)+
 	cy+"Usage: cob "+cw+"validate"+CT+" -- ensure the custom_object contains indexes:"+char(10)+
-	"--: macros"+char(10)+
-	"--: stack_pool"+char(10)+
+	"--:<b> macros"+char(10)+
+	"--:<b> stack_pool"+char(10)+
+	"--:<b> HOME"+char(10)+
 	"--: this avoids crashes when those indexes don't exist"+char(10)+
 	"--: this is run by 5hell automatically in many cases"+char(10)+
 	cy+"Usage: cob "+cw+"reset"+CT+" -- reset the custom object to startup conditions "+char(10)+
@@ -79,12 +80,18 @@ command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	"-- use "+colorMagenta+"\"+CT+" to escape these tokens"+char(10)+
 	"--eg: <b>set fido "+colorMagenta+"\"+colorViolet+"@z"+CT+colorGrey+" // fido == @z"+char(10)+
 	char(10)+
-	"<b>N.B.:</b> Since version 3.8.3 5hell.src contains aliases for cob set and cob get:"+char(10)+
-	colorGold+"Usage: set [key] [value] -- same as cob set [key] [value]"+char(10)+
-	colorGold+"Usage: get [key] -- same as cob get [key]"+char(10)+char(10)+
+	"<b>N.B.:</b> 5hell.src contains aliases for cob set, cob get, cob push, and cob inspect:"+char(10)+
+	colorGold+"Usage: "+colorWhite+"set"+CT+" [key] [value] -- same as cob set [key] [value]"+char(10)+
+	colorGold+"Usage: "+colorWhite+"get"+CT+" [key] -- same as cob get [key]"+char(10)+
+	colorGold+"Usage: "+colorWhite+"push"+CT+" [key] [val] -- same as cob push [key] [val]"+char(10)+
+	colorGold+"Usage: "+colorWhite+"inspect"+CT+" [key] -- same as cob inspect [key]"+char(10)+char(10)+
 	colorGold+"EZclip: you may use "+colorWhite+"@o </color>[<color=white>key</color>]</b>"+char(10)+
 	"-- to reference a key in the custom object"+char(10)+
-	"-- the <b>@o [key]</b> will be replaced by the key's value, much like using @a, @b, @c for the clipboard"
+	"-- the <b>@o [key]</b> will be replaced by the key's value, much like using @a, @b, @c for the clipboard"+char(10)+
+	"--eg: <b>db -m @o myx0"+char(10)+
+	"---- this will run <b>db</b> using the metaxploit object at index <b>myx0</b> in the custom object (if it exists)"+char(10)+
+	"--eg: <b>echo @o HOME.dorc_key"+char(10)+
+	"--eg: <b>clipa @o mys0 || clipb @o mys1 || code @o mys0.__isa.scp"
 	if @arg1 == "help" or @arg1 == "-h" then return usage_info
 	if typeof(@arg1) != "string" then return "cob: invalid input: see <b>cob -h</b>"
 	cobble = get_custom_object
