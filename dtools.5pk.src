@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.9...(156.027)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.9.1..(156.413)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -3018,17 +3018,17 @@ command.code = function(arg1, arg2, arg3=0, arg4=0)
 	"<b>CODE</b> encode and decode utility"+char(10)+
 	"Supports standard Caesar cipher and 5hell's MuninCipher for encryption."+char(10)+
 	"May also return ascii character codes, decompile objects, and execute functions."+char(10)+char(10)+
-	colorOlive+"Ascii codes:"
+	colorOlive+"Ascii codes:"+char(10)+
 	colorCyan+"</b>Usage: code [char] -- returns ascii code(s) for char"+char(10)+
 	"--eg: <b>code "" foo bar ""</b> "+colorGrey+"// 102, 111, 111, 32, 98, 97, 114"+char(10)+
 	colorCyan+"</b>Usage: code -c [int] -- returns ascii char(int)"+char(10)+
 	"--eg: <b>code -c 102 "+colorGrey+"// f"+char(10)+char(10)+
-	colorOlive+"Execute code:"
+	colorOlive+"Execute code:"+char(10)+
 	colorCyan+"</b>Usage: code [any_function|any_object] -- sends object to decompiler to view object map."+char(10)+
 	"-- will evaluate piped functions or display an object's API map"+char(10)+
 	"--eg: <b>cob get myCustomFunction | code</b> -- execute your custom function"+char(10)+
 	"--eg: <b>zap [mem] [val] | code</b> -- view the map for the resulting game object"+char(10)+char(10)+
-	colorOlive+"Encode:"
+	colorOlive+"Encode:"+char(10)+
 	colorCyan+"</b>Advanced: code [-d|-e] [input] -- decode|encode input using standard <b>caesar cipher"+char(10)+
 	colorCyan+"</b>Advanced: code [-a|-b] [opt:input] -- encode|decode using <b>MuninCipher(tm)</b>"+char(10)+
 	"-- prompts for input if not supplied"+char(10)+
