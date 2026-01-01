@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.9...(149.917)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.2.9.1...(149.917)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -2837,6 +2837,7 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: porter [port] [comma,or,newline,separated,ip,list] --  print lib version of service on port, if any, for given ip address(es)"
 	if not localmachine.is_network_active then return "nsl: no network connection."
 	r_buf = []
+	i_buf = []
 	ip = arg2
 	if ip.split(char(10)).len > 1 then
 		ip = ip.split(char(10))
@@ -2867,6 +2868,7 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 			png = rtr.ping_port(port)
 			if png then pinfo = rtr.port_info(png)
 			if pinfo then r_buf.push(i+" "+port+": "+pinfo)
+			i_buf.push(i)
 		else
 			pinfo = rtr.kernel_version
 			if pinfo then r_buf.push(i+" router: "+pinfo)
@@ -2876,7 +2878,9 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorLightBlue+"Porter: task complete in "+colorOrange+(time - time_s)+colorLightBlue+" seconds."+CT)
 	save = "y"//user_input("Send results to clipb? [y/N] "+char(10)+"||: ",0,1)
 	if save.lower == "y" then command.clipb(r_buf.join(char(10)))
-	return colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
+	//print colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
+	print colorLightBlue+"Porter: returning..."+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
+	if i_buf != [] then return i_buf.join(char(10)) else return "-- no results found"
 end function
 command.infil = function(sh_ob,par=0,arg2,arg3)
 	cgo = colorGold+"</b>"
