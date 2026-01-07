@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.9.1..(156.413)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.9.2..(156.559)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -1449,6 +1449,7 @@ note: launching binaries via felix does NOT activate glasspool
       end if
       file = action.get(input, file)
       locals.currentPath = file.path
+	  wait .01
     end while
     return 0
   end function
@@ -2170,12 +2171,14 @@ command.string = function(arg1,arg2,arg3,arg4)
 			if typeof(rvs) == "number" then 
 				if rvs > 0 then replacement = char(rvs) else replacement = ""
 			end if
+			if replacement == "" then print "string: invalid chatacter code"
 		end if
 		if target.values[0] == "@" then 
 			tvs = target.split("@")[1].to_int
 			if typeof(tvs) == "number" then 
 				if tvs > 0 then target = char(tvs) else target = ""
 			end if
+			if target == "" then print "string: invalid character code"
 		end if
 		//if use_regex == true then return in_string.replace_regex( target, replacement )
 		out_string = in_string.replace( target, replacement )	// miniscript .replace uses miniscript regex
