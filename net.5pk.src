@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.2.9.1...(149.917)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.0...(151.070)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -48,8 +48,26 @@ command.target = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.targetIP+" "+globals.targetPort
 end function
 command.transmit = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "<b>Transmit</b> -- t_buf transmission protocol"+char(10)+"Usage: transmit [opt: 1|0] --  transmit @t_buf to your @home server. "+char(10)+"-- set @home credentials in 5hell.src before building 5hell"+char(10)+"-- options: 1 == wait for reply, 0 (or blank) == don't wait for reply"+char(10)+"-- use with hashim running on the @home server"
-	return globals.transmit(arg1)
+	if arg1 == "-h" or arg1 == "help" then return "<b><size=75%>Transmit</b> || t_buf transmission buffer transmission protocol || @tbuf || TBUF"+char(10)+
+	"Usage: transmit [opt: 1|0] [opt:password] "+char(10)+
+	"-- transmit @t_buf to your @home server. "+char(10)+
+	"-- set @home credentials in 5hell.src before building 5hell"+char(10)+
+	"-- options: 1 == wait for reply, 0 (or blank) == don't wait for reply"+char(10)+
+	"--eg:</b> transmit 1"+char(10)+"--eg:<b> transmit 0"
+	"-- use with hashim running on the @home server"+char(10)+
+	"---- ensure @home server has the <b>"+HOME.sharedfile+"</b> file"+char(10)+
+	"-- if <b>HOME.pass is not set or left at default:"+char(10)+
+	"---- you will be prompted for the password when running the command"+char(10)+
+	"-- pass a second argument to bypass the prompt"+char(10)+
+	"--eg: transmit 0 securePassword"+char(10)+char(10)+
+	"NOTE: the default password is <b>password"+char(10)+
+	"-- transmit will ignore this and prompt you for a password"+char(10)+
+	"-- supply the word <b>password</b> again to confirm your password is password"+char(10)+
+	"-- alternatively call the command with <b>password</b> as a second argument"+char(10)+
+	"--eg: <b>transmit 1 password"+char(10)+
+	char(10)+
+	"Current Default Password: "+colorGold+HOME.pass
+	return globals.transmit(arg1,arg2)
 end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "<b><u>Reverse Shell Interface || RSI Daemon || Install rshell server"+char(10)+
@@ -2835,7 +2853,7 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 end function
 command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg2 or arg1 == "help" or arg1 == "-h" then return "Usage: porter [port] [comma,or,newline,separated,ip,list] --  print lib version of service on port, if any, for given ip address(es)"
-	if not localmachine.is_network_active then return "nsl: no network connection."
+	if not localmachine.is_network_active then return "porter: no network connection."
 	r_buf = []
 	i_buf = []
 	ip = arg2
