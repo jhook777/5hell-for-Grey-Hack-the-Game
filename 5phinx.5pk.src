@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.2.7"
+sphinx_version = "3.2.8"
 malp_version = "1.6.1"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.0...(157.772)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.0.1...(157.780)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -861,7 +861,7 @@ _switch.case_map = {}
 _switch.case = function( condition, action )
     _switch.case_map[@condition] = @action
 end function
-_switch.default = function( action, mode  )  // action is function, object, var || mode is "return literal" or "return reference"; used to determing function return handling
+_switch.default = function( action, mode=false  )  // action is function, object, var || mode is "return literal" or "return reference"; used to determing function return handling
     // evaluate switch
     if _switch.case_map.hasIndex(@_switch.var) then 
         if DEBUG then print "_switch.var: "+@_switch.var
