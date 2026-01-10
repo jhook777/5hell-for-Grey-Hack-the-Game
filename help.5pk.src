@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.2.9...(125.117)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.3.0...(125.182)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
@@ -1276,7 +1276,7 @@ end function
           end if
           ///// game starts here
           while playing
-              if not globals.DEBUG then clear_screen
+              if not globals.DEBUG then print(" ",1)
               if not first_run then print_logo
       
               player1.display_ship_coordinates
@@ -1304,7 +1304,10 @@ end function
               end if
               command = player1.confirm(command)
               if command == 0 then continue // belay that order!
-              if not globals.DEBUG then clear_screen
+              if not globals.DEBUG then 
+                wait .1
+                print(" ",1)
+              end if
               display_ship_one
               playing = check_score(map.edit_cell(command, player1.fire(command), player1.label), player1.label)
       
@@ -2438,7 +2441,7 @@ end function
       
       // game loop
       while playing == true
-          if not DEBUG then clear_screen
+          if not DEBUG then print(" ",1)
           print    
           print player.location.sprite
           print
