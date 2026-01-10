@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.2.5"
-malp_version = "1.6.0"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.2.9(157.141)")
+sphinx_version = "3.2.7"
+malp_version = "1.6.1"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.0...(157.772)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -818,64 +818,64 @@ end function
 // default( @action )
 // returns: result of action
 
-_switch = {}
-_switch.var = ""
-_switch.set_var = function( input )
-  if DEBUG then print "-switch: input: "+@input
-    _switch.var = @input
-end function
-_switch.case_list = []
-_switch.case = function( condition, action )
-    _switch.case_list.push( {condition:@action} )
-end function
-_switch.default = function( action )
-    // evaluate switch
-    if _switch.case_list.len > 0 then
-        for line in _switch.case_list
-            if @line.hasIndex(_switch.var) then 
-        if DEBUG then print "_switch.var: "+_switch.var
-                s = @line[_switch.var]
-                _switch.var = ""
-                _switch.case_list = []
-                return s
-            end if
-        end for
-        _switch.var = ""
-        _switch.case_list = []
-        return action
-    end if
-end function
-globals.switch = @_switch.set_var
-globals.case = @_switch.case
-globals.default = @_switch.default
-///////////// END Plu70 SWITCH
-
-///// 0x0 switch // still in testing
 // _switch = {}
 // _switch.var = ""
 // _switch.set_var = function( input )
-//     if DEBUG then print "-switch: input: "+@input
+//   if DEBUG then print "-switch: input: "+@input
 //     _switch.var = @input
 // end function
-// _switch.case_map = {}
+// _switch.case_list = []
 // _switch.case = function( condition, action )
-//     _switch.case_map[@condition] = @action
+//     _switch.case_list.push( {condition:@action} )
 // end function
-// _switch.default = function( action )
+// _switch.default = function( action, mode ) // action is function, object, var || mode is "return literal" or "return reference"; used to determing function return handling
 //     // evaluate switch
-//     if _switch.case_map.hasIndex(@_switch.var) then 
-//         if DEBUG then print "_switch.var: "+@_switch.var
-//         result = _switch.case_map[@_switch.var]
-//     else
-//         result = @action
+//     if _switch.case_list.len > 0 then
+//         for line in _switch.case_list
+//             if @line.hasIndex(_switch.var) then 
+//         if DEBUG then print "_switch.var: "+_switch.var
+//                 s = @line[_switch.var]
+//                 _switch.var = ""
+//                 _switch.case_list = []
+//                 return s
+//             end if
+//         end for
+//         _switch.var = ""
+//         _switch.case_list = []
+//         return action
 //     end if
-//     _switch.var = ""
-//     _switch.case_map = {}
-//     return @result
 // end function
 // globals.switch = @_switch.set_var
 // globals.case = @_switch.case
 // globals.default = @_switch.default
+// ///////////// END Plu70 SWITCH
+
+///// 0x0 switch // still in testing
+_switch = {}
+_switch.var = ""
+_switch.set_var = function( input )
+    if DEBUG then print "-switch: input: "+@input
+    _switch.var = @input
+end function
+_switch.case_map = {}
+_switch.case = function( condition, action )
+    _switch.case_map[@condition] = @action
+end function
+_switch.default = function( action, mode  )  // action is function, object, var || mode is "return literal" or "return reference"; used to determing function return handling
+    // evaluate switch
+    if _switch.case_map.hasIndex(@_switch.var) then 
+        if DEBUG then print "_switch.var: "+@_switch.var
+        result = _switch.case_map[@_switch.var]
+    else
+        result = @action
+    end if
+    _switch.var = ""
+    _switch.case_map = {}
+    if mode then return @result else return result
+end function
+globals.switch = @_switch.set_var
+globals.case = @_switch.case
+globals.default = @_switch.default
 // ///////////// END SWITCH
 if DEBUG then print("<size=75%>loaded _switch engine...</size>")
 
@@ -2031,6 +2031,10 @@ globals.transmit = function(wait_for_reply=0)
     print "service: "+home.loginprotocol
     print "path: "+home.sharedfile
   end if
+  if home.pass == "password" or home.pass == "" then 
+    if arg1 then home.pass = arg1 else home.pass = user_input("transmit: please the enter root passowrd of receiving server"+char(10)+"(<<b>enter</b>>=abort):> ")
+  end if
+  if home.pass == "" then return "transmit: home.pass not set; aborting..."
   remote = shell.connect_service(home.ip,home.loginport,home.user,home.pass,home.loginprotocol)
   if typeof(remote) != "shell" and typeof(remote) != "ftpshell" then return "transmit: unable to connect to server"+char(10)+"-- check ip and credentials and try again"
   //
