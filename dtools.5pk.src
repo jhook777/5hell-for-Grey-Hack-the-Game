@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.2.9.2..(156.559)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.0..(156.557)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
