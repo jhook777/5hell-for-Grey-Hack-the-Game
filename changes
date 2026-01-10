@@ -31,6 +31,18 @@
 ////
 //// To Done:
 //
+// buffer: new command to push something directly to the buffer without opening malp
+// pause: now has conditionals: is process present and is file present
+// -- -f will wait for a given file path to return a valid file object
+// -- -p will wait for a new instance of a given process to exist
+// porter: will return a string of result ips that may then be piped back into porter
+// -- it will still add the old output to clipb as before
+// felix: added slight delay to input
+// added waits to the clear_screen calls in the games in help.5pk
+// code: fixed missing newline characters preventing usage info from printing
+// -- code actually has a lot of usage info
+// -- now you can finally read it!!!!!
+//
 // credits: updated
 // db: fixed crash when writing new database.csv#
 // aptm: fixed crash when deleting repo ips
