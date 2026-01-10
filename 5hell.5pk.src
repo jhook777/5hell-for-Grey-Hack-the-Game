@@ -2,14 +2,14 @@
 // released v 4.3.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.0.1_falling_skies"
+ver = "4.3.0.3_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "136.502"
+size_of_5hell = "136.671"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -1451,7 +1451,12 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 				if spool_file_path.lower == "q" or spool_file_path.lower == "quit" then return "aborting..."
 				if spool_file_path == "" or spool_file_path == " " then spool_file_path = homePath+"/spool.txt"
 				spool_file = globals.get_file(spool_file_path)
-				if typeof(spool_file) != "file" then print "herme5: could not locate spool file"+char(10)+"herme5: creating: "+spool_file_path else print "herme5: spool file found; overwriting"
+				if typeof(spool_file) != "file" then 
+					print "herme5: could not locate spool file"+char(10)+"herme5: creating: "+spool_file_path
+					spool_file = command.poke(spool_file_path)
+				else
+					print "herme5: spool file found; overwriting"
+				end if
 				if typeof(spool_file) == "file" and spool_file.is_binary then return "herme5: cannot spool to binary file"
 				print colorWhite+"<size=80%>Saving data to spool file: <b>"+spool_file_path
 				if DEBUG then print "debug: spool_buf is: "+spool_buf+char(10)+"-- spool_buf.length: "+spool_buf.len
@@ -1459,15 +1464,16 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 				//spool_file = command.poke("-f",spool_file_path, current_date+char(10)+char(10)+spool_buf.join(char(10))+char(10)+current_date)
 				spool_buf.push(char(10)+current_date)
 				if spool_buf.join(char(10)).len < "155000".to_int then 
-					spool_file = command.poke(spool_file.path,spool_buf.join(char(10)))
-					globals.BUFFER.push(spool_file)
+					spool_file = command.poke(spool_file_path,spool_buf.join(char(10)))
+					if DEBUG then print "debug: spool_file is a: "+typeof(spool_file)
 					if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
+					globals.BUFFER.push(spool_file)
 				else
-					print "herme5: Spool buffer exceeds file size limit;"+char(10)+"-- creating multiple files..."
+					print "herme5: Spool buffer exceeds file size limit; aborting..."//+char(10)+"-- creating multiple files..."
 					// stuff goes here
 
-					globals.BUFFER.push(spool_file)
-					if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
+					//globals.BUFFER.push(spool_file)
+					//if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
 					
 				end if
 
