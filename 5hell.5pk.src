@@ -1,15 +1,15 @@
-// 5hell v 4.0.0 by Plu70
-// released v 4.0.0
+// 5hell v 4.3.0 by Plu70
+// released v 4.3.0
 // imports .5pk files from /root/src
 // globals
-ver = "4.2.9_falling_skies"
+ver = "4.3.0_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "134.792"
+size_of_5hell = "136.498"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -1426,7 +1426,8 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			  if mail.a1 == "spool" then r = "spool" else r = user_input("Enter an index to read or type <b>spool</b> to dump to a file :> ").to_int
               print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
 			  if mail.data.len < 1 then return "herme5: mailbox is empty"
-			  spool_buf = []
+			  //spool_buf = []
+			  spool_buf = [current_date+char(10)+char(10)]
 			  spooling = false
 			  if r == "spool" then 
 				spooling = true
@@ -1450,13 +1451,26 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 				if spool_file_path.lower == "q" or spool_file_path.lower == "quit" then return "aborting..."
 				if spool_file_path == "" or spool_file_path == " " then spool_file_path = homePath+"/spool.txt"
 				spool_file = globals.get_file(spool_file_path)
-				if typeof(spool_file) != "file" then print "herme5: could not locate spool file."+char(10)+"herme5: creating: "+spool_file_path else print "herme5: spool file found; overwriting"
+				if typeof(spool_file) != "file" then print "herme5: could not locate spool file"+char(10)+"herme5: creating: "+spool_file_path else print "herme5: spool file found; overwriting"
 				if typeof(spool_file) == "file" and spool_file.is_binary then return "herme5: cannot spool to binary file"
 				print colorWhite+"<size=80%>Saving data to spool file: <b>"+spool_file_path
-				if DEBUG then print "debug: spool_buf is: "+spool_buf+" and is a "+typeof(spool_buf)
-				spool_file = command.poke("-f",spool_file_path, current_date+char(10)+char(10)+spool_buf.join(char(10))+char(10)+current_date)
-				if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
-				globals.BUFFER.push(spool_file)
+				if DEBUG then print "debug: spool_buf is: "+spool_buf+char(10)+"-- spool_buf.length: "+spool_buf.len
+
+				//spool_file = command.poke("-f",spool_file_path, current_date+char(10)+char(10)+spool_buf.join(char(10))+char(10)+current_date)
+				spool_buf.push(char(10)+current_date)
+				if spool_buf.join(char(10)).len < "155000".to_int then 
+					spool_file = command.poke(spool_file.path,spool_buf.join(char(10)))
+					globals.BUFFER.push(spool_file)
+					if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
+				else
+					print "herme5: Spool buffer exceeds file size limit;"+char(10)+"-- creating multiple files..."
+					// stuff goes here
+
+					globals.BUFFER.push(spool_file)
+					if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
+					
+				end if
+
 				wait(.1) 
 				ttt = time - st
 				print colorGold+"herme5: "+CT+"spool_file object sent to "+colorOrange+"BUFFER"+CT+char(10)+colorGold+"</b>herme5: task completed in <b>"+ttt+"</b> seconds."
@@ -1543,17 +1557,23 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
               mailing = true
               menu_options = ["Exit", "Login", "Fetch", "Read", "Write", "Widget", "Delete"]
               while mailing
-                print(colorGold+"- - - - - - - Herme5 v 0.4.5 by Plu70 - - - - - - - - "+CT)
-				print colorGold+"- - - - - - [ </b><u>"+colorWhite+mail.user+"</color></u> ]</b> - - - - - -"
+                print colorGold+"- - - - - - Herme5 v 0.4.5 by Plu70 - - - - - - - - "
+				print colorGold+"- - - - - - [<u>"+colorWhite+mail.user+CT+"] - - - - - -"
 				opt = 0
-				if _is_mail(mail.a1) then opt = 1 
-				if mail.a1 == "spool" then opt = 3
+				if _is_mail(mail.a1) then 
+					mail.a1 = 0
+					opt = 1
+			  	end if
+				if mail.a1 == "spool" then
+					opt = 3
+					mail.a1 = 0
+				end if
 				if not opt then 
 					mail.a1 = 0
 					print(mail.data_stream(menu_options))
 					opt = user_input("(q=quit)||: ",0,1).to_int
 			  	end if
-                print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
+                print colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "
                 if opt == "q" then opt = 0
                 if opt < 0 or opt > menu_options.len-1 or typeof(opt) != "number" then continue
                 mm = @mail[menu_options[opt]]
@@ -2053,6 +2073,9 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	time_to_wait = "1" // default wait 1 second 
 	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
 	verbose = false // if false; works silently. if true; prints a line on each pause
+	// change the below to use _switch
+	p_bye = colorWhite+"pause:"+CT+" resuming script execution"
+
 	if arg1 == "-m" then 
 		manual_unpause = true 
 		arg1 = ".01"
@@ -2061,6 +2084,23 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		verbose = true 
 		arg1 = arg2 
 	end if
+	if arg1 == "-f" then
+		if not arg2 isa string then return "pause: -f expects a file path" else check_path = arg2
+
+		while not globals.get_file(arg2)
+			wait .1
+		end while
+		if verbose then return p_bye else return 0
+	end if
+	if arg1 = "-p" then
+		pro = globals.localmachine.show_procs
+		while pro.indexOf(arg2) != null 
+			pro = globals.localmachine.show_procs
+			wait .1
+		end while
+		if verbose then return p_bye else return 0
+	end if
+
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
 	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
 	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- awaiting manual input :> ")//"-- press <"+colorGreen+"enter"+CT+"> to continue --")
@@ -2071,7 +2111,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	if verbose then print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
 	wait(time_to_wait)
-	if verbose then return colorWhite+"pause:"+CT+" resuming script execution"
+	if verbose then return p_bye
 	return 0
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
@@ -2605,6 +2645,14 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		case("-p",@p.pmp)
 	return default(@p._)
 	return 0
+end function
+command.buffer = function(thing,b,c,d) // functions handled as references
+	if @thing == "-h" or @thing == "help" then return "BUFFER || buffer || malp || push"+char(10)+
+	"Usage: buffer [input] - push something directly to the "+colorOrange+"BUFFER"+CT+" without opening <b>malp"+char(10)+
+	"-- accepts any object type or function reference"+char(10)+char(10)+
+	"NOTE: passing no input pushes a numerical <b>0</b> (zero) to the "+colorOrange+"BUFFER"
+	globals.BUFFER.push(@thing)
+	return colorOrange+"</b>buffer: pushed: <b>"+@thing"</b> to index: [<b>"+str(globals.BUFFER.len-1)+"</b>]"
 end function
 command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "credits"
