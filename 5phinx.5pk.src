@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.2.8"
+sphinx_version = "3.2.9"
 malp_version = "1.6.1"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.0.1...(157.780)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.0.2...(157.780)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -2010,7 +2010,7 @@ end function
 
 // transmit 2.0 since 5hell 3.6.9
 
-globals.transmit = function(wait_for_reply=0)
+globals.transmit = function(wait_for_reply=0,password)
   if globals.T_BUF.len <= 1 then return "transmit: tbuf empty"
   // text to send
   send_this = globals.T_BUF.join(char(10))
@@ -2031,6 +2031,7 @@ globals.transmit = function(wait_for_reply=0)
     print "service: "+home.loginprotocol
     print "path: "+home.sharedfile
   end if
+  if arg2 isa string then home.pass = arg2
   if home.pass == "password" or home.pass == "" then 
     if arg1 then home.pass = arg1 else home.pass = user_input("transmit: please the enter root passowrd of receiving server"+char(10)+"(<<b>enter</b>>=abort):> ")
   end if
