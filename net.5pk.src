@@ -53,7 +53,7 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	"-- transmit @t_buf to your @home server. "+char(10)+
 	"-- set @home credentials in 5hell.src before building 5hell"+char(10)+
 	"-- options: 1 == wait for reply, 0 (or blank) == don't wait for reply"+char(10)+
-	"--eg:</b> transmit 1"+char(10)+"--eg:<b> transmit 0"
+	"--eg:</b> transmit 1"+char(10)+"--eg:<b> transmit 0"+char(10)+
 	"-- use with hashim running on the @home server"+char(10)+
 	"---- ensure @home server has the <b>"+HOME.sharedfile+"</b> file"+char(10)+
 	"-- if <b>HOME.pass is not set or left at default:"+char(10)+
@@ -66,7 +66,7 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	"-- alternatively call the command with <b>password</b> as a second argument"+char(10)+
 	"--eg: <b>transmit 1 password"+char(10)+
 	char(10)+
-	"Current Default Password: "+colorGold+HOME.pass
+	"Current Default Password: "+colorGold+get_custom_object.HOME.pass
 	return globals.transmit(arg1,arg2)
 end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
