@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.0.2..(151.070)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.0.5..(151.196)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -55,7 +55,7 @@ command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	"-- options: 1 == wait for reply, 0 (or blank) == don't wait for reply"+char(10)+
 	"--eg:</b> transmit 1"+char(10)+"--eg:<b> transmit 0"+char(10)+
 	"-- use with hashim running on the @home server"+char(10)+
-	"---- ensure @home server has the <b>"+HOME.sharedfile+"</b> file"+char(10)+
+	"---- ensure @home server has the <b>"+get_custom_object.HOME.sharedfile+"</b> file"+char(10)+
 	"-- if <b>HOME.pass is not set or left at default:"+char(10)+
 	"---- you will be prompted for the password when running the command"+char(10)+
 	"-- pass a second argument to bypass the prompt"+char(10)+
@@ -2124,16 +2124,17 @@ command.linkdb = function(arg1, arg2, arg3=0, arg4=0)
 	if arg4 and arg4.lower == "-y" then boo = 1
 	if arg3 and arg3.lower == "-y" then boo = 1
 	if arg2 then 
+		gcp = get_custom_object
 		// if the passed ip is the home ip , use @home user and pass and port
 		// if not, use arg2 for ip and prompt for user and pass and assume port 22 unless arg3 != 0 
 		if is_valid_ip(arg2) or arg2 == "@home" then 
-			ip = HOME.ip
-			if arg2 == "@home" then arg2 = HOME.ip
-			port = HOME.loginport 
-			user = HOME.user 
-			pass = HOME.pass 
-			proto = HOME.logingprotocol
-			if HOME.ip != arg2 then 
+			ip = gco.HOME.ip
+			if arg2 == "@home" then arg2 = gco.HOME.ip
+			port = gco.HOME.loginport 
+			user = gco.HOME.user 
+			pass = gco.HOME.pass 
+			proto = gco.HOME.logingprotocol
+			if gco.HOME.ip != arg2 then 
 				user = user_input("<size=75%>linkdb: ip doesn't match @home"+char(10)+"<size=75%>-- please enter the login username"+char(10)+"(<<b>enter</b>>=abort):> <b>") 
 				if user == "" then return "aborting..."
 				pass = user_input("<size=75%>-- please enter the login password"+char(10)+"(<<b>enter</b>>=abort):> <b>")
