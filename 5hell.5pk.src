@@ -1,15 +1,15 @@
 // 5hell v 4.3.0 by Plu70
-// released v 4.3.0
+// released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.0.6_falling_skies"
+ver = "4.3.1_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "136.673"
+size_of_5hell = "138.914"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -1702,14 +1702,15 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		new_buf = sli_1 + sbb + sli_2
 		return "enum: element inserted at index "+dx
 	end if
-	if arg1 == "-a" then 
-		if not arg2 then return "enum: append failed: missing input"
-		sb = ""
+	if @arg1 == "-a" then 
+		if not arg2 then return "enum: append failed: missing input"+char(10)+"-- pass "+colorMagenta+"@z"+CT+" to pass a numerical zero"
+		if @arg2 == "@z" then arg2 = 0
+		sb = [arg2]
 		if typeof(arg2) == "list" then sb = arg2
-		if typeof(arg2) == "string" then sb = arg2.split(char(10))
-		if sb == "" then return "enum: append failed: invalid type: expects string or list"
+		//if typeof(arg2) == "string" then sb = arg2.split(char(10))
+		//if sb == "" then return "enum: append failed: invalid type: expects string or list"
 		globals.enumerated = globals.enumerated + sb
-		return "enum: list appended"
+		return "enum: list appended with "+typeof(@arg2)
 	end if
 	if arg1 == "-d" then // do stuff
 		if typeof(arg2) != "string" then return "enum: invalid input; -d expects command string"
@@ -2060,21 +2061,44 @@ command.time = function(arg1, arg2=0, arg3=0, arg4=0)
 	return current_date.split(" ")[2]
 end function
 command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "Pause || Wait || Hang || Sleep"+char(10)+
+	cw = colorWhite
+	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "pause || wait || hang || sleep || halt"+char(10)+
 	// note, this function expects time as a string, the user should form the string as a float. eg: pause .01 -- where .01 is a string
-	"Usage: pause [seconds(float)] -- pauses script execution"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"seconds(float)"+CT+"] -- stops script execution until condition is met"+char(10)+
 	"-- Minumum time: .01 seconds"+char(10)+
 	"-- Maximum time: 300 seconds"+char(10)+
 	"-- useful for putting a delay in 'do' scripts."+char(10)+
 	"-- useful for putting a delay in a chain of commands"+char(10)+
 	"-- this command uses the general function: wait(time)"+char(10)+
-	"Usage: pause [-v] [delay] -- as above but prints a notification at each pause"+char(10)+
-	"Usage: pause [-m] -- pause until manually unpaused"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-v"+CT+"] [delay|opt] -- as above but prints a notification at each pause"+char(10)+
+	"-- you may prepend the -v flag to any option"+char(10)+
+	"--ie: pause -v -m"+char(10)+
+	"--ie: pause -v -p [processs_name]"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-m"+CT+"] -- pause until manually unpaused"+char(10)+
 	"-- press <b>enter</b> to simply resume the script"+char(10)+
 	"-- type input to have pause echo that input"+char(10)+
 	"----ie: pipe your input to the next command"+char(10)+
 	"-- think of this as, ""pause for manual user input"""+char(10)+
-	"--eg:<b> "
+	"--eg:<b> pause -m | probe"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-f"+CT+"] [path] -- pause until"+char(10)+ //one of the following:"+char(10)+
+	"---- a file springs into existence"+char(10)+
+	//"---- a file at path changes size"+char(10)+
+	//"---- a file at path changes contents (text only)"+char(10)+
+	"---- a file at path ceases to exist"+char(10)+
+	"--eg:<b> pause -f /var/system.log || sc"+char(10)+
+	"--eg:<b> pause -v -f /root/sniffed"+char(10)+
+	"--eg:<b> do 10000 "" pause -f /root/Config/Mail.txt || rm /root/Config/Mail.txt """+char(10)+
+	"--nb: file path respects glasspool"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-p"+CT+"] [process_name] -- pause until:"+char(10)+
+	"-- an instance of a named process exists in ps"+char(10)+
+	"--eg:<b> do 1000000 "" pause -p ps || kill ps """+char(10)+
+	"--nb: process list respects glasspool"+char(10)+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-P"+CT+"] [process_name] -- pause until named process no longer exists"+char(10)+
+	"--eg:<b> do 10000 "" pause -P totallyNotaTrojan || rshell 1.2.3.4 totallyNotaTrojan """+char(10)+char(10)+
+	"NOTE: the -f,-p, and -P options loop until:"+char(10)+
+	"-- condition is met"+char(10)+
+	"-- ended with ctrl+c"+char(10)+
+	"<size=75%>note: more options planned"
 
 	time_to_wait = "1" // default wait 1 second 
 	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
@@ -2088,20 +2112,34 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	if arg1 == "-v" then 
 		verbose = true 
-		arg1 = arg2 
+		arg1 = arg2
+		arg2 = arg3
+		arg3 = arg4
 	end if
-	if arg1 == "-f" then
+	if arg1 isa string and arg1.lower == "-f" then
 		if not arg2 isa string then return "pause: -f expects a file path" else check_path = arg2
-
-		while not globals.get_file(arg2)
+		if verbose then print colorGreen+"pause: "+["waiting on file: "+check_path,"waiting for file: "+check_path+" to poof"][(f isa File)]  // felt weird, did some fancy
+		waiting = true
+		while waiting
+			if arg1 == "-F" then
+				if not globals.get_file(check_path) then waiting = false
+			else
+				if globals.get_file(check_path) then waiting = false
+			end if
 			wait .1
 		end while
 		if verbose then return p_bye else return 0
 	end if
-	if arg1 == "-p" then
-		pro = globals.localmachine.show_procs
-		while pro.indexOf(arg2) != null 
-			pro = globals.localmachine.show_procs
+	if arg1 isa string and arg1.lower == "-p" then
+		if not arg2 then return "pause: -p expects a process name"
+		waiting = true
+		while waiting
+			p = globals.localmachine.show_procs
+			if arg1 == "-p" then 
+				if p.indexOf(arg2) != null then waiting = false
+			else
+				if p.indexOf(arg2) == null then waiting = false
+			end if
 			wait .1
 		end while
 		if verbose then return p_bye else return 0
