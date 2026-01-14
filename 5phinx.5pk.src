@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.3.0"
-malp_version = "1.6.1"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.0.4...(157.841)")
+sphinx_version = "3.3.1"
+malp_version = "1.6.2"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.1...(158.323)")
 
 NUM_SPLOITS = function()
   num = XPLOITS.len
@@ -1409,7 +1409,7 @@ end function
 /////////////////////////////////////// END Scribus ///////////////////////////////
 
 ////////////// BEGIN_MEMORY_ALPHA //////////////////////////////
-globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
+globals.memory_alpha = function(go_to_buffer=false,go_to_selection=-1)
   banner = colorRed + "5phinx"+char(8482)+colorWhite+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"+char(10)+colorGold+"//////////////////////////////////////////////"
   buffered_filesys = null
   viewing = true
@@ -1440,7 +1440,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
     print(colorGold+"</b>[6] Air [/] cBios [-] RSI [.] dBase" )
     print(colorGold+"</b>[7] Go Back   [8] Procs   [9] Kill  ")
     if DEBUG then print("prompt ready: ")
-    if @go_to_buffer then
+    if go_to_buffer then
       waitFor = "5"
     else 
       waitFor = user_input(colorGold+"(q=quit)||: ",0,1)
@@ -1593,25 +1593,30 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
         if not p_validate(@b) then 
         // if typeof(@b) == "file" and not p_exe(@b,"name") then
           globals.BUFFER.remove(globals.BUFFER.indexOf(b))
-          print("[<size=65%>malp: invalid object removed; skipping...</size>]")
+          print "[<size=65%>malp: invalid object removed; skipping...</size>]"
           continue
         end if
         /////////////////// BEGIN_BUFFER //////////////////////////////////////////////////
         if typeof(@b) == "function" then
-          print(colorOrange+"["+i+"]</b>BUFFERED: " + "["+checkUser(@b) +":"+ typeof(@b)+"]")
+          print colorOrange+"["+i+"]</b>BUFFERED: " + "["+checkUser(@b) +":"+ typeof(@b)+"]"
         else
-          print(colorOrange+"["+i+"]</b>BUFFERED: " + "["+checkUser(b) +":"+ typeof(b)+"]")
+          print colorOrange+"["+i+"]</b>BUFFERED: " + "["+checkUser(b) +":"+ typeof(b)+"]"
         end if
         if typeof(@b) == "file" then print(b.path+char(10)+b.permissions+" "+b.owner+" "+b.group+" "+b.size+" b["+b.is_binary+"] "+b.name)
         if typeof(@b) == "computer" then print(format_columns(b.show_procs+char(10)+b.public_ip+char(10)+b.local_ip))
-        if typeof(@b) == "shell" or typeof(@b) == "ftpshell" then print(format_columns(b.host_computer.show_procs+char(10)+b.host_computer.public_ip+char(10)+b.host_computer.local_ip))
-        if typeof(@b) == "string" or typeof(@b) == "list" or typeof(@b) == "map" then print( "elements: "+b.len )
+        if typeof(@b) == "shell" or typeof(@b) == "ftpshell" then print format_columns(b.host_computer.show_procs+char(10)+b.host_computer.public_ip+char(10)+b.host_computer.local_ip)
+        if typeof(@b) == "list" or typeof(@b) == "map" then print "elements: "+b.len
+        if @b isa string then
+          print "elements: <b>"+b.len
+          if b.len > 32 then p = b[:32]+colorGrey+"..." else p = b
+          print p
+        end if
         i = i + 1
       end for
-      print(colorWhite+"__________________________________")
+      print colorWhite+"__________________________________"
       selection = null
-      if @go_to_selection == true and @go_to_buffer == true then selection = BUFFER.len-1 else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
-      go_to_selection = false
+      if go_to_selection >= 0 and go_to_selection < globals.BUFFER.len and go_to_buffer == true then selection = go_to_selection else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
+      go_to_selection = -1
       go_to_buffer = false
       if selection >= BUFFER.len or selection < 0 or typeof(selection) != "number" then continue
       if BUFFER.hasIndex(selection) and @BUFFER[selection] then
@@ -1636,12 +1641,15 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
             if uip == "c" then print command.cob("set",user_input("cob: set key to:> "),@buffer_selection)
             continue 
           end if
-          if typeof(@buffer_selection) == "string" then 
+          if typeof(@buffer_selection) == "string" then
+            colorGreen+"Buffered String is: "+colorWhite+buffer_selection.len+CT+" characters"
+            print colorOlive+"~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*"+char(10)
             print buffer_selection
-            print colorWhite+"["+colorWhite+"</b>1<color=green>|</color>d</color>]"+CT+" - Get Character Codes (decompiler)"+char(10)+
-            colorWhite+"</b>["+colorWhite+"</b>2<color=green>|</color>s</color>]"+CT+" - save to file"+char(10)+
-            colorWhite+"</b>["+colorWhite+"</b>3<color=green>|</color>e</color>]"+CT+" - edit with scribus"+char(10)+
-            colorWhite+"[</b>"+colorWhite+"</b>4<color=green>|</color>a</color>"+CT+colorWhite+"</b>]"+CT+" - to clipa "+colorWhite+"</b>["+colorWhite+"</b>5<color=green>|</color>b</color>"+CT+colorWhite+"</b>]"+CT+" - to clipb "+colorWhite+"</b>["+colorWhite+"6<color=green>|</color>c</color>"+CT+colorWhite+"</b>]"+CT+" - to clipc"
+            print char(10)+colorOlive+"~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*"+char(10)
+            print colorWhite+"<size=75%>["+colorWhite+"</b>1<color=green>|</color>d</color>]"+CT+" - Get Character Codes (decompiler)"+char(10)+
+            colorWhite+"</b><size=75%>["+colorWhite+"</b>2<color=green>|</color>s</color>]"+CT+" - save to file"+char(10)+
+            colorWhite+"</b><size=75%>["+colorWhite+"</b>3<color=green>|</color>e</color>]"+CT+" - edit with scribus"+char(10)+
+            colorWhite+"</b><size=75%>["+colorWhite+"</b>4<color=green>|</color>a</color>"+CT+colorWhite+"</b>]"+CT+" - to clipa "+colorWhite+"</b>["+colorWhite+"</b>5<color=green>|</color>b</color>"+CT+colorWhite+"</b>]"+CT+" - to clipb "+colorWhite+"</b>["+colorWhite+"6<color=green>|</color>c</color>"+CT+colorWhite+"</b>]"+CT+" - to clipc"
             do_this = user_input("(<b>enter</b>=quit)||: ",0,1)
             if do_this == "a" or do_this == "4" then print command.clipa(buffer_selection)
             if do_this == "b" or do_this == "5" then print command.clipb(buffer_selection)
@@ -1653,11 +1661,12 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
               print command.poke(to_path,buffer_selection)
               continue
             end if
-            if do_this != "1" or do_this != "d" then continue
-            chars = command.code(buffer_selection)
-            print chars 
-            globals.BUFFER.push(chars)
-            continue 
+            if do_this == "1" or do_this == "d" then 
+              chars = command.code(buffer_selection)
+              print chars 
+              globals.BUFFER.push(chars)
+            end if
+            continue
           end if
           print(globals.decompiler(@buffer_selection))
           continue
@@ -1956,7 +1965,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
           continue
         end if // end shell handler
         // generic object handler
-        if @buffer_selection.hasIndex("__isa") then
+        //if @buffer_selection.hasIndex("__isa") then
           print "Expanding: "+typeof(@buffer_selection)+"..."
           print "["+colorWhite+"c"+CT+"] add to custom object"
           print "["+colorWhite+"d"+CT+"] send to decompiler"
@@ -1967,7 +1976,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=false)
           end if
           if uip == "c" then print command.cob("set",user_input("cob: set key to:> "),@buffer_selection)
           continue 
-        end if
+        //end if
       end if
       continue
     end if  // end option 5
