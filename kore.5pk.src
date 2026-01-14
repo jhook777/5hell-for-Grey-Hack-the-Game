@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.0...(66.411)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.1..(66.466)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -550,27 +550,26 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	"[-] -- open reverse shell interface"+char(10)+
 	"[.] -- list of database entries; "+char(10)+
 	"-- selection will be passed to <b>linkdb</b>"+char(10)
+
 	if DEBUG then print("@arg1: "+typeof(@arg1)+char(10)+"@arg2: "+typeof(@arg2))
-	open_buffer = false
-	open_entry = false
-	no_malp = false
-	if @arg1 then
-		if typeof(@arg1) == "string" then 
-			if @arg1 == "-b" or arg1 == "-p" then 
-				if arg1 == "-p" then no_malp = true else open_buffer = true 
-				arg1 = @arg2 
-				arg2 = @arg3 
-				arg3 = @arg4 
-			end if
-		end if
-		if @arg1 then 
-			if DEBUG then print "debug: malp: pushing: "+typeof(@arg1)+" to BUFFER"
-			globals.BUFFER.push(@arg1)
-			if no_malp == true then return 0
-			if open_buffer then open_entry = true
+	open_buffer = (@arg1=="-b")
+	open_entry  = -1
+	no_malp     = (@arg1=="-p")
+	obj         = @arg1
+	if open_buffer or no_malp then obj = @arg2
+	if @obj then 
+		if @obj isa string and obj.to_int isa number and open_buffer then
+			open_entry = obj.to_int
+			if DEBUG then print "debug: setting oe to: "+str(open_entry)
+		else
+			print "malp: pushing <b>"+typeof(@obj)+"</b> to"+colorOrange+" BUFFER"
+			globals.BUFFER.push(@obj)
+			open_entry = globals.BUFFER.len-1
 		end if
 	end if
-	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"-- oe: "+open_entry)
+	if open_entry < 0 or open_entry >= globals.BUFFER.len then open_entry = -1
+
+	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"--: oe: "+str(open_entry))
 	return globals.memory_alpha(open_buffer,open_entry)
 end function
 command.hashim = function(arg1, arg2, arg3=0, arg4=0)
