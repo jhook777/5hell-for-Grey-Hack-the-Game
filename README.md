@@ -1,29 +1,29 @@
 # 5hell-for-Grey-Hack-the-Game
-<pre>
+
 Join us on Discord!
 https://discord.gg/AFqsGaCDfS
 
 **Shell emulator and multitool for the video game Grey Hack.**
 
-Now open source.
-Support available on discord.
-MIT license superscedes old 5hell license.
+Now open source.<br>
+Support available on discord.<br>
+MIT license superscedes old 5hell license.<br>
 
-All of 5hell's documentation is built into 5hell's source code!
-A contributor named Arcane has made this tool to extract help info from the source!
-https://github.com/Arc8ne/5hell-Documentation-Extractor
+All of 5hell's documentation is built into 5hell's source code!<br>
+A contributor named Arcane has made this tool to extract help info from the source!<br>
+https://github.com/Arc8ne/5hell-Documentation-Extractor<br>
 
 Normal build:
-The 5hell source code is designed to be built in Grey Hack by copy-pasting
-and building files in the correct order. It's as easy as copy, paste, build!
-(but like, several times because it's several files...)
+The 5hell source code is designed to be built in Grey Hack by copy-pasting<br>
+and building files in the correct order. It's as easy as copy, paste, build!<br>
+(but like, several times because it's several files...)<br>
 
-Alternative build:
-You may use Ayecue's Greybel to build 5hell into Grey Hack with just a click.
-Greybel is available on the VSCode marketplace for free!
-Here's the github link for it: https://github.com/ayecue/greybel-js
+Alternative build:<br>
+You may use Ayecue's Greybel to build 5hell into Grey Hack with just a click.<br>
+Greybel is available on the VSCode marketplace for free!<br>
+Here's the github link for it: https://github.com/ayecue/greybel-js<br>
 
-
+<pre>
 ######### Standard installation instructions ###########################
 #######################################
 ### How To build 5hell in Grey Hack:
