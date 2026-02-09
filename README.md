@@ -23,15 +23,15 @@ You may use Ayecue's Greybel to build 5hell into Grey Hack with just a click.<br
 Greybel is available on the VSCode marketplace for free!<br>
 Here's the github link for it: https://github.com/ayecue/greybel-js<br>
 
-<pre>
-######### Standard installation instructions ###########################
-#######################################
-### How To build 5hell in Grey Hack:
 
-First make the directory /root/src as root  inside your Game
-(its important you are root otherwise that action will get denied)
+######### Standard installation instructions ###########################<br>
+#######################################<br>
+### How To build 5hell in Grey Hack:<br>
 
-**Tip: to escalate to root use this command:**
+First make the directory /root/src as root  inside your Game<br>
+(its important you are root otherwise that action will get denied)<br>
+
+**Tip: to escalate to root use this command:**<br>
 
 <pre>
 sudo -s
