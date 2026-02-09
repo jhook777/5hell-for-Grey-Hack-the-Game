@@ -13,7 +13,7 @@ All of 5hell's documentation is built into 5hell's source code!<br>
 A contributor named Arcane has made this tool to extract help info from the source!<br>
 https://github.com/Arc8ne/5hell-Documentation-Extractor<br>
 
-Normal build:
+Normal build:<br>
 The 5hell source code is designed to be built in Grey Hack by copy-pasting<br>
 and building files in the correct order. It's as easy as copy, paste, build!<br>
 (but like, several times because it's several files...)<br>
