@@ -1,5 +1,5 @@
 # 5hell-for-Grey-Hack-the-Game
-
+<pre>
 Join us on Discord!
 https://discord.gg/AFqsGaCDfS
 
@@ -10,7 +10,7 @@ Support available on discord.
 MIT license superscedes old 5hell license.
 
 All of 5hell's documentation is built into 5hell's source code!
-A user named Arcane has made this tool to extract help info from the source!
+A contributor named Arcane has made this tool to extract help info from the source!
 https://github.com/Arc8ne/5hell-Documentation-Extractor
 
 Normal build:
@@ -28,7 +28,8 @@ Here's the github link for it: https://github.com/ayecue/greybel-js
 #######################################
 ### How To build 5hell in Grey Hack:
 
-First make the directory /root/src as root (its important otherwise that action will get denied) inside your Game
+First make the directory /root/src as root  inside your Game
+(its important you are root otherwise that action will get denied)
 
 **Tip: to escalate to root use this command:**
 
