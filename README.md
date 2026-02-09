@@ -12,6 +12,8 @@ MIT license superscedes old 5hell license.<br>
 All of 5hell's documentation is built into 5hell's source code!<br>
 A contributor named Arcane has made this tool to extract help info from the source!<br>
 https://github.com/Arc8ne/5hell-Documentation-Extractor<br>
+This is most useful because the built in documentation is always up to date,<br>
+where the usage info below the install instructions, here, is not always.<br>
 
 Normal build:<br>
 The 5hell source code is designed to be built in Grey Hack by copy-pasting<br>
