@@ -6,16 +6,19 @@ https://discord.gg/AFqsGaCDfS
 **Shell emulator and multitool for the video game Grey Hack.**
 
 Now open source.
-Very, very, very limited support available.
+Support available on discord.
 MIT license superscedes old 5hell license.
 
 All of 5hell's documentation is built into 5hell's source code!
 A user named Arcane has made this tool to extract help info from the source!
 https://github.com/Arc8ne/5hell-Documentation-Extractor
 
+Normal build:
 The 5hell source code is designed to be built in Grey Hack by copy-pasting
-and building files in the correct order. 
+and building files in the correct order. It's as easy as copy, paste, build!
+(but like, several times because it's several files...)
 
+Alternative build:
 You may use Ayecue's Greybel to build 5hell into Grey Hack with just a click.
 Greybel is available on the VSCode marketplace for free!
 Here's the github link for it: https://github.com/ayecue/greybel-js
