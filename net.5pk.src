@@ -2378,7 +2378,7 @@ command.zap = function(arg1, arg2, arg3="", arg4)
 		result = null
 		//if arg3 then
 			if typeof(arg2) != "string" then return "zap: invalid input"
-			if arg3 and typeof(arg3) != "string" then arg3 = ""
+			if typeof(arg3) != "string" then arg3 = ""
 			result = globals.metaLib.overflow( arg1, arg2, arg3 )
 		//else
 			//result = globals.metaLib.overflow( arg1, arg2 )
