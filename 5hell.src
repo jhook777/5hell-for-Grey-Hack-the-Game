@@ -418,7 +418,7 @@ command.shell = function(input=null,mute=null)
               elem = @array[i]
               if @elem isa string then array[i] = readString(elem)
               if @elem isa list then array[i] = readArray(elem)
-              i += 1
+              i = i + 1
             end while
             return [ "array" ] + array
           end function
@@ -428,7 +428,7 @@ command.shell = function(input=null,mute=null)
               arg = @args[i]
               if @arg isa string then args[i] = readString(arg)
               if @arg isa list then args[i] = readArray(arg)
-              i += 1
+              i = i + 1
             end while
           end function
           lambda = f
