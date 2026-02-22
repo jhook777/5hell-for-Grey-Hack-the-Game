@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.1..(66.466)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.2...(66.691)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -521,9 +521,10 @@ end if
 command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	if @arg1 == "-h" or @arg1 == "help" then return "malp: Memory Alpha - buffer, object and database management menu. "+char(10)+
 	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> -- Access all"+colorOrange+"</b> BUFFER "+CT+"objects from here."+char(10)+
-	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorGold+"</b>piped_object"+CT+"] -- adds ANY piped object to the "+colorOrange+"</b> BUFFER "+CT+"."+char(10)+
+	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-e|--export"+CT+"] -- return the entire "+colorOrange+"</b>BUFFER"+CT+" as a list"+char(10)+
+	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorGold+"</b>piped_object"+CT+"] -- adds ANY piped object to the "+colorOrange+"</b>BUFFER"+char(10)+
 	colorWhite+"</b>-- May be of any type: string, list, map, shell, file, computer, etc, et al."+char(10)+
-	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-b"+CT+"] [opt: piped_object] -- open the"+colorOrange+"</b> BUFFER "+CT+"immediately on opening malp"+char(10)+
+	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-b"+CT+"] [opt: piped_object] -- open the "+colorOrange+"</b>BUFFER"+CT+" immediately on opening malp"+char(10)+
 	"-- if an object is supplied, it's entry will be opened in the BUFFER"+char(10)+
 	"Usage: "+colorGold+"</b>malp"+CT+colorWhite+"</b> ["+colorOrange+"</b>-p"+CT+"] [opt: piped_object] "+char(10)+
 	"-- <b>pushes</b> an entry to the "+colorOrange+"BUFFER"+CT+" but does <b>not</b> open malp"+char(10)+
@@ -552,6 +553,7 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 	"-- selection will be passed to <b>linkdb</b>"+char(10)
 
 	if DEBUG then print("@arg1: "+typeof(@arg1)+char(10)+"@arg2: "+typeof(@arg2))
+	if arg1 == "-e" or arg1 == "--export" then return globals.BUFFER
 	open_buffer = (@arg1=="-b")
 	open_entry  = -1
 	no_malp     = (@arg1=="-p")
