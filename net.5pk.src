@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.1...(151.195)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.2...(151.212)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -824,7 +824,7 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 	colorGrey+"-- grey: port info: no lib.so / no response"+char(10)+
 	colorLightBlue+"NOTE:"+CT+" if both port info and lan ip are grey;"+char(10)+
 	"-- the machine likely does not exist (but not always)"
-	if not localmachine.is_network_active then return "probe: no network connection."
+	if not localmachine.is_network_active then return "probe: <b>"+localmachine.get_name+"</b> has no network connection."
 	if arg1 == "-b" then 
 		if PORT_MAP then return globals.brdc else return "probe: error; no portmap loaded"
 	end if
@@ -850,7 +850,6 @@ command.probe = function(arg1, arg2, arg3=0, arg4=0)
 		return who_scan(get,0,1)
 	end if
 	return who_scan(get,0,0)
-	return 0
 end function
 command.lanpro = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: lanpro [ip] -- full lan scan"+char(10)+
