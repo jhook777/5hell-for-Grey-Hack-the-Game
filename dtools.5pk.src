@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.1..(156.557)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.2..(156.660)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -968,7 +968,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	//if not arg3 then print "<size=80%><color=blue><b><color=#2382FFFF>"+"  "*depth+tem.path+" "+tem.permissions
 	globals.list_files(tem, arg2, arg3, arg4)
 	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
-	return 0
+	return null
 end function
 command.makfit = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or not arg2 or arg1 == "help" or arg1 == "-h" then return "<u>File Compression || File Size || MAKFIT</u>"+char(10)+
@@ -1108,7 +1108,7 @@ command.make = function(arg1, arg2, arg3=0, arg4=0)
 	else
 		return(output)
 	end if
-	return 0
+	return null
 end function
 
 // felix file explorer by, Plu70
@@ -1451,7 +1451,7 @@ note: launching binaries via felix does NOT activate glasspool
       locals.currentPath = file.path
 	  wait .01
     end while
-    return 0
+    return null
   end function
   /// END MAINish
   init = function(file_object)
@@ -2405,9 +2405,9 @@ command["if"] = function(arg1,arg2,arg3,arg4)
 	if typeof(@arg4) == "string" and globals.command.hasIndex(arg4.split(char(32))[0]) then arg4 = s(arg4+" | return",1)
 	print "<size=75%><u>"+colorCyan+"Result:"
 	if arg3 == arg4 then
-		if typeof(@arg1) == "string" and globals.command.hasIndex(arg1.split(char(32))[0]) then res = s(arg1+" | return") else res = @arg1
+		if typeof(@arg1) == "string" and ( globals.command.hasIndex(arg1.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg1) ) then res = s(arg1+" | return") else res = @arg1
 	else 
-		if typeof(@arg2) == "string" and globals.command.hasIndex(arg2.split(char(32))[0]) then res = s(arg2+" | return") else res = @arg2
+		if typeof(@arg2) == "string" and ( globals.command.hasIndex(arg2.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg2) ) then res = s(arg2+" | return") else res = @arg2
 	end if
 	//if @res isa string then return res.trim else return @res
 	return @res
