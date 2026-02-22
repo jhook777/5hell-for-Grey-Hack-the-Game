@@ -1,12 +1,12 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.3.1"
-malp_version = "1.6.2"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.1...(158.323)")
+sphinx_version = "3.3.3"
+malp_version = "1.6.4"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.2...(158.480)")
 
 NUM_SPLOITS = function()
-  num = XPLOITS.len
+  num = globals.XPLOITS.len
   if not num then num = 0
   return num
 end function
@@ -527,7 +527,7 @@ dump_memory = function()
     buf = []
     if globals.targetIP then buf.push(globals.targetIP+": "+globals.targetPort+char(10))
     if MEMORY then buf.push(MEMORY.join( char(10) ) + char(10) )
-    if XPLOITS then buf.push(XPLOITS.join( char(10) ) + char(10) )
+    if globals.XPLOITS then buf.push(globals.XPLOITS.join( char(10) ) + char(10) )
     if meta_scan then buf.push(meta_scan.join( char(10) ) + char(10) )
     if PORT_MAP then buf.push(display_portmap(1))
     if globals.CLIP["a"].len then buf.push( globals.CLIP["a"] )
@@ -809,15 +809,6 @@ end function
 // default( @action )
 // returns: result of action
 ///// Plu70 switch
-///////// BEGIN SWITCH
-// Usage:
-// switch(variable)
-//     case( condition, @action )
-//  case( condition, @action )
-//  case(...)
-// default( @action )
-// returns: result of action
-
 // _switch = {}
 // _switch.var = ""
 // _switch.set_var = function( input )
@@ -850,6 +841,14 @@ end function
 // globals.default = @_switch.default
 // ///////////// END Plu70 SWITCH
 
+///////// BEGIN SWITCH
+// Usage:
+// switch(variable)
+//     case( condition, @action )
+//  case( condition, @action )
+//  case(...)
+// default( @action )
+// returns: result of action
 ///// 0x0 switch // still in testing
 _switch = {}
 _switch.var = ""
@@ -1005,7 +1004,7 @@ fw_rules = function()
 end function
 
 // // takes object, returns file object or string; sends file object and string to buffer
-curl = function(hacked_thing) 
+globals.curl = function(hacked_thing=globals.localmachine) 
   html = null
   html_content = null
   print(colorWhite+"<size=50%><u>curl GET #?object?:/Public/htdocs/website.html...</u></size>"+CT)
@@ -1422,7 +1421,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=-1)
     print
     print
     if PORT_MAP then print(colorLightBlue+"[0] Portmap Loaded. ")
-    if XPLOITS then print(colorLightBlue+"[1] XPLOITS loaded: ["+NUM_SPLOITS+"] ")
+    if globals.XPLOITS then print(colorLightBlue+"[1] XPLOITS loaded: ["+NUM_SPLOITS+"] ")
     if metaLib then
       linked = "MetaLib"
       if globals.net_session then linked = "Netsession"
@@ -1434,7 +1433,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=-1)
       end if
       if meta_scan then print(colorLightBlue+"</b>    [+] MetaLib source decompiled.")
     end if
-    if MEMORY or XPLOITS.len or PORT_MAP then print(colorLightBlue+"[3] Dump Memory ")
+    if MEMORY or globals.XPLOITS.len or PORT_MAP then print(colorLightBlue+"[3] Dump Memory ")
     print(colorLightBlue+"[4] File manager")
     if BUFFER.len > 0 then print(colorOrange+"</b>+[5] [Storing: "+BUFFER.len+" buffer objects]")
     print(colorGold+"</b>[6] Air [/] cBios [-] RSI [.] dBase" )
@@ -1615,10 +1614,10 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=-1)
       end for
       print colorWhite+"__________________________________"
       selection = null
-      if go_to_selection >= 0 and go_to_selection < globals.BUFFER.len and go_to_buffer == true then selection = go_to_selection else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
+      if abs(go_to_selection.to_int) <= globals.BUFFER.len and go_to_selection.to_int < globals.BUFFER.len and go_to_buffer == true then selection = go_to_selection.to_int else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
       go_to_selection = -1
       go_to_buffer = false
-      if selection >= BUFFER.len or selection < 0 or typeof(selection) != "number" then continue
+      if abs(selection) >= BUFFER.len or typeof(selection) != "number" then continue
       if BUFFER.hasIndex(selection) and @BUFFER[selection] then
         buffer_selection = @BUFFER[selection]
         ////////////////////evaluate selection///////
@@ -2892,7 +2891,7 @@ globals.select_attack = function(waitFor=0,inject=0,ret=0)
   exploit = ""
   data = ""
   i = 1
-  for x in XPLOITS
+  for x in globals.XPLOITS
     data =  data + "[" + i + "]" + x + "\n"
     i = i + 1
   end for
@@ -2911,8 +2910,8 @@ globals.select_attack = function(waitFor=0,inject=0,ret=0)
     if custom_exploit == "" then return
     memory = [custom_mem , custom_exploit]
   else
-    if waitFor > 0 and waitFor <= XPLOITS.len then
-      memory = XPLOITS[waitFor - 1].split(" ")
+    if waitFor > 0 and waitFor <= globals.XPLOITS.len then
+      memory = globals.XPLOITS[waitFor - 1].split(" ")
     else
       print("Invalid selection. ")
       return
@@ -2929,7 +2928,7 @@ globals.select_attack = function(waitFor=0,inject=0,ret=0)
   end if
   if typeof(result) == "shell" and not ret then
     ob = user_input(colorWhite+"</b>-- open shell in "+colorOrange+"BUFFER"+CT+"? ["+colorOrange+"Y"+CT+"/n]"+char(10)+"||: ",0,1)
-    if ob.lower == "n" then print colorRed+"</b>zap: "+colorWhite+"</b> returning... " else return globals.memory_alpha(true,true)
+    if ob.lower == "n" then print colorRed+"</b>zap: "+colorWhite+"</b> returning... " else return globals.memory_alpha(true,"-1")
     return result
   end if
   if typeof(result) == "computer" and not ret then
@@ -2947,16 +2946,16 @@ end function
 
 roil = function(inject=0)
   if not metaLib then return
-  if XPLOITS.len < 1 then
+  if globals.XPLOITS.len < 1 then
     print("No xploits found.")
     return
   end if
-  print(format_columns(XPLOITS))
+  print(format_columns(globals.XPLOITS))
   prompt_me = false
   if inject == "-p" or inject == "--prompt" then prompt_me = true 
   if prompt_me then inject = user_input("Enter lan_ip or password for inject value (<<b>enter</b>>=""pass"",q=quit):"+char(10)+":> ")
   if not inject then inject = ""
-  for X in XPLOITS
+  for X in globals.XPLOITS
     x = X.split(" ")
     mem = x[0]
     val = x[1]
@@ -2981,7 +2980,7 @@ end function
 //Depricated function. Use roil.
 zap_it = function()
   if MEMORY == null then return "Run a scan first."
-  print(format_columns(XPLOITS))
+  print(format_columns(globals.XPLOITS))
   inject = user_input("Enter ip or passwd for inject value or leave blank (press<b> return</b>)"+char(10)+":> ")
   memory = globals.MEMORY
   for mem in memory
@@ -3227,7 +3226,7 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
   else
     if not quiet then print("Host does not exist, or is currently offline.")
   end if
-  return 0
+  return null
 end function
 
 scan_memory = function()
