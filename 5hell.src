@@ -116,8 +116,8 @@ CT = "</color></b>"
 /// END COLOR PALETTE ////
 /////////// IMPRT LINE /////////
 //////////// change the below lines to the path where you placed 5hell.5pk //////
-// Do not remove the comments in the next two lines, they are necessary for Greybel support
-import_code("/root/src/5hell.5pk") // no-emit;no-eval;
+// ! Do not remove the comments in the next two lines, they are necessary for Greybel support !
+import_code("/root/src/5hell.5pk") // no-emit;no-eval
 //include "5hell.5pk"
 ///////////// END IMPRT LINE /////////
 // once built you may use the 'makfit' command to
@@ -127,16 +127,15 @@ import_code("/root/src/5hell.5pk") // no-emit;no-eval;
 // use makfit to rebuild it with a smaller file size
 //////////////////////////////////////////
 //
-// additional imports should go below main!
-// security section is below main!!
-// do not forget the security!!
+// additional imports should go below main
+// do not forget the security section at the top of this file if you need/want to use a password!!!!
 //
 ////////////////////// END INSTRUCTIONS ////////////////////////////////////////
 //
 //
 //
 ///////BEGIN MAIN ////////////////////
-// only edit this part if you know what you are doing!!!!! ////
+// only edit this part if you know what you are doing!!!!! //// but also definitely edit it to your liking if you do!
 command.shell = function(input=null,mute=null)
   //print // an extra line before the prompt, if you want
   running = true
@@ -193,15 +192,15 @@ command.shell = function(input=null,mute=null)
     else 
       print // an extra line printed before the prompt, if you want. comment out if you don't
       if NOBUFF then 
-        // don't add input to command history
+        // don't add input to grey hack's command history
         prompt = user_input(bang,0,0).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
       else 
-        // add input to command history
+        // add input to grey hack's command history
         prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
       end if
     end if
     // flow control, edit with care
-    // add or remove comment characters to/from the string below
+    // add or remove desired comment characters to/from the string below; comments are currently for 'do' scripts only
     if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#", input[0]) != null then // had to remove '/' as it was conflicting with things
       if DEBUG then print "debug: shell: skipping comment: "+prompt.join(" ")
       return 0
@@ -211,7 +210,7 @@ command.shell = function(input=null,mute=null)
     if prompt[0] == "|" then continue // catch stray pipes in input prompt but not comment lines bc why would you type a comment into a one shot line? like for real?
     // end flow control
 
-    // remove/comment this line if you dont want the command buffer
+    // remove/comment this line if you dont want the 5hell command history buffer
     if DEBUG then print "debug: pushing: "+char(10)+prompt.join(" ")+char(10)+"-- to command_buffer"
     globals.command_buffer.push(prompt.join(" ").remove(" | return"))
 
@@ -419,7 +418,7 @@ command.shell = function(input=null,mute=null)
               elem = @array[i]
               if @elem isa string then array[i] = readString(elem)
               if @elem isa list then array[i] = readArray(elem)
-              i = i + 1
+              i += 1
             end while
             return [ "array" ] + array
           end function
@@ -429,7 +428,7 @@ command.shell = function(input=null,mute=null)
               arg = @args[i]
               if @arg isa string then args[i] = readString(arg)
               if @arg isa list then args[i] = readArray(arg)
-              i = i + 1
+              i += 1
             end while
           end function
           lambda = f
@@ -478,7 +477,7 @@ command.shell = function(input=null,mute=null)
       end if
 
       // post processing
-      //if not @catch then continue // removing this line allows more piping
+      //if not @catch then continue
       if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
       if pipe.len > 0 and @pipe[0] == "return" then return @catch // added by me
       if not mute then print(@catch)
@@ -593,4 +592,3 @@ end while
 ////end main////
 //////////end of do not edit section//////////////
 ///EOF///
-
