@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.2.2_falling_skies"
+ver = "4.3.2.3_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "139.796"
+size_of_5hell = "139.754"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -1636,12 +1636,12 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	"-- eg: <b>lanpro | enum || enum 3 | echo"+char(10)+char(10)+
 	colorGold+"Usage: enum [</b>-d<b>] ["+colorWhite+"</b>command_string</color>] [opt:enumerate_this]"+char(10)+
 	"-- iterates across enum buffer with <b>do</b> by:"+char(10)+
-	"---- creating a macro job, <b>ej</b>, containing <b>command_string"+char(10)+
+	"---- creates a temporary 'job' containing the <b>command_string"+char(10)+
 	"---- for each enumerated element the job will be called"+char(10)+
 	"---- if the job contains the keyword "+colorMagenta+"@pipe "+CT+
 	"------ the enumerated element will be inserted into the @pipe"+char(10)+
-	"---- otherwise "+colorMagenta+"@pipe "+CT+"will be appened to the job string"+char(10)+
-	"---- the appended string is then passed to the <b>do</b> command"+char(10)+char(10)+
+	"---- otherwise the element will be appened to the job string"+char(10)+
+	"---- the appended string is then executed"+char(10)+char(10)+
 	"--eg: <b>rnip 15 | enum -d probe"+char(10)+
 	"---- enumerate 15 random ips and probe them all"+char(10)+
 	"--NOTE: supplying a "+colorGold+"third argument"+CT+" enumerates that argument"+char(10)+
