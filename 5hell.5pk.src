@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.1.1_falling_skies"
+ver = "4.3.2_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "138.914"
+size_of_5hell = "139.669"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -334,8 +334,12 @@ command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 command.clear = function(arg1, arg2, arg3=0, arg4=0)
 	if @arg1 == "help" or @arg1 == "-h" then return "Clear Screen || Terminal Wipe || clearscreen"+char(10)+"Usage: clear -- clears the terminal of all text"
+	if DEBUG then 
+		print "debug: skipping clear_screen"
+		return null
+	end if
 	print("",1)
-	return 0
+	return null
 end function
 command.ps = function(arg1, arg2, arg3=0, arg4=0)
 	ps_usage = "Show Processes || PS || show procs || not actually top or htop"+char(10)+
@@ -440,7 +444,7 @@ command.kill = function(arg1, arg2, arg3=0, arg4=0)
 			end if
 			globals.localmachine = stor
 		end for
-		if killed == false and PID != "ALL" then return "kill: process <u>" + PID + "</u> not found" else return 0
+		if killed == false and PID != "ALL" then return "kill: process <u>" + PID + "</u> not found" else return null
 	end if
 	//
 	if DEBUG then print "debug: kill: PID: "+typeof(PID)+":"+PID
@@ -629,7 +633,7 @@ command.cd = function(arg1, arg2, arg3=0, arg4=0)
 	chd = localmachine.File(globals.currentPath)
 	if not arg1 then
 		globals.currentPath = globals.homePath
-		return 0
+		return null
 	end if
 	if not chd then
 		globals.currentPath = "/"
@@ -639,7 +643,7 @@ command.cd = function(arg1, arg2, arg3=0, arg4=0)
 		if chd.name != "/" then
 			globals.currentPath = chd.parent.path
 		end if
-		return 0
+		return null
 	end if
 	new_path = globals.get_file(arg1)
 	if new_path then
@@ -647,7 +651,7 @@ command.cd = function(arg1, arg2, arg3=0, arg4=0)
 	else
 		return "cd: "+arg1+" not found."
 	end if
-	return 0
+	return null
 end function
 command.rm = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<b><u>Remove File || RM || Delete</b></u> "+char(10)+"Usage: rm [opt:-r] [path|file_object] [opt:shell|computer]"+char(10)+"Usage: rm [path|file_object] - deletes a file"+char(10)+"Usage: rm -r [path|file_object] - deletes a folder (and all contents)"+char(10)+"Usage: rm [opt:-r] [/absolute/path] [shell_object|computer_object]"+char(10)+"-- uses supplied shell or computer to delete file or folder at path"+char(10)+char(10)+"N.B. The system.log delete entry will be from the originating IP"+char(10)+"-- NOT the ip of the remote shell or computer"+char(10)+"-- be sure to clean the log when remote deleting"
@@ -877,7 +881,7 @@ command.usr = function(arg1, arg2, arg3=0, arg4=0)
 		t_f = localmachine.File(arg2)
 		if t_f then return t_f.set_owner(arg1, 0) else return "usr: "+arg2+" not found."
 	end if
-	return 0
+	return null
 end function
 command.grp = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or arg1 == "-h" or arg1 == "help" then return "<u>GROUP || ADD GROUP || CHGRP</u>"+char(10)+
@@ -924,7 +928,7 @@ command.grp = function(arg1, arg2, arg3=0, arg4=0)
 		t_f = localmachine.File(arg2)
 		if t_f then return t_f.set_group(arg1, 0) else return "grp: "+arg2+" not found."
 	end if
-	return 0
+	return null
 end function
 command.perms = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("debug: in perms")
@@ -1078,7 +1082,7 @@ command.mkdir = function(arg1, arg2, arg3=0, arg4=0)
 	if not new_dir then return "mkdir: unable to create "+arg1+": parent folder not found."
 	print colorGold+"mkdir: creating "+colorWhite+new_name+"</color> in:</b> "+new_dir.path
 	return localmachine.create_folder( new_dir.path , new_name )
-	return 0
+	return null
 end function
 command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "File Contents || cat || what's in that file"+char(10)+
@@ -1114,7 +1118,7 @@ command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
 	end if
 	if file.is_binary then return ("Cannot open binary file: "+arg1)
 	if no_parse then print file.get_content.noparse else return file.get_content
-	return 0
+	return null
 end function
 command.run = function(arg1, arg2, arg3=0, arg4=0)
 	if DEBUG then print("debug: arg1: "+arg1+ " :end arg1")
@@ -1257,7 +1261,7 @@ command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if p == "@cc" then
 		print("Editing the command buffer...")
 		globals.command_buffer = globals.scribus(globals.command_buffer).split(char(10))
-		return 0
+		return null
 	end if
 	if typeof(p) == "file" then return globals.scribus(p)
 	if p == "@clipa" then return command.clipa(globals.scribus(command.clipa))
@@ -1276,7 +1280,7 @@ command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if not f then return "scribus: "+p+" not found. "
 		return globals.scribus(f)
 	end if
-	return 0
+	return null
 end function
 command.games = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "games: battleship and blackjack and drugwars!"
@@ -1290,7 +1294,7 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 	if pick == "1" then return bat("-s")
 	if pick == "2" then return g2
 	if pick == "3" then return g3
-	return 0
+	return null
 end function
 command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return colorGreen+"<u></color>"+colorGold+"Mail || metaMail || herme5 || hermes || mail client"+char(10)+
@@ -1630,12 +1634,15 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	usg+"enum ["+colorGold+"</b>#</color>]"+char(10)+
 	"-- return the element at index [#] in the enum buffer"+char(10)+
 	"-- eg: <b>lanpro | enum || enum 3 | echo"+char(10)+char(10)+
-	colorGold+"Usage: enum [</b>-d<b>] ["+colorWhite+"</b>command_string</color>] [opt:arg3]"+char(10)+
-	"-- iterate across enum buffer with <b>do"+char(10)+
-	"-- for each enumerated element:"+char(10)+
-	"---- appends the element to the end of the command string"+char(10)+
-	"---- fires the appended string through the <b>do</b> command"+char(10)+
-	"--eg: <b>rnip 15 | enum || enum -d "" probe """+char(10)+
+	colorGold+"Usage: enum [</b>-d<b>] ["+colorWhite+"</b>command_string</color>] [opt:enumerate_this]"+char(10)+
+	"-- iterates across enum buffer with <b>do</b> by:"+char(10)+
+	"---- creating a macro job, <b>ej</b>, containing <b>command_string"+char(10)+
+	"---- for each enumerated element the job will be called"+char(10)+
+	"---- if the job contains the keyword "+colorMagenta+"@pipe "+CT+
+	"------ the enumerated element will be inserted into the @pipe"+char(10)+
+	"---- otherwise "+colorMagenta+"@pipe "+CT+"will be appened to the job string"+char(10)+
+	"---- the appended string is then passed to the <b>do</b> command"+char(10)+char(10)+
+	"--eg: <b>rnip 15 | enum -d probe"+char(10)+
 	"---- enumerate 15 random ips and probe them all"+char(10)+
 	"--NOTE: supplying a "+colorGold+"third argument"+CT+" enumerates that argument"+char(10)+
 	"--ie: this executes: <b>enum [arg3]</b> before operating"+char(10)+
@@ -1650,7 +1657,8 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	|> <b>lanpro | enum -d pwn"+char(10)+
 	"---- this rather complicated operation would result in nuking all machines on a lan<b> if:"+char(10)+
 	"------ it were run <b>on a router</b> against some_lib with a root bounce exploit"+char(10)+
-	"------ the values for the root bounce exploit were set appropriately for mem and val"+char(10)+char(10)+
+	"------ the values for the root bounce exploit were set appropriately for mem and val"+char(10)+		
+	char(10)+
 	usg+"enum [-l|--length]  -- return the length of the enum buffer"+char(10)+
 	usg+"enum [-s|--show]  -- show the enum buffer and return the length"+char(10)+
 	usg+"enum [-D]  -- enumerate the onboard dictionary"+char(10)+
@@ -1665,7 +1673,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	"Note: limited map support"
 	if arg1 == null then return 0
 	if not arg1 or arg1 == "0" then
-		if globals.enumerated.len then return globals.enumerated[0] else return 0
+		if globals.enumerated.len then return globals.enumerated[0] else return null
 	end if
 	if arg1 == "-r" then 
 		if not arg2 then return "enum: -r expects an index"
@@ -1681,7 +1689,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		if globals.enumerated.len < 1 then return "enum: enumerated buffer is empty"
 		print "enum: <b>appending enumerated buffer to main BUFFER</b>"
 		globals.BUFFER = globals.BUFFER + globals.enumerated
-		return 0
+		return null
 	end if 
 	if arg1 == "-p" then 
 		globals.enumerated = []
@@ -1717,10 +1725,12 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		if typeof(arg2) != "string" then return "enum: invalid input; -d expects command string"
 		if arg3 then print command.enum(arg3)
 		if globals.enumerated.len < 1 then return "enum: nothing enumerated"
-		print colorGreen+"enum: iterating over list with:"+char(10)+colorCyan+"<size=65%>"+arg2
+		if arg2.indexOf("@pipe") == null then arg2 = arg2 + " @pipe"
+		print colorGreen+"<size=75%>enum: iterating over list with:"//+char(10)+colorCyan+"<size=65%>"+command.macro("get","ej")//arg2
+		print command.macro("set","ej",arg2)
 		time_s = time
 		for e in globals.enumerated 
-			command.do("1",arg2,e)
+			command.do("1","ej",e)
 		end for
 		return colorGreen+"</b>enum: task complete in ["+colorWhite+str(time - time_s)+CT+colorGreen+"</b>] seconds"
 	end if
@@ -2053,7 +2063,7 @@ command.cc = function(arg1, arg2, arg3=0, arg4=0)
 	else
 		return "cc: invalid index"	
 	end if
-	return 0
+	return null
 end function
 command.time = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: time -- returns current game time."+char(10)+"Usage: time [-d|date] -- returns current game time and date."+char(10)+"Usage: time [-t] -- returns time in seconds since script launch."
@@ -2129,7 +2139,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			end if
 			wait .1
 		end while
-		if verbose then return p_bye else return 0
+		if verbose then return p_bye else return null
 	end if
 	if arg1 isa string and arg1.lower == "-p" then
 		if not arg2 then return "pause: -p expects a process name"
@@ -2143,7 +2153,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			end if
 			wait .1
 		end while
-		if verbose then return p_bye else return 0
+		if verbose then return p_bye else return null
 	end if
 
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
@@ -2157,7 +2167,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if verbose then print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
 	wait(time_to_wait)
 	if verbose then return p_bye
-	return 0
+	return null
 end function
 command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"+char(10)+
@@ -2335,7 +2345,7 @@ command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 					return sig 
 				end if
 			end for
-			return 0
+			return null
 		end function
 		sig = _get_wifi(nets)
 		sig_not = 100 - sig
@@ -2554,7 +2564,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 	p.confirm = function(lbl)
 		if self.a2 == "y" then return 1 
 		if user_input("Clear <b>"+lbl+"</b>: are you sure? [y/<b>N</b>]||: ",0,1).lower == "y" then return 1
-		return 0
+		return null
 	end function
 	p.buf = function()
 		l = colorOrange+"BUFFER"+CT
@@ -2689,7 +2699,7 @@ command.purge = function(arg1, arg2, arg3=0, arg4=0)
 		case("-d",@p.dmn)
 		case("-p",@p.pmp)
 	return default(@p._)
-	return 0
+	return null
 end function
 command.buffer = function(thing,b,c,d) // functions handled as references
 	if @thing == "-h" or @thing == "help" then return "BUFFER || buffer || malp || push"+char(10)+
@@ -2719,14 +2729,15 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("CheckUser function by: "+colorWhite+"Corvus"+CT)
 	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
 	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
-	print("Glosure by: "+colorWhite+"maho_citrus")
+	print("Glosure by: "+colorWhite+"Maho_citrus")
+	print("Glosure-5hell lambda support: "+colorWhite+"Hecate")
 	print("Htop by: "+colorWhite+"redit0")
 	print("TWS by: "+colorWhite+"Aksu")
-	print("Additional code contributions by: Clover, Redit0, Muhahahahe, Maho_citrus*, Aksu, Notepid, CyanMatter, Jamestonic")
+	print("Additional code contributions by: "+colorWhite+"Clover, Redit0, Muhahahahe, Maho_citrus*, Aksu, Notepid, CyanMatter, Jamestonic, Hecate")
 	print("Github Readme by: "+colorWhite+"Hikaru918")
 	print("5hell Discord and Daemon Manager by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
-	print("Beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan ")
+	print("Beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan")
 	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, Bit, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
