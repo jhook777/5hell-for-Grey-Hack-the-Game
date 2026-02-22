@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.3.1...(125.182)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.3.2...(133.208)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
@@ -73,8 +73,130 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		print"For security see:<b> perms -h, usr -h, grp -h, sniff -h, silentclean -h, bios -h"
 		print"For dev tools see:<b> scribus -h, makfit -h, clipb -h, make -h, chop -h, dfit -h </b>"
 		print colorGold+"*--*"
-		return 0
+		return null
 	end if
+
+    help_summary = "air  - open the air suite menu for wifi cracking
+    append - add text to the end of a file's contents or the clipboard
+    aptm - open the apt-get menu. also has cli options
+    bios - display system information or manipulate system objects
+    brutus - brute force get_shell. escalation tool. req: cerebrum
+    buffer - add anything to the buffer. supports all data types
+    cad - cloak and dagger. produces a poisoned ps.src
+    calc - calculator tools. includes padic representation tool
+    cat - display text file contents. pipe to poke for concatenation
+    cc - carbon copy. invoke previous command from cli or menu
+    cd - change directory
+    cerebrum - magnum cerebrum. creates or imports onboard dictionary
+    chop - a kinda weird way to slice/split text (wip)
+    clear - clear the screen
+    clipa - alpha clipboard space. stores any data type
+    clipb - beta clipboard space. stores any data type    
+    clipc - gamma clipboard space. stores any data type
+    cname - returns the name of the active computer
+    cob - custom object tools. essential tool 
+    code - multi-tool: ciphers, decompiler, char codes, function exec
+    cp - copy file. respects glasspool
+    credits - gratitude
+    curl - attempt to fetch website.html from piped object
+    db - dbaser. the databaser tool. essential tool
+    dfit - mothballed 'dictionary maker' tool
+    diff - compare two text files. useful for zero day puzzle
+    dig - dynamic infiltration gremlin. scriptable autohacker
+    dm - daemon manager. manages daemons
+    do - loop commands x times. supports strings and batch files
+    echo - returns it's input. useful for scripting
+    enum - list enumeration and interation tool. built in 'do'
+    fakepass - produces poisoned passwd.src
+    felix - file explorer
+    fetch - grab metaxploit object or log file from a shell
+    file - cli file information tool. supports encrypt/decrypt
+    flood - spam a file x times
+    fwr - obtain firewall rules from an ip
+    games - play blackjack, battleship, and Drug Wars
+    glasspool - glasspool mimic. shell/computer mirroring; essential
+    glosure - LISP like language for arbitrary runtime code execution      
+    gopher - hash cracker. supports strings and files. stores results
+    grep - lightweight global regex printer. supports piped objects
+    grp - view or change group params of users and files
+    hashim - hash cracker daemon. stores results
+    help - searchable help system for 5hell
+    htop - process monitor daemon
+    if - unintuitive but useful if statement processor
+    ifconfig - wireless and ethernet cli interface configuration
+    infil - upload rkit to a target and run 5hell
+    ipfit - create a string of random ip addresses for piping
+    iwlist - view nearby wireless network essid, bssid, and pwr
+    jtr - lightweight john the ripper random password generator
+    kill - terminate one or more processes by name or pid 
+    kore - goddes of the dead, underworld, grain, and guide to 5hell
+    kraken - batch rental proxy management. not meant for npc nets!!
+    lanpro - obtain a string of lan ips on a network  
+    liber - obtain metalib version info for a file or folder
+    linkdb - load exploits from a database without linking a metalib
+    lock - secure a system's permissions. uses anti-brick technology
+    ls - list files in a folder
+    macro - create macros to perform complex tasks with a single command
+    mail - herme5 mail system. supports login brute force
+    make - build a .src file
+    makfit - rebuild a .src until it's binary is under x bytes       
+    malp - memory alpha. object storage and management; essential
+    md5 - create or decipher a hash string without storing result
+    memdump - dump major memory objects to file
+    merge - append the contents of file b to the bottom of file a
+    meta - metalib and metaxploit management tool; essential    
+    mkdir - make directory 
+    mv - move or overwrite a file or folder
+    netdump - dump net session data     
+    nsl - name server lookup. fetch ip for domain and vice versa
+    nt - open a new terminal window
+    osint - open source intelligence. find an email
+    outmon - monitor a file for changes (mothballed)
+    passwd - change a user's password
+    pause - pause script execution until a condition is met
+    perms - alter file permissions. includes a few presets
+    ping - check to see if an ip responds. marginal actual use        
+    pipe - how piping works. piping itself is not a command
+    poke - create/confirm a file. supports piping text into it
+    porter - search a piped list of ips for a specific port
+    probe - network probe. sumiltanious whois, fwr, lanpro, port info
+    prox - tunnel through proxy nets to endpoint and start_terminal
+    ps - list processes. highlights dsession, ps, 5hell
+    psudo - not-quite-sudo. get_shell and start_terminal tools
+    purge - session memory wipe tool. aka: the unbufferer       
+    pwd - print working directory
+    pwgen - markov generator. writes password or hash:password files
+    quit - exit
+    rclean - remote clean. copy-over a system.log on a piped object
+    reboot - reboot the machine
+    rm - remove a file or folder
+    rnip - produce a pipable string of random ips (for porter)
+    roil - fire all known exploits at a linked metalib at once        
+    rshell - place a reverse shell backdoor on a local machine
+    rsi - server to manage the above reverse shell backdoors
+    run - launch an external binary. session is preserved
+    scpm - scp menu. menu and cli upload/download management
+    scribus - lightweight, MUD style, text editor tool
+    scrub - shorcut to use kraken to clean all proxy system.logs
+    shell - print information about the active session
+    silentclean - scrub log using mv. returns 1 on success 
+    sl - symlink management tool
+    smtp - returns email info from an smtp server
+    sniff - wait for ssh connections and print connection info
+    sphinx - menu based hacking multi-tool
+    ssh - secure shell connection. supports brute force login
+    string - advanced string management tool
+    target - set target ip and port used by various commands
+    tdump - dump the transmission buffer (hashes) to file       
+    time - return up-time, game time, or game time and date
+    transmit - send information to a hashim server via ssh
+    tree - recursive ls. adds hashes found to transmission buffer
+    tws - track while scanning. advanced BUFFEr querying
+    usr - add and remove users from a system
+    whoami - returns active user (or best guess in glasspool)
+    whois - return brief network info on a given ip or domain
+    zap - fire a single attack from a list of known exploits   
+    zc - zero chill. zero day assistant tool"
 
 	help_conventions = "<b>CONVENTIONS</b>"+char(10)+"While a great deal of 5hell is discordant, there are some conventions:"+char(10)+char(10)+
 	"You may toggle the full prompt and minimal promt by typing: "+char(10)+
@@ -483,6 +605,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		"either stock or your own, to prevent exposure of this information! "
 	end if
 	
+    if arg1 == "--summary" then return help_summary
 	if arg1 == "-A" or arg1 == "alias" then return help_alias
 	if arg1 == "-c" or arg1 == "conventions" or arg1 == "-p" or arg1 == "prompt" then return help_conventions
 	if arg1 == "-t" or arg1 == "tools" then return help_tools
@@ -524,13 +647,14 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	print(colorOrange+":> help [-b|buffer] -- buffer, clipboard, and custom_object info")
 	print(":> help [-l|logs] -- information regarding system.log")
 	print(":> help [-s|show|search] -- for a full descriptive list of commands")
+    print(":> help [--summary] -- print a summary of all commands")
 	print(colorCyan+":> help [-s|show|search] [word|string|regex] -- search all help info for pattern"+char(10)+"-- see grep -h for regex tokens")
 	print(":> help [-i] -- list commands by command map index")
 	print(":> help [home] -- information about the @home system")
 	print(":> lock -- shortcut for perms lock all")
 	print(":> prompt -- toggle full_prompt on and off")
 	print(colorCyan+":> [command] [-h|help] -- for more information on a specific command."+char(10))
-	return 0
+	return null
 end function
 //////////////
 ////////////// 5phinx F1 usage info ////////////
@@ -2552,3 +2676,4 @@ end function
           // exit with score
       end while
   end function
+
