@@ -1,2753 +1,594 @@
-// 5hell v 4.3.0 by Plu70
-// released v 4.3.1
-// imports .5pk files from /root/src
-// globals
-ver = "4.3.2_falling_skies"
-//print ver
-if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
-if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
-	globals.DEBUG = true
-	globals.params.remove(globals.params.indexOf("--debug"))
-end if
-size_of_5hell = "139.669"
-globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
-if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
-//
-EXPERIMENTAL = true // superfluous
-NOBUFF = false // if true: prompt does not push input to Terminal buffer
-//
-// INITIALIZE GLOBALS SOON(tm)
-//if not get_custom_object.hasIndex("glob") then get_custom_object.glob = {}
-//
-// these three stubs are set below by super_import
-globals.metaxploit = null 
-globals.crypto = null 
-globals.apt_get = null
-//
-//
-// register macros
-if DEBUG then print("<size=75%>registering macros...")
-if not get_custom_object.hasIndex("macros") then get_custom_object.macros = {}
-//
-//
-globals.localip = function()
-	return localmachine.local_ip
-end function
-globals.pubip = function()
-	return localmachine.public_ip
-end function
-// 
-globals.BIGBRAIN = false
-//globals.HASH_TABLE = {} // we'll revisit this idea later
-globals.GLASSPOOL = 0
-globals.metaLib = null
-globals.debugLib = null
-globals.net_session = null
-globals.backup_meta = null
-globals.tagged_for_scp = ""
-globals.neurobox_user = ""
-globals.neurobox_pass = ""
-globals.clip_board_delta = "" // for do
-globals.debug_username = ""
-globals.debug_password = "" // neurobox debug credentials
-//
-globals.command_buffer = []
-globals.enumerated = []
-globals.shell = get_shell
-globals.localmachine = shell.host_computer
-globals.currentPath = current_path
-globals.homePath = home_dir
-globals.instance = globals.localmachine.File(program_path)
-globals.T_BUF = [(localip+"@"+pubip)] // transmission buffer
-globals.BUFFER = [get_shell]
-//
-globals.spoolpath = 0 // 0 false, string true
-globals.SAFEWORD = "stop_code" // use @STOP (or this value) in a do script and/or in an if statement within a do script to 'break' the do loop
-globals.HERMES = false
-globals.inbox = null
-//
-globals.grepped_file = null
-globals.airing = false
-globals.mail_user = null
-globals.last_mail = null
-globals.this_mail = 0
-//
-globals.XPLOITS = []
-globals.MEMORY = null
-globals.meta_scan = []
-//
-globals.routerLib = null
-globals.portInfo = null
-globals.tarLan = null
-globals.last_whois = ""
-globals.brdc = ""
-globals.PORT_MAP = {}
-globals.targetIP = null
-globals.targetPort = "router"
+// Current as of version 4.0.0
+// 5hell.src by Plu70 aka ra'al aka jhook
+// 5hell.src, the code below, is open source. As are all related .5pks .
+// 5hell (either the .src, the .so, the .5pk, or the combined script known simply as 5hell)
+// is now covered by the MIT license which superscedes the former license.
+///////////////////////// INSTRUCTIONS /////////////////////////////////////////
 
+// 5hell.src allows you to customize 5hell to your liking. You may add, remove,
+// and even replace commands to, from, and within 5hell. Most users will only
+// need to set a password in the SECURITY section below the command.shell function.
+// You may delete the security section if you do not want to use a password with 5hell.
+// Add imported code lines or your own functions as per the template below the
+// command.shell function.
+// Note: as of version 3.1.2 the plugin cobble.5pk is available. 
+// This is accessed with the cob command. It allows manipulation
+// of the new 'custom_object' wich is a shared memory_space for programs within nested launches
+// Note: as of version 3.1.2 5hell may be loaded to the custom object.
+// see MAP OPTION below and choose one option (default has already been chosen).
 //
-if DEBUG then print("<size=75%>loading dictionary...</size>")
-// this function puts the dictionary in the custom object for use between nested launches without breaking legacy dictionary calls
-globals.dict_a = function(import=0)  
-	cobble = get_custom_object
-	if typeof(import) == "list" then cobble.dictionary = import // set a new dicitonary from input: list
-	if not cobble.hasIndex("dictionary") then cobble.dictionary = ["a"] else globals.BIGBRAIN = true // set default dictionary if it doesn't exist
-	return cobble.dictionary // return the dictionary in all cases as a list
-end function
-//// UPDATING THE DICTIONARY IS HANDLED BY COMMAND.CEREBRUM //////
-if DEBUG then ds = dict_a.len
-if DEBUG then print("<size=75%>dictionary loaded...("+(ds/1000)+"kb)</size>")
+//
+//
+////////////////////////////////               OPTIONAL SECURITY SECTION            //////////////////////
+// //////////////////////////////              YOUR SECURITY GOES HERE              //////////////////////
+// ///// customize this line fully (with something more advanced) for the most security      ////////
+//   access_codes = {"Alpha":"your password here", "Beta":"your other password here if you want"}
+//   // if you rename access_codes be sure to edit the below line
+//   rnac = access_codes.indexes
+//   rnac.shuffle
+//   rnac = rnac.pop
+//   if user_input("<color=#00FFFFFF><b>Cyberdeck Authentication Code [<color=#FFFFFFFF><b>"+rnac+"</color>]: ",1,0) != access_codes[rnac] then
+//     wait(300)
+//     exit("frag off, chumba")
+//   else 
+//     access_codes = null
+//   end if
+///////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD and/or decryption keys  !!!!! ////////////////////////////////
+//
+//                                          /////////////////END SECURITY///////////////////
+// //////////////MAP OPTION////////////////
+// uncomment only ONE of the 'command =' lines. At least one must be selected.
+// option {} == normal 5hell mode. default.
+// option get_custom_object == load 5hell to custom object. EXPERIMENTAL!!!
+// choose one below:
+command = {} // default; do not change this if you don't know what you're doing!!!!!
+//command = get_custom_object // experimental, use with caution; do not change this if you don't know what you are doing!!!!
+//
+//////////END MAP OPTION//////////////////
+//
+//////////////////// BEGIN @HOME || @HOME_SERVER CONFIGURATION!!!!/////////////////////////////////////////////
+//
+/////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD!!!!! ////////////////////////////////
+//                  @HOME SERVER CONFIGURATION                        ////////
+//-- skipping the ip and password in this configuration means you can't use the transmit command. up to you.
+//-- however, you can always edit it at runtime since the values are stored in the custom object
+//-- use: shell --home [ip] or cob set HOME.ip [ip]
+///// ALL FIELDS ARE OPTIONAL //////
+//// important: don't comment it out, just leave at default values if you aren't going to use it.
+// edit the below line to include the credentials for your (ssh) hashim server. the transmit command will use this information to connect.
+globals.AT_HOME = {
+  "ip":"ip.add.rr.ess",                 // rshell and hashim server ip address (@home)
+  "loginport":22,                       // @home ssh port; int
+  "rshellport":1222,                    // @home rshell port; int
+  "user":"root",                        // @home user
+  "pass":"password",                    // @home password
+  "loginprotocol":"ssh",                // @home login: ssh or ftp
+  "sharedfile":"/root/pass",            // @home transmit swap file (for hashim)
+  "database":"/root/rkit/database.csv", // default path for database.csv
+  "t5":"/root/rkit/tables/t5",          // default path for tables/t5
+  "tp":"/root/rkit/tables/tp",          // default path for tables/tp
+  "dorc_key":0,                         // decrypt do.rc with this key; string, if encrypted. leave at 0 if not in use
+  "map_key":0,                          // decrypt Map.conf with this key; string, if encrypted. leave at 0 if not in use
+  "classID":"at_home"}   
+if not get_custom_object.hasIndex("HOME") or not ( get_custom_object.HOME isa map or get_custom_object.HOME isa at_home ) then  get_custom_object.HOME = globals.AT_HOME
+// the above values are optional and may be left at default if you you don't plan to use them
+// you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
+// for example with: rshell @home
+  // @home will be replaced with your ip, no password needed in this case
+  // password is needed for advanced functions, such as with the transmit command
+// **** you may alter these values at runtime by setting overrides in do.rc like so:
+// set HOME.key new_value
+// eg: ifconfig -p | set HOME.ip
+// -- to set the launch machine's ip as the home server; useful in ~/Config/do.rc but not so much ~/rkit/do.rc
+// ** remember Config/do.rc takes priority over rkit/do.rc **
+//
+/////// ALWAYS USE A PASSWORD (SECURITY SECTION ABOVE) WHEN SETTING AN @HOME_SERVER PASSWORD or encryption keys   !!!!! ////////////////////////////////
+//
+//
+//////                       END @HOME || @HOME_SERVER CONFIGURATION                   //////////////////////////////////////////////////
+//
+//
+// DEFINE COLOR PALETTE //
+// edit these if the current color conflicts with your theme
+// definition  =  <#color_code><opt:b>
+colorRed = "<color=#FF0000FF><b>"
+colorCyan = "<color=#00FFFFFF><b>"
+colorGold = "<color=#CCCC00FF><b>"
+colorGrey = "<color=#71858DFF><b>"
+colorGreen = "<color=#00FF00FF><b>"
+colorOlive = "<color=#048004FF><b>"
+colorWhite = "<color=#FFFFFFFF><b>"
+colorBlack = "<color=#000000FF><b>"
+colorOrange = "<color=#FF8400FF><b>"
+colorViolet = "<color=#8821FDFF><b>"
+colorMagenta = "<color=#FF00C8FF><b>"
+colorLightBlue = "<color=#2382FFFF><b>"
+// default color for standard print override, adjust to your theme
+// use "" for your default terminal color
+colorDefault = "<color=#00FF00FF>"
+colorError = "<color=#FF0000FF><b>" // not yet implemented
+colorWarning = "<color=#FF8400FF><b>" // not yet implemented
+color5phinxText = "<color=#FFFFFFFF><b>"
+color5phinxButton = "<color=#00FFFFFF><b>"
+color5phinxElement = "<color=#71858DFF><b>"
+color5phinxDisplay = "<color=#00FFFFFF><b>"
+CT = "</color></b>"
+/// END COLOR PALETTE ////
+/////////// IMPRT LINE /////////
+//////////// change the below lines to the path where you placed 5hell.5pk //////
+// ! Do not remove the comments in the next two lines, they are necessary for Greybel support !
+import_code("/root/src/5hell.5pk") // no-emit;no-eval
+//include "5hell.5pk"
+///////////// END IMPRT LINE /////////
+// once built you may use the 'makfit' command to
+// build with a smaller filesize. see makfit -h
+// note: makfit works on a source, not a binary
+// build it once to get access to makfit then
+// use makfit to rebuild it with a smaller file size
+//////////////////////////////////////////
+//
+// additional imports should go below main
+// do not forget the security section at the top of this file if you need/want to use a password!!!!
+//
+////////////////////// END INSTRUCTIONS ////////////////////////////////////////
+//
+//
+//
+///////BEGIN MAIN ////////////////////
+// only edit this part if you know what you are doing!!!!! //// but also definitely edit it to your liking if you do!
+command.shell = function(input=null,mute=null)
+  //print // an extra line before the prompt, if you want
+  running = true
+  full_prompt = 1
+  while running
+    pipe = []  // pipe control, do not edit
+    prompt = [] // prompt control, do not edit
+    next = [] // pipe control, do not edit
 
-
-//
-// import 5phinx -- this contains critical shared functions and the backbone of the hacking suite
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/5phinx.5pk") // override=5phinx.5pk
-//
-// set globals.metaxploit, globals.crypto, globals.apt_get 
-globals.super_import // located in 5phinx.5pk; include_lib latest of: metaxloit, crypto, aptclient
-//
-// import kore.5pk -- kore's domain
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/kore.5pk") // override=kore.5pk
-//
-// import dtools.5pk -- dev/dictionary tools
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/dtools.5pk") // override=dtools.5pk
-//
-// import contrib.5pk -- this contains shared functions and commands contributed by the community
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/contrib.5pk") // override=contrib.5pk
-//
-// import net.5pk -- networks tools
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/net.5pk") // override=net.5pk
-//
-// import help.5pk -- the help command and associated extra documentation
-// Do not remove the comment in the next line, it is necessary for Greybel support
-import_code("/root/src/help.5pk") // override=help.5pk
-//
-// globals.dmanager = new DaemonManager // now handled by command.dm
-// dmanager.Init
-//
-// end globals
-if DEBUG then print("<size=75%>loaded get_file...")                       
-if DEBUG then print("<size=75%>loading 5hell.5pk...("+size_of_5hell+"kb)")                   /////LOADING 5HELL////////////
-if DEBUG then print("<size=75%>loading clip commander...(666 licks to the center)")     
-// consolidate all clipX's into one clipboard command
-// newclip, to combine all clips
-// begin clip commander
-// expand by adding a CLIP map index and creating a corresponding command.[yourclip] = function(...) call below _clipboard (use existing ones as templates)
-CLIP = {"a":"","b":"","c":""} 
-_clipboard = function( index, arg1, arg2 )
-    // index checking is done at command.clip[x] calls
-    cw = colorWhite
-    clip = {}
-    clip.msg = colorCyan+"</b>clip"+colorWhite+index+CT+"</color>"
-    clip.hlp = "clipboard || clipa || clipb || clipc || clippy dippy"+char(10)+
-    "There are, by default, three clipboard spaces: clipa, clipb, clipc. It is"+char(10)+
-    "possible to expand beyond this limit by adding entries to the CLIP map in 5hell.5pk."+char(10)+
-	"The clipboards may store any data type or game object. "+char(10)+
-	char(10)+
-	"EZ_CLIP allows use of aliases:"+char(10)+
-    "--: "+cw+"@a"+CT+" for clip"+cw+"a"+CT+", "+cw+"@b"+CT+" for clip"+cw+"b"+CT+", and "+cw+"@c"+CT+" for clip"+cw+"c"+char(10)+
-    "---- when you want to reference the clipboard in an argument."+char(10)+
-	"For example: "+char(10)+
-    colorGrey+"|> "+cw+"clipa foobar"+char(10)+
-    colorGrey+"|> "+cw+"echo @a"+char(10)+
-    colorGrey+"<b>foobar"+char(10)+
-	char(10)+
-	"The clipboard spaces start out as an empty string, by default.  "+char(10)+
-	"You may edit text in the clipoard directly with:"+char(10)+
-	colorGrey+"|> "+colorWhite+"scribus "+colorMagenta+"@"+colorLightBlue+"clip"+colorWhite+"[a|b|c]"+char(10)+
-	"--eg: scribus "+colorWhite+"@clipa"+CT+" | poke magnum.opus | lock"+char(10)+
-	"--<b>note</b>: scribus @clipa edits the clipboard's text"+char(10)+
-	"--<b>note</b>: scribus @a will not edit clipa but rather:"+char(10)+
-	"---- if clipa is a list of strings: will open the editor on the array and return an array"+char(10)+
-	"---- if clipa is a string: will attempt to edit a file whose name matches the first word in the string "+char(10)+
-	"---- if clipa is a text file: will edit the file"+char(10)+
-	char(10)+
-	colorGreen+ "Viewing help for "+clip.msg+char(10)+
-    colorCyan+"</b>Usage: "+clip.msg+" -- returns the contents of "+clip.msg+char(10)+
-    "-- stored functions are returned as a reference"+char(10)+
-    colorGold+"</b>Usage: "+clip.msg+" [<b>any_value</b>] -- set "+clip.msg+" to any value"+char(10)+
-    "-- piped objects are stored and returned as objects"+char(10)+
-    "-- piped functions are stored and returned as function references"+char(10)+
-    "-- piped strings, including piped (string: integers), are stored and returned as strings"+char(10)+
-    "-- piped integers are stored and returned as integers"+char(10)+
-    "--nb: you may cast a string to an int with:"+char(10)+
-    "----:<b> clipa [+=|-=] 0"+char(10)+
-    "---eg: <b>clipa 12 || clipa += 0"+char(10)+
-    colorCyan+"</b>Usage: "+clip.msg+" [<b>-z</b>] -- set "+clip.msg+" to "+cw+"int: zero"+char(10)+
-    "-- passing <b>0</b> as an argument sets "+clip.msg+" to <b>string: 0"+char(10)+
-	"-- piping in an <b>int: 0</b> results in no_argument behavior: it returns "+clip.msg+char(10)+
-    colorCyan+"</b>Usage: "+clip.msg+" [<b>-n</b>] -- set "+clip.msg+" to "+colorMagenta+"</b>null"+char(10)+
-    "-- this is useful in sme cases"+char(10)+
-	"-- note: the default starting state is an empty string"+char(10)+
-	"---- it no longer defaults to null"+char(10)+
-    colorCyan+"</b>Usage: "+clip.msg+" [<b>++|--</b>] -- increment | decrement "+clip.msg+" by 1"+char(10)+
-    "-- old way:<b> clipa 0 || calc @a [+|-] 1 | clipa"+char(10)+
-    "-- new way:<b> clipa 0 || clipa [++|--]"+char(10)+
-    colorCyan+"</b>Usage: "+clip.msg+" [<b>+=|-=</b>] [int] -- increment | decrement "+clip.msg+" by int"+char(10)+
-    "-- only ints or (string: ints) may by [inc|dec]remented"+char(10)+
-	"Advanced options:"+char(10)+
-    colorCyan+"</b>Usage: "+clip.msg+" [<b>@cc</b>] -- set "+clip.msg+" to the command buffer"+char(10)+
-	colorCyan+"</b>Usage: "+clip.msg+" [<b>@tbuf</b>] -- set "+clip.msg+" to the transmission buffer"+char(10)+
-	"--eg:<b> tree || gopher @tbuf"+char(10)+
-    colorCyan+"</b>Usage: "+clip.msg+" [<b>@B</b>] [<b>-m|#</b>] -- set "+clip.msg+" to "+colorOrange+"BUFFER[#]"+char(10)+
-    "-- passing <b>-m</b> instead of an index will prompt for selection with the BUFFER menu"+char(10)+
-	"NOTE: @tbuf, and @B are now available to <b>all</b> commands via ez_clip"+char(10)+
-	"--eg:<b> clipa @B 1 || clipb "" /home/guest/rkit/5hell "" || run @b @a"+char(10)+
-	"--eg:<b> run /home/guest/rkit/5hell @B -m"+char(10)+
-	"NOTE: it is important to distinguish between "+char(10)+
-	"-- "+cw+"@b"+CT+" -- clipb reference, and"+char(10)+
-	"-- "+colorOrange+"@B"+CT+" -- BUFFER reference"+char(10)+
-	"eg: <b>clipb foobar || echo @b </b>vs<b> zap || gp @B 1"+char(10)+
-	"-- see help alias for a full list of ez_clip aliases"+char(10)+
-    "Note: all (successful) uses of "+clip.msg+" will return the value of "+clip.msg+char(10)+char(10)+
-    "See Also: cob -h, help alias, help buffer"
-	if @arg1 == "help" or @arg1 == "-h" then return clip.hlp
-    clip.clp = @arg1
-	if DEBUG then print "debug: clipboard: "+char(10)+"--<b> arg1: "+@arg1+", arg2: "+@arg2
-    if typeof(@arg2) == "string" then arg2 = arg2.to_int
-    if @arg1 == "++" or @arg1 == "--" then arg2 = 1
-    clip.add = function()
-		if DEBUG then print "--- clipping: "+@clip.clp
-        if @arg1 then 
-            globals.CLIP[outer.index] = @clip.clp
-            print clip.msg+": clipped: "+typeof(@CLIP[outer.index])
-        end if
-        return @CLIP[outer.index]
-    end function
-    clip.n = function()
-        clip.clp = null 
-    end function
-    clip.z = function()
-        clip.clp = 0
-    end function
-    clip.up = function()
-        if typeof(@outer.arg2) != "number" then; print clip.msg+": += expects integer";return;end if
-        add = @CLIP[outer.index]
-        if typeof(@add) == "string" then add = add.to_int 
-        if typeof(@add) != "number" then; print clip.msg+": cannot increment "+typeof(@add);outer.arg1 = 0;return;end if
-        clip.clp = add + outer.arg2
-		clip.clp = str(clip.clp)
-    end function
-    clip.dn = function()
-        if typeof(@outer.arg2) != "number" then; print clip.msg+": += expects integer";return;end if
-        sub = @CLIP[outer.index]
-        if typeof(@sub) == "string" then sub = sub.to_int 
-        if typeof(@sub) != "number" then; print clip.msg+": cannot decrement "+typeof(@sub);outer.arg1 = 0;return;end if
-        clip.clp = sub - outer.arg2
-		clip.clp = str(clip.clp)
-    end function
-    // legacy compat:
-	clip.tbf = function()
-		globals.T_BUF.pull 
-		clip.clp = globals.T_BUF
-		globals.T_BUF = [(localip+"@"+pubip)]
-    end function
-    clip.cc = function()
-        clip.clp = globals.command_buffer.join(char(10))
-    end function
-	clip.bf = function()
-		if globals.BUFFER.len < 1 then print clip.msg+"malp: BUFFER is empty."
-		i = 0
-		for b in globals.BUFFER
-			print("["+colorWhite+i+CT+"] - <b>"+checkUser(@b)+":"+typeof(@b)+"</b>")
-			i = i + 1
-		end for
-        indx = @outer.arg2
-        if typeof(@indx) == "string" then 
-            if indx == "-m" then indx = user_input("clip:> ").to_int else indx = indx.to_int
-        end if
-        if typeof(@indx) == "number" and indx >= 0 and indx < BUFFER.len then clip.clp = @globals.BUFFER[indx] else clip.clp = clip.msg+": @B: invalid buffer selection."
-    end function    
-    // end_legacy_compat
-    clip.rtrn = function()
-        clip.clp = 0
-    end function
-    _=function();end function
-	// start switch
-	if typeof(@arg1) == "function" then return clip.add
-    switch(@arg1)
-        case("-n", @clip.n)
-        case("-z", @clip.z)
-        case("++", @clip.up)
-		case("--", @clip.dn)
-		case("+=", @clip.up)
-		case("-=", @clip.dn)
-        case("@tbuf", @clip.tbf)
-        case("@cc", @clip.cc)
-        case("@B", @clip.bf)
-        case(0, @clip.rtrn)
-        if DEBUG then print "clip: switch: firing"
-    default(@_)
-    return clip.add
-end function
-// expand the clipboard by adding a function associated with an entry to the CLIP map above the _clipboard() function
-command.clipa = function(arg1,arg2,arg3,arg4)
-    return @_clipboard("a",@arg1,@arg2)
-end function
-command.clipb = function(arg1,arg2,arg3,arg4)
-    return @_clipboard("b",@arg1,@arg2)
-end function
-command.clipc = function(arg1,arg2,arg3,arg4)
-    return @_clipboard("c",@arg1,@arg2)
-end function
-// end clip commander
-if DEBUG then print("<size=75%>loaded clip commander...")  
-command.passwd = function(arg1, arg2, arg3=0, arg4=0)
-  if arg1 == "help" or arg1 == "-h" then return "<u>Password || Change Password || passwd"+char(10)+"Usage: passwd [opt: user] [opt: password] -- change password for user"+char(10)+"- will prompt for missing options"
-	user = null
-	pass = null
-	if arg1 then user = arg1
-	if arg2 then pass = arg2
-	if not user then user = user_input("passwd: change password for which user? :> ")
-  if not pass then pass = user_input("passwd: select a new password for: "+user+":> ",1,0)
-	if pass == "" or pass == " " then return "aborting..."
-  try = localmachine.change_password( user, pass)
-  if try == 1 then return "passwd: "+colorWhite+"password for "+user+" updated to: "+char(10)+pass
-  return try
-end function
-command.echo = function(arg1, arg2=0, arg3=0, arg4=0)
-	if @arg1 == "help" or @arg1 == "-h" then return "ECHO || echo || Echo || echO"+char(10)+
-	"Usage: echo [up] [to] [four] [params] -- returns concatonated params to the terminal"+char(10)+char(10)+
-	"General usage is to echo text back to the terminal during batch script/macro execution."+char(10)+
-	"However, it may also be used to feed input to another command or concatonate outputs"+char(10)+
-	"of multiple commands. You may use floating quotes (single quotes not touching another"+char(10)+
-	"character) to wrap complex input parameters. Examples:"+char(10)+
-	"|> echo bob burger  --  output: bob burger"+char(10)+
-	"|> echo "" Eat at Joe's Diner. "" <color=red>Because</color> "" it's the best. "" "+char(10)+
-	"-- output: Eat at Joe's diner. <color=red>Because</color> it's the best."+char(10)+
-	"|> echo three four | echo one two -- output: one two three four"+char(10)+
-	"Here's a fairly useless example, lol:"+char(10)+
-	"|> cat file.txt | echo | poke file2.txt | cat | echo | poke file3.txt"+char(10)+char(10)+
-	"Simple enough. You may use richtext in the echo to spruce it up."+char(10)+
-	"Resizing text and adding color allows the echo to stand out when text"+char(10)+
-	"is flying by during a complex <b>dig</b>, for example."
-	ec = @arg1+" "
-	if @arg2 then @ec = @ec + @arg2+" "
-	if @arg3 then @ec = @ec + @arg3+" "
-	if @arg4 then @ec = @ec + @arg4
-	return ec.trim
-end function
-command.clear = function(arg1, arg2, arg3=0, arg4=0)
-	if @arg1 == "help" or @arg1 == "-h" then return "Clear Screen || Terminal Wipe || clearscreen"+char(10)+"Usage: clear -- clears the terminal of all text"
-	if DEBUG then 
-		print "debug: skipping clear_screen"
-		return null
-	end if
-	print("",1)
-	return null
-end function
-command.ps = function(arg1, arg2, arg3=0, arg4=0)
-	ps_usage = "Show Processes || PS || show procs || not actually top or htop"+char(10)+
-	"<b>Usage: ps [opt:-r] [opt:shell|computer] -- show processess running on the active host_computer"+char(10)+
-	"-- when glasspool is active:"+char(10)+
-	"-- the active shell/computer is the active host_computer"+char(10)+
-	"-- optional [-r] parameter returns raw, uncolorized output"+char(10)+
-	"--eg: ps -r"+char(10)+
-	"<b>Usage: ps [opt:-r] [shell|computer] -- show processes running on the piped object"+char(10)+
-	"-- optional [-r] parameter returns raw, uncolorized output"+char(10)+
-	"--eg: rsi 1 7 | ps"
-	if @arg1 == "-h" or @arg1 == "help" then return ps_usage
-	output = null
-	raw = false
-	verbose = false 
-	if arg3 == "--verbose" then verbose = true
-	locals.hold_comp = globals.localmachine
-	if arg1 == "-r" then
-		raw = true 
-		arg1 = arg2 
-		arg2 = arg3
-		arg3 = arg4 
-	end if
-	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "computer") then 
-		if typeof(arg1) == "shell" then locals.hold_comp = arg1.host_computer
-		if typeof(arg1) == "computer" then locals.hold_comp = arg1 
-	end if
-	if verbose then print("<size=75%>Showing processes...")
-	if raw == true then return format_columns(locals.hold_comp.show_procs)
-	p_buf = hold_comp.show_procs.split(char(10))
-	i = 0
-	if DEBUG then print "debug: "+p_buf
-	for line in p_buf 
-		if i == 0 then 
-			line = colorWhite+"</b>"+line+"</color>".replace("USER","<color=#F5F5F5></b>USER</color>")
-			p_buf[i] = line
-			i = i + 1
-			continue 
-		end if
-		line = colorCyan+"</b>"+line
-		line = line.replace("dsession",colorRed+"</b>dsession").replace("Xorg",colorLightBlue+"</b>Xorg").replace("kernel_task",colorLightBlue+"</b>kernel_task").replace("ps",colorRed+"</b>ps").replace("5hell",colorRed+"5"+colorWhite+"hell")//.replace("root",colorOrange+"<b>root</color>").replace("guest",colorWhite+"<b>guest</color>")
-		p_buf[i] = line
-		i = i + 1
-	end for
-	output = format_columns(p_buf.join(char(10)))
-	return output
-end function
-command.kill = function(arg1, arg2, arg3=0, arg4=0)
-	if @arg1 == 0  or @arg1 == "-h" or arg1 == "help" then return "kill || end process || terminate script"+char(10)+char(10)+
-	colorWhite+"Usage: kill [ALL|PID] [opt: shell|computer] -- terminate PID"+char(10)+
-	"-- PID should be process number or ALL"+char(10)+
-	"-- see the <b>ps</b> command for process ID's"+char(10)+
-	"--<b> kill ALL </b>will attempt to close all programs."+char(10)+
-	"n.b. if<b> kill ALL </b>kills the terminal that launched the program,"+char(10)+
-	"---- it might not complete its task."+char(10)+char(10)+
-	colorWhite+"Usage: kill [process_name] [opt: shell|computer] --"+char(10)+
-	"-- kill processes by process name instead of PID"+char(10)+
-	"-- NOTE: kills ALL processes of that name"+char(10)+char(10)+
-	colorWhite+"Advanced: kill [ALL|process_name:exclude1:exclude2:...] [opt:computer|shell]"+char(10)+char(10)+
-	"-- seperate process names or ID's to exclude from the kill process with the '<b>:</b>' character"+char(10)+
-	"-- the first process name (or the ALL keyword) will be the kill target"+char(10)+
-	"-- all process names or ID's following the first <b>:</b> will be excluded"+char(10)+
-	"-- UNLESS the kill target is a process ID"+char(10)+
-	"--eg: <b>kill ALL:1023:5hell [shell_obj]</b> -- kill everything on the [shell] except 5hell and 1023"+char(10)+
-	"--eg: <b>kill 1023:5hell [computer_obj</b> -- kill 1023 on the [computer]; no exceptions"+char(10)+
-	"---- ie: passing a PID ignores exceptions"+char(10)+
-	"--rg: <b>kill 5hell:1023</b> -- kill all instances of 5hell on the active computer except 1023"+char(10)+char(10)+
-	"Note: piping a shell or computer object runs kill on the object instead of locally"+char(10)+
-	"Note: running kill while glasspool is active runs kill on the active object"+char(10)+
-	"-- unless a shell or computer is piped"
-	target_machine = globals.localmachine
-	if typeof(arg2) == "shell" then target_machine = arg2.host_computer
-	if typeof(arg2) == "computer" then target_machine = arg2
-	//
-	PID = ""
-	exclude = []
-	if typeof(arg1) == "string" then 
-		if typeof(arg1.to_int) == "number" then 
-			PID = arg1.to_int 
-		else 
-			exclude = arg1.split(":")
-			PID = exclude.pull
-			//if typeof(PID.to_int) == "number" then PID = PID.to_int
-		end if
-	end if
-	if exclude.len < 1 then exclude = [""]
-	if typeof(PID) != "number" and typeof(PID) != "string" or PID == "" or PID == 0 then return "kill: invalid input"+char(10)+"Usage: kill [pid|process_name] [opt:shell|computer]"
-	//
-	if typeof(PID) == "string" then
-		processes = target_machine.show_procs.split(char(10))
-		killed = false
-		for p in processes
-			if p == "USER PID CPU MEM COMMAND" then continue
-			process = p.split(" ")
-			process_ID = process[1]
-			process_CMD = process[4]
-			stor = globals.localmachine
-			globals.localmachine = target_machine
-			if PID == "ALL"  or PID == process_CMD or PID == process_ID then 
-				if exclude.indexOf(process_CMD) == null and exclude.indexOf(process_ID) == null then print command.kill(process_ID)
-				killed = true 
-			end if
-			globals.localmachine = stor
-		end for
-		if killed == false and PID != "ALL" then return "kill: process <u>" + PID + "</u> not found" else return null
-	end if
-	//
-	if DEBUG then print "debug: kill: PID: "+typeof(PID)+":"+PID
-	output = target_machine.close_program(PID)
-	if output == true then return("kill: terminating process: " + PID + "...");
-	if output then return(output)
-	return "kill: process <u>" + PID + "</u> not found"
-end function
-command.pwd = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: pwd -- print working directory"+char(10)+"-- returns the current path as a string"
-	return currentPath
-end function
-command.psudo = function(operation, arg2, arg3, arg4)
-    if operation == "help" or operation == "-h" then return "PSUDO || sudo || get shell || get_shell || start terminal"+char(10)+
-	colorCyan+"<u>Start_terminal options:"+char(10)+"--"+char(10)+
-    "Usage: "+colorGold+"</b>psudo"+CT+" -- display the psudo menu"+char(10)+"--"+char(10)+
-    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"shell_object"+CT+"] -- execute <b>start_terminal</b> on the shell_object"+char(10)+
-	"-- piping an object skips the confirmation prompt"+char(10)+
-    "-- unlike <b>run</b>, this command will <b>end</b> the script"+char(10)+"--"+char(10)+
-    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-l"+CT+"] -- execute start_terminal on the currently active shell object"+char(10)+
-	"-- unlike <b>run</b>, this command will <b>end</b> the script"+char(10)+"--"+char(10)+
-	"--nb: start_terminal results in an active trace if an administrator (root dsession) is active"+char(10)+
-	"---- scrub logs and disconnect as soon as your work is done to avoid a strike"+char(10)+char(10)+
-	colorCyan+"<u>Get_shell options:"+char(10)+"--"+char(10)+
-    "Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-u"+CT+"] [opt:"+colorWhite+"user"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a shell object using credentials"+char(10)+
-	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-s"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a <b>root</b> shell object using credentials"+char(10)+
-	"-- passing -s will prompt to open the object's menu in malp"+char(10)+
-	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-f"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- as above but skips prompt and goes straight to malp"+char(10)+
-	"Usage: "+colorGold+"</b>psudo"+CT+" ["+colorWhite+"-n"+CT+"] [opt:"+colorWhite+"password"+CT+"] -- "+colorOrange+"BUFFER"+CT+" a shell object without prompts or malp"+char(10)+
-	char(10)+
-	"NOTE: -u, -s, -f, and -n will <b>all</b> return the shell object on success, a string on failure"
-//
-    _psudo_menu = function()
-        print colorGold+"</b>psudo: "+CT+"["+colorWhite+"y</b>|<b>l"+CT+"] execute "+colorCyan+"</b>start_terminal"+CT+" on the currently active shell object"
-        print colorGold+"</b>psudo: "+CT+"["+colorWhite+"u"+CT+"] BUFFER a <b>local</b> user shell using credentials"
-        print colorGold+"</b>psudo: "+CT+"["+colorWhite+"s"+CT+"] BUFFER a <b>root</b> shell using credentials"
-        print colorGold+"</b>-- press any other key to abort"
-        op = user_input(colorWhite+"||: "+colorGold+"</b>",0,1).lower
-        if "ylus".indexOf(op) == null then return 0 else return "-"+op
-    end function
-//
-    _go_time = function(user=null,pass=null,open_it)
-		if DEBUG then print "debug: go time: "+char(10)+"usr: "+user+" is a: "+typeof(user)+char(10)+"pass: "+pass+" is a: "+typeof(pass)
-        if not user or not pass or user == "" or pass == "" then return colorGold+"</b>psudo: aborting..."
-		if typeof(user) != "string" or typeof(pass) != "string" then return colorGold+"</b>psudo: aborting..."
-        locals.sh = get_shell(user,pass)
-        if typeof( locals.sh ) == "shell" then 
-            print colorLightBlue+"</b>malp: "+colorGreen+"success</color></b>; new shell sent to "+colorOrange+"BUFFER"
-            if open_it == 0 then open_it = user_input(colorGreen+"</b>-- view context menu in "+colorOrange+"BUFFER"+CT+"? [y/<b>N</b>] ||: "+colorWhite,0,1)
-            if open_it == 1 or open_it == "y" or open_it == "Y" then return command.malp("-b",locals.sh) else globals.BUFFER.push(locals.sh)
-            colorGold+"</b>psudo: returning shell object..."
-            return locals.sh
-        else 
-            return colorGold+"</b>psudo: "+colorRed+"</b>failed</color> to obtain shell object"+char(10)+colorGold+"</b>-- check credentials and try again"
-        end if
-    end function
-    _shell_prompt = function(shl,c=0)
-		if typeof(shl) != "shell" then return colorGold+"psudo: error, expected shell, got: "+shl
-		if typeof(c) == "shell" then 
-			print "psudo: starting_terminal on target shell..."
-			return shl.start_terminal
-		end if
-        if user_input(colorGold+"</b>psudo: "+colorOrange+"warning; start_terminal ends the script!"+char(10)+
-            colorGold+"psudo: "+colorOrange+"warning; start_terminal may result in an active trace"+char(10)+
-            colorGold+"</b>Continue? ["+colorWhite+"y"+CT+colorGold+"</b>/"+CT+colorWhite+"N"+CT+colorGold+"</b>] ||: "+colorWhite,0,1).lower == "y" then
-				//get_custom_object.return_value = "#!#CASCADE#!#"
-                print "psudo: starting_terminal on active shell..."
-                print shl.start_terminal
-				return command.cob("reset")
-		else 
-		 	return colorGold+"</b>psudo: aborting..."
-        end if
-    end function
-	if not operation then operation = _psudo_menu
-	if not operation then return colorGold+"</b>psudo: aborting..."
-    // if it's a shell we warn and confirm
-	use_shl = globals.shell
-    if typeof(operation) == "shell" then use_shl = operation 
-	if typeof(arg2) == "shell" then 
-		use_shl = arg2	
-		operation = arg2
-	end if
-    // otherwise we parse the flag or return if invalid flag
-    if typeof(operation) != "string" and typeof(operation) != "shell" then return colorGold+"</b>psudo: aborting..."
-    if operation == "-l" or operation == "-y" or typeof(operation) == "shell" then return _shell_prompt(use_shl,operation)
-	usr = null
-	psw = null
-    if operation == "-u" then 
-		if not arg2 then usr = user_input("user name:> ") else usr = arg2 
-		if arg3 then psw = arg3 else psw = user_input("user passwor:> ",1)
-		return _go_time(usr,psw)
-	end if
-    if operation == "-s" or operation == "-f" or operation == "-n" then
-		conf = 0
-		if operation == "-f" then conf = 1
-		if operation == "-n" then conf = -1
-		usr = "root"
-		if not arg2 then psw = user_input("root password:> ",1) else psw = arg2
-		return _go_time(usr,psw,conf)
-	end if
-    return colorGold+"</b>psudo: invalid input"+char(10)+"-- aborting..."
-end function
-command.ls = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "List Files | List Folders | File Details"+char(10)+
-	"Usage: ls [opt: -l|-a|-s|-r] [opt: /path] -- list files in path"+char(10)+
-	"Opt: [-l] -- list all file details for given path"+char(10)+
-	"Opt: [-a] -- list all files, alphabetically, for given path"+char(10)+
-	"-- by default files and folders are listed from first created"+char(10)+
-	"---- to last created "+char(10)+
-	"Opt: [-s] -- list all files by size (not yet implemented)"+char(10)+
-	"Opt: [-r] -- list all files and return raw, uncolorized output"+char(10)+
-	"Note: option flags may be combined in any order"+char(10)+
-	"-- eg: <b>ls -lars"
-	subFiles = null
-	folderPath = globals.currentPath
-	if DEBUG then print("ls: "+folderPath)
-	raw_output = false
-	showHide = 1
-	showDetails = 0
-	a_order = 0
-	s_order = 0
-	if arg1 then 
-		if arg1.indexOf("-") == 0 then 
-			if arg2 then folderPath = arg2
-			if arg1.indexOf("l") != null then showDetails = 1
-			if arg1.indexOf("a") != null then a_order = 1
-			if arg1.indexOf("s") != null then s_order = 1
-			if arg1.indexOf("r") != null then raw_output = true
-		else 
-			folderPath = arg1
-		end if
-	end if 
-	folder = globals.get_file(folderPath)
-	if not folder then return "ls: No such file or directory"
-	if DEBUG then print("folder: "+folder.path+" is a: "+typeof(folder))
-	if folder.is_folder then 
-		subFiles = folder.get_folders + folder.get_files
-		if DEBUG then print "debug: pre alpha sort"
-		if a_order then 
-			f_buf = []
-			s_buf = []
-			for sub in subFiles 
-				f_buf.push(sub.name)
-			end for
-			f_buf.sort
-			for f in f_buf 
-				for sub in subFiles
-					if sub.name == f then s_buf.push(sub)
-				end for 
-			end for 
-			subFiles = s_buf
-		end if
-		if DEBUG then print "debug: pre size sort"+char(10)+
-		"-- subFiles: "+subFiles
-	else 
-		subFiles = [folder]
-	end if
-	output = ""
-	for subFile in subFiles
-		line_color = colorWhite+"</b>"
-		nameFile = subFile.name
-		permission = subFile.permissions
-		owner = subFile.owner
-		size = subFile.size
-		group = subFile.group
-		is_bin = subFile.is_binary
-		if is_bin then line_color = colorCyan + "</b>"
-		if subFile.is_folder then line_color = colorLightBlue + "</b>"
-		if subFile.is_symlink then nameFile = colorGold+"</b>"+nameFile
-		if raw_output then line_color = ""
-		if showDetails then
-			output = output + char(10) + line_color + permission + " " + owner + " " + group + " "+ size + " bin["+is_bin+"] " + nameFile
-		else
-			output = output + char(10) + line_color + nameFile
-		end if
-	end for
-
-	output = output.trim
-	output = output.split(char(10))
-	return format_columns(output.join(char(10)).trim)
-end function
-command.cd = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: cd [path] -- change current working directory to path"+char(10)+"Usage: cd .. -- go back to parent directory."+char(10)+"Usage: cd -- return to home directory."+char(10)+"Returns: 0 on success or string on failure."
-	if arg1 == "" then arg1 = 0
-	if not globals.get_file(globals.currentPath) then globals.currentPath = home_dir
-	chd = localmachine.File(globals.currentPath)
-	if not arg1 then
-		globals.currentPath = globals.homePath
-		return null
-	end if
-	if not chd then
-		globals.currentPath = "/"
-		return "cd: path error. Setting path to<b> / </b>"+char(10)+"...please try again."
-	end if
-	if arg1 == ".." then
-		if chd.name != "/" then
-			globals.currentPath = chd.parent.path
-		end if
-		return null
-	end if
-	new_path = globals.get_file(arg1)
-	if new_path then
-		if new_path.is_folder then globals.currentPath = new_path.path else return "cd: "+new_path.path+" is not a directory."
-	else
-		return "cd: "+arg1+" not found."
-	end if
-	return null
-end function
-command.rm = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<b><u>Remove File || RM || Delete</b></u> "+char(10)+"Usage: rm [opt:-r] [path|file_object] [opt:shell|computer]"+char(10)+"Usage: rm [path|file_object] - deletes a file"+char(10)+"Usage: rm -r [path|file_object] - deletes a folder (and all contents)"+char(10)+"Usage: rm [opt:-r] [/absolute/path] [shell_object|computer_object]"+char(10)+"-- uses supplied shell or computer to delete file or folder at path"+char(10)+char(10)+"N.B. The system.log delete entry will be from the originating IP"+char(10)+"-- NOT the ip of the remote shell or computer"+char(10)+"-- be sure to clean the log when remote deleting"
-	path_to_delete = null
-	recursive = false
-	remote = false
-	shell_to_use = globals.shell 
-	file = null
-	usage = "rm: usage:<b> rm [opt:-r] [path|file_object] [opt:shell|computer]</b>"
-	print "<u>"+colorRed+"- - - - - "
-	if arg1 == "-r" then 
-		recursive = true 
-		arg1 = arg2 
-		arg2 = arg3 
-	end if	
-	if not arg1 then return usage
-	if typeof(arg1) == "string" then 
-		path_to_delete = arg1 
-		file = globals.get_file(path_to_delete)
-	end if
-	if typeof(arg1) == "file" then 
-		file = arg1
-		path_to_delete = file.path 
-	end if
-	if typeof(arg1) == "shell" or typeof(arg1) == "computer" then return usage
-	if not path_to_delete then return usage 
-	if arg2 and typeof(arg2) == "shell" then 
-		shell_to_use = arg2 
-		remote = true 
-		file = shell_to_use.host_computer.File(path_to_delete)
-		if not file then return "rm: file not found on remote shell." else print "rm: found file on remote shell..."
-	end if
-	if arg2 and typeof(arg2) == "computer" then file = arg2.File(path_to_delete) 
-	if file then
-		if not file.has_permission("w") then return "rm: permission denied"
-		print "rm: "+colorWhite+"deleting: </b><u>"+file.path
-		if file.is_folder then
-			if recursive == true then return file.delete else return "rm: use<b> rm -r [path|file_object] </b>to remove a folder."
-		end if
-		return file.delete
-	end if
-	return "rm: file not found."
-end function
-command.mv = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "MOVE || MV || rename || I like to move it move it"+char(10)+
-	"Usage:"+colorWhite+" mv [opt:-r] [source_path|file_object] [destination_path|file_object]"+char(10)+
-	"-- move file or folder to new path"+char(10)+
-	"-- optionally rename the file"+char(10)+
-	"-- if destination is folder uses original filename, else renames"+char(10)+
-	"-- overwrites destination file if it exists and is not a folder"+char(10)+
-	"-- passing the [-r] flag will result in <b>overwriting the destination folder"+char(10)+
-	"-- if file objects are supplied then uses the object's path"+char(10)+
-	"-- e.g:<b> mv bob /burger -- moves bob to / dir and renames to burger"+char(10)+
-	"---- if /burger is a directory; moves bob into burger as /burger/bob"+char(10)+
-	"-- if bob is already a folder at the destination, and the [-r] flag is passed: "+char(10)+
-	"---- /burger/bob will be overwritten, otherwise the result is /burger/bob/bob"+char(10)+
-	" "+char(10)+
-	"Usage: mv [opt:-r] [source_path|file_object] [@]"+char(10)+
-	" -- move file to current path using original file name"+char(10)+
-	" ---- otherwise works as above"+char(10)+
-	"NOTE: this command moves files between folders on the active shell/computer object"+char(10)+
-	"-- please use <b>scpm</b> or BUFFER <b>scp</b> to transfer files between remote machines"+char(10)
-	
-	ow_fldr = false
-	if arg1 == "-r" then
-		ow_fldr = true
-		arg1 = arg2
-		arg2 = arg3 
-		arg3 = arg4 
-	end if
-
-	if not arg1 or not arg2 then return "mv: not enough input"
-	if typeof(arg1) != "string" and typeof(arg1) != "file" then return "mv: invalid parameters;"+char(10)+
-	"-- expects strings or file objects"
-	if typeof(arg2) != "string" and typeof(arg2) != "file" then return "mv: invalid parameters;"+char(10)+
-	"-- expects strings or file objects"
-	print "<u>"+colorLightBlue+"= = = = ="
-	if typeof(arg1) == "file" then 
-		if p_validate(arg1,"size") then file = arg1 else return "mv: error: input file object does not exist"
-	else 
-		file = globals.get_file(arg1)
-	end if
-	if not file then return("mv: can't find " + arg1)
-	destination = null
-	final_name = null
-	if typeof(arg2) == "file" then 
-		if p_validate(arg2,"size") then dest = arg2 else return "mv: error: output file object does not exist"+char(10)+
-		"-- please purge this object, recreate the file, or supply a string instead"
-	else 
-		dest = globals.get_file(arg2)
-	end if
-	if not dest then
-		if typeof(arg2) == "string" then 
-			split = arg2.split("/")
-			final_name = split.pop
-		else 
-			return "mv: invalid parameters"
-		end if
-		if DEBUG then print("mv_split: "+split)
-		if split.len and split[0] == "" then dest = globals.get_file(split.join("/")) else dest = globals.get_file(split.join("/"))
-		if DEBUG then print("dest: ["+dest+"]")
-		if not dest then
-			if arg2[0] == "/" then destination = "/" else destination = currentPath
-		else
-			destination = dest.path
-		end if
-	else
-		if dest.is_folder and not ow_fldr then
-			destination = dest.path
-			final_name = file.name
-			if dest.path == file.path then destination = dest.parent.path
-		else
-			destination = dest.parent.path
-			final_name = dest.name
-		end if
-	end if
-	if final_name == "@" then final_name = file.name
-	//if destination == "/" then print "mv: "+file.path+" -> "+destination+final_name+"..." else print "mv: <u>"+colorWhite+file.path+" -> "+destination+"/"+final_name+"..."
-	slash = "/"
-	if destination == "/" then slash = "" 
-	print "mv: <u>"+colorWhite+file.path+" -> "+destination+slash+final_name
-  return file.move( destination, final_name )
-end function
-command.cp = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return "COPY || copy files || CP"+char(10)+
-	"Usage: cp [/old_path] [/new_path] -- copy file or folder to new_path "+char(10)+
-	"Usage: cp [/old_path] [@] -- copy old path to current path and use original file name"+char(10)+
-	"Usage: cp [/old/path] [/newpath/newname] -- make a copy of a file with a new name/path"+char(10)+
-	"Usage Example:"+char(10)+
-	"-- cp /root/file.txt @ "+char(10)+
-	"---- copies file.txt to the current directory with name: file.txt"+char(10)+
-	"Usage Example:"+char(10)+
-	"-- poke /root/haha |  | poke /root/heehee |  | cp /root/haha /root/heehee"+char(10)+
-	"---- creates files haha and heehee then copies haha over heehee, overwriting heehee"+char(10)+
-	"Usage Example:"+char(10)+
-	"-- poke haha |  | grep -p syst / | cp haha"+char(10)+
-	"---- create file haha, grep for (system.log) and return file_path, overwrite /var/system.log with haha"
-	print "<u>"+colorGreen+"= = = = ="
-	file = null
-	if typeof(arg1) == "file" then file = arg1 else file = globals.get_file(arg1) 
-	if not file then return("cp: can't find " + arg1)
-	destination = null
-	final_name = null
-	dest = globals.get_file(arg2)
-	if not dest then
-		if typeof(arg2) != "string" or arg2.trim == "" then return "cp: invalid destination"
-		asplit = arg2.split("/")
-
-		final_name = asplit.pop
-		if DEBUG then print("split: "+asplit)
-		if asplit.len and asplit[0] == "" then dest = globals.get_file(asplit.join("/")) else dest = globals.get_file(asplit.join("/"))
-		if DEBUG then print("dest: ["+dest+"]")
-		if not dest then
-			if arg2[0] == "/" then destination = "/" else destination = currentPath
-		else
-			destination = dest.path
-		end if
-	else
-		if dest.is_folder then
-			destination = dest.path
-			final_name = file.name
-		else
-			destination = dest.parent.path
-			final_name = dest.name
-		end if
-	end if
-	if final_name == "@" then final_name = file.name
-	if destination == "/" then print "cp: "+file.path+" => "+destination+final_name else print "cp: <u>"+colorWhite+file.path+" => "+destination+"/"+final_name+"..."
-	print colorGold+"- - - - - - - - - - - - - - - - - - - - - - -"
-	return file.copy( destination, final_name )
-end function
-command.usr = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "USR || ADD USER || CHOWN"+char(10)+
-	"Usage: usr [opt: -r] [user] [path] -- asign ownership of file at path to user"+char(10)+
-	"-- the -r flag applies user ownership recursively"+char(10)+
-	"Usage: usr [-a|add] [opt:user] [opt:password] -- add a user to the system"+char(10)+
-	"-- omitting user and or password will result in a prompt for these values"+char(10)+
-	"Usage: usr [-d|del] [username] [opt:bool 1|0] -- delete a user from the system"+char(10)+
-	"-- 0 == do not delete the home folder"+char(10)+
-	"-- 1 == delete the home folder"+char(10)+
-	"-- any other value results in a prompt"+char(10)+
-	"Usage: usr -u [path] -- return owner of file at path"+char(10)+
-	"NOTE: It is good practice to run:"+char(10)+
-	"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
-	"-- for optimal security <u><b>on a rented server"+char(10)+
-	"<size=75%>NOTE: for your peace of mind please use "+colorCyan+"lock"+CT+" and "+colorGreen+" kore -s "+char(10)+
-	"<size=75%>-- to secure your "+colorGold+"main home"+CT+" pc as"+char(10)+
-	"<size=75%>-- this ensures you will not brick your system"+char(10)+
-	"<size=75%>---- however if you somehow get Xorg to be removed from .show_procs, it will fail!!!"
-	is_recursive = false 
-	if arg1 == "add" or arg1 == "-a" then
-		if not arg2 then arg2 = user_input("new_user:> ")
-		if not arg3 then arg3 = user_input(arg2+" password:> ")
-		if arg2 == "" then return "usr: aborting..."
-		print "usr: attempting to create user:<b> "+arg2
-		uc = localmachine.create_user(arg2, arg3)
-		if uc == 1 then return "-- user created" else return uc 
-	end if
-	if arg1 == "del" or arg1 == "-d" then
-		d_user = null
-		if not arg2 then d_user = user_input("del_user:> ") else d_user = arg2
-		del_home = null
-		if arg3 == "0" then del_home = false 
-		if arg3 == "1" then del_home = true 
-		if del_home == null then 
-			del_home = user_input("Delete /home/"+d_user+"? [Y/n] "+char(10)+"||: ",0,1)
-			if del_home == "n" then del_home = false else del_home = true
-		end if
-		ud = localmachine.delete_user(d_user, del_home)
-		if ud == 1 then return "usr: deleted user: "+d_user else return ud
-	end if
-	if arg1.lower == "-r" then 
-		arg1 = 1
-	end if
-	if typeof(arg1) == "string" then 
-		if not arg2 then
-			check_u = globals.get_file(arg1)
-			if typeof(check_u) == "file" then return check_u.owner 
-		end if
-	end if
-	if arg1 == 1 then 
-		if not arg3 then return "usr: invalid arguments. please supply a path."
-		t_f = globals.get_file(arg3)
-		if t_f then return t_f.set_owner(arg2, 1) else return "usr: "+arg3+" not found."
-	else 
-		if not arg2 then return "usr: "+arg1+" not found <b>or</b> path not supplied."
-		t_f = localmachine.File(arg2)
-		if t_f then return t_f.set_owner(arg1, 0) else return "usr: "+arg2+" not found."
-	end if
-	return null
-end function
-command.grp = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "<u>GROUP || ADD GROUP || CHGRP</u>"+char(10)+
-	"Usage: grp [add|del] [group] [user] -- add or remove group to|from user"+char(10)+
-	"-- users may multiple groups assigned to them"+char(10)+
-	"Usage: grp -u [user] -- returns groups associated with user"+char(10)+
-	"Usage: grp -f [path] -- returns group associated with file at path"+char(10)+
-	"Usage: grp [opt:-r] [group] [path] -- set group of file at path"+char(10)+
-	"-- the -r flag applies the group recursively"+char(10)+
-	"-- each file may have only one group"+char(10)+
-	"NOTE: It is good practice to run:"+char(10)+
-	"|><b> usr -r root / | grp -r root / | rm /etc/passwd | lock </b>"+char(10)+
-	"-- for optimal security <u><b>on a rented server"+char(10)+
-	"<size=75%>NOTE: for your peace of mind please use "+colorCyan+"lock"+CT+" and "+colorGreen+" kore -s "+char(10)+
-	"<size=75%>-- to secure your "+colorGold+"main home"+CT+" pc as"+char(10)+
-	"<size=75%>-- this ensures you will not brick your system"+char(10)+
-	"<size=75%>---- however if you somehow get Xorg to be removed from .show_procs, it will fail!!!"
-	is_recursive = false
-	if arg1 == "-f" then 
-		if not arg2 or arg2 == "" then return "Usage: grp -f [path]"
-		f_t = globals.get_file(arg2)
-		if not f_t then return "grp: "+arg2+" not found."
-		return f_t.group
-	end if 
-	if arg1 == "-u" then 
-		if not arg2 or arg2 == "" then return "Usage: grp -u [user]"
-		return globals.localmachine.groups(arg2)
-	end if 
-	if arg1 == "add" then
-		if not arg2 or not arg3 then return "Usage: grp add [group] [user]"
-		return localmachine.create_group(arg3, arg2)
-	end if
-	if arg1 == "del" then
-		if not arg2 or not arg3 then return "Usage: grp del [group] [user]"
-		return localmachine.delete_group(arg3, arg2)
-	end if
-	if arg1 == "-r" or arg1 == "-R" then is_recursive = true
-	if is_recursive then
-		if not arg3 then return "grp: invalid arguments. Usage: grp -r [group] [path]."
-		t_f = localmachine.File(arg3)
-		if t_f then return t_f.set_group(arg2, 1) else return "grp: "+arg3+" not found."
-	else
-		if not arg2 then return "grp: invalid arguments. Usage: grp [group] [path]"
-		t_f = localmachine.File(arg2)
-		if t_f then return t_f.set_group(arg1, 0) else return "grp: "+arg2+" not found."
-	end if
-	return null
-end function
-command.perms = function(arg1, arg2, arg3=0, arg4=0)
-	if DEBUG then print("debug: in perms")
-	if (arg1 == "-h" or arg1 == "help") and arg2 == "extra" then return "Q: Perms lock all (aka the <b>lock</b> command): what does it do?"+char(10)+"A: the following:"+char(10)+"perms -R o-rwx /"+char(10)+"perms -R g-rwx /"+char(10)+"perms -R u-rwx /"+char(10)+"if on home computer, does the following to avoid lockout:"+char(10)+"perms g+x /bin/sudo"+char(10)+"perms g+x /bin/psudo"+char(10)+"perms g+x /bin/ssh"+char(10)+"perms g+x /usr/bin/Terminal.exe"+char(10)+"perms g+x /usr/bin/Chat.exe"+char(10)+"perms g+x /usr/bin/Mail.exe"+char(10)+"perms g+x /bin/bash"+char(10)+"perms -r g+x /etc/init.d"+char(10)+"To bypass this and lock down anyway use:<b> perms lock down </b> (use with caution)"+char(10)+"n.b mail and chat are on this list because bugs happen when they are fully locked."+char(10)+"N.B: you may remove any of these actions by commenting out"+char(10)+"-- the appropriate lines in 5hell.5pk > command.perms"+char(10)+"-- each entry will have a <b>command.perms(""g+x"",""path"") entry"+char(10)+char(10)+"CHMOD: the perms command is an adaptation of the classic <b>chmod</b> command. It uses the same"+char(10)+"<b>user(owner), group, other</b> and <b>r=read, w=write, x=execute</b> format as classic chmod."+char(10)+"Examples: "+char(10)+"<b>perms o+r /var/system.log</b> -- set system.log to readable by all"+char(10)+"<b>perms o-rwx /var/system.log</b> -- remove guest permissions from system.log"+char(10)+"<b>perms -r g+x /bin</b> -- add group execute permissions to everything in /bin"
-	perms_usage = "<u>chomod || permissions || perms || security</u>"+char(10)+
-		colorWhite+"</b>Usage:<b> perms [opt:-r] [userstring{+|-}permission] [path]"+char(10)+
-		"-- opt: -r -- run recursively on all files and folders under [path]"+char(10)+
-		colorCyan+"</b>-- userstring: o = other, g = group, u = user/owner"+char(10)+
-		"-- {toggle}: [+] = add permission, [-] = remove permission"+char(10)+
-		"-- permission: r = read, w = write, x = execute"+char(10)+
-		"--eg:<b> perms -r o-rwx / </b> -- remove rwx permissions from 'others' for all files"+char(10)+
-		"--eg:<b> perms -r g+x /bin</b> -- add group execute permissions to all files in /bin"+char(10)+
-		char(10)+
-		colorWhite+"Aliases and presets for common permissions:"+char(10)+
-		colorGold+"</b>Usage:<b> perms lock [all]</b> -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
-		"-- "+colorGold+"</b>includes <b>anti-brick</b> technology:"+char(10)+
-		colorWhite+"</b>---- perms will check running processes for: "+colorLightBlue+"Xorg"+char(10)+
-		colorWhite+"</b>---- if detected, critical binaries will be given: "+colorGold+"</b>g+x"+char(10)+
-		colorWhite+"</b>------ if we are home: add "+colorLightBlue+"g+x to:"+char(10)+
-		colorWhite+"</b>---- <size=85%> sudo, ssh, Terminal.exe, Chat.exe, Mail.exe, /etc/init.d, /bin/bash"+char(10)+
-		"-- in some cases, setting /bin/bash to g+x may not be desirable!"+char(10)+
-		"---- please use the following macro if you don't want bash set to g+x:"+char(10)+
-		"---- |><b> macro set block "" lock || lock /bin/bash """+char(10)+
-		colorWhite+"</b>-- shortcut: "+colorRed+"</b>lock"+CT+" -- an alias for "+colorGold+"</b>perms lock all"+char(10)+
-		"-- uses "+colorGold+"anti-brick"+CT+" technology"+char(10)+
-		"-- lock is a secondary command that uses command.perms(""lock"",""all"")"+char(10)+
-		"-- see <b>lock -h</b> for more"+char(10)+
-		char(10)+
-		colorGold+"</b>Usage: perms lock [path] -- lock permissions on an individual file"+char(10)+
-		colorWhite+"</b>-- returns the target file as an object"+char(10)+
-		colorWhite+"</b>-- <b>bypasses</b> "+colorGold+"anti-brick"+CT+" technology"+char(10)+
-		colorWhite+"</b>-- shortcut: "+colorRed+"</b>lock [path]"+CT+" -- an alias for "+colorGold+"</b>perms lock [path]"+char(10)+
-		"-- see <b>lock -h</b> for more"+char(10)+
-		char(10)+
-		colorGold+"</b>Usage: perms lock [down] -- force locking down"+char(10)+
-		"-- <b>use to explicitly bypass "+colorGold+"anti-brick</color> technology"+char(10)+
-		char(10)+
-		colorGold+"</b>Usage: perms unlock [all] -- add o+rwx to all files"+char(10)+
-		colorGold+"</b>Usage: perms unlock [path] -- add o+rwx, recursively, to a path"+char(10)+
-		char(10)+
-		colorCyan+"Note:</b> it is good practice to run:"+char(10)+
-		"-- |><b> usr -r root / | grp -r root / | rm /etc/passwd | lock"+char(10)+
-		"-- for optimal security."+char(10)+
-		colorCyan+"</b>-- you may type:"+colorGold+" kore [-s|-sc]"+CT+" to have this action performed for you"+char(10)+
-		"Extra: perms [-h|help] extra -- view extra help information about this command."
-	if arg1 == "-h" or arg1 == "help" then return perms_usage
-	if not arg1 then return "usage: perms [opt:-r] [arg] [path]"+char(10)+"usage: perms lock [all|/path]"
-	if arg1 == "unlock" then 
-		if arg2 == "all" then 
-			print "perms: setting all to o+rwx"
-			command.perms("-R", "o+rwx", "/") 
-			//_ = globals.get_file("/")
-			return localmachine.File("/")
-		else 
-			ulf = globals.get_file(arg2)
-			if typeof(ulf) == "file" then 
-				print "perms: unlocking: "+ulf.path
-				command.perms("-R","o+rwx",ulf.path)
-				return ulf
-			else 
-				return "perms: "+arg2+" not found"
-			end if
-		end if
-	end if
-	if arg1 == "lock" then
-		lf = "/"
-		if arg2 == "all" then 
-			if not localmachine.File("/").has_permission("w") then return "perms: lockdown failed: permission denied"
-			command.perms("-r", "o-rwx", "/")
-			command.perms("-r", "g-rwx", "/")
-			command.perms("-r", "u-rwx", "/")
-			home = null 
-
-			if is_home == true then
-				print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- setting critical binaries to <b>g+x</b>...")
-				command.perms("g+x","/bin/sudo")
-				command.perms("g+x","/bin/psudo")
-				command.perms("g+x","/bin/ssh")
-				command.perms("g+x","/usr/bin/Terminal.exe")
-				command.perms("g+x","/usr/bin/Chat.exe")
-				command.perms("g+x","/usr/bin/Mail.exe")
-				command.perms("g+x","/bin/bash")
-				command.perms("-r","g+x","/etc/init.d")
-				print("<size=75%>perms: rerun with <b>perms lock down</b> to force full lockdown")
-			end if
-			//
-			return colorCyan+"</b><size=75%>perms: lockdown complete"
-		end if
-		if arg2 == "partial" then 
-			command.perms("-R","g+x", "/")
-			return "perms: partial lockdown complete"
-		end if
-		if arg2 == "down" then arg2 = "/"
-		lf = globals.get_file(arg2)
-		if typeof(lf) == "file" then
-			print "perms: locking: <u><b>"+lf.path
-			command.perms("-R", "o-rwx", lf.path)
-			command.perms("-R", "g-rwx", lf.path)
-			command.perms("-R", "u-rwx", lf.path)
-			return lf
-		else
-			return "perms: "+arg2+" not found"
-		end if
-	end if
-	perms = arg1
-	pathFile = arg2
-	isRecursive = 0
-	if arg1.lower == "-r" then
-		perms = arg2
-		if arg3 and typeof(arg3) == "string" or typeof(arg3) == "file" then pathFile = arg3 else return "perms: invalid path"
-		isRecursive = 1
-	end if
-	file = null
-	if typeof(pathFile) == "string" then file = globals.get_file(pathFile)
-	if typeof(pathFile) == "file" then file = pathFile 
-	if not file then return("perms: can't find " + pathFile)
-	output = file.chmod(perms, isRecursive)
-	if output then print(output)
-	print colorGold+perms+": <size=75%>"+file.path+" "+file.permissions
-	return file
-end function
-command.lock = function(arg1,arg2,arg3,arg4)
-	if arg1 == "help" or arg1 == "-h" then return "perms || chmod || lock || security || permissions"+char(10)+
-	colorWhite+"Usage: lock [opt: path] -- run <b>perms lock [all|/path]"+char(10)+
-	"-- this command is a shortcut for perms lock all / perms lock [path]"+char(10)+
-	"-- this command was formerly an alias defined in 5hell.src"+char(10)+
-	"-- it is now a sub-command similar to prox and scrub"+char(10)+char(10)+
-	"Usage: lock -- lock down all files; uses anti-brick technology"+char(10)+char(10)+
-	"Usage: lock [path] -- lock down a specific path; does not use anti-brick"+char(10)+char(10)+
-	"See <b>perms -h</b> for more info"
-	a = "all"
-	if typeof(arg1) == "string" or typeof(arg1) == "file" then a = arg1
-	return command.perms("lock",a)	
-end function
-command.mkdir = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "/" or arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "Usage: mkdir [/path/new_folder] -- create a new folder in path. path must exist."
-	if globals.get_file(arg1) then return "mkdir: "+arg1+" already exists."
-	newpath = arg1.split("/")
-	new_dir = ""
-	if newpath[0] == "" then
-		newpath.pull
-		new_dir = "/"
-	else
-		new_dir = currentPath
-		if new_dir != "/" then new_dir = new_dir + "/"
-	end if
-	new_name = newpath.pop
-	new_dir = new_dir+newpath.join("/")
-	if new_dir == "" then new_dir = "/"
-	new_dir = globals.get_file(new_dir)
-	if not new_dir then return "mkdir: unable to create "+arg1+": parent folder not found."
-	print colorGold+"mkdir: creating "+colorWhite+new_name+"</color> in:</b> "+new_dir.path
-	return localmachine.create_folder( new_dir.path , new_name )
-	return null
-end function
-command.cat = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "File Contents || cat || what's in that file"+char(10)+
-	"Usage: cat ["+colorWhite+"path_to_text_file"+CT+"] -- returns contents of text file or null if read denied"+char(10)+
-	"Usage: cat ["+colorLightBlue+"file_object"+CT+"] -- <b>returns</b> contents of piped file object"+char(10)+
-	"-- e.g: grep -f passwd | cat "+char(10)+
-	"Usage: cat ["+colorOrange+"-n|--noparse"+CT+"] [path|object] -- <b>prints</b> contents of text with with richtext tags escaped "+char(10)+
-	"-- ie: it uses the <noparse><noparse> richtext tag"
-	file = null
-	kittehns = ["=^._.^= S","^·-·^","^• •^","~(^._.)","(^._.^)s","(^..^)S","(^-.-^)","Z(=^.^=)"]
-	kittehns.shuffle
-	kitteh = kittehns.pop
-    no_parse = false
-    if arg1 == "-n" or arg1 == "--noparse" then 
-        no_parse = true 
-        arg1 = arg2
-        arg2 = arg3 
-        arg3 = arg4
+    // ###############################################################################
+    // ################ begin customizables one ################################################
+    /////// begin prompt preparation
+    bang = "|> " // YOUR PROMPT, edit to your liking /// updated to include get_name
+    // see full_prompt section for an advanced prompt
+    // below is a simple example
+    // if full_prompt then bang = globals.checkUser(shell)+"@"+globals.localmachine.get_name+":"+globals.currentPath+"|> " // stock FULLPROMPT, edit to your liking
+    // below is a more complicated example
+    // behold the magnificent 5hell prompt! thanks to anonymous and anarchic geniuses whose contributions made this possible
+    //////////////////// full prompt for better prompting //////////////////////
+    if full_prompt then 
+      angle = "<color=#FF0000>"+char(20057) 
+      part1 = "<b><rotate=180><voffset=.70em>"
+      if not globals.GLASSPOOL then part2 = "</rotate></voffset><voffset=1em><size=75%><color=#E2DEDE>" else part2 = "</rotate></voffset><voffset=1em><size=75%><color=#2382FFFF>"
+      user_level = globals.checkUser(localmachine) 
+      user_level_line = "<color=#00FF00><u></color>"
+      if user_level == "root" then user_level_line = "<color=#FF0000><u></color>"
+      if user_level == "guest" then user_level_line = "<color=#FFFFFF><u></color>"
+      // info works best with about 31-32 characters
+      info = "["+localmachine.public_ip+"@"+localmachine.local_ip
+      pspace = "<cspace=-"+(info.len * .75)+"em>]</u>"
+      part3 = "</size></voffset><cspace=-.25em>"
+      scadoosh = "<color=#FFFFFFFF><b>|></b>"
+      user_guess = active_user
+      if globals.GLASSPOOL then 
+        scadoosh = "<color=#2382FFFF>|></b>"
+        user_guess = globals.checkUser(localmachine)
+      end if
+      bang = part1 + angle + part2 + user_level_line + info + pspace + part3 + angle + "<voffset=-.25em>"+"></b></cspace><color=#E2DEDE><size=75%>"+user_guess+"@"+localmachine.get_name+":"+currentPath+"</size>"+scadoosh+" "
     end if
-	print "<u>"+colorGold+"- - - - - - - - - c a t - - - - - - - -"+char(10)+
-			    colorGold+"                 "+kitteh+"              "
-	if typeof(arg1) == "file" then
-		file = arg1
-	else
-		if typeof(arg1) == "string" then
-			if arg1 == "" or arg1 == " " then return "cat: file not found."
-			if arg1.indexOf(char(10)) != null then return "cat: invalid input"
-			file = globals.get_file(arg1)
-			if not file then return ("cat: "+arg1+" not found")
-		else
-			return "cat: expected path or file_object, got "+arg1
-		end if
-	end if
-	if file.is_binary then return ("Cannot open binary file: "+arg1)
-	if no_parse then print file.get_content.noparse else return file.get_content
-	return null
-end function
-command.run = function(arg1, arg2, arg3=0, arg4=0)
-	if DEBUG then print("debug: arg1: "+arg1+ " :end arg1")
-	if not @arg1 then return "run: usage: run [path] [opt:params|shell] [opt:shell]"
-	if @arg1 == "help" or @arg1 == "-h" then return "run || launch || shell.launch || execute || script || binary"+char(10)+
-	colorMagenta+"Usage: </b>run [file|path_to_file] [opt:parameters|shell] [opt:shell]"+char(10)+
-	"-- launch a script binary at path (.exe's not supported outside of experimental branch)"+char(10)+
-	"-- there is a game imposed max 14 nested launches before stack call error"+char(10)+
-	"---- the <b>stack_pool</b> in the custom object counts the number of nested launches"+char(10)+
-	"-- piped file objects are launched from the object's path"+char(10)+
-	"-- if you wish to launch a binary on another shell object:"+char(10)+
-	"---- either:"+char(10)+
-	"------ glasspool into that shell object before using run"+char(10)+
-	"---- or:"+char(10)+
-	"-- pipe in a shell object;"+char(10)+
-	colorOlive+"--eg: </b>brutus | "+colorMagenta+"run /root/rkit/5hell"+char(10)+
-	colorOlive+"--eg: </b>brutus | "+colorMagenta+"run /root/rkit/5hell "" rshell @home """+char(10)+
-	"---- this will launch the binary using that shell object"+char(10)+
-	"-- pipe or wrap in floating quotes complex launch params (more than one word)"+char(10)+
-	"-- use echo and/or easy clip (@a,@b,@c) or <b>""</b> floating quotes <b>""</b> "+char(10)+
-	colorOlive+"---- eg: "+colorMagenta+"run /bin/credi7"+char(10)+
-	colorOlive+"---- eg: </b>zap | "+colorMagenta+"run /root/crowsploit"+char(10)+
-	colorOlive+"---- eg: </b>echo "" do 1 -f pwn.bat "" | clipa | clipb @B 1 || "+colorMagenta+"run /home/guest/rkit/5hell @a @b"+char(10)+
-	colorOlive+"---- eg: </b>echo rshell 1.1.1.1 | clipa || brutus | "+colorMagenta+"run /root/rkit/5hell @a"+char(10)+
-	colorOlive+"---- eg: </b>ssh notroot@boot 192.168.0.2 | "+colorMagenta+"run /root/rkit/5hell "" brutus | rclean "" "+char(10)+char(10)+
-	colorWhite+"</b>New: you may now launch binaries by path, without prepending the path with 'run'"+char(10)+
-	"-- this is to give it more bash-like functionality"+char(10)+
-	colorMagenta+"-- eg: </b>/bin/echo "" this is new "" @B -m"
-	"Note: run supports pshells with the launch function however p_shells are not currently in game"
-	if typeof(@arg1) != "string" and typeof(@arg1) != "file" then return "run: arg1 should be file object or path to file" 
-	parameters = ""
-	rr = colorMagenta+"</b>run:"+colorWhite+"</b> launching external program..."
-	if typeof(@arg2) == "shell" then
-		if typeof(@arg3) == "string" then parameters = arg3 else parameters = ""
-		if typeof(arg1) == "string" then 
-			globals.stack_pool("up")
-			print rr
-			print colorWhite+"</b>-- on target shell"
-			cc = arg2.launch(arg1, parameters)
-			globals.stack_pool("down")
-			//_cascade // exit if cascade
-			return cc
-		end if
-		if typeof(@arg1) == "file" then 
-			globals.stack_pool("up")
-			print rr
-			print colorWhite+"</b>-- on target shell"
-			cc = arg2.launch(arg1.path, parameters)			
-			globals.stack_pool("down")
-			//_cascade // exit if cascade
-			return cc
-		end if
-		return "run: arg1 should be file or path to file"
-	end if
-	if typeof(@arg3) == "shell" then 
-		run_path = null
-		if typeof(arg1) == "string" then run_path = arg1
-		if typeof(arg1) == "file" then run_path = arg1.path
-		if typeof(run_path) != "string" then return "run: arg1 should be file object or path to file"
-		if typeof(arg2) == "string" then parameters = arg2
-		if typeof(arg2) == "file" then return "run: arg2 should be string (params) or shell object"
-		globals.stack_pool("up")
-		print rr
-		print colorWhite+"</b>-- on target shell"
-		cc = arg3.launch(run_path, parameters)
-		globals.stack_pool("down")
-		//_cascade // exit if cascade
-		return cc
-	end if
-	if arg2 == "ssh: failed" or arg3 == "ssh: failed" then return "run: input shell is not a shell, received:"+char(10)+"ssh: aborting..."
-	file = arg1
-	if typeof(file) != "file" then file = globals.get_file(arg1)
-	if not file then return "run: "+arg1+" not found."
-	parameters = ""
-	if typeof(@arg2) == "string" then parameters = arg2
-	//if arg3 and typeof(arg3) == "string" then parameters = parameters + " " + arg3 
-	//if arg4 and typeof(arg4) == "string" then parameters = parameters + " " + arg4 
-	if DEBUG then print("run: "+file.path+", "+parameters)
-	globals.stack_pool("up")
-	print rr
-	if GLASSPOOL then print "-- via "+colorLightBlue+"<size=75%>GLASSPOOL"
-	cc = shell.launch(file.path, parameters)
-	globals.stack_pool("down")
-	//_cascade // exit if cascade
-	return cc
-end function
-command.reboot = function(a,b,c,d)
-	if a == "help" or a == "-h" then return "reboot || host_computer || localmachine"+char(10)+
-	colorWhite+"</b>Usage: reboot [opt:shell|computer] -- reboot the local or target machine"+char(10)+
-	"Usage: reboot -- reboot active computer object; respects "+colorLightBlue+"glasspool"+char(10)+
-	"-- prompts for confirmation"+char(10)+
-	"Usage: reboot [opt:<b>shell|computer</b>] -- reboot the machine at target object"+char(10)+
-	"-- prompts for confirmation"+char(10)+
-	"Usage: reboot [opt:"+colorGold+"NOW"+CT+"] [<b>opt:shell|computer</b>] -- skip confirmation"+char(10)+
-	"Usage: reboot [opt:"+colorMagenta+"@"+CT+"<b>int</b>] [opt:<b>shell|computer</b>] -- schedule reboot"+char(10)+
-	"-- <b>int</b> should be time in <b>seconds</b> to reboot"+char(10)+
-	"-- script will pause until reboot is executed"+char(10)+
-	"--eg: <b>zap | reboot @300"+char(10)+
-	"-- skips confirmation"+char(10)+
-	"Usage: reboot [opt:<b>-s|SAFE</b>] -- reboot the player's home pc into safemode"+char(10)+
-	"-- note: only works on the player's home pc when that pc's computer object is active"+char(10)+
-	"-- skips confirmation"+char(10)+
-	char(10)+
-	"NOTE: the reboot command will take priority over a binary named <b>reboot</b>"+char(10)+
-	"-- use: <b>run [/path/reboot]</b> to run the binary instead"+char(10)+
-	"-- see <b>run -h</b> for more"
-	reco = globals.localmachine
-	now = 0
-	rtime = 0
-	if typeof(a) == "string" and (a == "-s" or a == "SAFE" or a == "NOW" or (a.len > 1 and a[1] == "@") ) then 
-		if a == "-s" or a == "SAFE" then return reco.reboot(1)
-		if a == "NOW" then 
-			now = 1
-		else
-			rtime = a.split("@")[1].to_int 
-			if typeof(rtime) != "number" or rtime < 1 or rtime > 300 then return "reboot: invalid time; expects int between 1 and 300"+char(10)+"-- aborting..."
-		end if
-		a = b 
-		b = c
-		c = d
-		d = 0
-	end if 
-	if typeof(a) == "shell" then reco = a.host_computer
-	if typeof(a) == "computer" then reco = a 
-	if not now then 
-		if user_input("reboot: are you sure? ["+colorGold+"Y"+CT+"/n]:> ") == "n" then return "-- aborting..."
-	end if
-	if rtime then pause(rtime)
-	return reco.reboot 
-end function
-command.scribus = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Scribus Terminal Text Editor by Plu70"+char(10)+"scribus [path_to_file] -- open terminal text editor on file at path"+char(10)+"Advanced: scribus @clipa|@clipb|@clipc -- This edits the clipboard directly."+char(10)+"Advanced: scribus @cc -- edit the command buffer."+char(10)+"Advanced: scribus [file_object] -- text only, open contents of piped object."+char(10)+"Advanced: scribus @do -- edit the do buffer (to write / edit <b>do</b> scripts without launching them)"+char(10)+"-- see <b>do -h</b> for more info"+char(10)+"Note: you may press <b>@h</b> on a new line to get additional command info within the editor."
-	p = arg1
-	if not p then
-		print(":> "+colorCyan+"/relative/path/to/file"+CT+" - open a text file in the editor")
-		print(":><b> @clipa | @clipb | @clipc </b>- edit clipboards in the editor"+char(10)+":><b> @do </b>- edit do command buffer (without running do)"+char(10)+":> @cc edit command buffer"+char(10)+"press <return> to abort.")
-	end if
-	if p == 0 then p = user_input("Scribus:> ")
-	if p == "" then return "aborting..."
-	if p == "@cc" then
-		print("Editing the command buffer...")
-		globals.command_buffer = globals.scribus(globals.command_buffer).split(char(10))
-		return null
-	end if
-	if typeof(p) == "file" then return globals.scribus(p)
-	if p == "@clipa" then return command.clipa(globals.scribus(command.clipa))
-	if p == "@clipc" then return command.clipc(globals.scribus(command.clipc))
-	if p == "@clipb" then return command.clipb(globals.scribus(command.clipb))
-	if p == "@do" then
-		if not globals.clip_board_delta then globals.clip_board_delta = []
-		globals.clip_board_delta = globals.scribus(globals.clip_board_delta)
-		print("do: clipped: "+char(10)+colorBlack+"*"+CT+char(10)+globals.clip_board_delta)
-		return globals.clip_board_delta
-	end if
-	if typeof(p) == "string" then
-		f = localmachine.File(p)
-		if not f then f = localmachine.File(currentPath+"/"+p)
-		if not f then f = localmachine.File(currentPath+p)
-		if not f then return "scribus: "+p+" not found. "
-		return globals.scribus(f)
-	end if
-	return null
-end function
-command.games = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "games: battleship and blackjack and drugwars!"
-	print("[0] Battleship")
-	print("[1] Battleship - AI vs AI")
-	print("[2] Blackjack  - jokers wild")
-	print("[3] Drugawars")
-	print("[4] Back")
-	pick = user_input("||: ",0,1)
-	if pick == "0" then return bat("")
-	if pick == "1" then return bat("-s")
-	if pick == "2" then return g2
-	if pick == "3" then return g3
-	return null
-end function
-command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return colorGreen+"<u></color>"+colorGold+"Mail || metaMail || herme5 || hermes || mail client"+char(10)+
-	"herme5 mail client: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+
-	"-- name your function<b> command.mail </b> to overwrite this one."+char(10)+
-	"-- see 5hell.src, template.5pk.src for instructions."+char(10)+
-	"Note: You may overwrite any command this way."+char(10)+char(10)+
-	colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - -"+char(10)+
-	colorGreen+"Usage: mail -- opens the herme5 mail menu"+char(10)+
-	"Extra: when prompted for a password you may enter:</b> -brutus"+char(10)+
-	"-- this will invoke <b>brutus</b> and attempt to crack the email password."+char(10)+
-	"-- the password will be saved to the custom object as:"+char(10)+
-	"-- <b>key == email and value == password"+char(10)+
-	"---- this will change once i work out a better storage system bc this is not ideal"+char(10)+
-	"-- you will be prompted to choose between the tables/tp folder on file, or"+char(10)+
-	"---- the currently loaded onboard dictionary"+char(10)+
-	"-- see: <b>brutus -h and cerebrum -h</b> for more"+char(10)+
-	"Extra: when viewing your inbox you may type <b>spool</b> to dump all mail to a file (up to 160kb)"+char(10)+char(10)+
-	colorGreen+"Usage: "+colorGold+"mail "+CT+"["+colorGold+"email"+CT+"] ["+colorGold+"password</color>|"+colorWhite+"-brutus"+CT+colorGreen+"</b>] "+char(10)+
-	"-- log into or crack the given email"+char(10)
-        herme5 = function()
-            mail = {}
-            mail.meta = null  // metaMail object
-            if globals.inbox then mail.meta = globals.inbox
-            mail.data = null
-            if globals.inbox then mail.data = mail.meta.fetch
-            mail.user = null
-            if globals.inbox then mail.user = globals.mail_user
-            mail.pass = null
-            if globals.inbox then mail.pass = true
-			mail.a1 = outer.arg1 
-			mail.a2 = outer.arg2
-          
-            mail.pwn = function(arg)
-              dsize = globals.dict_a.len
-              mode = user_input("[<b>0</b>] Onboard Dictionary -- [1] /root/tables/tp "+char(10)+"||: ",0,1)
-              if mode == "0" or mode == "" then
-                reverse_it = user_input("[<b>0</b>] start at dict_a[0]  --  [1] start at dict_a[-1] "+char(10)+"(type [q] abort) ||: ",0,1 )
-                if reverse_it.lower == "q" then return "aborting..."
-				if reverse == "1" then reverse_it = 1 else reverse_it = 0
-                show_count = user_input("Show the count? ["+dsize+"] [y/<b>N</b>] ||: ",0,1)
-                show_pass = user_input("Show passwords? [y/<b>N</b>] ||: ",0,1)
-                if show_pass.lower == "y" then show_pass = true else show_pass = false
-                if show_count.lower == "y" then show_count = true else show_count = false
-                print(colorGold+"Accessing onboard dictionary..."+CT+char(10)+"<align=center><<>></align>")
-                ds = dsize - 1
-                for p in range( 0, ds )
-                  dsize = dsize - 1
-                  if reverse_it then pa = globals.dict_a[0 - p] else pa = globals.dict_a[p]
-                  if show_count then print(colorGold+colorWhite+"["+CT+dsize+colorWhite+"]"+CT+CT)
-                  if show_pass then print(colorGold+colorWhite+"["+CT+pa+colorWhite+"]"+CT+CT)
-                  try = mail_login(arg,pa)
-                  if typeof(try) == "MetaMail" then
-                    print("brutus: <b>password found</b>: "+colorWhite+pa+CT)
-					print("brutus: accessing cob: saving email as key, password as value")
-					print command.cob("set",arg,pa)
-                    return try
-                  end if
-                end for
-              else
-                if mode == "1" then
-                  tp = localmachine.File("/root/tables/tp")
-                  if not tp then return 0
-                  print(colorGold+"Accessing /root/tables/tp..."+CT+char(10)+"<align=center><<>></align>")
-                  tp_f = tp.get_files
-                  i=0
-                  for f in tp_f
-                    i = i + 1
-                    print(i+"/"+(tp_f.len))
-                    chunc = f.get_content.split(char(10))
-                    for p in chunc
-                      try = mail_login(arg,p)
-                      if typeof(try) == "MetaMail" then
-                        print("brutus: <b>password found</b>: "+colorWhite+p+CT)
-						print("brutus: accessing cob: saving email as key, password as value")
-						print command.cob("set",arg,p)
-                        return try
-                      end if
-                    end for
-                  end for
-                end if
-              end if
-              return 0
-            end function
-          
-			_is_mail = function(strng)
-				if typeof(strng) == "string" and strng.indexOf("@") != null then return 1 else return 0 
-			end function
-            mail.Login = function()
-              if globals.inbox then
-                mail.meta = globals.inbox
-                return mail.user+" is already logged in."
-              end if
-              if _is_mail(mail.a1) then mail.user = mail.a1 else mail.user = user_input("email:> ")
-              if mail.user == "" or mail.user == " " then mail.user = user_mail_address
-              if not mail.user then return "Invalid mail address."
-              print("Enter <b>-brutus</b> to crack password with brutus.")
-              if _is_mail(mail.a1) and mail.a2 then mail.pass = mail.a2 else mail.pass = user_input(mail.user+" pass:> ", 1)
-              if mail.pass == "" or mail.pass == " " then return "Invalid login credentials."
-              if mail.pass == "-brutus" then
-				print "herme5: calling brutus..."
-                mail.meta = mail.pwn(mail.user)
-              else
-				print "herme5: loging in: "+mail.user+"..."
-                mail.meta = mail_login(mail.user, mail.pass)
-              end if
-          
-              if typeof(mail.meta) == "MetaMail" then
-                globals.inbox = mail.meta
-                globals.mail_user = mail.user
-                return "Login complete."
-			  else 
-				print mail.meta
-              end if
-              return "Invalid login credentials."
-            end function
-            mail.get_id = function(arg)
-              ds = mail.data[arg].split(char(10))
-              i = ds[2].split(" ")
-              i = i[1]
-              return i
-            end function
-            mail.Fetch = function()
-              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
-              mail.data = mail.meta.fetch
-              return "Fetching mail for: "+mail.user+"..."+char(10)
-            end function
-            mail.Read = function()
-              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
-              print(mail.Fetch)
-              print(mail.data_stream(mail.data))
-			  r = null 
-			  if mail.a1 == "spool" then r = "spool" else r = user_input("Enter an index to read or type <b>spool</b> to dump to a file :> ").to_int
-              print(colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "+CT)
-			  if mail.data.len < 1 then return "herme5: mailbox is empty"
-			  //spool_buf = []
-			  spool_buf = [current_date+char(10)+char(10)]
-			  spooling = false
-			  if r == "spool" then 
-				spooling = true
-			  	r = mail.data.len - 1
-			  end if
-			  while r >= 0
-				if r >= 0 and r < mail.data.len then
-					read_this = mail.meta.read(mail.get_id(r))
-					if spooling then print "<size=80%>herme5: spooling: ["+colorWhite+r+CT+"]" else print(read_this)
-					if spooling then spool_buf.push(read_this+char(10))
-					if read_this.split(char(10))[2] == "Subject: *" then
-						print(colorLightBlue+"<u><mark=#DF8600>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</mark></u>"+CT)
-						print(command.code("-b", read_this[read_this.indexOf("Subject: *")+11:]))
-					end if
-				end if
-				if spooling then r = r - 1 else r = -1
-			  end while
-			  if spooling then 
-			  	st = time
-			  	if typeof(mail.a2) == "string" then spool_file_path = mail.a2 else spool_file_path = user_input( colorGold+"herme5: please enter a path for the spool file: "+char(10)+"[/path, <<b>enter</b>=home_dir/spool.txt, </b>q</b>=quit]:> " )
-				if spool_file_path.lower == "q" or spool_file_path.lower == "quit" then return "aborting..."
-				if spool_file_path == "" or spool_file_path == " " then spool_file_path = homePath+"/spool.txt"
-				spool_file = globals.get_file(spool_file_path)
-				if typeof(spool_file) != "file" then 
-					print "herme5: could not locate spool file"+char(10)+"herme5: creating: "+spool_file_path
-					spool_file = command.poke(spool_file_path)
-				else
-					print "herme5: spool file found; overwriting"
-				end if
-				if typeof(spool_file) == "file" and spool_file.is_binary then return "herme5: cannot spool to binary file"
-				print colorWhite+"<size=80%>Saving data to spool file: <b>"+spool_file_path
-				if DEBUG then print "debug: spool_buf is: "+spool_buf+char(10)+"-- spool_buf.length: "+spool_buf.len
+    ////////////////////////// end full_prompt ////////////////////
+    // glasspool prompt, edit to your liking
+    if globals.GLASSPOOL then bang = colorLightBlue+bang.trim+"<color=#FFFFFF> " 
+    ////////// end prompt preperation
 
-				//spool_file = command.poke("-f",spool_file_path, current_date+char(10)+char(10)+spool_buf.join(char(10))+char(10)+current_date)
-				spool_buf.push(char(10)+current_date)
-				if spool_buf.join(char(10)).len < "155000".to_int then 
-					spool_file = command.poke(spool_file_path,spool_buf.join(char(10)))
-					if DEBUG then print "debug: spool_file is a: "+typeof(spool_file)
-					if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
-					globals.BUFFER.push(spool_file)
-				else
-					print "herme5: Spool buffer exceeds file size limit; aborting..."//+char(10)+"-- creating multiple files..."
-					// stuff goes here
+    prompt = [0,0,0,0,0]
+    if input then 
+      // all input sent to command.shell MUST have: | return
+      // -- appended to the end!!
+      if DEBUG then print "<b>input received: "+@input
+      if typeof(input) == "list" then prompt = input
+      if typeof(input) == "string" then prompt = input.replace(" \|\| "," |  | ").split(" ")
+      //if prompt == [0,0,0,0,0] then return 0
+      if prompt[0] == 0 or prompt[0] == "" then return 0
+    else 
+      print // an extra line printed before the prompt, if you want. comment out if you don't
+      if NOBUFF then 
+        // don't add input to grey hack's command history
+        prompt = user_input(bang,0,0).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+      else 
+        // add input to grey hack's command history
+        prompt = user_input(bang,0,0,1).replace(" \|\| "," |  | ").split(" ") //  using || instead of | will go to next command without piping
+      end if
+    end if
+    // flow control, edit with care
+    // add or remove desired comment characters to/from the string below; comments are currently for 'do' scripts only
+    if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#", input[0]) != null then // had to remove '/' as it was conflicting with things
+      if DEBUG then print "debug: shell: skipping comment: "+prompt.join(" ")
+      return 0
+    else 
+      input = null
+    end if
+    if prompt[0] == "|" then continue // catch stray pipes in input prompt but not comment lines bc why would you type a comment into a one shot line? like for real?
+    // end flow control
 
-					//globals.BUFFER.push(spool_file)
-					//if typeof(spool_file) != "file" then return "herme5: error: check write permissions"
-					
-				end if
+    // remove/comment this line if you dont want the 5hell command history buffer
+    if DEBUG then print "debug: pushing: "+char(10)+prompt.join(" ")+char(10)+"-- to command_buffer"
+    globals.command_buffer.push(prompt.join(" ").remove(" | return"))
 
-				wait(.1) 
-				ttt = time - st
-				print colorGold+"herme5: "+CT+"spool_file object sent to "+colorOrange+"BUFFER"+CT+char(10)+colorGold+"</b>herme5: task completed in <b>"+ttt+"</b> seconds."
-			  end if
-              return "returning..."
-            end function
-            mail.Write = function()
-              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
-              addr = user_input("address:> ")
-              subj = user_input("subj:> ")
-              mbuf = []
-              send = ""
-              body = globals.scribus(mbuf)
-              munin = user_input(colorLightBlue+"Encode with <mark=black>M</mark>unin<mark=black>C</mark>ipher before sending? [Y/n] ||: "+CT,0,1)
-              if munin.lower != "n" then
-                send = command.code("-a",body)
-                subj = "*"
-              else
-                send = body
-                print(colorGreen+"<u>= = = = = = = = = = = = = = = = = = = = = = = = = = = = =</u>"+CT)
-              end if
-			  if DEBUG then print "debug: addr: "+addr+char(10)+"-- subj: "+subj+char(10)+"-- send: "+send
-              return mail.meta.send( addr, subj, send )
-            end function
-            mail.Delete = function(r=0)
-              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
-              print(mail.Fetch)
-              print(mail.data_stream(mail.data))
-              if not r then r = user_input("delete [*=all,<enter>=quit]:> ").to_int
-			  if r and r == "*" then
-				for m in range(0,mail.data.len - 1)
-					mail.meta.delete( mail.get_id(m) )
-			  	end for 
-				print colorOrange+"All emails deleted!"
-				return mail.Fetch
-			  end if
-              if typeof(r) == "number" and mail.data.hasIndex(r) then
-                id = mail.get_id(r)
-                if id then print("Deleting (crt+c to cancel): "+id+"...")
-                wait(.5)
-                print("in 3...")
-                wait(1)
-                print("2...")
-                wait(1)
-                print(mail.meta.delete( id ))
-                return mail.Fetch
-              else
-                return "aborting..."
-              end if
-              return 0
-            end function
-            mail.Widget = function()
-              if typeof(mail.meta) != "MetaMail" then return "Invalid login credentials."
-              if HERMES == true then
-                globals.HERMES = false
-                wState = "off"
-              else
-                globals.HERMES = true
-                wState = "on"
-                globals.this_mail = user_input("Configuring widget..."+char(10)+"pin_mail_# (default: 0 for newest):> ").to_int
-                mail.data = mail.meta.fetch
-                if typeof(globals.this_mail) == "number" and globals.this_mail >= 0 and globals.this_mail < mail.data.len then
-                  print(colorGold+"Pinned: "+colorWhite+globals.this_mail+colorGold+"."+CT+char(10)+colorGold+"Herme5 mail widget configured."+CT)
-                else
-                  print(colorGold+"Defaulting to: "+colorWhite+"0"+colorGold+"."+CT+char(10)+colorGold+"Herme5 mail widget configured."+CT)
-                  globals.this_mail = 0
-                end if
-              end if
-              return "Herme5 mail widget toggled "+wState+"."
-            end function
-            mail.Exit = function()
-              return "herme5: exiting..."
-            end function
-            mail.data_stream = function(alist)
-              d = ""
-              i = 0
-              for el in alist
-                d = d + "[" +colorWhite+ i +CT+ "] " + el + char(10)
-                i = i + 1
-              end for
-              return d
-            end function
-            mail.menu = function()
-              mailing = true
-              menu_options = ["Exit", "Login", "Fetch", "Read", "Write", "Widget", "Delete"]
-              while mailing
-                print colorGold+"- - - - - - Herme5 v 0.4.5 by Plu70 - - - - - - - - "
-				print colorGold+"- - - - - - [<u>"+colorWhite+mail.user+CT+"] - - - - - -"
-				opt = 0
-				if _is_mail(mail.a1) then 
-					//mail.a1 = 0
-					opt = 1
-			  	end if
-				if mail.a1 == "spool" then
-					opt = 3
-					mail.a1 = 0
-				end if
-				if not opt then 
-					mail.a1 = 0
-					print(mail.data_stream(menu_options))
-					opt = user_input("(q=quit)||: ",0,1).to_int
-			  	end if
-                print colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - "
-                if opt == "q" then opt = 0
-                if opt < 0 or opt > menu_options.len-1 or typeof(opt) != "number" then continue
-                mm = @mail[menu_options[opt]]
-                print(mm)
-				if mail.a1 != 0 then return "herme5: returning..."
-                mailing = opt
-              end while
-              return mailing
-            end function
-            return mail.menu
+    // #####################################################################
+    // ####################### end customizables one ############################
+
+    // process floating single quote input ie: " i am a long parameter string "
+    if DEBUG then print "pre single_quote_prompt"
+    if DEBUG then print prompt
+    while prompt.indexOf(char(34)) != null
+        s_string = prompt[:prompt.indexOf(char(34))]
+        if DEBUG then print "s_string: "+s_string
+        e_string = prompt[prompt.indexOf(char(34))+1:]
+        if DEBUG then print "e_string: "+e_string
+        if e_string.indexOf(char(34)) != null then 
+            f_string = e_string[:e_string.indexOf(char(34))]
+            if DEBUG then print "f_string: "+f_string
+            f_string = f_string.join(char(32))
+            z_string = e_string[e_string.indexOf(char(34))+1:]
+            prompt = s_string+[f_string]+z_string
+        else 
+          break
+        end if
+    end while
+    // end floating quote processing
+
+     // process piping
+    if DEBUG then print "debug: pre_pipe prompt is: "+prompt
+    // begin pipe control, edit with extreme caution.
+    if prompt.indexOf("|") >= 0 then  
+      prompt.push("|")
+      while prompt.len
+        pipe.push(prompt[:prompt.indexOf("|")])
+        prompt = prompt[prompt.indexOf("|")+1:]
+      end while
+    else
+      pipe.push(prompt[0:])
+    end if                           
+    // end pipe control
+
+    // process the pre_processed input
+    while pipe.len > 0                  
+      // begin command parsing
+      if DEBUG then print "debug: top of pipe loop"
+      prompt = pipe.pull // no touchy
+      if next.len > 0 then prompt.push(next.pull) // no touchy
+
+      // sanity check
+      // some folks like to edit the below line to do command.cc instead of continue
+      if not prompt.len or prompt[0] == "" or prompt[0] == 0 or prompt[0] == "0" or prompt[0] == null then continue
+      // prevent rogue function execution
+      if typeof(@prompt[0] ) == "function" then 
+        print colorRed+"shell: preventing execution of rogue function:"
+        print @prompt[0]
+        continue 
+      end if
+
+      //
+      if prompt[0] == "return" then 
+        if not mute then print colorWhite+"<size=50%><u><color=red>5</color>hell: returning..."
+        if prompt.len > 1 then 
+          return @prompt[1] 
+        else 
+          return 0 // might edit this to return a value instead
+        end if
+      end if
+      //
+      // ############################### begin customizables two ###########################
+      // begin shortcuts
+      // macro replacement; do this before all other aliases as macros may contain aliases
+      command.cob("validate") // validate index exists to avoid a crash
+      if get_custom_object.macros.hasIndex(prompt[0]) then prompt = ["macro"]+prompt
+      // end macro replacement
+      if prompt[0] == "bat" and prompt.hasIndex(1) then prompt = ["do","1","-f"]+prompt[1:]
+      if prompt[0] == "set" or prompt[0] == "get" or prompt[0] == "inspect" or prompt[0] == "push" then prompt = ["cob"]+prompt
+      //if prompt[0] == "lock" then prompt = "perms lock all".split(" ") // use this shortcut for extra qol!! // this is now a command!
+      if prompt[0] == "exit" then prompt[0] = "quit"      // caution: too many shortcuts may slow down the script
+      if prompt[0] == "sc" then prompt[0] = "silentclean"
+      if prompt[0] == "gp" then prompt[0] = "glasspool"
+      if prompt[0] == "prompt" then // toggle full_prompt on or off
+          full_prompt = not full_prompt
+          continue
+      end if
+      // end shortcuts
+      // // begin easy clip
+      prompt = globals._ez_clip(prompt) // _ez_clip is located in 5phinx.5pk
+      // end easy clip
+      // ############################ end customizables two ###############################
+
+      // post_pre_processing
+
+      // experimental forking and tokenization
+      if DEBUG then print "debug: -- begin experimental..."
+      fork = false
+      for pp in prompt 
+        //if @pp == "--5pork" then // let's be real, --5pork is hilarious but too much to type
+        if @pp == "--nt" then
+          fork = true
+          prompt.indexOf("--nt") = 0
+        end if
+        // tokens?
+        // if @pp == "{" and prompt.indexOf("}",prompt.indexOf(@pp)) != null then 
+        // pre_prompt = prompt[:prompt.indexOf(@pp)]
+        // token = prompt[prompt.indexOf]
+      end for
+
+      if EXPERIMENTAL then 
+        if fork then
+          if DEBUG then print "debug: preparing to fork"
+          // prefork sanity check 
+          prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out 
+          prompt = prompt[:5]
+          print command.nt(prompt)
+          fork = false // superfluous
+          continue
+        end if
+      end if
+      // end experimental forking
+      if DEBUG then print "-- end experimental"
+      //
+      // post experimental sanity check 
+      prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out 
+      prompt = prompt[:5]
+      //
+      // you know what, there was a distinct lack of using guard clauses here
+      // and i dont know if its for performance reasons but i think we
+      // can sacrifice a little bit of performance for readability
+      // (especially if its in this user facing code) - Clover
+
+      // command processing
+      cmdName = @prompt[0]
+      if typeof(@cmdName) == "function" then 
+        print colorRed+"shell: preventing rogue function execution"
+        continue 
+      end if
+      // handle case where prompt is "shell" actually
+      //
+      if cmdName == "shell" then
+        // if you'd like the 'shell' command to return additional info, do that here
+        if @prompt[1] == "--this" then 
+          globals.BUFFER.push(globals.shell)
+          print "shell: "+colorWhite+"</b>active shell pushed to "+colorOrange+"</b>BUFFER"
+          continue 
+        end if
+
+        if @prompt[1] == "--debug" then
+          print "shell: " + ("de"*globals.DEBUG) + "activating DEBUG mode"
+          globals.DEBUG = not globals.DEBUG
+          continue
+        end if
+        if @prompt[1] == "--home" then 
+          if typeof(prompt[2]) == "string" and is_valid_ip(@prompt[2]) then 
+            print("shell: updating @home to: "+prompt[2])
+            get_custom_object.HOME.ip = prompt[2] 
+          else 
+            print get_custom_object.HOME.ip
+          end if
+          continue 
+        end if
+        print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
+        inst = colorGrey+"deleted"
+        if typeof(instance) == "file" then inst = colorRed+instance.path
+        print(colorOlive+"[INSTANCE   : "+inst+CT+"]")
+        print(colorOlive+"[HOME_SERVER: "+colorWhite+get_custom_object.HOME.ip+CT+"]")
+        print(colorOlive+"[COMMANDS   : "+colorCyan+command.indexes.len+CT+"]")
+        print(colorOlive+"[PASSWORDS  : "+colorGold+globals.dict_a.len+CT+"]")
+        print(colorOlive+"[PUBLIC_IP  : "+colorWhite+localmachine.public_ip+CT+"]")
+        print(colorOlive+"[LOCAL_IP   : "+colorWhite+localmachine.local_ip+CT+"]")
+        print(colorOlive+"[STACK_POOL : "+colorRed+get_custom_object.stack_pool+CT+"]")
+        state = "in"
+        if globals.GLASSPOOL then state = ""
+        gp = " " + state + "active "
+        print(colorOlive+"["+colorLightBlue+"GLASSPOOL  "+CT+":"+colorOrange+gp+CT+"]")
+        print("<size=65%>--: use<b> shell --this </b> to push the current shell to the BUFFER")
+        print("<size=65%>--: use<b> shell --home [ip]</b> to change home_server")
+        //print("<size=65%>--: use<b> shell --daemons</b> to view active daemons")
+        //print("<size=65%>--: use<b> shell --daemons stop [daemon_id]</b> to stop a daemon")
+        print("<size=65%>--: use<b> shell --debug</b> to toggle debug mode")
+        print("<size=65%>--: use<b> prompt</b> to toggle full-prompt mode")
+        continue 
+      end if
+      //
+      if not command.hasIndex(cmdName) then
+        runpath = globals.get_file(cmdName)
+        if not runpath then runpath = globals.get_file("/bin/"+cmdName)
+        if not runpath then runpath = globals.get_file("/usr/bin/"+cmdName)
+        if runpath then 
+          prompt = ["run",runpath.path] + prompt[1:]
+          cmdName = "run"
+        else
+          print(cmdName+": unrecognized command (type <b>help</b> for command list)")
+          continue
+        end if
+      end if
+      //
+      f = @command[cmdName]
+     // Support for Glosure's lambdas
+        if typeof(@f) == "lambda" then
+          readString = function(s)
+            return "'" + s + "'"
           end function
-	return herme5
-end function
-command.fwr = function(arg1, arg2, arg3=0, arg4=0) 
-	if GLASSPOOL then print(colorOrange+"fwr: ignores glasspool."+CT)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: fwr [ip] -- returns firewall rules for ip. returns local rules if no ip given."
-	if not localmachine.is_network_active then return "fwr: no network connection"
-	router = get_router
-	if typeof(router) != "router" then return "fwr: router not found"
-	if arg1 and is_valid_ip(arg1) then
-		router = get_router(arg1) 
-		if DEBUG then print "debug: router is a: "+typeof(router)
-		if typeof(router) != "router" then return "fwr: router not found"
-	end if
-	if DEBUG then print "debug: router is a: "+typeof(router)
-	return router.firewall_rules
-end function
-command.memdump = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "memdump: dump MEMORY, XPLOITS, PORT_MAP, clipboards,  to current_path+/memdump.mx"+char(10)+"n.b. ignores glasspool. main purpose is generating reports for clients."
-	return globals.dump_memory
-end function
-command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
-	usg = colorWhite+"</b>Usage: "
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "<b><u>enumeration || ENUM || enum buffer"+char(10)+
-	"Use this to put things in a list."+char(10)+
-	colorLightBlue+"</b>Usage: enum [opt|/path|file_object|array|#]"+char(10)+char(10)+
-	usg+"enum [ list | map | string ] -- enumerates a list or a newline separated string"+char(10)+
-	"-- if the string is a single word it will be interpreted as a path"+char(10)+
-	"-- multiple words on a single line (piped) will be interpreted as a single entry"+char(10)+
-	"-- use <b>enum [-a] [word]</b> to append a single word to the enum buffer"+char(10)+
-	"-- lists and maps will be enumerated by element"+char(10)+char(10)+
-	usg+"enum [ path | file_object ]"+char(10)+
-	"-- enumerate file contents as a list of strings"+char(10)+
-	"-- useful for 5hell scripting (see the '<b>do</b>' command)."+char(10)+
-	"-- e.g: enum file.txt | enum 1"+char(10)+
-	"---- enumerate file.txt then return index [1] from the list"+char(10)+
-	"--nb: use enum [-a] [file] to append a single file to the enum buffer"+char(10)+char(10)+
-	usg+"enum ["+colorGold+"</b>#</color>]"+char(10)+
-	"-- return the element at index [#] in the enum buffer"+char(10)+
-	"-- eg: <b>lanpro | enum || enum 3 | echo"+char(10)+char(10)+
-	colorGold+"Usage: enum [</b>-d<b>] ["+colorWhite+"</b>command_string</color>] [opt:enumerate_this]"+char(10)+
-	"-- iterates across enum buffer with <b>do</b> by:"+char(10)+
-	"---- creating a macro job, <b>ej</b>, containing <b>command_string"+char(10)+
-	"---- for each enumerated element the job will be called"+char(10)+
-	"---- if the job contains the keyword "+colorMagenta+"@pipe "+CT+
-	"------ the enumerated element will be inserted into the @pipe"+char(10)+
-	"---- otherwise "+colorMagenta+"@pipe "+CT+"will be appened to the job string"+char(10)+
-	"---- the appended string is then passed to the <b>do</b> command"+char(10)+char(10)+
-	"--eg: <b>rnip 15 | enum -d probe"+char(10)+
-	"---- enumerate 15 random ips and probe them all"+char(10)+
-	"--NOTE: supplying a "+colorGold+"third argument"+CT+" enumerates that argument"+char(10)+
-	"--ie: this executes: <b>enum [arg3]</b> before operating"+char(10)+
-	"---- the operation will then execute on the <b>new</b> list"+char(10)+
-	"--eg: <b>grep -a .txt$ / | enum -d rm || enum -p"+char(10)+
-	"---- enumerate file objects for all .txt's, delete them, then purge"+char(10)+
-	"------ <size=75%>purging is necessary as the now invalid file objects can cause a crash"+char(10)+
-	"-- use macros that make use of <b>@pipe</B> for best results"+char(10)+
-	"--eg:
-	|> <b>set mem [some_address] || set val [some_val] || meta load [some_lib]
-	|> <b>macro set pwn "" zap \@o mem \@o val @pipe | sc -n ""
-	|> <b>lanpro | enum -d pwn"+char(10)+
-	"---- this rather complicated operation would result in nuking all machines on a lan<b> if:"+char(10)+
-	"------ it were run <b>on a router</b> against some_lib with a root bounce exploit"+char(10)+
-	"------ the values for the root bounce exploit were set appropriately for mem and val"+char(10)+		
-	char(10)+
-	usg+"enum [-l|--length]  -- return the length of the enum buffer"+char(10)+
-	usg+"enum [-s|--show]  -- show the enum buffer and return the length"+char(10)+
-	usg+"enum [-D]  -- enumerate the onboard dictionary"+char(10)+
-	usg+"enum [-r] [index] -- remove the element at index"+char(10)+
-	usg+"enum [-i] [index] [element] -- insert element at index "+char(10)+
-	"-- shifts everything below it down"+char(10)+
-	usg+"enum [-a] [element] -- append element to end of enum buffer"+char(10)+
-	"-- unlike enum [string] you may use enum -a [string] to append a single word to the enum buffer"+char(10)+
-	usg+"enum [-e] -- return the enum buffer as a list"+char(10)+
-	usg+"enum [-b]  -- concatonate the global BUFFER and enum buffer"+char(10)+
-	usg+"enum [-p] -- purge the enum buffer"+char(10)+char(10)+
-	"Note: limited map support"
-	if arg1 == null then return 0
-	if not arg1 or arg1 == "0" then
-		if globals.enumerated.len then return globals.enumerated[0] else return null
-	end if
-	if arg1 == "-r" then 
-		if not arg2 then return "enum: -r expects an index"
-		if typeof(arg2.to_int) != "number" then return "enum: invalid index"
-		if globals.enumerated.hasIndex(arg2.to_int) then 
-			globals.enumerated.remove(arg2.to_int)
-			return "enum: entry at index "+arg2+" removed"
-		else 
-			return "enum: invalid index"
-		end if
-	end if
-	if arg1 == "-b" then 
-		if globals.enumerated.len < 1 then return "enum: enumerated buffer is empty"
-		print "enum: <b>appending enumerated buffer to main BUFFER</b>"
-		globals.BUFFER = globals.BUFFER + globals.enumerated
-		return null
-	end if 
-	if arg1 == "-p" then 
-		globals.enumerated = []
-		return "enum: "+colorOrange+" enum buffer purged"
-	end if
-	if arg1 == "-i" then 
-		if not arg3 then return "enum: -i [index] [element]"
-		buf_bak = globals.enumerated
-		if typeof(arg2) != "string" then return "enum: -i expects string index"
-		if typeof(arg3) != "string" and typeof(arg3) != "list" then return "enum: -i [index] [string|list]"
-		dx = arg2.to_int
-		sbb = null 
-		if typeof(arg3) == "list" then sbb = arg3 
-		if typeof(arg3) == "string" then sbb = arg3.split(char(10))
-		if typeof(dx) != "number" or dx >= buf_bak.len or dx < 0 then return "enum: invalid index"
-		sli_1 = buf_bak[0:dx]
-		sli_2 = buf_bak[dx:]
-		new_buf = sli_1 + sbb + sli_2
-		return "enum: element inserted at index "+dx
-	end if
-	if @arg1 == "-a" then 
-		if not arg2 then return "enum: append failed: missing input"+char(10)+"-- pass "+colorMagenta+"@z"+CT+" to pass a numerical zero"
-		if @arg2 == "@z" then arg2 = 0
-		sb = [@arg2]
-		if @arg2 isa string and arg2.indexOf(char(10)) != null then sb = arg2.split(char(10))
-		if @arg2 isa list then sb = arg2
-		//if typeof(arg2) == "string" then sb = arg2.split(char(10))
-		//if sb == "" then return "enum: append failed: invalid type: expects string or list"
-		globals.enumerated = globals.enumerated + sb
-		return "enum: list appended with "+typeof(@arg2)
-	end if
-	if arg1 == "-d" then // do stuff
-		if typeof(arg2) != "string" then return "enum: invalid input; -d expects command string"
-		if arg3 then print command.enum(arg3)
-		if globals.enumerated.len < 1 then return "enum: nothing enumerated"
-		if arg2.indexOf("@pipe") == null then arg2 = arg2 + " @pipe"
-		print colorGreen+"<size=75%>enum: iterating over list with:"//+char(10)+colorCyan+"<size=65%>"+command.macro("get","ej")//arg2
-		print command.macro("set","ej",arg2)
-		time_s = time
-		for e in globals.enumerated 
-			command.do("1","ej",e)
-		end for
-		return colorGreen+"</b>enum: task complete in ["+colorWhite+str(time - time_s)+CT+colorGreen+"</b>] seconds"
-	end if
-	if arg1 == "-D" then
-		globals.enumerated = globals.dict_a[0:]
-		print("enum: <b>onboard dictionary enumerated</b>. Num entries:")
-		return globals.enumerated.len
-	end if
-	if arg1 == "-l" or arg1 == "--length" then return str(globals.enumerated.len)
-	if arg1 == "-s" or arg1 == "--show" then
-		if not globals.enumerated.len then return 0
-		ie = 0
-		for ge in globals.enumerated
-			print("["+ie+"] " + ge)
-			ie = ie + 1
-		end for
-		return globals.enumerated.len
-	end if
-	if arg1 == "-e" then return globals.enumerated
+          readArray = function(array)
+            i = 0
+            while i < len(array)
+              elem = @array[i]
+              if @elem isa string then array[i] = readString(elem)
+              if @elem isa list then array[i] = readArray(elem)
+              i += 1
+            end while
+            return [ "array" ] + array
+          end function
+          readArgs = function(args)
+            i = 0
+            while i < len(@args)
+              arg = @args[i]
+              if @arg isa string then args[i] = readString(arg)
+              if @arg isa list then args[i] = readArray(arg)
+              i += 1
+            end while
+          end function
+          lambda = f
+          f = function(arg1, arg2, arg3, arg4)
+            args = [
+              @arg1,
+              @arg2,
+              @arg3,
+              @arg4,
+            ]
+            readArgs args
+            return command.glosure("eval", [
+              lambda,
+              @args[0],
+              @args[1],
+              @args[2],
+              @args[3],
+            ])
+          end function
+        end if
+      if typeof(@f) != "function" then // san check #3
+        print(colorOrange+"shell: use <b>cob get ["+f+"]</b> to retrieve element.")
+        continue
+      end if
+      //
+      catch = null
+      // we need this for compatibility with improperly constructed functions
+      if str(@f) == "FUNCTION()" then args = 0 else args = str(@f).split(", ").len // get the number of args required by the function
+      if DEBUG then print("target function takes: "+args+" arguments.")
+      if DEBUG then print("debug: preparing to fire: "+char(10)+prompt)
+      if args == 4 then
+        catch = f(@prompt[1], @prompt[2], @prompt[3], @prompt[4])
+      else if args == 3 then
+        catch = f(@prompt[1], @prompt[2], @prompt[3])
+      else if args == 2 then
+        catch = f(@prompt[1], @prompt[2])
+      else if args == 1 then
+        catch = f(@prompt[1])
+      else
+        catch = f
+      end if
 
-	if typeof(arg1) == "list" then 
-		globals.enumerated = arg1
-		return "enum: list enumerated"
-	end if
-	if typeof(arg1) == "map" or typeof(arg1) == "custom_object" or typeof(arg1) == "shell" or typeof(arg1) == "computer" or typeof(arg1) == "file" then
-	globals.enumerated = []
-		for a in arg1
-			globals.enumerated.push(a)
-		end for
-		return "enum: map <b>enumerated.</b>"
-	end if
-	if typeof(arg1) == "number" then arg1 = str(arg1)
-	if typeof(arg1) == "string" and typeof(arg1.to_int) == "number" then
-	 	if globals.enumerated.hasIndex(arg1.to_int) then return globals.enumerated[arg1.to_int] else return "enum: error: invalid index"
-	end if
-	if typeof(arg1) == "string" then
-		if arg1.split(char(10)).len > 1 or arg1.split(" ") > 1 then // more than one line or more than one word, otherwise it's a path
-			globals.enumerated = arg1.split(char(10))
-			for el in globals.enumerated
-				if el == "" then
-					globals.enumerated.remove(globals.enumerated.indexOf(el))
-					continue
-				end if
-				globals.enumerated[globals.enumerated.indexOf(el)] = el.replace(char(32),"").trim
-			end for
-			return "enum: entry <b>enumerated.</b>"
-		end if
-		file = null
-		file = globals.get_file(arg1)
-		if not file then return "enum: error: "+arg1+" not found."
-		arg1 = file
-	end if
-	if typeof(arg1) == "file" then
-		print("enum: purging...")
-		globals.enumerated = []
-		if arg1.is_binary then return "enum: can't open binary file" else stuff_buf = arg1.get_content
-		if stuff_buf then globals.enumerated = stuff_buf.split(char(10)) else return "enum: error: file empty or read protected."
-		return "enum: "+arg1+" <b>enumerated.</b>"
-	end if
-	return "enum: error: unknown type"
-end function
-command.rclean = function(arg1, arg2=0, arg3=0, arg4=0)
-	if @arg1 == "help" or @arg1 == "-h" then return "Remote Clean || log scrubber || system.log cleaner"+char(10)+
-	"Copy a file over the system.log to corrupt it"+char(10)+
-	"Usage: rclean [opt: int ] -- select an object from buffer to atttempt a remote log wipe."+char(10)+
-	"Usage: rclean [file|shell|computer] -- remote wipe piped object"+char(10)+
-	"-- e.g. clipb @B 1 | rclean -- where BUFFER[1] was a file|shell|computer"+char(10)+
-	"-- rclean with no params will display a menu "+char(10)+
-	"-- rclean is intended for remote scrubbing using BUFFER objects."+char(10)+
-	"-- However you may use silentclean or rclean for local log scrubbing"+char(10)+
-	"-- if rclean detects a file named <b>silentclean</b> it will use that file to scrub the log"+char(10)+
-	"-- for this reason it is a good idea to include an empty file named silentclean in the rkit"+char(10)+
-	"-- or, rename an empty system.log file to silentclean"+char(10)+
-	"---- or, a not so empty system.log file..."+char(10)+
-	"Usage: rclean -d [#|shell|file|computer] -- run rclean as above and delete rkit and/or 5hell, if present"+char(10)+
-	"Usage: rclean -n [#|shell|file|computer] -- run rclean as above and delete the contents of /boot, if present"
-	if arg1 == "-d" then 
-		arg1 = arg2
-		arg2 = "-d"
-	end if 
-	if arg1 == "-n" then 
-		arg1 = arg2 
-		arg2 = "-n"
-	end if
-	//if not arg1 then arg1 = globals.shell
-	if DEBUG then print ("<b>in rclean: obj: "+typeof(@arg1)+" opt: "+@arg2)
-	if arg1 and (typeof(arg1) == "shell" or typeof(arg1) == "ftpshell" or typeof(arg1) == "computer" or typeof(arg1) == "file") then return globals.rclean(arg1,arg2)
-	//if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean(command.clipb("@B",arg1),arg2)
-	if arg1 and typeof(arg1.to_int) == "number" then return globals.rclean( globals._ez_clip(["@B",arg1]), arg2)
-	//return globals.rclean(command.clipb("@B","-m"),arg2)
-	
-	return globals.rclean( globals._ez_clip(["@B","-m"]), arg2)
-end function
-command.ipfit = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: ipfit -- menu to specify a way to generate ips. (wip)"+char(10)+"Recommendation: pipe the output to a file or to the clipboard."+char(10)+"e.g<b> ipfit | clipb </b>, or<b> ipfit | poke iplist </b>"
-	print("Configuring: ")
-	print("<b>How do you want to specify ip's? </b>"+char(10)+"[0] - enter manually"+char(10)+"[1] - read from file "+char(10)+"[2] - random")
-	print("[3] - specify range"+char(10)+"[4] - from clipb")
-	choice = user_input("||: ",0,1).to_int
-	ips = []
-	if choice == 0 then
-		ips = globals.scribus(ips)
-		return ips
-	end if
-	if choice == 1 then
-		ips = command.cat(user_input("path_to_file:> "))
-		return ips
-	end if
-	if choice == 2 then
-		ips = command.rnip(user_input("# ips to create: "))
-		return ips
-	end if
-	if choice == 3 then
-		print("Soon (tm)")
-		return "Soon (tm)"
-	end if
-	if choice == 4 then
-		return command.clipb
-	end if
-	return 0
-end function
-command.md5 = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "MD5SUM || md5 sum || password hash decipher || encode"+char(10)+"Usage: md5 [string] -- returns the md5sum of a string"+char(10)+"Usage: md5 -d [32_char_hash] -- checks hash against onboard dictionary then attempts decipher"+char(10)+"-- defaults to crypto.so if cerebrum is not loaded"+char(10)+"-- one of three main ways to decipher password hash combo's"+char(10)+"-- see also: <b>gopher</b>, <b>hashim</b>, <b>brutus</b>"
-	if arg1 == "-d" then
-		if not arg2 or typeof(arg2) != "string" or arg2.len != 32 then
-			return "[-d] expects 32 character hash string"
-		else
-			for d in dict_a
-				if md5(d) == arg2 then
-					print("md5: found: ["+colorWhite+" "+d+CT+" : "+colorGold+arg2+CT+" ]")
-					return d
-				end if
-			end for
-			print "gopher: hash not in dictionary"+char(10)+"-- defaulting to crypto.so"
-			if crypto then
-				rslt = crypto.decipher(arg2)
-				if rslt then return rslt
-			else 
-				print "md5: cryto.so library is not loaded"
-			end if
-			return "md5: hash not found"
-		end if
-	end if
-	if typeof(arg1) == "string" then return md5(arg1) else return "md5: string required"
-end function
-command.pipe = function(arg1, arg2, arg3=0, arg4=0)
-	return "pipe usage: place <b>|</b> between sets of commands to pipe a commands output"+char(10)+
-	"The output of a command can be piped to the input of the following command using a pipe."+char(10)+
-	"Examples: "+char(10)+
-	"lanpro | enum"+char(10)+
-	"ls -la /root | clipb | enum | poke file.txt | lock || clipb | append file.txt"+char(10)+
-	"You may chain commands without piping by using <b>||</b> instead"+char(10)+
-	"-- eg: command1 || command2 -- output from command1 is NOT passed to command2"
-end function
-command.do = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then
-		if arg2 == "extra" then
-			return "<u><mark=red>=============</u></mark>"+char(10)+
-			"Setup (copy after the |> and paste into 5hell): "+char(10)+
-			"|> clipa 0 | rnip 11 | enum | enum -s | do"+char(10)+
-			"Paste this Script : "+char(10)+
-			"clipa | enum | probe"+char(10)+
-			"clipa ++"+char(10)+
-			"Result:"+char(10)+
-			"set clipa to 0, produce 11 random ips, enumerate those ips, do 11 loops of: probe enum[clipa], clipa++"+char(10)+
-			"-- this runs probe on 11 random ips stored in the enum(eration) buffer using calc and the clipboard to iterate through the list."+char(10)+
-			"<u><mark=red>=============</u></mark>"+char(10)+
-			"Setup (copy after the |> and paste into 5hell)"+char(10)+
-			"|> clipa 1 | ls -a /lib | enum | enum -s | do"+char(10)+
-			"Paste this Script : "+char(10)+
-			"clipa | enum | db -l"+char(10)+
-			"clipa ++"+char(10)+
-			"Result:"+char(10)+
-			"set clipa to 1, enumerate files in /lib, do [num_files+1] loops, start at 1 and run db (databaser) on each file, the error at the end is because ls returns with an extra blank line which gets enumerated at position [0] resulting in the loop being 1 over."+char(10)+
-			"<u><mark=red>=============</u></mark>"+char(10)+
-			"(all commands are valid but note interactive commands will still require interaction)"
-		else
-			return colorGold+"<u>DO || SCRIPTING || AUTOMATION || NOT BASH || BATCH COMMANDS || DORC || BASHRC"+char(10)+
-			colorWhite+"</b>The scheduling or automation service for 5hell. You write a set of"+char(10)+
-			colorWhite+"</b>commands for 5hell to <b>do</b>. Commands may be entered in-line on the"+char(10)+
-			colorWhite+"</b>command line, entered into a text editor buffer, or read from a text file."+char(10)+
-			colorWhite+"</b>see also: do help extra -- for some example do scripts"+char(10)+
-			colorGold+"</b>-- see also: <b>help prompt</b>, <b>dig -h</b>, <b>scribus -h</b>"+char(10)+
-			colorWhite+"</b>Do may be launched in a number of ways, depending on your goals:"+char(10)+char(10)+
-			colorCyan+"Usage: do [int] [command] [arg1] [arg2]-- perform [command] [int] times"+char(10)+
-			colorLightBlue+"</b>-- passes arg1 and arg2 to the command"+char(10)+
-			colorLightBlue+"</b>-- use text blocks to pass complex arguments and/or complex commands"+char(10)+
-			colorGold+"</b>-- eg: |><b> do 3 "" rnip 1 | probe | db -r | zap "" "+char(10)+
-			colorGold+"</b>-- eg: |><b> do 1 poke test.txt "" this is a bunch of text "" "+char(10)+
-			colorLightBlue+"</b>---- note: in practice the above line can be done without the <b>do 1</b>"+char(10)+
-			colorLightBlue+"</b>---- it's just an example of how you would supply complex parameters to <b>do</b>"+char(10)+
-			colorLightBlue+"- - - - - - - - - - - "+char(10)+
-			colorCyan+"Usage: do -- without arguments will prompt for iterations then open the editor"+char(10)+
-			colorCyan+"Usage: do [#] -- supplying iteration without a command opens the editor immediately"+char(10)+
-			colorLightBlue+"</b>-- enter commands into the editor and enter @ on a newline to begin execution"+char(10)+
-			colorLightBlue+"</b>-- the commands in the editor remain until changed and therefore may be rerun/reused"+char(10)+
-			colorLightBlue+"</b>-- you may use <b>scribus @do</b> to edit the <b>do</b> buffer without firing the script"+char(10)+char(10)+
-			colorCyan+"Usage: do [int] -f [/path] -- perform commands in [/path] [int] times"+char(10)+
-			colorLightBlue+"</b>-- the preferred method of firing a 'batch' of commands"+char(10)+
-			colorLightBlue+"</b>-- many examples may use a .bat extension but the .bat extension is not enforced at all"+char(10)+
-			colorLightBlue+"</b>-- it is just a convention, you may name them whatever you wish except:"+char(10)+
-			colorLightBlue+"</b>---- dig.bat must be named dig.bat in order for <b>dig</b> to use it (see dig -h)"+char(10)+
-			colorGold+"</b>-- nested calls to the do command within these files are valid and encouraged"+char(10)+
-			colorGold+"</b>---- dig.bat: cerebrum | brutus | run /home/guest/rkit/5hell "" do 1 -f file2.bat "" "+char(10)+
-			colorGold+"</b>---- file2.bat: rshell @home | sc -d | exit rshell_placed"+char(10)+
-			colorLightBlue+"</b>-- by placing these two files in your rkit folder and running <b>dig [ip]</b> you are able to:"+char(10)+
-			colorLightBlue+"</b>---- automate: infiltrating and placing a root rshell on the target"+char(10)+
-			colorLightBlue+"</b>----- removing your rkit"+char(10)+
-			colorLightBlue+"</b>----- and cleaning the log"+char(10)+
-			colorCyan+"Alias: "+colorWhite+"do 1 -f [path]"+CT+" has been aliased to"+colorWhite+" bat [path]"+CT+" in 5hell.src"+char(10)+char(10)+
-			colorCyan+"You may launch 5hell from the game's command line with a 'do' instruction:"+char(10)+
-			colorLightBlue+"</b>-- instead of launching 5hell simply by typing '5hell' you may launch with:"+char(10)+
-			colorGold+"</b>----# 5hell do [#] [opt:-f] [command|path]"+char(10)+
-			colorLightBlue+"</b>-- and 5hell will launch and immediately begin running the given commands"+char(10)+
-			colorLightBlue+"</b>-- 5hell will then drop to the exit prompt;"+char(10)+
-			colorLightBlue+"</b>---- press 'y' if you wish to exit, press enter or any other key to continue running"+char(10)+
-			colorGold+"This allows 5hell to launch 5hell with instructions to launch 5hell with instructions to..."+char(10)+
-			colorLightBlue+"</b>-- keep in mind there is a game limit of 15 <u>nested</u> uses of shell.launch"+char(10)+
-			colorLightBlue+"</b>-- but no limit to the number of uses of shell.launch; meaning "+colorWhite+"do 1000 dig -s</color></b> is completely valid"+char(10)+
-			colorLightBlue+"</b>-- please note that the game does not allow the use of <b>""</b> in launch parameters"+char(10)+
-			colorLightBlue+"</b>----<b> 5hell do 1 echo three | echo two | echo one"+char(10)+
-			colorLightBlue+"</b>---- will result in 5hell running the three echoes at launch "+char(10)+
-			colorLightBlue+"</b>---- if this line were typed at runtime, it would have to be:"+char(10)+
-			colorLightBlue+"</b>----<b> do 1 "" echo three | echo two | echo one """+char(10)+
-			colorLightBlue+"</b>Note: launching 5hell with <b>do</b> results in 5hell exiting on completion"+char(10)+
-			colorCyan+"</b>However:"+char(10)+
-			colorLightBlue+"</b>-- you may launch 5hell with params, without do:"+char(10)+
-			colorLightBlue+"</b>----<b> 5hell echo three | echo two | echo one"+char(10)+
-			colorLightBlue+"</b>---- will result in the same behavior, but 5hell will <b>not exit</b> on completion"+char(10)+char(10)+
-			colorGold+"Advanced: Resource Configuration"+char(10)+
-			colorCyan+"You may place a file named "+colorWhite+"do.rc</color> in your "+colorWhite+"rkit</color> and/or "+colorWhite+"Config folder"+char(10)+
-			colorLightBlue+"</b>-- the contents of the file should look like a standard <b>do</b> script and will be executed on launch"+char(10)+
-			colorLightBlue+"</b>-- unlike launching with <b>5hell do 1 -f do.rc</b>, this method will not exit on completion"+char(10)+
-			colorLightBlue+"</b>-- do.rc in <b>Config</b> will take priority over do.rc in <b>rkit</b>. This allows a 'home' and 'away' do.rc"+char(10)+
-			char(10)+
-			colorCyan+"Early Termination:"+char(10)+
-			colorLightBlue+"</b>If the final return value of a line in a do script is: "+colorWhite+"@STOP"+CT+", then:"+char(10)+
-			colorLightBlue+"</b>-- that iteration will cease, and the next iteration will begin"+char(10)+
-			"----: equivalent to a <b>continue</b>"+char(10)+
-			colorLightBlue+"</b>If the final return value of a line in a do script is: "+colorWhite+"@RETURN"+CT+", then:"+char(10)+
-			"-- the do script will terminate; no further iterations will run"+char(10)+
-			"----: equivalent to a <b>break</b>"+char(10)+char(10)+
-			colorCyan+"Comments:"+char(10)+
-			colorLightBlue+"</b>You may add comments to <b>do</b> scripts. The comment character must be placed"+char(10)+
-			colorLightBlue+"</b>on it's own line. Comments place within command strings or at the end will error."+char(10)+
-			colorLightBlue+"</b>Valid comment characters are: <b>#, /, and -</b>"+char(10)+
-			colorLightBlue+"</b><size=75%>While <b>|</b> will technically work, it might break things down the road if"+char(10)+ 
-			colorLightBlue+"5hell.src changes. If a comment character is the first character on a line, <b>do</b> will skip that line."+char(10)+
-			colorLightBlue+"Please note that because macros are done in-line, they may not include comments. Please"+char(10)+
-			colorLightBlue+"keep this in mind if piping the contents of a do script into a macro definition."
+      if DEBUG then///// begin 3.1.2 compatibility changes
+        print("@catch: "+typeof(@catch))  // attn! catch may now be a function!
+        //if typeof(@catch) != "function" then print("catch:  "+catch)
+      end if
 
-			colorGreen+"As you can see, 5hell is designed to be (almost*) completely automated."+char(10)
-			colorGreen+"See Also: macro -h, help conventions, help alias, help automation"
-		end if
-	end if
-	iter = 0
-	cmd = []
-	if arg1 then
-		if typeof(arg1) == "number" then iter = arg1 else iter = arg1.to_int // needs a check for invalid type
-	else
-		iter = user_input("Number of iterations to run command:"+char(10)+":> ").to_int
-	end if
-	if not iter or typeof(iter) != "number" then return "do: invalid iteration."
-	if arg2 and arg2 != "" then
-		if arg2 == "-f" then
-			cmd.push(arg2)
-		else
-			if arg3 then arg2 = arg2 + " " + arg3
-			if arg4 then arg2 = arg2 + " " + arg4
-			cmd.push(arg2)
-		end if
-	else
-		print("Configure command list: ")
-		print("* piped commands go on a single line separated by | ")
-		print("* non-piped commands go on a new line ")
-		print("* @ on newline to save and execute")
-		print("* @@ on newline to abort and quit")
-		cmd_hold = command.scribus("@do")
-		if cmd_hold then cmd = cmd_hold.split(char(10)) else return "aborting..."
-	end if
-	if cmd[0] == "-f" then
-		if arg3 then
-			cf = globals.get_file(arg3)
-			if not cf then return "do: file: "+arg3+" not found"
-			if cf.is_binary then return "do: cannot open binary file"
-			if not cf.has_permission("r") then return "do: can't read "+arg3+": permission denied"
-			cmd = cf.get_content.split(char(10))
-		else
-			return "do: input error: -f expects a file path"
-		end if
-	end if
-	time_s = time
-	if DEBUG then print(cmd)
-	if cmd.len then
-		cmd = cmd.replace(char(10)," || ")
-		for i in range(1,iter)
-			for c in cmd
-				if c == globals.SAFEWORD then break
-				//c = c.replace(" || "," |  | ") + " | return"
-				if DEBUG then print "debug: do: c: "+char(10)+": "+c
-				if c.len < 1 or c[0] == "#" then continue
-				c = c + " | return"
-				r = command.shell(c)
-				if r == "@STOP" then break
-				if r == "@RETURN" then return
-			end for
-		end for
-	else
-		return "<b>aborting...</b>"
-	end if
-	return colorCyan+"<size=50%>do: batch complete in [</size><size=75%>"+colorOrange+(time-time_s)+colorCyan+"</size><size=50%>] seconds"+CT
+      // post processing
+      //if not @catch then continue
+      if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
+      if pipe.len > 0 and @pipe[0] == "return" then return @catch // added by me
+      if not mute then print(@catch)
+      if pipe.len > 0 then next.push(@catch) // using @reference instead of literal bc functions may now be passed
+    end while         // end command parsing
+  end while          // end main loop
 end function
-command.cc = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return ": carbon copy: command buffer."+char(10)+"Usage: cc -- select command from history."+char(10)+"Usage: cc [#] -- where # corresponds to the command you wish to run from the command buffer."+char(10)+"-- will <b>return</b> the output of the commands as if they were run normally."+char(10)+"-- you may use cc inside of pipe chains."+char(10)+"---- e.g: cc 22 | echo | cc 10 | poke file.txt"
-	i = 0
-	schtick = "| return"
-	if not arg1 then 
-		for ccom in globals.command_buffer
-			print("["+colorWhite+i+CT+"] "+char(187)+" "+ccom)
-			i = i + 1
-		end for
-	end if
-	do = null
-	if arg1 then do = arg1.to_int
-	if not do then do = user_input("cc:> ",0,0).to_int
-	if typeof(do) == "number" and do >= 0 and do < globals.command_buffer.len then
-		carbon = globals.command_buffer[do]
-		carbon = carbon +" "+ schtick
-		return command.shell( carbon )
-	else
-		return "cc: invalid index"	
-	end if
-	return null
-end function
-command.time = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: time -- returns current game time."+char(10)+"Usage: time [-d|date] -- returns current game time and date."+char(10)+"Usage: time [-t] -- returns time in seconds since script launch."
-	if arg1 == "-t" then return time
-	if arg1 == "-d" or arg1 == "date" then return current_date
-	return current_date.split(" ")[2]
-end function
-command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	cw = colorWhite
-	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "pause || wait || hang || sleep || halt"+char(10)+
-	// note, this function expects time as a string, the user should form the string as a float. eg: pause .01 -- where .01 is a string
-	"Usage: "+cw+"pause"+CT+" ["+cw+"seconds(float)"+CT+"] -- stops script execution until condition is met"+char(10)+
-	"-- Minumum time: .01 seconds"+char(10)+
-	"-- Maximum time: 300 seconds"+char(10)+
-	"-- useful for putting a delay in 'do' scripts."+char(10)+
-	"-- useful for putting a delay in a chain of commands"+char(10)+
-	"-- this command uses the general function: wait(time)"+char(10)+
-	"Usage: "+cw+"pause"+CT+" ["+cw+"-v"+CT+"] [delay|opt] -- as above but prints a notification at each pause"+char(10)+
-	"-- you may prepend the -v flag to any option"+char(10)+
-	"--ie: pause -v -m"+char(10)+
-	"--ie: pause -v -p [processs_name]"+char(10)+
-	"Usage: "+cw+"pause"+CT+" ["+cw+"-m"+CT+"] -- pause until manually unpaused"+char(10)+
-	"-- press <b>enter</b> to simply resume the script"+char(10)+
-	"-- type input to have pause echo that input"+char(10)+
-	"----ie: pipe your input to the next command"+char(10)+
-	"-- think of this as, ""pause for manual user input"""+char(10)+
-	"--eg:<b> pause -m | probe"+char(10)+
-	"Usage: "+cw+"pause"+CT+" ["+cw+"-f"+CT+"] [path] -- pause until"+char(10)+ //one of the following:"+char(10)+
-	"---- a file springs into existence"+char(10)+
-	//"---- a file at path changes size"+char(10)+
-	//"---- a file at path changes contents (text only)"+char(10)+
-	"---- a file at path ceases to exist"+char(10)+
-	"--eg:<b> pause -f /var/system.log || sc"+char(10)+
-	"--eg:<b> pause -v -f /root/sniffed"+char(10)+
-	"--eg:<b> do 10000 "" pause -f /root/Config/Mail.txt || rm /root/Config/Mail.txt """+char(10)+
-	"--nb: file path respects glasspool"+char(10)+
-	"Usage: "+cw+"pause"+CT+" ["+cw+"-p"+CT+"] [process_name] -- pause until:"+char(10)+
-	"-- an instance of a named process exists in ps"+char(10)+
-	"--eg:<b> do 1000000 "" pause -p ps || kill ps """+char(10)+
-	"--nb: process list respects glasspool"+char(10)+char(10)+
-	"Usage: "+cw+"pause"+CT+" ["+cw+"-P"+CT+"] [process_name] -- pause until named process no longer exists"+char(10)+
-	"--eg:<b> do 10000 "" pause -P totallyNotaTrojan || rshell 1.2.3.4 totallyNotaTrojan """+char(10)+char(10)+
-	"NOTE: the -f,-p, and -P options loop until:"+char(10)+
-	"-- condition is met"+char(10)+
-	"-- ended with ctrl+c"+char(10)+
-	"<size=75%>note: more options planned"
-
-	time_to_wait = "1" // default wait 1 second 
-	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
-	verbose = false // if false; works silently. if true; prints a line on each pause
-	// change the below to use _switch
-	p_bye = colorWhite+"pause:"+CT+" resuming script execution"
-
-	if arg1 == "-m" then 
-		manual_unpause = true 
-		arg1 = ".01"
-	end if
-	if arg1 == "-v" then 
-		verbose = true 
-		arg1 = arg2
-		arg2 = arg3
-		arg3 = arg4
-	end if
-	if arg1 isa string and arg1.lower == "-f" then
-		if not arg2 isa string then return "pause: -f expects a file path" else check_path = arg2
-		if verbose then print colorGreen+"pause: "+["waiting on file: "+check_path,"waiting for file: "+check_path+" to poof"][(f isa File)]  // felt weird, did some fancy
-		waiting = true
-		while waiting
-			if arg1 == "-F" then
-				if not globals.get_file(check_path) then waiting = false
-			else
-				if globals.get_file(check_path) then waiting = false
-			end if
-			wait .1
-		end while
-		if verbose then return p_bye else return null
-	end if
-	if arg1 isa string and arg1.lower == "-p" then
-		if not arg2 then return "pause: -p expects a process name"
-		waiting = true
-		while waiting
-			p = globals.localmachine.show_procs
-			if arg1 == "-p" then 
-				if p.indexOf(arg2) != null then waiting = false
-			else
-				if p.indexOf(arg2) == null then waiting = false
-			end if
-			wait .1
-		end while
-		if verbose then return p_bye else return null
-	end if
-
-	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
-	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
-	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- awaiting manual input :> ")//"-- press <"+colorGreen+"enter"+CT+"> to continue --")
-	if time_to_wait <= 300 and time_to_wait >= .01 then
-	else
-		time_to_wait = 1
-		print "pause: invalid wait time: changing time_to_wait to 1 second"
-	end if
-	if verbose then print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
-	wait(time_to_wait)
-	if verbose then return p_bye
-	return null
-end function
-command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "OBJECT | MEMORY | BIOS | CERBIOS"+char(10)+
-	"Usage: bios -- system info"+char(10)+
-	"Advanced:copy the following to 5hell's command line:"+char(10)+
-	"<b>mkdir /virt | poke /virt/hdd.io dev_sda:SIZE </b>"+char(10)+
-	"-- replace SIZE with the maximum size of your hdd in bytes. "+char(10)+
-	"-- this lets bios report the remaining hdd space"+char(10)+
-	"Usage: bios -a -- return the currently loaded <color=#FFD000>aptclientlib object"+char(10)+
-	"Usage: bios -m -- return the currently linked <color=#13E6CA>metaLib object"+char(10)+
-	"Usage: bios -x -- return the currently loaded <color=#FF0800>metaxploitLib object"+char(10)+
-	"Usage: bios -c -- return the currently loaded <color=#8C00FF>crypto object"+char(10)+
-	"Usage: bios -C [cryptoLib|/path] -- replace the currently loaded <color=#64184B>crypto object"+char(10)+
-	"-- eg: bios -i /lib/crypto.so | <b>bios -C"+char(10)+
-	"-- eg: <b>bios -C /root/crypto.so"+char(10)+
-	"Usage: bios -n -- return the currently linked <color=#0011FF>netsession object"+char(10)+
-	"Usage: bios -p -- return the currently loaded <color=#69E488>port_map object as a string"+char(10)+
-	"Usage: bios -P -- return the currently loaded <color=#00FF40>port_map object as a map"+char(10)+
-	"Usage: bios -H -- return the currently linked <color=#E4EE58>herme5 meta.mail object"+char(10)+
-	"-- returns null if not logged in to a mail account"+char(10)+
-	"Usage: bios -s -- return the currently loaded <color=#8B8568>meta_scan information</color> as a string"+char(10)+
-	"Usage: bios -X -- return the currently loaded <color=#065F0D>XPLOITS as a list"+char(10)+
-	"Usage: bios -M -- return the current <color=#FF00C8>MEMORY object or null"+char(10)+
-	"Usage: bios -B -- return the global <color=#E68A13>BUFFER as a list"+char(10)+
-	"Usage: bios -r [opt: ip] -- return the <b>local<b> <color=#71858D>router object</color> [opt:ip]"+char(10)+char(10)+
-	"<b>Usage: bios -i [/path] -- runs <u></b>include_lib</u><b> on /path and returns result"+char(10)+
-	"-- e.g.|> bios -i /lib/blockchain.so | code "+char(10)+
-	"---- sends the blockchainLib object to the "+colorOrange+"BUFFER"+CT+" then returns it"+char(10)+
-	"-- only libs with API's may use <b>include_lib</b>"+char(10)+
-	"---- net.so, init.so, kernel_module.so, for example, do not have API's"+char(10)+
-	"--note: use <b>meta [link|load]</b> to obtain <b>metaLib</b> objects, instead "+char(10)+char(10)+
-	"Usage: bios --stack -- return the global stack_pool value (as a string numeral)"+char(10)+
-	"-- this value is incremented by one with each use of <B>run</b> (shell.launch)"+char(10)+
-	"-- this value is decremented on return from <b>run</b>"+char(10)+
-	"-- current stack_pool: <b>"+globals.stack_pool+char(10)+char(10)+
-	"Usage: bios --home -- return the get_custom_object.HOME map"+char(10)+
-	"-- current @home address: <size=75%><b>"+get_custom_object.HOME.ip
-	if arg1 == "--stack" then return str(globals.stack_pool)
-	if arg1 == "-C" then 
-		ilib = null
-		if typeof(arg2) == "cryptoLib" then 
-			ilib = arg2
-			globals.cryptoLibVersion = "-.-.-"
-		end if
-		if typeof(arg2) == "string" then 
-			lib = globals.get_file(arg2)
-			if typeof(lib) == "file" then ilib = include_lib(lib.path) else return "bios: file not found"
-			if typeof(ilib) == "cryptoLib" then 
-				if metaxploit then globals.cryptoLibVersion = metaxploit.load(lib.path).version else globals.cryptoLibVersion = "-.-.-"
-			else 
-				return "bios: target file is not a cryptoLib"
-			end if
-		end if
-		if typeof(ilib) == "cryptoLib" then globals.crypto = ilib else return "bios: invalid input"
-		print colorGold+"</b>bios: global cryptoLib replaced: "+char(10)+"-- crypto.so v "+globals.cryptoLibVersion
-		return ilib
-	end if	
-	if arg1 == "-a" then return globals.apt_get 
-	if arg1 == "-x" then return globals.metaxploit 
-	if arg1 == "-c" then return globals.crypto 
-	if arg1 == "-n" then return globals.net_session
-	if arg1 == "-p" then return globals.display_portmap(1)
-	if arg1 == "-P" then return globals.PORT_MAP
-	if arg1 == "-H" then return globals.inbox
-	if arg1 == "-m" then return globals.metaLib
-	if arg1 == "-s" then return globals.meta_scan
-	if arg1 == "-X" then return globals.XPLOITS 
-	if arg1 == "-M" then return globals.MEMORY
-	if arg1 == "-B" then return globals.BUFFER
-	if arg1 == "--home" then return get_custom_object.HOME.ip
-	if arg1 == "-r" then 
-		if not localmachine.is_network_active then return "bios: no network connection"
-		if arg2 then
-			if is_valid_ip(arg2) then return get_router(arg2)
-			return "bios: get_router: invalid ip"
-		else 
-			return get_router
-		end if
-	end if
-	if arg1 == "-i" then 
-		if not arg2 then 
-			arg2 = user_input("Enter path to file.so :> ")
-		end if
-		tf = globals.get_file(arg2)
-		if not tf then return "bios: "+colorRed+"</b>target file not found!"
-		inc = include_lib(tf.path)
-		if inc then 
-			globals.BUFFER.push(inc)
-			print "bios: sending "+inc+" to "+colorOrange+"BUFFER"+char(10)+"-- returning..."
-			return inc
-		else
-			return "bios: "+colorRed+"</b>include_lib failed:"+char(10)+"-- target file does not have an API"+char(10)+char(10)+colorGreen+"<size=75%>--: hint:</b> perhaps try<b> meta load [libname]"+char(10)+"<size=75%>-- if you meant metax.load("+arg2+")" 
-		end if
-	end if
-
-	bios_info = []
-	bios_info.push("<mark=red><u>=======================================================================</u></mark>")
-	bios_info.push("<u><mark=red>=</mark><color=red>__(WIP)________________cer_bios_v_0.6_by_Plu70________________(WIP)__</color><mark=red>=</mark></u>")
-	ipinfo = "0.0.0.0 @ 0.0.0.0"
-	if localmachine.is_network_active then ipinfo = globals.localmachine.local_ip+" @ "+globals.localmachine.public_ip
-	bios_info.push("* "+current_date+" "+ipinfo+" up: "+time)
-	procs = globals.localmachine.show_procs.split(char(10))
-	root_procs = 0
-	user_procs = 0
-	guest_procs = 0
-	mem_used = 0
-	cpu_used = 0
-	for p in procs
-		spl = p.split(" ")
-		pro_usr = spl[0]
-		pro_idn = spl[1]
-		pro_cpu = spl[2].remove("%")
-		pro_mem = spl[3].remove("%")
-		pro_nam = spl[4]
-		if pro_cpu != "CPU" then cpu_used = cpu_used + pro_cpu.val
-		if pro_mem != "MEM" then mem_used = mem_used + pro_mem.val
-		if pro_usr == "root" then
-			root_procs = root_procs + 1
-		else
-			if pro_usr == "guest" then
-				guest_procs = guest_procs + 1
-			else
-				if pro_usr != "USER" then user_procs = user_procs + 1
-			end if
-		end if
-	end for
-	root = localmachine.File("/")
-	hdd_io = localmachine.File("/virt/hdd.io")
-	h_size = "<color=red>dev_sda error</color>"
-	if hdd_io then
-		h_c = hdd_io.get_content.split(char(10))
-		h_s = h_c[0].split(":")
-		h_n = 0
-		if h_s.len > 1 then h_n = h_s[1].val
-		if h_n then h_size = h_n - root.size.val
-	end if
-	if globals.stack_pool >= 15 then stack_print = "depleted; further nested launches not possible" else stack_print = globals.stack_pool
-	bios_info.push("<mark=red><size=85%>|</size></mark>")
-	bios_info.push("<size=85%>Macula Registry: [stack_pool:"+colorRed+stack_print+CT+"] </size>")
-	bios_info.push("<size=85%>root_procs [<b>"+root_procs+"</b>] user_procs [<b>"+user_procs+"</b>]  guest_procs [<b>"+guest_procs+"</b>] t:<b> "+(procs.len-1)+"</b></size>")
-	bios_info.push("<size=85%>cpu_usage: ["+cpu_used+"%] mem_usage: ["+mem_used+"%] temp: <color=red>therm_io not found</color></size>")
-	bios_info.push("<size=85%>[cpu:<mark=green>|"+"|"*(cpu_used/4)+"</mark>"+"_"*((100-cpu_used)/4)+"]   [ram:<mark=green>"+"|"*(mem_used/4+1)+"</mark>"+"_"*((100-mem_used)/4)+"]</size>")
-	hdd=(root.size.val / 1000000)
-	if typeof(h_size) == "number" then h_size = h_size / 1000000
-	bios_info.push("<size=85%>[hdd_used: <b>"+str(hdd)+" </b>MB]  [hdd_free: "+h_size+" MB]</size>")
-	allfiles = command.tree("-r","/")
-	folds = 0
-	bins = 0
-	txts = 0
-	tot = 0
-	for f in allfiles
-		if f.is_folder then 
-			folds = folds + 1
-		else if f.is_binary then 
-			bins = bins + 1
-		else
-			txts = txts + 1
-		end if
-	end for
-	tot = folds + bins + txts
-	bios_info.push("<size=85%>num_folders ["+folds+"] num_binaries ["+bins+"] num_ascii ["+txts+"] total: ["+tot+"]</size>")
-	ess = "-wifi disabled-"
-	if localmachine.active_net_card == "WIFI" and localmachine.is_network_active then
-		sig = 0
-		nets = localmachine.wifi_networks("wlan0") 
-		ess = get_router.essid_name
-		_get_wifi = function(networks)
-			for net in networks 
-				n = net.split(" ")
-				if DEBUG then print "debug: n is: "+n+" and n[1] is: "+n[2]
-				if ess == n[2] then
-					sig = n[1].replace("%","")
-					sig = sig.to_int
-					if DEBUG then print "debug: sig strength is: "+sig+"%"
-					return sig 
-				end if
-			end for
-			return null
-		end function
-		sig = _get_wifi(nets)
-		sig_not = 100 - sig
-		bios_info.push("<size=85%>[wifi_signal:<mark=green>|"+"|"*(sig/2)+"</mark>"+"_"*(sig_not/2)+"]</size>")
-	end if
-	dl = localmachine.network_devices.split(char(10))
-	bios_info.push("<size=85%>["+dl.join("] [")+localmachine.active_net_card+"] ["+ess+"]")
-	ports = localmachine.get_ports
-	pl = []
-	for p in ports
-		pl.push(p.port_number)
-	end for
-	bios_info.push("<size=85%>ports: ["+pl.join("] [")+"] </size>")
-	bios_info.push("<mark=red><size=50%>|</size></mark>")
-	if DEBUG then print "debug: bios searching for database..."
-	//database = command.tree("/","database.csv",1,"N")
-	hold = globals.SILENT 
-	if not DEBUG then globals.SILENT = 2
-	database_files = command.grep("-a","^database.csv")
-	if not DEBUG then globals.SILENT = hold
-	data_lines = "--"
-	data_size = "-not_found-"
-	database = ""
-	if database_files.len then
-		if DEBUG then print "-- found "+database_files.len+" database.csv's"
-		// data_size = command.file("-c",database)
-		// if database.has_permission("r") then data_lines = command.file("-l",database) else data_lines = "-check_perms-"
-		// if data_size.to_int > "150000".to_int then data_size = colorOrange+"Warning: "+data_size+CT
-		data_lines = 0
-		data_size = 0
-		for file in database_files
-			if file.has_permission("r") then 
-				data_lines = data_lines + file.get_content.split(char(10)).len
-				data_size = data_size + file.get_content.len
-			end if
-		end for
-	end if
-	bios_info.push("<size=85%>[database_files:"+database_files.len+"]  [database_size:"+data_size+"]  [database_lines:"+data_lines+"]</size>")
-	bios_info.push("<size=85%>[BUFFER: "+globals.BUFFER.len+" objects]</size>" )
-	bios_info.push("<size=85%>[Custom_Object: "+get_custom_object.len+" indexes]")
-	bios_info.push("<size=85%>[tagged4scp: "+globals.tagged_for_scp+"]</size>")
-	bios_info.push("[tbuf:<size=60%>"+globals.T_BUF.join(" ")+"</size>]</size>")
-	if typeof(@CLIP["a"]) == "string" then
-		bios_info.push("[clipa:<size=60%>"+CLIP["a"].replace(char(10),", "))
-	else
-		bios_info.push("[clipa:<size=60%>"+@CLIP["a"])
-	end if
-	if typeof(@CLIP["b"]) == "string" then
-		bios_info.push("[clipb:<size=60%>"+CLIP["b"].replace(char(10),"</size=60%>, "))
-	else
-		bios_info.push("[clipb:<size=60%>"+@CLIP["b"])
-	end if
-	if typeof(@CLIP["c"]) == "string" then
-		bios_info.push("[clipc:<size=60%>"+CLIP["c"].replace(char(10),"</size=60%>, "))
-	else
-		bios_info.push("[clipc:<size=60%>"+@CLIP["c"])
-	end if
-	mscan = "-none-"
-	if globals.meta_scan then mscan = "ready"
-	bios_info.push("<size=85%>[portmap:"+globals.PORT_MAP.len+"] [xploits: "+globals.NUM_SPLOITS+"] [metascan: ]</size>")
-	bios_info.push("<size=85%>[dict_a:"+colorGold+globals.dict_a.len+CT+"]  [dict_size: "+dict_a.join(", ").len+"]</size>")
-	bios_info.push("<mark=red><size=50%>|</size></mark>")
-	score = 10
-	co = colorOrange
-	pwf = command.tree("/etc","passwd",1,"N")
-	if pwf then 
-		pwf = co + pwf.path +CT
-		score = score - 1
-	else 
-		pwf = "--null--"
-	end if
-	bff = command.tree("/","Bank.txt",1,"N")
-	if bff then
-		bff = co + bff.parent.path +CT
-		score = score - 1
-	else 
-		bff = "--null--"
-	end if
-	mtf = command.tree("/","Mail.txt",1,"N")
-	if mtf then 
-		mtf = co + mtf.parent.path +CT
-		score = score - 1
-	else 
-		mtf = "--null--"
-	end if
-	mcf = command.tree("/","Map.conf",1,"N")
-	if mcf then 
-		mcf = co + mcf.parent.path +CT
-		score = score - 1
-	else 
-		mcf = "--null--"
-	end if
-	bcf = command.tree("/","Browser.txt",1,"N")
-	if bcf then 
-		bcf = co + bcf.parent.path +CT
-		score = score - 1
-	else 
-		bcf = "--null--"
-	end if
-	clf = command.tree("/","ConfigLan.conf",1,"N")
-	if clf then 
-		clf = co + clf.parent.path +CT
-		score = score - 1
-	else 
-		clf = "--null--"
-	end if
-	unsec_files = 0
-	unsec_dirs = 0
-	for file in allfiles
-		fp = file.permissions.values 
-		if fp[-1] != "-" or fp[-2] != "-" or fp[-3] != "-" then 
-			if file.is_folder then unsec_dirs = unsec_dirs + 1 else unsec_files = unsec_files + 1
-		end if	
-	end for
-	if unsec_files then score = score - 1
-	if unsec_dirs then score = score - 1
-	log = localmachine.File("/var/system.log")
-	log_size = 0
-	log_is_binary = 0
-	log_permissions = "-log-missing-"
-	if log then
-		log_size = log.size
-		log_is_binary = log.is_binary
-		log_permissions = log.permissions
-	end if
-	log_ps = log_permissions.values
-	if log_ps[-2] != "-" or log_ps[-3] != "-" then score = score - 1
-	if score == 10 then 
-		score = colorGreen+str(score) 
-		else if score < 2 then 
-			score = colorRed+str(score)
-		else 
-			score = colorOrange+str(score)
-	end if
-	bios_info.push("<size=85%>Security Audit Score: "+score+"/10</size>")
-	bios_info.push("<size=60%>[unsecured_files:"+unsec_files+"]  [unsecured_directories: "+unsec_dirs+" ]</size>")
-	bios_info.push("<size=60%>[/etc/passwd:"+pwf+"] [Mail.txt:"+mtf+"] [Bank.txt:"+bff+"]</size>")
-	bios_info.push("<size=60%>[Map.conf:"+mcf+"] [Browser.txt:"+bcf+"] [ConfigLan.conf:"+clf+"]</size>")
-	bios_info.push("<mark=red><size=50%>|</size></mark>")
+//////END MAIN//////
+//
+// color palette moved to top of file
+if DEBUG then print("<size=75%>loading customizations (if any)...</size>")
+////////////////// IMPORTS SECTION ////////////////////////////
+/////// PASTE YOUR IMPORTED COMMANDS HERE!!  ////////
+/////// BE SURE TO FOLLOW THE TEMPLATE BELOW! ///////
+/////// feel free to reference internal functions and globals in your code! ///////
+// e.g:
+//
+// command.my_func = function(arg1, arg2=0,arg3=0,arg4=0)
+// if arg1 == "help" or arg1 == "-h" then return "Usage: command -- info"
+//    // code and additional functions
+//    return 0  // or return soemthing
+// end function
+//
 
 
-	bios_info.push("<size=85%>[/var/system.log: "+log_size+" bytes || is_binary: "+log_is_binary+" || perms: "+log_permissions+" ]")
-	bios_info.push("<mark=red><size=50%>|</size></mark>")
-	bios_info.push("*<size=50%> (obvious stub needs obvious improvement)</size>")
-	bios_info.push("*<size=50%> see <b>bios -h</b> for additional usage info.")
-	bios_info.push("<mark=red><u>=======================================================================</u></mark>")
-
-	return bios_info.join(char(10))
-end function
-command.cname = function(arg1,arg2,arg3,arg4)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: cname -- returns the name of the currently active computer_object"
-	return localmachine.get_name
-end function
-command.whoami = function(arg1,arg2,arg3,arg4)
-	if arg1 == "help" or arg1 == "-h" then return "WHOAMI || current user || active user || new user, who dis?"+char(10)+
-	"Usage: whoami -- returns the active_user"+char(10)+
-	"-- if GLASSPOOL is active; returns best guess at active user"
-	if GLASSPOOL then return checkUser(localmachine) else return active_user
-end function
-command.rnip = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "Usage: rnip [iter] [optional: delimiter] -- produce [iter] random ip addressses and"+char(10)+"return as a string with optional [delimiter] (default newline)"+char(10)+"e.g. rnip 100 ,  -- returns a string of 100 ips seperated by a comma"
-	loop = 1
-	delimiter = char(10)
-	if arg1 then loop = arg1.to_int
-	if arg2 then delimiter = arg2
-	rng = range(1,223)
-	rnd = range(0,223)
-	rand_ip = []
-	if loop < 1 then return "rnip: iteration must be a positive integer."
-	for i in range(1,loop)
-		rng.shuffle
-		rnd.shuffle
-		sub = rnd[0]
-		rnd.shuffle
-		ito = rnd[0]
-		rnd.shuffle
-		rand_ip.push([rng[0], rnd[0], ito, sub].join("."))
-	end for
-	return rand_ip.join(delimiter)
-end function
-// new purge
-command.purge = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or arg1 == "-h" or arg1 == "help" then return "PURGE || clear buffer || feels bad"+char(10)+
-	"Usage: purge [-b] -- purge the BUFFER (excludes shell [0])"+char(10)+
-	"Usage: purge [-b] [#] -- remove BUFFER entry at index #"+char(10)+
-	"-- for advanced BUFFER management see the <b>tws -h</b>"+char(10)+
-	"Usage: purge [-t] -- purge transmit buffer (@tbuf)"+char(10)+
-	"Usage: purge [-x] -- purge the metaxploitLib object"+char(10)+
-	"Usage: purge [-X] -- purge XPLOITS buffer "+char(10)+
-	"Usage: purge [-m] -- purge macro registry"+char(10)+
-	"USage: purge [-M] -- purge the MetaLib object"+char(10)+
-	"-- also purges XPLOITS buffer"+char(10)+
-	"Usage: purge [-c] -- purge CC command buffer "+char(10)+
-	"Usage: purge [-e] -- purge enum buffer"+char(10)+
-	"Usage: purge [-s] -- purge tagged4scp buffer"+char(10)+
-	"Usage: purge [-r] -- purge the RSI buffer (remove all rshells)"+char(10)+
-	"Usage: purge [-r] [exclude1:exclude2:...] "+char(10)+
-	"-- purge the RSI buffer; excludes process names or ID's matching the excludes"+char(10)+
-	"--eg: purge -r backdoor:ps:obviousVirus"+char(10)+
-	"-- skips confirmation"+char(10)+
-	"-- for advanced rsi management see <b>rsi -h</b>"+char(10)+
-	"Usage: purge [-o] -- purge custom object  (excludes: stack_pool, macro registry)"+char(10)+
-	"Usage: purge [-p] -- purge the PORT_MAP"+char(10)+
-	"Usage: purge [-d] -- purge monitors"+char(10)+
-	"--ie: purge all daemons"+char(10)+
-	"-- use the <b>dm</b> command to stop indivudual daemons"+char(10)+
-	"--eg: dm stop htop_01"+char(10)+
-	"Advanced: purge [opt] [y] -- skip confirmation "+char(10)
-	if DEBUG then print "debug: starting new_purge with inputs: "+arg1+" and "+arg2
-	p = {}
-	p.a = "purge: aborting..."
-	p.a2 = arg2
-	p.done = function(l)
-		return "<size=75%>purge: <b>"+l+"</b> purged"
-	end function
-	p.confirm = function(lbl)
-		if self.a2 == "y" then return 1 
-		if user_input("Clear <b>"+lbl+"</b>: are you sure? [y/<b>N</b>]||: ",0,1).lower == "y" then return 1
-		return null
-	end function
-	p.buf = function()
-		l = colorOrange+"BUFFER"+CT
-		if not p.confirm(l) then return p.a
-		if not p.a2 or p.a2 == "y" then 
-			globals.BUFFER = [get_shell]
-			return p.done(l)
-		end if
-		if typeof(p.a2.to_int) == "number" then p.a2 = p.a2.to_int else return p.a
-		if globals.BUFFER.hasIndex(p.a2) then globals.BUFFER.remove(p.a2) else return "purge: invalid index"
-		return  p.done(l+"["+p.a2+"]")
-	end function 
-	p.tbf = function()
-		l = "Transmission Buffer"
-		if not p.confirm(l) then return p.a
-		globals.T_BUF = [(localip+"@"+pubip)]
-		return  p.done(l)
-	end function
-	p.mxp = function()
-		l = "Global MetaxploitLib"
-		if not p.confirm(l) then return p.a
-		globals.metaxploit = null
-		return p.done(l)
-	end function
-	p.xpl = function()
-		l = "XPLOITS"	
-		if not p.confirm(l) then return p.a
-		globals.MEMORY = null
-		globals.XPLOITS = []
-		globals.meta_scan = []
-		return p.done(l)
-	end function
-	p.mcr = function()
-		l = "Macro Registry"
-		if not p.confirm(l) then return p.a
-		print command.cob("vaidate")
-		if DEBUG then print "debug: macros: "+char(10)+get_custom_object.macros
-		get_custom_object.macros = {}
-		return p.done(l)
-	end function
-	p.mlb = function()
-		l = "Global MetaLib"
-		if not p.confirm(l) then return p.a
-		globals.metaLib = null 
-		if globals.net_session then 
-			print "purging net_session..."
-			globals.net_session = null 
-		end if
-		return p.done(l)
-	end function
-	p.ccb = function()
-		l = "Command Buffer"
-		if not p.confirm(l) then return p.a
-		globals.command_buffer = []
-		return p.done(l)
-	end function
-	p.enm = function()
-		l = "Enum Buffer"
-		if not p.confirm(l) then return p.a
-		globals.enumerated = []
-		return p.done(l)
-	end function
-	p.t4s = function()
-		l = "Tagged 3 SCP"
-		if not p.confirm(l) then return p.a
-		globals.tagged_for_scp = ""
-		return p.done(l)
-	end function
-	p.rsi = function()
-		l = "Rshell Buffer"
-		if not p.confirm(l) then return p.a
-		job = "ALL"
-		if typeof(p.a2) == "string" and p.a2 != "y" and p.a2 != "ALL" then job = "ALL:"+p.a2
-		globals.rsi_purge(job)
-		return p.done(l)
-	end function
-	p.cob = function()
-		l = "Custom Object"
-		if not p.confirm(l) then return p.a
-		gco = get_custom_object
-		if DEBUG then print "debug: printing gco indexes..."
-		for index in gco.indexes
-			if DEBUG then print index
-			if index != "__isa" and index != "classID" and index != "macros" and index != "stack_pool" then gco.remove(index)
-		end for
-		gco.macros = {"classID":"macros"}
-		print command.cob("validate")
-		return p.done(l)
-	end function
-	p.dmn = function()
-		l = "Daemons"
-		if not p.confirm(l) then return p.a
-		manager = new DaemonManager
-		manager.Init
-		if manager.__initialized and manager.__file then
-			if not p.confirm(l) then return p.a
-			if not p.a2 or p.a2 == "y" then
-				print colorGold+"purge: stopping all daemons..."
-				result = manager.__file.delete
-				if typeof(result) == "string" and result.len > 0 then return colorWarning+"purge: Error deleting rshell.d: " + result
-				return p.done(l) 
-			end if
-			result = null
-			if typeof(p.a2) == "string" then	result = manager.Stop(p.a2)
-			if not result then return colorWarning+"purge: failed to stop: "+p.a2
-		else
-			return colorWarning+"purge: Error starting daemon manager"
-		end if
-		return p.done(l)
-	end function
-	p.pmp = function()
-		l = "PORTMAP"
-		if not p.confirm(l) then return p.a
-		globals.PORT_MAP = {}
-		return p.done(l)
-	end function
-	p._ = function()
-		return "purge: valid options: -b, -t, -x, -X, -m, -M, -c, -e, -s, -r, -o, -d, -p"
-	end function
-    switch(arg1)
-        case("-b",@p.buf)
-        case("-t",@p.tbf)
-        case("-x",@p.mxp)
-        case("-X",@p.xpl)
-        case("-m",@p.mcr)
-        case("-M",@p.mlb)
-        case("-c",@p.ccb)
-        case("-e",@p.enm)
-        case("-s",@p.t4s)
-		case("-r",@p.rsi)
-		case("-o",@p.cob)
-		case("-d",@p.dmn)
-		case("-p",@p.pmp)
-	return default(@p._)
-	return null
-end function
-command.buffer = function(thing,b,c,d) // functions handled as references
-	if @thing == "-h" or @thing == "help" then return "BUFFER || buffer || malp || push"+char(10)+
-	"Usage: buffer [input] - push something directly to the "+colorOrange+"BUFFER"+CT+" without opening <b>malp"+char(10)+
-	"-- accepts any object type or function reference"+char(10)+char(10)+
-	"NOTE: passing no input pushes a numerical <b>0</b> (zero) to the "+colorOrange+"BUFFER"
-	globals.BUFFER.push(@thing)
-	return colorOrange+"</b>buffer: pushed: <b>"+@thing+"</b> to index: [<b>"+str(globals.BUFFER.len-1)+"</b>]"
-end function
-command.credits = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "credits"
-	logo = []
-	logo.push("  |-----\ "+CT+colorWhite+"   |      |   /--------   |          |         ")
-	logo.push("  |     | "+CT+colorWhite+"   |      |   |           |          |         ")
-	logo.push("  |       "+CT+colorWhite+"   |      |   |           |          |         ")
-	logo.push("  |____   "+CT+colorWhite+"   | _____|   |--------   |          |         ")
-	logo.push("       |  "+CT+colorWhite+"   |      |   |           |          |         ")
-	logo.push("       |  "+CT+colorWhite+"   |      |   |           |          |         ")
-	logo.push(" |     |  "+CT+colorWhite+"   |      |   |           |          |         ")
-	logo.push(" \ ____|  "+CT+colorWhite+"   |      |   \--------    \_______   \_______ "+char(8482))
-	for l in logo
-		print(colorRed+l+CT)
-	end for
-	print("by Plu70 aka jhook, aka ra'al")
-	print(colorWhite+"Special thanks to the author of "+colorGrey+"Grey Hack"+CT+": "+colorGreen+"KuRouZu")
-	print("MuninCipher by:"+colorWhite+" Plu70, CypherRaven"+CT)
-	print("CheckUser function by: "+colorWhite+"Corvus"+CT)
-	print("Blackjack card art by: "+colorWhite+"3nigma"+CT)
-	print("Pwgen by : "+colorWhite+" UsesPython, additions by Plu70 "+CT)
-	print("Glosure by: "+colorWhite+"Maho_citrus")
-	print("Glosure-5hell lambda support: "+colorWhite+"Hecate")
-	print("Htop by: "+colorWhite+"redit0")
-	print("TWS by: "+colorWhite+"Aksu")
-	print("Additional code contributions by: "+colorWhite+"Clover, Redit0, Muhahahahe, Maho_citrus*, Aksu, Notepid, CyanMatter, Jamestonic, Hecate")
-	print("Github Readme by: "+colorWhite+"Hikaru918")
-	print("5hell Discord and Daemon Manager by: "+colorWhite+"Redit0")
-	print("5hell.src optimizations by: "+colorWhite+"Clover")
-	print("Beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan")
-	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, Bit, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
-end function
-command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
-	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."
-	did = false
-	if globals.hasIndex("params") and globals.params.len > 0 and globals.params[0] == "do" then did = true
-	if not state or did then 
-		if not state then 
-			if user_input("Exit "+colorRed+"5hell"+char(8482)+CT+"? [y/N]"+char(10)+"||: ",0,1).lower != "y" then return "aborting shutdown..."
-		end if
-	end if
-	exit(state)
-end function
+/////////////////////////////////////////////////////////////////////////////////////////////
+// or
+//
+// imp*cde ( "/path/your.5pk")   // where your.5pk contains your function in the above format
+// *note the .5pk extension is just a convention and not a hard requirement.
+//
+//////////////////END IMPRTS SECTION ////////////////////////////
+//
+//
+// 
+//
+if DEBUG then print("<size=75%>loaded ["+command.len+"] commands...")
+if DEBUG then print("<size=75%>starting 5hell in debug mode...</size>")
+//BEGIN AUTOMATION SETUP//
+///////////////BEGIN launch_with_do CONTROL /////////////////////////
+/////////do not edit the below section (especially do not remove the | return !!)//////////
+//// not kidding, it causes an infinite loop ////
+// you have been warned! //
+// Usage: 5hell do [#] [opt:-f] [opt: command | /path (if -f)] [opt:up_to_2_params (if not -f)]
+// What is it: this allows you to launch 5hell with instructions. see "do -h" in 5hell for more info
+// basically it calls the internal scripting service. this is obscenely powerful! for real, try it out.
+// 5hell can be configured to write instructions for itself and launch itself with those instructions.
+// just have to be creative. contact Plu70/jhook with -any- questions about how this works.
+// e.g. 5hell do 100 ping 1.1.1.1
+// e.g. 5hell do 1 -f myMacro.bat
+// e.g. 5hell do 1
+// (the last one will open the editor where you may type out a list of commands)
+//
+//
+//////////////////////////set-pre-launch-conditions/////////////////////////////////////
+// validate custom object
+if DEBUG then print("<size=75%>validating custom object...")
+command.cob("validate")
+// verify stack pool
+if DEBUG then print("<size=75%>verifying stack_pool...")
+sp = globals.stack_pool
+if DEBUG then print("<size=75%>stack_pool: ["+sp+"]") 
+// export our metaxploit, crypto, shell on each startup
+if DEBUG then print("<color=yellow><size=75%>exporting MetaxploitLib, CryptoLib, Shell...")
+emx = globals._export_metax_et_al
+if DEBUG then print("<size=75%>-- "+emx)
+// auto 'do' a batch file on startup
+// unlike a standard 5hell do 1 -f /file launch, this will not result in an exit on completion
+// only executes if do.rc is located in a folder named rkit or your Config folder
+// if one exists in both, the one in Config is executed, not the one in rkit
+if DEBUG then print("<color=yellow><size=75%>checking for do.rc...")
+dorc = globals._startup_resource_configuration
+if DEBUG then print dorc
+// import tables/tp if it exists
+if DEBUG then print("<size=75%>checking for tables/[tp|t5]")
+itp = globals._import_tables 
+if DEBUG then print itp
+////////////////////////////
+////////////////////////
+/////////// the launch banner /////////////////////////
+print(colorRed+"5hell"+char(8482)+CT+" v "+ver+" by Plu70")
+// end launch banner
+//////////////////END prelaunch-conditions///////////////////////////////////
+//
+/////BEGIN launch_with_do CONTROL///////////////////////////////
+//
+cmd = ""
+if globals.hasIndex("params") then 
+  cmd = params.join(" ") // start out as though we are not using do
+  // if 'do' then we exit when we are done
+  if params and params[0] == "do" then
+    cmd = "do"
+    if params.len >= 2 then cmd = cmd + " " + params[1]
+    if params.len > 2 then 
+      if params[2] == "-f" then 
+        cmd = cmd + " "" " + "do 1 -f " + params[3:].join(" ")
+        if DEBUG then print "FROM FILE"
+      else 
+        cmd = cmd + " "" " + params[2:].join(" ")
+        if DEBUG then print "FROM PARAMS"
+      end if
+    end if
+    print command.quit(command.shell(cmd+" "" | return"))
+  end if
+  ////////////////END l_w_d CONTROL/////////////////
+end if
+//
+///begin main///
+while true
+  print command.quit(command.shell(cmd))
+end while
+////end main////
+//////////end of do not edit section//////////////
+///EOF///
