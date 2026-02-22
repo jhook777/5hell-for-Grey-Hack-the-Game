@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.2_falling_skies"
+ver = "4.3.2.2_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "139.669"
+size_of_5hell = "139.796"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -1726,11 +1726,16 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		if arg3 then print command.enum(arg3)
 		if globals.enumerated.len < 1 then return "enum: nothing enumerated"
 		if arg2.indexOf("@pipe") == null then arg2 = arg2 + " @pipe"
-		print colorGreen+"<size=75%>enum: iterating over list with:"//+char(10)+colorCyan+"<size=65%>"+command.macro("get","ej")//arg2
-		print command.macro("set","ej",arg2)
+		print colorGreen+"<size=75%>enum: iterating over list with: "+char(10)+colorCyan+"<size=65%>"+arg2
+		//print command.macro("set","ej",arg2)
 		time_s = time
+		args = arg2.split(" ")
 		for e in globals.enumerated 
-			command.do("1","ej",e)
+			line = []
+			for el in args
+				if el == "@pipe" then line.push(e) else line.push(el)
+			end for
+			print command.shell( line+["|","return"],1)
 		end for
 		return colorGreen+"</b>enum: task complete in ["+colorWhite+str(time - time_s)+CT+colorGreen+"</b>] seconds"
 	end if
