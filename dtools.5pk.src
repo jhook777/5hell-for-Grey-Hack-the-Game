@@ -2842,6 +2842,7 @@ command.macro = function(arg1,arg2,arg3,arg4)
 		macmac = macmac.split(" ")
 		for ar in macmac 
 			if ar == "@pipe" then macmac[macmac.indexOf(ar)] = arg2
+			if ar == "\@pipe" then macmac[macmac.indexOf(ar)] = "@pipe"
 		end for
 		return command.shell(macmac,silent)	
 	end if
