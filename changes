@@ -31,6 +31,52 @@
 ////
 //// To Done:
 //
+// glosure: updated glosure to match upstream
+// 5hell.src: added support evaluating glosure lambdas as commands
+// help: added -- summary to get a brief description of each command
+// help: added glosure lambda support
+// credits: updated
+// probe: the "no network" indication will now include the computer name
+// -- this is to clarify which machine is not connected when attempting to probe through glasspool
+// 5hell.src: removed the "if not @pipe then continue" as it was probpematic
+// -- side effect of some 0's printing where they didint print before
+// -- i'll be going through and correcting those
+// -- in the mean time this allows piping and printing of empty maps and lists as well as literal zeros
+// -- there will be bugs
+// zap: will open the correct shell in malp
+// malp: will accept negative numbers for indexes
+// --eg: malp -b -1
+// macro: will check macro registry before evaluation
+// -- this negates the need to prepend macro calls with 'macro'
+// -- however, you may still prepend a macro with macro if there is a need to do so (filename conflicts, for instance)
+// enum: fixed -d option
+// -- will now respect @pipe rules for macros
+// -- will now append @pipe to the end of a command string that does not contain @pipe
+// -- this maintains (restores?) consistency with the function's usage info and examples
+// curl: will run locally on no input
+//
+// enum: -a will properly append -anything- to the enum buffer, not just strings and lists
+// -- lists are appended directly to the end of the existing list
+// -- everything else is appended as an entry to the existing list
+// malp: string handler given not-quite-a-makoever and more of some concealer and contouring
+// malp: buffer will now handle custom, user created objects using the generic object handler
+// code: also uses generic object handler for user-created/custom objects
+// malp: using malp -b [index] will actually open that index in the buffer
+// -- passing a non-int value will push that object to the buffer and open it's entry
+// -- -p [value] will push that value to the buffer without opening malp
+// -- passing a value without -p or -b will push the value to the buffer and open malp to it's main menu
+// -- you may also use the buffer command to push items to the buffer
+// buffer: fixed typos causing crash
+// HOME: fixed multiple instances of calling HOME and not get_custom_object.HOME
+// mail: fixed crash on spool when spool file is missing
+// mail: fixed cli login
+// transmit: fixed crash caused by typos and missing param
+// -- x2
+// pause: fixed typos and missing param causing carsh
+// pause: added -p-P and -f|-F to pause until file/process exists/stops existing
+// porter: fixed not returning correct output
+// help: fixed crash on -s
+//
 // buffer: new command to push something directly to the buffer without opening malp
 // pause: now has conditionals: is process present and is file present
 // -- -f will wait for a given file path to return a valid file object
