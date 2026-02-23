@@ -31,6 +31,12 @@
 ////
 //// To Done:
 //
+// 5hell.src: fixed another stray += that slipped in bc i pushed the wrong file
+// macro: added \@pipe escape
+// -- @pipe and \@pipe are only processed within the macro command, not handled by ez_clip
+// malp: fixed to_int crashed caused by previous index finding change
+// glosure: merged pull request that hardcodes STL for qol
+//
 // glosure: updated glosure to match upstream
 // 5hell.src: added support evaluating glosure lambdas as commands
 // help: added -- summary to get a brief description of each command
