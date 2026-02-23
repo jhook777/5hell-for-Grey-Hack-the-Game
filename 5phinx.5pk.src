@@ -1,8 +1,8 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.3.3"
-malp_version = "1.6.4"
+sphinx_version = "3.3.4"
+malp_version = "1.6.5"
 if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.2...(158.480)")
 
 NUM_SPLOITS = function()
@@ -474,7 +474,7 @@ globals._ez_clip = function( in_prompt )
     if @e == "\@o" then in_prompt[e_indx] = "@o"
     if @e == "\@B" then in_prompt[e_indx] = "@B"
     if @e == "\@r" then in_prompt[e_indx] = "@r"
-    if @e == "\@pipe" then in_prompt[e_indx] = "@pipe"
+    //if @e == "\@pipe" then in_prompt[e_indx] = "@pipe"
     if DEBUG then print("b: "+ in_prompt[e_indx])
     // escapes processed
   end for
@@ -1408,7 +1408,7 @@ end function
 /////////////////////////////////////// END Scribus ///////////////////////////////
 
 ////////////// BEGIN_MEMORY_ALPHA //////////////////////////////
-globals.memory_alpha = function(go_to_buffer=false,go_to_selection=-1)
+globals.memory_alpha = function(go_to_buffer=false,go_to_selection=null)
   banner = colorRed + "5phinx"+char(8482)+colorWhite+" v " + sphinx_version + ", Memory_Alpha v "+malp_version+" by Plu70"+char(10)+colorGold+"//////////////////////////////////////////////"
   buffered_filesys = null
   viewing = true
@@ -1614,8 +1614,9 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=-1)
       end for
       print colorWhite+"__________________________________"
       selection = null
-      if abs(go_to_selection.to_int) <= globals.BUFFER.len and go_to_selection.to_int < globals.BUFFER.len and go_to_buffer == true then selection = go_to_selection.to_int else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
-      go_to_selection = -1
+      if go_to_selection isa string then go_to_selection = go_to_selection.to_int
+      if go_to_selection isa number and abs(go_to_selection) <= globals.BUFFER.len and go_to_selection < globals.BUFFER.len and go_to_buffer == true then selection = go_to_selection else selection = user_input(colorWhite+"Select an object to access:> "+CT).to_int
+      go_to_selection = null
       go_to_buffer = false
       if abs(selection) >= BUFFER.len or typeof(selection) != "number" then continue
       if BUFFER.hasIndex(selection) and @BUFFER[selection] then
@@ -1835,8 +1836,7 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=-1)
               print "[7] scp    [8] run        [9] fetch meta" +char(10)+
                     "[4] glassp [5] rclean     [6] get computer "+char(10)+
                     "[1] open   [2] redirect   [3] upload rkit"
-            end if                
-                                 
+            end if                             
             if typeof(buffer_selection) == "ftpshell" then 
               print "[4] glassp [5] rclean     [6] get computer"
               print "[1] open   [2] scp/put    [3] upload rkit"
