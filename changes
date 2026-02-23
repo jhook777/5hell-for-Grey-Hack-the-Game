@@ -36,6 +36,7 @@
 // -- @pipe and \@pipe are only processed within the macro command, not handled by ez_clip
 // malp: fixed to_int crashed caused by previous index finding change
 // glosure: merged pull request that hardcodes STL for qol
+// glosure: merged pull request reverting 5hell lambda support as it is no longer needed
 //
 // glosure: updated glosure to match upstream
 // 5hell.src: added support evaluating glosure lambdas as commands
