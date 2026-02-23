@@ -15,6 +15,16 @@ https://github.com/Arc8ne/5hell-Documentation-Extractor<br>
 This is most useful because the built in documentation is always up to date,<br>
 where the usage info below the install instructions, here, is not always.<br>
 
+5hell includes Glosure by Maho_citrus!<br>
+https://github.com/mahocitrus/Glosure<br>
+Glosure is a LISP like language that allows you to execute <br>
+arbitrary code at runtime without recompiling!! You can load in your custom<br>
+glosure scripts using your do.rc file and the macro command.
+
+AND/OR, you can look at this contribution by Hecate: <br>
+https://github.com/shippingfandom/Marinette<br>
+that allows so, so much more in terms of 5hell-glosure configuration and interaction!<br>
+
 Normal build:<br>
 The 5hell source code is designed to be built in Grey Hack by copy-pasting<br>
 and building files in the correct order. It's as easy as copy, paste, build!<br>
