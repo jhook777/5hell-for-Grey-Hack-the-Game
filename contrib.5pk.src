@@ -418,27 +418,60 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
             }
             __eval = @eval
             __env = @env
+            readString = function(s)
+                return "'" + s + "'"
+            end function
+            readArray = function(array)
+                i = 0
+                while i < len(array)
+                    elem = @array[i]
+                    if @elem isa string then array[i] = outer.readString(elem)
+                    if @elem isa list then array[i] = outer.readArray(elem)
+                    i = i + 1
+                end while
+                return [ "array" ] + array
+            end function
+            readArgs = function(args)
+                    i = 0
+                    while i < len(@args)
+                    arg = @args[i]
+                    if @arg isa string then args[i] = outer.readString(arg)
+                    if @arg isa list then args[i] = outer.readArray(arg)
+                    i = i + 1
+                end while
+            end function
             buildGlosure = function
                 __eval = @outer.__eval
                 __env = @outer.__env
                 lambda = @outer.lambda
+                readArgs = @outer.readArgs
                 glosure0 = function()
                     return __eval([lambda], __env)
                 end function
                 glosure1 = function(arg0)
-                    return __eval([lambda, @arg0], __env)
+                    args = [@arg0]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0]], __env)
                 end function
                 glosure2 = function(arg0, arg1)
-                    return __eval([lambda, @arg0, @arg1], __env)
+                    args = [@arg0, @arg1]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1]], __env)
                 end function
                 glosure3 = function(arg0, arg1, arg2)
-                    return __eval([lambda, @arg0, @arg1, @arg2], __env)
+                    args = [@arg0, @arg1, @arg2]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1], @args[2]], __env)
                 end function
                 glosure4 = function(arg0, arg1, arg2, arg3)
-                    return __eval([lambda, @arg0, @arg1, @arg2, @arg3], __env)
+                    args = [@arg0, @arg1, @arg2, @arg3]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1], @args[2], @args[3]], __env)
                 end function
                 glosure5 = function(arg0, arg1, arg2, arg3, arg4)
-                    return __eval([lambda, @arg0, @arg1, @arg2, @arg3, @arg4], __env)
+                    args = [@arg0, @arg1, @arg2, @arg3, @arg4]
+                    outer.readArgs(args)
+                    return __eval([lambda, @args[0], @args[1], @args[2], @args[3], @args[4]], __env)
                 end function
                 if len(lambda.params) == 0 then return @glosure0
                 if len(lambda.params) == 1 then return @glosure1
