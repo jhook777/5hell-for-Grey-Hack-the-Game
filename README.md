@@ -21,8 +21,8 @@ Glosure is a LISP like language that allows you to execute <br>
 arbitrary code at runtime without recompiling!! You can load in your custom<br>
 glosure scripts using your do.rc file and the macro command.
 
-AND/OR, you can look at this contribution by <br>
-Hecate: https://github.com/shippingfandom/Marinette<br>
+AND/OR, you can look at this contribution by Hecate: <br>
+https://github.com/shippingfandom/Marinette<br>
 that allows so, so much more in terms of 5hell-glosure configuration and interaction!<br>
 
 Normal build:<br>
