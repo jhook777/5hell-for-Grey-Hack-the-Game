@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.2...(66.691)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.2...(66.761)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -817,7 +817,8 @@ command.nt = function(arg1, arg2, arg3, arg4)
 			if np then newprompt=newprompt+@np+" "
 		end for
 		if DEBUG then print "debug: nt_prompt: "+newprompt
-        return command.run(terminal.path, newprompt.remove("--nt"),use_shell) // let's be real, --5pork is hilarious but too much to type
+        //return command.run(terminal.path, newprompt.remove("--nt"), use_shell) // let's be real, --5pork is hilarious but too much to type
+		return use_shell.launch(terminal.path,newprompt.remove("--nt"))
     end if
 	return "shell: error; Terminal.exe not found"
 end function
