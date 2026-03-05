@@ -31,6 +31,21 @@
 ////
 //// To Done:
 //
+// sudo: new command to differentiate from psudo's functions
+// -- simply does get_shell(user,pass).launch(/usr/bin/Terminal.exe,input)
+// -- or /bin/Terminal.exe
+// file: will no longer print usage when no input
+// -- will recommend using file -h instead
+// db: will properly catagorize bounce exploits
+// -- should no longer provide false "firewall disable" classifications
+// cd: currentPath will now match current_path, using the game's cd function
+// -- cd usage remains identical; this change should be transparent to the end user
+// -- GLASSPOOL will NOT use current_path
+// -- the current_path will be preserved when returning from GLASSPOOL
+// --NOTE: please use: globals.currentPath = [path];cd(globals.currentPath)
+// ---- to maintain compatibility with internal currentPath calls within 5hell
+// --NOTE: this will allow correct tab completion EXCEPT in GLASSPOOL
+// ---- tab completion does not translate through glasspool
 // 5hell.src: fixed another stray += that slipped in bc i pushed the wrong file
 // macro: added \@pipe escape
 // -- @pipe and \@pipe are only processed within the macro command, not handled by ez_clip
