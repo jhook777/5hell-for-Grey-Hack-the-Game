@@ -1,4 +1,4 @@
-// Current as of version 4.0.0
+// Current as of version 4.3.3
 // 5hell.src by Plu70 aka ra'al aka jhook
 // 5hell.src, the code below, is open source. As are all related .5pks .
 // 5hell (either the .src, the .so, the .5pk, or the combined script known simply as 5hell)
@@ -550,4 +550,3 @@ end while
 ////end main////
 //////////end of do not edit section//////////////
 ///EOF///
-
