@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.2...(66.761)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.3...(66.898)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -1112,6 +1112,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 	if not arg1 then return "glasspool: invalid input; <b>gp -h</b> for help"
 	gp_do = false // do we need to initiate a do script when we start galsspool?
 	obj = arg1 
+	temp_p = globals.currentPath
 	if arg1 == "-d" then
 		if arg2 then gp_do = arg2 else return "glasspool: -d expects string"
 		obj = arg3
@@ -1174,7 +1175,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 		end if
 	end if
 	// check result. file objects are not supported at this time
-	if typeof(obj) != "shell" and typeof(obj) != "computer" then return "glassp: expects shell or computer"
+	if typeof(obj) != "shell" and typeof(obj) != "computer" then return "glasspool: expects shell or computer"
 	print(colorLightBlue+"<size=75%>Initializing sshfs glasspool protocol..."+CT)
 
 	// -- handle shell
@@ -1186,12 +1187,13 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 		if globals.localmachine and globals.shell then
 			globals.GLASSPOOL = globals.GLASSPOOL + 1
 			// display info/warning
-			print colorLightBlue+"<size=75%>glasspoool:"+CT+colorWhite+" initialization successful. "+char(10)+
+			print colorLightBlue+"<size=75%>GLASSPOOL:"+CT+colorWhite+" initialization successful. "+char(10)+
 			colorOrange+"<size=75%>Type <u>return</u></b> to deactivate glasspool or exit / quit to exit 5hell completely"+char(10)+
 			colorOrange+"<size=75%>glasspool: shell mirroring:"+char(10)+
 			"<size=75%>-- <color=yellow>shell</color>, <color=yellow>computer</color>, and <color=yellow>file</color> commands"+char(10)+
 			"<size=75%>---- will execute on the machine attached to the shell object"+char(10)+
-			"<size=75%>-- <b>local/general</b> category commands will execute on the local machine"
+			"<size=75%>-- <b>local/general</b> category commands will execute on the local machine"+char(10)+
+			"<size=75%>-- <b>tab completion</b> does not translate through glasspool"
 			if typeof(globals.shell) == "ftpshell" then print colorOrange+"<size=75%>Warning: ftp shells have limited functionality"
 			// print("Type: <b><u>return</u></b> to deactivate and return. Exit to quit completely.")
 			// switch scope
@@ -1211,7 +1213,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			globals.localmachine = globals.shell.host_computer
 			globals.GLASSPOOL = globals.GLASSPOOL - 1
 			// update path
-			globals.update_path
+			globals.update_path(temp_p)
 			print(colorLightBlue+"<size=75%>glasspool: "+colorOrange+" deactivating..."+CT)
 		else
 			globals.shell = hold_shell
@@ -1252,7 +1254,7 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			// restore previous state
 			globals.localmachine = tem_c
 			// update path
-			globals.update_path
+			globals.update_path(temp_p)
 			globals.GLASSPOOL = globals.GLASSPOOL - 1
 			print(colorLightBlue+"GLASS_PUDDLE: "+colorOrange+" deactivating..."+CT)
 		else 
