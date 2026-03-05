@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.2..(156.660)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.3..(158.372)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -1472,7 +1472,8 @@ note: launching binaries via felix does NOT activate glasspool
   return init(localmachine.File(startpath))
 end function
 command.file = function(arg1, arg2=0, arg3=0, arg4=0)
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return colorGreen+"File || File Properties || Inspect File"+char(10)+
+	if not arg1 then return "file: see <b>file -h</b> for usage"
+	if arg1 == "help" or arg1 == "-h" then return colorGreen+"File || File Properties || Inspect File"+char(10)+
 	colorGreen+"<u>================================"+char(10)+
 	colorGreen+"Usage: <b>file [opt:-l|-c|-b|-r|-n|-p|-P|-e|-d|-ie] [/path|file_object] [opt:shell|computer|file]</b>"+char(10)+char(10)+
 		"File shows the properties information for the given file. "+char(10)+
@@ -3318,4 +3319,38 @@ command.silentclean = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	_fix
 	return 0
+end function
+command.spam = function(arg1,arg2,arg3,arg4)
+	if arg1 == "help" or arg1 == "-h" then return "Spam || Spam || spam || spam || spaM"+char(10)+
+	"Usage: spam ["+colorWhite+"#"+CT+"] [target_folder] [file_to_use]"+char(10)+
+	"-- fill target folder with copies of another file or folder"+char(10)+
+	"-- prompts for unsupplied values"+char(10)+
+	char(10)+
+	"-- [<b>#</b>] is a positive integer"+char(10)+
+	"-- [target_folder] is a path or file_object"+char(10)+
+	"-- [file_to_use] is any file or folder on the same machine"
+	if typeof(arg1) == "string" then arg1 = arg1.to_int
+	if not arg1 then arg1 = user_input("Enter a the number of copies to spam (<<b>enter or 0</b>>=abort)"+char(10)+":> "+colorGrey).to_int
+	if typeof(arg1) != "number" or arg1 < 1 then return "spam: aborting..."
+
+	if not arg2 then arg2 = user_input("Enter a target <b>folder</b> to spam (<b>enter</b>=abort)"+char(10)+":> "+colorGrey)
+	arg2 = globals.get_file(arg2)
+	if not arg2 then return "spam: target folder not found"
+
+	if not arg3 then arg3 = user_input("Enter a target file or folder to use as the spam file (<<b>enter</b>>=abort"+char(10)+":> "+colorGrey)
+	arg3 = globals.get_file(arg3)
+	if not arg3 then return "spam: target file/folder not found"
+		
+	print colorRed+"</b>spam: spamming: "+colorWhite+arg2+char(10)+"-- this may take some time..."
+
+	for i in range(1,arg1) 
+		c = arg3.copy(arg2.path,arg3.name+i)
+		if c != 1 then 
+			print c
+			return colorRed+"spam: error; cannot write"+char(10)+"-- aborting..."
+		end if
+		wait .1
+	end for 
+
+	return "spam: spam spammed"
 end function
