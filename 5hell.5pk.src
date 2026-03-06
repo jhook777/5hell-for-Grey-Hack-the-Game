@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.2.3_falling_skies"
+ver = "4.3.3_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "139.754"
+size_of_5hell = "141.392"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -457,6 +457,25 @@ command.pwd = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "Usage: pwd -- print working directory"+char(10)+"-- returns the current path as a string"
 	return currentPath
 end function
+command.sudo = function(user,pass,par="",arg4)
+	if (user == "help" and not pass) or user == "-h" then return "Usage: info"
+	if not user then user = "Please enter a username (-s=root, <<b>enter</b>>=abort):> "+colorWhite
+	if user == "-s" then user = "root"
+	if typeof(user) != "string" or user == "" then return "sudo: aborting..."
+	if not pass then pass = user_input("Please enter a password for<b> "+user+" (<<b>enter</b>>=abort)"+char(10)+":> "+colorWhite,1)
+	if typeof(pass) != "string" or pass == "" then return "sudo: aborting..."
+	odus = get_shell(user,pass)
+	term = null
+	if typeof(odus) == "shell" then
+		term = odus.host_computer.File("/usr/bin/Terminal.exe")
+		if typeof(term) != "file" then term = odus.host_computer.File("/bin/Terminal.exe")
+		if typeof(term) != "file" then return "sudo: unable to locate /bin/usr/Terminal.exe or /bin/Terminal.exe"+char(10)+"-- please use <b>psudo -l</b> to use <b>start_terminal</b> instead"+char(10)+"-- aborting..."
+	else
+		return "sudo: incorrect user or password"
+	end if
+	if DEBUG then print "sudo: debug: term.path: "+term.path+" : params: "+par
+	if typeof(par) == "string" then return odus.launch(term.path,par) else return odus.launch(term.path)
+end function
 command.psudo = function(operation, arg2, arg3, arg4)
     if operation == "help" or operation == "-h" then return "PSUDO || sudo || get shell || get_shell || start terminal"+char(10)+
 	colorCyan+"<u>Start_terminal options:"+char(10)+"--"+char(10)+
@@ -627,27 +646,46 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	return format_columns(output.join(char(10)).trim)
 end function
 command.cd = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "Usage: cd [path] -- change current working directory to path"+char(10)+"Usage: cd .. -- go back to parent directory."+char(10)+"Usage: cd -- return to home directory."+char(10)+"Returns: 0 on success or string on failure."
+	if arg1 == "help" or arg1 == "-h" then return "Usage: cd [path] -- change current working directory to path"+char(10)+
+	"Usage: cd .. -- go back to parent directory."+char(10)+
+	"Usage: cd -- return to home directory."+char(10)+
+	"Returns: returns string on failure; empty string on success"
+
 	if arg1 == "" then arg1 = 0
-	if not globals.get_file(globals.currentPath) then globals.currentPath = home_dir
+	if not globals.get_file(globals.currentPath) then 
+		globals.currentPath = home_dir
+		if globals.GLASSPOOL then return
+		return cd(globals.currentPath)
+	end if
 	chd = localmachine.File(globals.currentPath)
 	if not arg1 then
 		globals.currentPath = globals.homePath
-		return null
+		if globals.GLASSPOOL then return
+		return cd(globals.currentPath)
 	end if
 	if not chd then
 		globals.currentPath = "/"
-		return "cd: path error. Setting path to<b> / </b>"+char(10)+"...please try again."
+		print "cd: path error; setting current path to<b> / </b>"+char(10)+"...please try again"
+		if globals.GLASSPOOL then return
+		return cd(globals.currentPath)
 	end if
 	if arg1 == ".." then
 		if chd.name != "/" then
 			globals.currentPath = chd.parent.path
+			if globals.GLASSPOOL then return
+			return cd(globals.currentPath)
 		end if
 		return null
 	end if
 	new_path = globals.get_file(arg1)
 	if new_path then
-		if new_path.is_folder then globals.currentPath = new_path.path else return "cd: "+new_path.path+" is not a directory."
+		if new_path.is_folder then
+			globals.currentPath = new_path.path 
+			if globals.GLASSPOOL then return
+			return cd(globals.currentPath)
+		else
+			return "cd: "+new_path.path+" is not a directory"
+		end if
 	else
 		return "cd: "+arg1+" not found."
 	end if

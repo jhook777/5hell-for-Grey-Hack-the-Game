@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.2...(151.212)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.3...(151.342)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -1833,9 +1833,9 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 
 	
 	pass_inject = "*"
-	check_bounce = false
-	if globals.metaLib.lib_name == "kernel_router.so" or ( localmachine.is_network_active and typeof(get_router(localmachine.local_ip)) ) == "router" then check_bounce = true
-	
+	check_bounce = 0
+	if globals.metaLib.lib_name == "kernel_router.so" or globals.targetPort == 8080 or ( localmachine.is_network_active and typeof(get_router(localmachine.local_ip)) == "router" )  then check_bounce = 1
+	if DEBUG then print char(10)+"<b>debug: check_bounce is: "+check_bounce+char(10)
 	// new result types and libs exist; more classifications needed
 	if typeof(inject) == "string" then pass_inject = inject 
 	if is_lan_ip(inject) then lan_inject = inject
@@ -1919,13 +1919,14 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 				print colorOrange+"checking for bounce (this process is not perfect)..."
 				if DEBUG then print "in db: preparing to overflow: "+ mem + " " + val + " " + lan_inject
 				result = globals.metaLib.overflow(mem, value, lan_inject)
-				if result then
+				
+			end if
+			if typeof(result) == "computer" then
 					DATA.push("Hooked: " + globals.checkUser(result) + " " + typeof(result) + ":bounce with " + mem + " " + value)
 					print("Hooked: " + _user_color(globals.checkUser(result)) + " " + _object_color(typeof(result)) + colorOrange+":bounce</color></b> with " + mem + " " + value)
 					globals.XPLOITS.push(mem + " " + value + " " + globals.checkUser(result) + " " + typeof(result)+":bounce")
 					globals.BUFFER.push(result)
 					continue
-				end if
 			end if
 			result_type = typeof(result)
 			if result == 1 or result == 0 then // firewall or password change; for now, needs more types depending on specific libs
