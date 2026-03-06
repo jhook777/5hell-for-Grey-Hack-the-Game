@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.3.6"
+sphinx_version = "3.3.77"
 malp_version = "1.6.6"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.3...(157.968)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.3.1...(157.968)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -2090,19 +2090,20 @@ globals.newtree = function(a_file,quiet=0)
   listFiles(a_file)
   output = []
   outprint = []
+  nb = "</b>"
   for i in system_map.indexes
       for f in system_map[i].values
           s = ""
-          if f.is_symlink then s="<color=yellow>"
+          if f.is_symlink then s=colorGold+nb
           depth = f.path.split("/").len-2
           if f.path == "/" then 
-            outprint.push( "<size=80%><color=#2382FFFF>"+f.path+" "+s+f.permissions )
+            outprint.push( "<size=80%>"+colorDarkBlue+f.path+" "+s+f.permissions )
             continue
           end if
           if f.is_folder then 
-              outprint.push( "<size=80%><color=blue>"+"   "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+f.path+" "+f.permissions )
+              outprint.push( "<size=80%>"+colorLightBlue+nb+"   "*depth+"<u>|  </u>"+colorLightBlue+s+f.path+" "+f.permissions )
           else 
-            if f.is_binary then outprint.push( "<size=80%><color=blue>"+"   "*depth+"<color=#00FFFF><u>|    </u>"+s+f.path+" "+f.permissions) else outprint.push( "<size=80%><color=blue>"+"   "*depth+"<color=white><u>|    </u>"+s+f.path+" "+f.permissions )
+            if f.is_binary then outprint.push( "<size=80%>"+("   "*depth)+colorCyan+nb+"<u>|    </u>"+s+f.path+" "+f.permissions) else outprint.push( "<size=80%>"+"   "*depth+colorWhite+nb+"<u>|    </u>"+s+f.path+" "+f.permissions )
           end if
           output.push(f)
       end for
@@ -2129,21 +2130,22 @@ end function
 globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
   //grepped_file = "File: " + grep + " not found."
   //if not quiet then print("Expanding: " + colorLightBlue+result.path)
+  nb = "</b>"
   if not quiet then 
     s = ""
-    if result.is_symlink then s="<color=yellow>"
+    if result.is_symlink then s=colorGold+nb
     encis = ""
     //if globals.crypto and crypto.is_encrypted(result.path) and depth == true then encis = colorOrange+"</b>encrypted" // stub
     if result.is_binary then 
       if not result.is_folder then 
-        s = ""
-        if result.is_symlink then s="<color=yellow>"
+        //s = ""
+        //if result.is_symlink then s="<color=yellow>"
         //print "<size=80%><color=blue><u>|  </u><color=#00FFFF>"+s+result.permissions+" "+result.path+" "+encis
-        print "<size=80%>"+"   "*(depth-1)+"<color=#00FFFF><u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
+        print "<size=80%>"+"   "*(depth-1)+colorCyan+nb+"<u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
       end if 
     else 
       //print   "<size=80%><color=blue><u>|  </u><color=white>"+  s+result.permissions+" "+result.path+" "+encis
-      print  "<size=80%>"+"   "*(depth-1)+"<color=white><u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
+      print  "<size=80%>"+"   "*(depth-1)+colorWhite+nb+"<u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
     end if
   end if
   if not result.is_binary then
@@ -2187,7 +2189,7 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
       for folder in folders
         //if not quiet then print("Dir: " + folder.name + " " + folder.permissions)
         //if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.permissions+" "+folder.path
-        if not quiet then print "<size=80%><color=blue>"+"   "*depth+"<u>|  </u><b><color=#2382FFFF>"+s+folder.permissions+" "+folder.path
+        if not quiet then print "<size=80%>"+colorLightBlue+nb+"   "*depth+"<u>|  </u>"+colorLightBlue+s+folder.permissions+" "+folder.path
         list_files(folder, grep, quiet, waitFor,depth+1)
       end for
       for file in files
