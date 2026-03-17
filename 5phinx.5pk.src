@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "3.3.77"
 malp_version = "1.6.6"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.3.1...(157.968)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.4...(158.070)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -291,9 +291,11 @@ globals._startup_resource_configuration  = function()
   c = p.get_content.split(char(10))
   if reenc then print command.file("-e",p.path,reenc)
   print "<size=75%>-- beginning resource configuration..."
-  for line in c
-    if line.len > 0 and line[0] != "#" then command.shell(line+" | return")
-  end for
+  //if DEBUG then print "rc: passing to do: "+char(10)+colorCyan+c
+  command.do("1",c)
+  // for line in c
+  //   if line.len > 0 and line[0] != "#" then command.shell(line+" | return")
+  // end for
   return 0
 end function
 
@@ -369,7 +371,7 @@ globals._ez_clip = function( in_prompt )
     // connecting dots
     if DEBUG then print("p: "+@e)
     e_indx = in_prompt.indexOf(@e) 
-    if @e == "@STOP" then in_prompt[e_indx] = @globals.SAFEWORD
+    //if @e == "@STOP" then in_prompt[e_indx] = @globals.SAFEWORD
     if @e == "@a" then in_prompt[e_indx] = @globals.CLIP["a"]
     if @e == "@b" then in_prompt[e_indx] = @globals.CLIP["b"]
     if @e == "@c" then in_prompt[e_indx] = @globals.CLIP["c"]
