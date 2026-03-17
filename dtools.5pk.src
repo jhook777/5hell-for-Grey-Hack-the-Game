@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.3..(158.372)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.4..(158.758)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -2400,18 +2400,25 @@ command["if"] = function(arg1,arg2,arg3,arg4)
 	s = @command["shell"]
 	res = 0
 	print colorCyan+"<u>= = = evaluating = = =</u>"+char(10)
-	print colorRed+"<u><size=75%>"+CT+@arg3
-	if typeof(@arg3) == "string" and globals.command.hasIndex(arg3.split(char(32))[0]) then arg3 = s(arg3+" | return",1)
-	print colorRed+"<u><size=75%>"+CT+@arg4
-	if typeof(@arg4) == "string" and globals.command.hasIndex(arg4.split(char(32))[0]) then arg4 = s(arg4+" | return",1)
+	//if typeof(@arg3) == "string" and globals.command.hasIndex(arg3.split(char(32))[0]) then arg3 = s(arg3+" | return",1)
+	if @arg3 isa string and ( globals.command.hasIndex(arg3.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg3.split(char(32))[0]) ) then arg3 = s(arg3+" | return",1)
+	if DEBUG then print colorRed+"<u><size=75%>R3 : "+CT+@arg3
+	if @arg4 isa string and ( globals.command.hasIndex(arg4.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg4.split(char(32))[0]) ) then arg4 = s(arg4+" | return",1)
+	if DEBUG then print colorRed+"<u><size=75%>R4 : "+CT+@arg4
 	print "<size=75%><u>"+colorCyan+"Result:"
 	if arg3 == arg4 then
-		if typeof(@arg1) == "string" and ( globals.command.hasIndex(arg1.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg1) ) then res = s(arg1+" | return") else res = @arg1
+		if typeof(@arg1) == "string" and ( globals.command.hasIndex(arg1.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg1.split(char(32))[0]) ) then res = s(arg1+" | return") else res = @arg1
 	else 
-		if typeof(@arg2) == "string" and ( globals.command.hasIndex(arg2.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg2) ) then res = s(arg2+" | return") else res = @arg2
+		if typeof(@arg2) == "string" and ( globals.command.hasIndex(arg2.split(char(32))[0]) or get_custom_object.macros.hasIndex(arg2.split(char(32)[0])) ) then res = s(arg2+" | return") else res = @arg2
 	end if
-	//if @res isa string then return res.trim else return @res
-	return @res
+	if @res isa string then 
+		return res.trim 
+	else if typeof(@res) == "function" then
+		return @res
+	else
+		return res
+	end if
+	//return @res
 end function
 command.sl = function(arg1,arg2,arg3,arg4)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Symlink || symbolic link || file path"+char(10)+
