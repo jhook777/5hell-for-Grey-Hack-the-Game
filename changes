@@ -31,18 +31,29 @@
 ////
 //// To Done:
 //
+// glosure: changed codeStr = user_input("</> ") to codeStr = user_input("</> ",0,0,1)
+// tree: standard tree and tree -f will now use 5hell's color palette
+// -- this means theme changes, such as Marinette's, will actually change tree's appearance
+// outmon: fixed the unfinished act/react stuff
+// help: added 'inspect [key]' to list of aliases
+// -- it's been an alias for a hot minute and i forgot to add it to the help
+// 5hell.src: added "-" as a comment character for do scripts
+// -- the other comment character are: # and |
+//
 // sudo: new command to differentiate from psudo's functions
 // -- simply does get_shell(user,pass).launch(/usr/bin/Terminal.exe,input)
 // -- or /bin/Terminal.exe
+//  --note: use: run /pathTo/sudo to run an external sudo binary
 // file: will no longer print usage when no input
 // -- will recommend using file -h instead
 // db: will properly catagorize bounce exploits
 // -- should no longer provide false "firewall disable" classifications
 // cd: currentPath will now match current_path, using the game's cd function
 // -- cd usage remains identical; this change should be transparent to the end user
+// ---- EXCEPT for glasspool cd will be SEPERATE from your non-glasspool cd!!!!!!
 // -- GLASSPOOL will NOT use current_path
 // -- the current_path will be preserved when returning from GLASSPOOL
-// --NOTE: please use: globals.currentPath = [path];cd(globals.currentPath)
+// --NOTE: please use: globals.currentPath = "path";cd(globals.currentPath)
 // ---- to maintain compatibility with internal currentPath calls within 5hell
 // --NOTE: this will allow correct tab completion EXCEPT in GLASSPOOL
 // ---- tab completion does not translate through glasspool
