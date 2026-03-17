@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.3.3...(133.214)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.3.4...(132.266)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
@@ -391,6 +391,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"bat [path]      |</b> do 1 -f [path]"+char(10)+
 	colorCyan+"set [key] [val] |</b> cob set [key] [val]"+char(10)+
 	colorCyan+"get [key]       |</b> cob get [key]"+char(10)+
+    colorCyan+"inspect [key]   |</b> cob inspect [key]"+char(10)+
 	colorCyan+"lock            |</b> perms lock all"+char(10)+
 	colorCyan+"exit            |</b> quit"+char(10)+
 	colorCyan+"sc [opt]        |</b> silentclean [opt]"+char(10)+
