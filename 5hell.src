@@ -91,27 +91,28 @@ if not get_custom_object.hasIndex("HOME") or not ( get_custom_object.HOME isa ma
 // DEFINE COLOR PALETTE //
 // edit these if the current color conflicts with your theme
 // definition  =  <#color_code><opt:b>
-colorRed = "<color=#FF0000FF><b>"
-colorCyan = "<color=#00FFFFFF><b>"
-colorGold = "<color=#CCCC00FF><b>"
-colorGrey = "<color=#71858DFF><b>"
-colorGreen = "<color=#00FF00FF><b>"
-colorOlive = "<color=#048004FF><b>"
-colorWhite = "<color=#FFFFFFFF><b>"
-colorBlack = "<color=#000000FF><b>"
-colorOrange = "<color=#FF8400FF><b>"
-colorViolet = "<color=#8821FDFF><b>"
-colorMagenta = "<color=#FF00C8FF><b>"
-colorLightBlue = "<color=#2382FFFF><b>"
+colorRed =            "<color=#FF0000FF><b>"
+colorCyan =           "<color=#00FFFFFF><b>"
+colorGold =           "<color=#CCCC00FF><b>"
+colorGrey =           "<color=#71858DFF><b>"
+colorGreen =          "<color=#00FF00FF><b>"
+colorOlive =          "<color=#048004FF><b>"
+colorWhite =          "<color=#FFFFFFFF><b>"
+colorBlack =          "<color=#000000FF><b>"
+colorOrange =         "<color=#FF8400FF><b>"
+colorViolet =         "<color=#8821FDFF><b>"
+colorMagenta =        "<color=#FF00C8FF><b>"
+colorLightBlue =      "<color=#2382FFFF><b>"
+colorDarkBlue =       "<color=#0000FFFF><b>"
 // default color for standard print override, adjust to your theme
 // use "" for your default terminal color
-colorDefault = "<color=#00FF00FF>"
-colorError = "<color=#FF0000FF><b>" // not yet implemented
-colorWarning = "<color=#FF8400FF><b>" // not yet implemented
-color5phinxText = "<color=#FFFFFFFF><b>"
-color5phinxButton = "<color=#00FFFFFF><b>"
-color5phinxElement = "<color=#71858DFF><b>"
-color5phinxDisplay = "<color=#00FFFFFF><b>"
+colorDefault =        "<color=#00FF00FF>"
+colorError =          "<color=#FF0000FF><b>" // not yet implemented
+colorWarning =        "<color=#FF8400FF><b>" // not yet implemented
+color5phinxText =     "<color=#FFFFFFFF><b>"
+color5phinxButton =   "<color=#00FFFFFF><b>"
+color5phinxElement =  "<color=#71858DFF><b>"
+color5phinxDisplay =  "<color=#00FFFFFF><b>"
 CT = "</color></b>"
 /// END COLOR PALETTE ////
 /////////// IMPRT LINE /////////
@@ -201,7 +202,8 @@ command.shell = function(input=null,mute=null)
     end if
     // flow control, edit with care
     // add or remove desired comment characters to/from the string below; comments are currently for 'do' scripts only
-    if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#", input[0]) != null then // had to remove '/' as it was conflicting with things
+    //if input and (typeof(input) == "string" or typeof(input) == "list") and indexOf("|#", input[0]) != null then // had to remove '/' as it was conflicting with things
+    if input and (indexOf("|#-", input[0]) != null) then
       if DEBUG then print "debug: shell: skipping comment: "+prompt.join(" ")
       return 0
     else 

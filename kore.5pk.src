@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.3...(66.898)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.4...(67.763)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -50,7 +50,8 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 	"-- allows controlling one or more 5hell sessions through a single shared file"+char(10)+
 	"-- write to socket_in like any other do script"+char(10)+
 	"-- write HALT (with no other text) to socket_in to terminate kore control"+char(10)+
-	"-- daemon manager integration soon(tm) "+char(10)+char(10)+
+	//"-- daemon manager integration soon(tm) "+char(10)+
+	char(10)+
 	"--n.b: cannot spool non-returned text; aka metaxploit.overflow text"+char(10)+
 	"---- that text goes straight to the terminal and bypasses function returns"+char(10)+
 	"NOTE: writing to socket_in too quickly can cause commands to be missed!"+char(10)+
@@ -241,8 +242,11 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 														"# THEME section"+char(10)+
 														"# below are examples of a colorDefinition override used to adjust colors to fit your theme"+char(10)+
 														"# kore --override colorDefault <noparse><#FFFFFFFF></noparse>"+char(10)+
-														"# kore --override color5phinxText <noparse><#00FFFFFF></noparse>"+char(10)+ 
-														"# END THEME"+char(10)+
+														"# kore --override color5phinxText <noparse><#00FFFFFF></noparse>"+char(10)+
+														"# New: Marinette, by Hecate, has a bunch of theme presets that you can activate!"+cahr(10)+
+														"# --you can get it at: https://github.com/shippingfandom/Marinette"+char(10)+
+														"# --below is a handy macro to use to switch Marinette themes at runtime:"+char(10)+
+														"# macro set theme "" glosure -e \"" ((set globals 'SILENT' 2)) \"" || clipa \"" (mari-load-theme ' \"" || append @clipa @pipe || append @clipa ') || glosure -e \"" ((set globals 'SILENT' 0)) \"" || glosure -e \@a "" "+char(10)+														"# END THEME"+char(10)+
 														"# remove the '#'s below and add your commands"+char(10)+
 														"# "+char(10)+
 														"# "+char(10)+
@@ -364,65 +368,6 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     print default(@error)
     time_f = time - time_s
     return "<size=75%>kore: task complete in "+time_f+" seconds."
-end function
-
-command.outmon = function(arg1,interval=2, act=0, react=0)
-	if arg1 == "help" or arg1 == "-h" then return "monitor || file monitor || output monitor"+char(10)+
-	"Outmon is a not very useful daemon that will monitor a given file for a change."+char(10)+
-	"When a change is detected, it will print the file contents, then resume monitoring."+char(10)+char(10)+
-	colorLightBlue+"Usage: outmon [path] [opt:interval] [opt:bool:act] [opt:reaction]"+char(10)+
-	colorCyan+"-- [path] -- is the path to the file you wish to monitor"+char(10)+
-	"---- it may be of type ascii or binary"+char(10)+
-	"---- monitoring folders is not yet supported (soontm)"+char(10)+
-	"-- [interval] -- is the refresh rate; default 01 seconds, range(.01, 300)"+char(10)+
-	"--- prints changes to a text file every [interval] seconds"+char(10)+
-	"-- [act] -- is 0, 1, 2, or 3"+char(10)+
-	"---- 0: do nothing; continue to loop (anything other than 1 or 2 is treated as 0)"+char(10)+
-	"---- 1: stop outmon on the first change detected"+char(10)+
-	"---- 2: invoke <b>do</b> on the file contents, then continue the loop"+char(10)+
-	"---- 3: perform the indicated reaction; prompts if not supplied"+char(10)+
-	"-- [reaction] -- should be a command or string of commands"+char(10)+
-	"-----eg: "+colorCyan+"outmon /var/system.log .01 3 \"" mv /var/system.log /var/system.back || sc || lock \"" "+char(10)+
-	"-- to end the running process, use the command:<b> purge -d [opt:name]"+char(10)+
-   	"---- or note the daemon name printed on the screen and "+char(10)+
-    "---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
-    "---- or delete the file entirely"+char(10)+
-    "-- if the file cannot be created, then the process must be exited by with <b>ctrl+c"+char(10)+char(10)+
-	"<b>MNEMONIC: 1 and done, 2 is do, 3 by me, otherwise loop to infinity"
-	out_space = 0
-	if arg1 then out_space = globals.get_file(arg1)
-	if not out_space then return "outmon: "+ arg1 + ": file not found."
-	last_read = "-EMPTY-" // out_space.get_content
-	//interval = arg2 // refresh interval, may be float in range .1, 300
-	if interval and typeof(interval) == "string" then interval = interval.val
-	if typeof(interval) != "number" or interval < .01 or interval > 300 then interval = .1
-	act = act.to_int 
-	if act == 3 then 
-		if not react then react = user_input("outmon: supply command(s) to use as reaction to changes: "+char(10)+colorCyan+"macro set reaction "+CT+":> ")
-		
-
-
-
-	end if 
-	manager = new DaemonManager
-	daemon = manager.Start("outmon", out_space.path)
-	while (daemon and manager.Check(daemon)) or not manager.__initialized
-	  if last_read == out_space.get_content then
-	    //skip
-	  else
-	    last_read = out_space.get_content
-		print(colorWhite+"daemon: "+daemon+CT)
-	    print(colorGreen+"///////////////////////////////////////"+CT)
-	    print(last_read)
-	    print(colorGreen+"///////////////////////////////////////"+CT)
-		if act == 1 then manager.Stop(daemon)
-		if act == 2 then print command.do(last_read)
-		if act == 3 then react
-		print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
-	  end if
-	  wait(interval)
-	end while
-	return 0
 end function
 command.sphinx = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then 
@@ -1262,5 +1207,67 @@ command.glasspool = function(arg1,arg2,arg3,arg4)
 			print(colorOrange+"glasspool: error: failed to initialize."+CT)
 		end if
 	end if
+	return 0
+end function
+command.outmon = function(arg1,interval=2, act=0, react=0)
+	if arg1 == "help" or arg1 == "-h" then return "monitor || file monitor || output monitor"+char(10)+
+	"Outmon is a not very useful daemon that will monitor a given file for a change."+char(10)+
+	"When a change is detected, it will print the file contents, then resume monitoring."+char(10)+char(10)+
+	colorLightBlue+"Usage: outmon [path] [opt:interval] [opt:bool:act] [opt:reaction]"+char(10)+
+	colorCyan+"-- [path] -- is the path to the file you wish to monitor"+char(10)+
+	"---- it may be of type ascii or binary"+char(10)+
+	"---- monitoring folders is not yet supported (soontm)"+char(10)+
+	"-- [interval] -- is the refresh rate; default 01 seconds, range(.01, 300)"+char(10)+
+	"--- prints changes to a text file every [interval] seconds"+char(10)+
+	"-- [act] -- is 0, 1, 2, or 3"+char(10)+
+	"---- 0: do nothing; continue to loop (anything other than 1 or 2 is treated as 0)"+char(10)+
+	"---- 1: stop outmon on the first change detected"+char(10)+
+	"---- 2: invoke <b>do</b> on the file contents, then continue the loop"+char(10)+
+	"---- 3: perform the indicated reaction; prompts if not supplied"+char(10)+
+	"-- [reaction] -- should be a command, string of commands, or macro(s)"+char(10)+
+	"-----eg: "+colorCyan+"outmon /var/system.log .01 3 \"" mv /var/system.log /var/system.back || sc || lock \"" "+char(10)+
+	"-- to end the running process, use the command:<b> purge -d [opt:name]"+char(10)+
+   	"---- or note the daemon name printed on the screen and "+char(10)+
+    "---- remove the corresponding line from <b>/root/5hell.d</b>"+char(10)+
+    "---- or delete the file entirely"+char(10)+
+    "-- if the file cannot be created, then the process must be exited by with <b>ctrl+c"+char(10)+char(10)+
+	"<b>MNEMONIC: 1 and done, 2 is do, 3 by me, otherwise loop to infinity"
+	out_space = 0
+	if arg1 then out_space = globals.get_file(arg1)
+	if not out_space then return "outmon: "+ arg1 + ": file not found."
+	last_read = "-EMPTY-" // out_space.get_content
+	//interval = arg2 // refresh interval, may be float in range .1, 300
+	if interval and typeof(interval) == "string" then interval = interval.val
+	if typeof(interval) != "number" or interval < .01 or interval > 300 then interval = .1
+	if typeof(act) == "string" then act = act.to_int 
+	if act == 3 then 
+		if not react then react = user_input(colorCyan+"outmon: supply command(s) to use as reaction to changes: "+char(10)+colorCyan+"-- reaction (<<b>enter</b>>=abort):> "+colorWhite)
+		if react == "" then return "outmon: aborting..."
+	end if 
+	manager = new DaemonManager
+	daemon = manager.Start("outmon", out_space.path)
+	if DEBUG then
+		print colorOrange+"debug: ready to outmon with:
+		out_space: "+out_space.path+"
+		interval: "+interval+"
+		act: "+act+"
+		react: "+react+char(10)
+	end if
+	while (daemon and manager.Check(daemon)) or not manager.__initialized
+	  if last_read == out_space.get_content then
+	    //skip
+	  else
+	    last_read = out_space.get_content
+		print(colorWhite+"daemon: "+daemon+CT)
+	    print(colorGreen+"///////////////////////////////////////"+CT)
+	    print(last_read)
+	    print(colorGreen+"///////////////////////////////////////"+CT)
+		if act == 1 then manager.Stop(daemon)
+		if act == 2 then print command.do("1",last_read)
+		if act == 3 then print command.do("1",react)
+		print(colorWhite+"Listening on :"+out_space.path+" for connections..."+CT)
+	  end if
+	  wait(interval)
+	end while
 	return 0
 end function

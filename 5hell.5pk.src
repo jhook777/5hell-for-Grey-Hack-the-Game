@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.3_falling_skies"
+ver = "4.3.4_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "141.392"
+size_of_5hell = "142.519"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -62,7 +62,7 @@ globals.T_BUF = [(localip+"@"+pubip)] // transmission buffer
 globals.BUFFER = [get_shell]
 //
 globals.spoolpath = 0 // 0 false, string true
-globals.SAFEWORD = "stop_code" // use @STOP (or this value) in a do script and/or in an if statement within a do script to 'break' the do loop
+globals.SAFEWORD = "@STOP" // use @STOP (or this value) in a do script and/or in an if statement within a do script to 'break' the do loop
 globals.HERMES = false
 globals.inbox = null
 //
@@ -84,6 +84,7 @@ globals.brdc = ""
 globals.PORT_MAP = {}
 globals.targetIP = null
 globals.targetPort = "router"
+//
 
 //
 if DEBUG then print("<size=75%>loading dictionary...</size>")
@@ -2032,12 +2033,16 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 	iter = 0
 	cmd = []
 	if arg1 then
-		if typeof(arg1) == "number" then iter = arg1 else iter = arg1.to_int // needs a check for invalid type
+		if typeof(arg1) == "number" then 
+			iter = arg1
+		else
+			if typeof(arg1) == "string" then iter = arg1.to_int
+		end if
 	else
 		iter = user_input("Number of iterations to run command:"+char(10)+":> ").to_int
 	end if
 	if not iter or typeof(iter) != "number" then return "do: invalid iteration."
-	if arg2 and arg2 != "" then
+	if typeof(arg2) == "string" and arg2 != "" then
 		if arg2 == "-f" then
 			cmd.push(arg2)
 		else
@@ -2045,6 +2050,8 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 			if arg4 then arg2 = arg2 + " " + arg4
 			cmd.push(arg2)
 		end if
+	else if typeof(arg2) == "list" then
+		cmd = arg2
 	else
 		print("Configure command list: ")
 		print("* piped commands go on a single line separated by | ")
@@ -2071,12 +2078,14 @@ command.do = function(arg1, arg2=0, arg3=0, arg4=0)
 		cmd = cmd.replace(char(10)," || ")
 		for i in range(1,iter)
 			for c in cmd
-				if c == globals.SAFEWORD then break
+				//if c == "@STOP" then break
+				//if c == "@RETURN" then return
 				//c = c.replace(" || "," |  | ") + " | return"
 				if DEBUG then print "debug: do: c: "+char(10)+": "+c
 				if c.len < 1 or c[0] == "#" then continue
 				c = c + " | return"
 				r = command.shell(c)
+				if DEBUG then print "debug: do result: "+r
 				if r == "@STOP" then break
 				if r == "@RETURN" then return
 			end for
@@ -2152,6 +2161,11 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"NOTE: the -f,-p, and -P options loop until:"+char(10)+
 	"-- condition is met"+char(10)+
 	"-- ended with ctrl+c"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-u|--until"+CR+"] [time:{h:m}] -- pause until the designated game time"+char(10)+
+	"-- format: hour:minute"+char(10)+
+	"--eg:<b> pause 04:15 || kore -sc</b>"+char(10)+
+	"--note: you may use a single digit for hours under 10: 04:00 == 4:00"
+	"--note: does not yet support am/pm or dates (maybe later)"+char(10)+
 	"<size=75%>note: more options planned"
 
 	time_to_wait = "1" // default wait 1 second 
@@ -2198,14 +2212,29 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		end while
 		if verbose then return p_bye else return null
 	end if
-
+	badtime =  "pause: invalid time; expected<b> (int)hour:(int)minute"
+	if arg1 == "-u" or arg1 == "--until" then
+		ttw = ""
+		if not arg2 isa string then return badtime
+		ttw = arg2.split(":")
+		if typeof(ttw[0].to_int) != "number" or typeof(ttw[1]) != "number" then return badtime
+		twti = (ttw[0].to_int * 60) + ttw[1].to_int
+		if twti > 0 then
+			t_now = current_date.split(" ")[-1].split(":")
+			tnti = (t_now[0].to_int * 60) + t_now[1].to_int
+			while tnti < twti 
+				wait .1
+				continue
+			end while
+		end if
+		if verbose then return p_bye else return null
+	end if
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
 	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
 	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- awaiting manual input :> ")//"-- press <"+colorGreen+"enter"+CT+"> to continue --")
-	if time_to_wait <= 300 and time_to_wait >= .01 then
-	else
-		time_to_wait = 1
+	if time_to_wait > 300 or time_to_wait < .01 then
 		print "pause: invalid wait time: changing time_to_wait to 1 second"
+		if verbose then return p_bye else return null
 	end if
 	if verbose then print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
 	wait(time_to_wait)

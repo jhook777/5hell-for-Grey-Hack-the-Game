@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.3...(77.183)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.4...(77.229)")
   
  //////////////////////contrubutions start here///////////
   /// this is stuff that was not made entirely by Plu70
@@ -790,7 +790,8 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
 
     repl = function(env)
       while true
-        codeStr = user_input("</> ")
+        //codeStr = user_input("</> ")
+        codeStr = user_input("</> ",0,0,1)
         if codeStr == ";quit" then break
         result = execute(codeStr, env)
         if @result isa string then print(result) else print(tree(@result))
