@@ -1365,7 +1365,11 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		print("<size=85%><u>logs will not be overwritten when re-running this command; mind your drive space.</u></size>")
 	end if
 	buffer = false
-	if waitFor == "buffer" then buffer = true
+	if waitFor == "buffer" then
+		buffer = true
+		print command.enum("-p")
+		print "kraken: results will be sent to "+colorOrange+"BUFFER"+CT+" and <b>enum</b>"
+	end if
 	if waitFor == "-l" or waitFor == "scrub" or waitFor == "connect" or waitFor == "prox" then
 		scrub = true
 		if waitFor == "connect" or waitFor == "prox" then
@@ -1395,6 +1399,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		if typeof(remote)  != "shell" then return kraken_done( "kraken: connection failed.")
 		if not scrub and not buffer then shell.scp(upload_path, destination_path, remote)
 		BUFFER.push(remote)
+		if buffer then command.enum("-a",remote)
 		last_shell = remote
 	end for
 	if not remote then return kraken_done( "kraken: connection error")
@@ -1415,7 +1420,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 				if get_logs then print(colorOrange+"</b>Kraken: log missed!<b>"+CT)
 			end if
 		end if
-		if secure then print command.glasspool("-d","kore -sc || return",BUFFER[0])
+		if secure then print command.glasspool("-d","kore -sc || return",BUFFER[o])
 		if scrub then
 			print("Scrubbing log...")
 			root = BUFFER[o].host_computer.File("/")
