@@ -2,7 +2,7 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.4_falling_skies"
+ver = "4.3.4.2_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
@@ -2161,7 +2161,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"NOTE: the -f,-p, and -P options loop until:"+char(10)+
 	"-- condition is met"+char(10)+
 	"-- ended with ctrl+c"+char(10)+
-	"Usage: "+cw+"pause"+CT+" ["+cw+"-u|--until"+CR+"] [time:{h:m}] -- pause until the designated game time"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-u|--until"+CT+"] [time:{h:m}] -- pause until the designated game time"+char(10)+
 	"-- format: hour:minute"+char(10)+
 	"--eg:<b> pause 04:15 || kore -sc</b>"+char(10)+
 	"--note: you may use a single digit for hours under 10: 04:00 == 4:00"
