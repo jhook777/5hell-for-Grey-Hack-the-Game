@@ -2954,9 +2954,10 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
     //print colorWhite+"</b><size=65%>-- preparing to run "+colorRed+"</b>5</color>hell silently on the target..." // this is no longer possible, will always show in procs if shell.launch is used
 
     print colorWhite+"<size=75%><u>-- injecting process <u>"+cgo+"/home/guest/rkit/5hell</u></color> into 0x"+colorLightBlue+"</b>0B"+floor(rnd * 10)+floor(rnd * 10)+floor(rnd * 10)+"5C"+floor(rnd * 10)+"...</u></size>"
-    print command.run("/home/guest/rkit/5hell",par,sh_ob)
+    holdp = currentPath
+	print command.run("/home/guest/rkit/5hell",par,sh_ob)
     //_cascade // exit if cascade
-    globals.update_path
+    globals.update_path(holdp)
     return cgo+"<size=75%>infil: infiltration complete"
 end function
 command.flood = function(fip,fpt,c,d)
