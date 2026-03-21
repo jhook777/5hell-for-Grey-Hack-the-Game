@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.4...(151.342)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.5...(152.933)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -46,28 +46,6 @@ command.target = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	print "<size=75%>target: returning targetIP and targetPort:"
 	return globals.targetIP+" "+globals.targetPort
-end function
-command.transmit = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "<b><size=75%>Transmit</b> || t_buf transmission buffer transmission protocol || @tbuf || TBUF"+char(10)+
-	"Usage: transmit [opt: 1|0] [opt:password] "+char(10)+
-	"-- transmit @t_buf to your @home server. "+char(10)+
-	"-- set @home credentials in 5hell.src before building 5hell"+char(10)+
-	"-- options: 1 == wait for reply, 0 (or blank) == don't wait for reply"+char(10)+
-	"--eg:</b> transmit 1"+char(10)+"--eg:<b> transmit 0"+char(10)+
-	"-- use with hashim running on the @home server"+char(10)+
-	"---- ensure @home server has the <b>"+get_custom_object.HOME.sharedfile+"</b> file"+char(10)+
-	"-- if <b>HOME.pass is not set or left at default:"+char(10)+
-	"---- you will be prompted for the password when running the command"+char(10)+
-	"-- pass a second argument to bypass the prompt"+char(10)+
-	"--eg: transmit 0 securePassword"+char(10)+char(10)+
-	"NOTE: the default password is <b>password"+char(10)+
-	"-- transmit will ignore this and prompt you for a password"+char(10)+
-	"-- supply the word <b>password</b> again to confirm your password is password"+char(10)+
-	"-- alternatively call the command with <b>password</b> as a second argument"+char(10)+
-	"--eg: <b>transmit 1 password"+char(10)+
-	char(10)+
-	"Current Default Password: "+colorGold+get_custom_object.HOME.pass
-	return globals.transmit(arg1,arg2)
 end function
 command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "<b><u>Reverse Shell Interface || RSI Daemon || Install rshell server"+char(10)+
@@ -414,29 +392,44 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 	return globals.secure_copy(target_shell, target_path, direction, skip)
 end function
 command.iwlist = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "help" or arg1 == "-h" then return "<u>iwlist || wifi networks "+char(10)+
-	colorGreen+"Usage: iwlist -- returns a string containing all wifi networks in range"+char(10)+
-	"-- displays bssid, essid, and signal strenghth (power)"+char(10)+
-	"-- note: use <b>ifconfig -w</b> or <b>air</b> to connect wifi"+char(10)+
-	"Usage: iwlist [-a|air] -- uses the command:<b> air false</b> to display network info "
-	nets = localmachine.wifi_networks("wlan0")
-	print colorGreen+"<u><size=75%>"+colorWhite+"- - - - - - wifi networks - - - - - -"
-	if arg1 == "-a" or arg1 == "air" then
-		return command.air("false")
-	else 
-		if typeof(nets) == "list" then return nets.join(char(10))
+	if arg1 == "help" or arg1 == "-h" then return "<u>iwlist || wifi networks || essid || bssid"+char(10)+char(10)+
+	colorGreen+"Usage: iwlist [opt:-l] -- returns all wifi networks in range"+char(10)+
+	"-- displays bssid, essid, and signal strenghth (power/pwr)"+char(10)+
+	"-- note: use <b>ifconfig -w</b> or <b>air</b> to connect to wifi"+char(10)+
+	colorGreen+"Usage: iwlist [-a|air] -- uses the command:<b> air false</b> to display network info "+char(10)+
+	"-- does not accept the -l argument"+char(10)+
+	colorGreen+"Usage: iwlist [-b] [opt:-l] -- return BSSID's of all wifi signals in range"+char(10)+
+	colorGreen+"Usage: iwlist [-e] [opt:-l] -- return ESSID's of all wifi signals in range"+char(10)+
+	colorGreen+"Usage: iwlist [-p] [opt:-l] -- return power % of all wifi signals in range"+char(10)+char(10)+
+	"NOTE: by default iwlist returns a string"+char(10)+
+	"-- passing <b>-l</b> as second argument returns a <b>list</b>"+char(10)
+	return_list = false
+	if arg1 == "-a" or arg1 == "air" then return command.air("false")
+	if agr2 == "-l" then return_list = true
+	nets = localmachine.wifi_networks("wlan0").split(char(10))
+	c = 0
+	if arg1 == "-b" or arg1 == "-e" then 
+		if arg1 == "-e" then c = 2
+		colm = []
+		for line in nets
+			line = line.trim
+			colm.push(line.split(" ")[c])
+		end for
+		nets = colm
 	end if
+	if not return_list then nets = nets.join(char(10))
+	print colorGreen+"<u><size=75%>"+colorWhite+"- - - - - - wifi networks - - - - - -"
 	return nets	
 end function
 command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then 
 		clb = colorLightBlue
 		return "ifconfig || iwconfig || wifi || ethernet || internet || gateway || router"+char(10)+
-			"Usage: ifconfig [opt:"+clb+"-l|-p|-c|-w|-g|-d"+CT+"] --  returns network interface information"+char(10)+char(10)+
-			"Usage: <b>ifconfig</b> -- returns connection status and ip information of active computer object"+char(10)+char(10)+
-			"Usage: ifconfig ["+clb+"-l"+CT+"|local] -- returns the lan ip of the active computer object"+char(10)+
+			"Usage: ifconfig [opt:"+clb+"-l|-p|-c|-w|-g|-d"+CT+"] [opt:shell|computer] --  returns network interface information"+char(10)+char(10)+
+			"Usage: <b>ifconfig</b> [opt:shell|computer] -- returns connection status and ip information"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-l"+CT+"|local] [opt:shell|computer] -- returns the lan ip of the active computer object"+char(10)+
 			"-- respects glasspool"+char(10)+char(10)+
-			"Usage: ifconfig ["+clb+"-p"+CT+"|public] -- returns the public ip of the active object computer object"+char(10)+
+			"Usage: ifconfig ["+clb+"-p"+CT+"|public] [opt:shell|computer] -- returns the public ip of the active object computer object"+char(10)+
 			"-- respects glasspool"+char(10)+char(10)+
 			"Usage: ifconfig ["+clb+"-c"+CT+"|connect] [desired_lan_ip] [desired_gateway] "+char(10)+
 			"-- connect via ethernet to gateway and request lan_ip."+char(10)+
@@ -446,28 +439,38 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			"-- this a slightly simpler iwconfig:"+char(10)+
 			"---- you pass an essid OR a bssid, not both"+char(10)+
 			"-- note: use <b>air</b> for cracking wifi networks or accessing wifi via a menu"+char(10)+char(10)+
-			"Usage: ifconfig ["+clb+"-g"+CT+"|gateway] -- returns the lan ip of the active object's gateway (router)"+char(10)+char(10)+
-			"Usage: ifconfig ["+clb+"-d"+CT+"|devices] -- list network devices on active computer object"+char(10)
+			"Usage: ifconfig ["+clb+"-g"+CT+"|gateway] [opt:shell|computer] -- returns the lan ip of the active object's gateway (router)"+char(10)+char(10)+
+			"Usage: ifconfig ["+clb+"-d"+CT+"|devices] [opt:shell|computer] -- list network devices on active computer object"+char(10)+char(10)+
+			colorGreen+"Note: ifconfig> shows localmachine by default"+char(10)+
+			"-- pipe an object to configure a remote machine instead"+char(10)
 		end if
 	print colorGreen+"- - - - - - - - - - - - - - - - - - - - - - -"
 	dat = []
 	globals.localip = globals.localmachine.local_ip
 	globals.pubip = globals.localmachine.public_ip
+	use_comp = globals.localmachine
+
+	if typeof(arg1) == "shell" or typeof(arg1) == "computer" or typeof(arg2) == "shell" or typeof(arg2) == "computer" then
+		use_comp = arg2
+		if typeof(arg2) == "shell" then use_comp == arg2.host_computer
+	end if
 	if arg1 == "-l" or arg1 == "local" or arg2 == "-l" or arg2 == "local" then dat.push(localip)// ?? #whyemoji.gif
 	if arg1 == "-p" or arg1 == "public" or arg2 == "-p" or arg2 == "public" then dat.push(pubip)// ??
 	if arg1 == "-d" or arg2 == "-d" or arg1 == "devices" or arg2 == "devices" then// ??
 		dat.push("___")
-		dat.push(localmachine.network_devices)
+		dat.push(use_comp.network_devices)
 	end if
+
+	if typeof(arg1) == "shell" or typeof(arg1) == "computer" then 
 	if arg1 == "-w" or arg1 == "wifi" then 
 		if not arg3 then return "ifconfig: -w expects [essid|bssid] [passykey]"
-		if not localmachine.active_net_card == "WIFI" then return "iwconfig: no active WIFI card"
-		dev = localmachine.network_devices
+		if not use_comp.active_net_card == "WIFI" then return "iwconfig: no active WIFI card"
+		dev = use_comp.network_devices
 		if dev.indexOf("wlan0") != null then dev = "wlan0"
 		if dev.indexOf("wlan1") != null then dev = "wlan1"
 		essid = 0
 		bssid = 0
-		networks = localmachine.wifi_networks(dev)
+		networks = use_comp.wifi_networks(dev)
 		if DEBUG then print "debug: networks: "+networks.join(char(10))
 		for net in networks 
 			net = net.split(" ")
@@ -478,7 +481,7 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		end for
 		if DEBUG then print "debug: essid: "+essid+" bssid: "+bssid
 		if not essid or not bssid then return "ifconfig: error; no such wifi network"
-		return localmachine.connect_wifi(dev,bssid,essid,arg3)
+		return use_comp.connect_wifi(dev,bssid,essid,arg3)
 	end if
 	if arg1 == "-c" or arg1 == "connect" then
 		device = "eth0"
@@ -486,22 +489,22 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		gateway = arg3
 		if not is_valid_ip(address) then return("ifconfig: invalid ip address")
 		if not is_valid_ip(gateway) then return("ifconfig: invalid gateway")
-		output = localmachine.connect_ethernet(device, address, gateway)
+		output = use_comp.connect_ethernet(device, address, gateway)
 		return output
 	end if
-	if arg1 == "-g" or arg1 == "gateway" then return localmachine.network_gateway
+	if arg1 == "-g" or arg1 == "gateway" then return use_comp.network_gateway
 	if arg1 == 0 and arg2 == 0 then //dat.push(pubip)
-		if localmachine.is_network_active then
-			router = get_router(localmachine.network_gateway)
+		if use_comp.is_network_active then
+			router = get_router(use_comp.network_gateway)
 			if not router then 
-				dat.push("ifconfig: error: gateway: "+localmachine.network_gateway)
+				dat.push("ifconfig: error: gateway: "+use_comp.network_gateway)
 			end if
-			dat.push("Connected to: "+localmachine.active_net_card)
-			if localmachine.active_net_card == "WIFI" then
+			dat.push("Connected to: "+use_comp.active_net_card)
+			if use_comp.active_net_card == "WIFI" then
 				if router then dat.push("<b>"+router.essid_name+"</b>")
 				if router then dat.push(router.bssid_name)
 			end if
-			dat.push(localmachine.network_gateway+char(10)+"<b>"+localmachine.public_ip+char(10)+"<b>"+localmachine.local_ip)
+			dat.push(use_comp.network_gateway+char(10)+"<b>"+use_comp.public_ip+char(10)+"<b>"+use_comp.local_ip)
 		else
 			dat.push(char(10)+"No active network connection."+char(10))
 		end if
@@ -997,7 +1000,14 @@ command.whois = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 	ssh_help = function()
-		return "Secure Shell Protocol"+char(10)+"Usage: ssh [user@pass] [ip] [optional:pt (default 22)]"+char(10)+"ssh_usage: ssh [user@-brutus] [ip] [opt:pt] --  remote brute force attack"+char(10)+"e.g. ssh root@1234 1.1.1.1 "+char(10)+"e.g. ssh root@-brutus 1.2.3.4 21 ftp"+char(10)+"Sends shells to BUFFER or you may open immediately."
+		return "secure shell protocol || connect_service"+char(10)+
+		"Usage: ssh [user@pass] [ip] [optional:port (default 22)] [opt:ftp]"+char(10)+
+		"--eg: <b>ssh root@1234 1.1.1.1 "+char(10)+
+		"Usage: ssh [user@-brutus] [ip] [opt:pt] --  remote brute force attack"+char(10)+
+		"--eg: <b>ssh root@-brutus 1.2.3.4 21 ftp"+char(10)+
+		"NOTE: passing ftp is required when connect to an ftp server"+char(10)+
+		"Note: sends shells to BUFFER"+char(10)+
+		"NOTE: returns the shell object"+char(10)
 	end function
 	if arg1 == 0 or arg2 == 0 or arg1 == "-h" or arg1 == "help" then return ssh_help
 	if not localmachine.is_network_active then return "nsl: no network connection."
@@ -1092,12 +1102,16 @@ command.scrub = function(arg1, arg2=0, arg3=0, arg4=0)
 	return command.kraken("scrub", arg1, arg2)
 end function
 command.prox = function(arg1, arg2=0, arg3=0, arg4=0)
-	if arg1 == "-h" or arg1 == "help" then return "KRAKEN shortcut || proxy tunneling"+char(10)+"
-	Usage: prox -- use kraken to route through proxy net and open terminal at end"+char(10)+
-	"-- equivalent to<b> kraken connect"+char(10)+
-	"-- if Map.conf is encrypted you may pass a decryption key as an argument"+char(10)+
-	"---- otherwise you will be prompted for the key"
-	return command.kraken("connect", arg1, arg2)
+	if arg1 == "-h" or arg1 == "help" then return "KRAKEN shortcut || proxy tunneling"+char(10)+
+	"<b>Usage: prox [opt:map_key] -- use kraken to route through proxy net and open terminal at end"+char(10)+
+	"-- equivalent to<b> kraken prox"+char(10)+
+	"-- if Map.conf is encrypted:"+char(10)+
+	"-- the HOME.map_key, if set, will be used to decrypt"+char(10)+
+	"-- or you may pass a decryption key as an rgument"+char(10)+
+	"<b>Usage: prox [opt:-gp|glasspool] [opt:map_key] --"+char(10)+
+	"-- use kraken to route through proxy net and start "+colorLightBlue+"GLASSPOOL"+char(10)+
+	"-- does not start_terminal on endpoint proxy"
+	return command.kraken("prox", arg1, arg2)
 	return 0
 end function
 if DEBUG then print("<size=75%>loading ...kraken.5pk...(10.875b)</size>")
@@ -1105,48 +1119,56 @@ if DEBUG then print("<size=75%>loading ...kraken.5pk...(10.875b)</size>")
 command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	kraken_help = function()
 		return "proxy management || release the kraken || upload || download || rental server"+char(10)+
-		"Usage: kraken [opt: upload_path] -- propagate file or folder to all proxies"+char(10)+
+		colorGold+"Usage: kraken [opt: upload_path] [opt:map_key] -- propagate file or folder to all proxies"+char(10)+
 		"-- uses ~/Config/Map.conf"+char(10)+
 		"-- does <b>not</b> scrub the log after uploading"+char(10)+char(10)+
-		"Usage: kraken prox -- tunnel through each proxy and start_terminal on the last"+char(10)+
+		colorGold+"Usage: kraken prox [opt:map_key] --"+char(10)+
+		"-- tunnel through each proxy and start_terminal on the last"+char(10)+
 		"-- each proxy uses ssh to connect to the next, in order"+char(10)+
 		"-- start_terminal will be used on the endpoint proxy"+char(10)+
 		"-- scrubs the logs before starting the terminal"+char(10)+
-		"--note: this mode has been aliased to the "+colorCyan+"prox"+CT+" command (<b>prox -h</b>)"+char(10)+
-		"Usage: kraken prox [opt:"+colorLightBlue+"-g"+CT+"] -- tunnel through each proxy <b>w/o</b> starting the terminal"+char(10)+
-		"-- opens the final shell in the chain in "+colorLightBlue+"glasspool"+CT+" instead"+char(10)+
+		"--note: this mode has been aliased to the "+colorCyan+"prox"+CT+" command (<b>prox -h</b>)"+char(10)+char(10)+
+		colorGold+"Usage: kraken prox [opt:"+colorLightBlue+"-gp|glasspool"+CT+"] [opt:map_key] --"+char(10)+
+		"-- tunnel through each proxy and open "+colorLightBlue+"GLASSPOOL"+char(10)+
+		"-- does <b>not</b> run <b>start_termianl</b> on the final 5hell"+char(10)+
+		"-- opens glasspool on final terminal instead"+char(10)+
 		"-- all shells in the chain remain in the "+colorOrange+"BUFFER"+char(10)+char(10)+
-		"Usage: kraken scrub -- tunnel through proxy chain and corrupt the log on each"+char(10)+
+		colorGold+"Usage: kraken scrub [opt:map_key] --"+char(10)+
+		"-- tunnel through proxy chain and corrupt the log on each"+char(10)+
 		"--note: this mode has been aliased to the "+colorCyan+"scrub"+CT+" command (<b>scrub -h</b>)"+char(10)+
 		"-- <b>kraken scrub / scrub</b> will:"+char(10)+
 		"---- corrupt the log on each proxy in the chain"+char(10)+
 		"---- remove /etc/passwd from each proxy in the chain"+char(10)+
 		"---- lock file permissions on each proxy in the chain"+char(10)+char(10)+
-		"Usage: kraken [buffer] -- shells will be sent to BUFFER with no further action"+char(10)+char(10)+
-		//"New: kraken [command] [-s] -- run silentclean each proxy after the command"+char(10)+
-		//"--eg: kraken /root/rkit -s"+char(10)+char(10)+
-		"Usage: kraken add [opt:ip] [opt:pass] -- add items to Map.conf"+char(10)+char(10)+
-		"Usage: kraken del [index] -- remove the entry at index"+char(10)+
-		"Usage: kraken show [opt:-p] -- display proxy list"+char(10)+
+		colorGold+"Usage: kraken [buffer] [opt:map_key] -- "+char(10)+
+		"-- send all proxy shells to BUFFER and enum"+char(10)+char(10)+
+		colorGold+"Usage: kraken add [opt:ip] [opt:pass] [opt:map_key] -- add items to Map.conf"+char(10)+
+		colorGold+"Usage: kraken del [index] [opt:map_key] -- remove the entry at index"+char(10)+char(10)+
+		colorGold+"Usage: kraken show [opt:-p] [opt:map_key] -- display proxy list"+char(10)+
 		"-- passing<b> -p</b> will display the list with passwords"+char(10)+char(10)+
-		"Usage: kraken [-l|logs]  -- download system.log from proxies and then scrub"+char(10)+
+		colorGold+"Usage: kraken [-l|logs] [opt:map_key] -- download system.log from proxies and then scrub"+char(10)+
 		"-- system.logs are saved as: <b>system-#.log"+char(10)+
 		"-- # is in the reverse order of the proxy chain"+char(10)+
 		"---- the <b>endpoint</b> log will have the lowerst number"+char(10)+
 		"-- logs are<b> not</b> overwritten on each run; mind your drive space"+char(10)+char(10)+
-		colorGold+"Usage: kraken -- launch the kraken proxy management menu"+char(10)+
+		colorGold+"Usage: "+colorOrange+"kraken</color> -- launch the kraken proxy management menu"+char(10)+
+		"-- note: this mode does not take a map_key as input"+char(10)+
+		"---- set HOME.map_key or enter map_key at prompt"+char(10)+
 		char(10)+
 		"NOTE: kraken will only scrub logs when using:"+char(10)+
 		"-- scrub, prox, [-l|logs]"+char(10)+char(10)+
 		colorGold+"Encryption"+CT+colorWhite+" and "+CT+colorGold+"Kraken"+char(10)+
-		"-- kraken will [offer to] decrypt Map.conf if it is encrypted"+char(10)+
-		"---- files decrypted this way will be re-encrypted"
+		"-- kraken will attempt to decrypt Map.conf if it is encrypted"+char(10)+
+		"---- files decrypted this way will be re-encrypted"+char(10)+
+		"-- you may set a decryption key in HOME.map_key"+char(10)+
+		"-- or pass it as a final argument"
+		
 	end function
 	if arg1 == "-h" or arg1 == "help" then return kraken_help
 	map_path = home_dir + "/Config/Map.conf"
 	map_file = globals.get_file(map_path)
 	kraken_done = function(msg="kraken: task complete")
-		if outer.isenc then print command.file("-e",outer.map_file.path,outer.enckey)
+		//if outer.isenc then print command.file("-e",outer.map_file.path,outer.enckey)
 		return msg
 	end function
 	if not map_file then
@@ -1167,6 +1189,9 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 			enckey = arg2
 			if arg2 == "-p" or arg1 == "del" then enckey = arg3 
 			if arg1 == "add" then enckey = arg4
+			if arg1 == "prox" then
+				if arg2 == "-gp" or arg2 == "glasspool" then enckey = arg3 else enckey = arg2
+			end if
 			if not enckey then enckey = command.cob("get","HOME.map_key") 
 			if globals.DEBUG then print "debug: map path: "+map_file.path+char(10)+"-- arg1: "+arg1+", enckey: "+enckey
 			print command.file("-d",map_file.path,enckey)
@@ -1175,7 +1200,9 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		end if
 		if map_file.is_binary then return "kraken: "+colorWarning+"decryption failed; aborting..."
 	end if
+	print "kraken: reading Map.conf"
 	map_contents = map_file.get_content
+	if isenc then print command.file("-e",map_file.path,enckey)
 	//map read
 	print(colorCyan+"Initializing Kraken v 0.9.5 by Plu70..."+CT)
 	time_s = time
@@ -1309,9 +1336,22 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	print("Proxy net consists of "+proxy["accounts"].len + " nodes: ")
 	print(colorOrange+"</b>!Kraken will no longer scrub your proxy logs by default!<b>"+CT)
 	print(colorOrange+"</b>Run:<b> scrub</b> or<b> kraken scrub </b>manually to corrupt logs."+CT)
-	print(colorOrange+"</b>Logs <u>will</u> be scrubbed for: <b>kraken connect</b> and the <b>prox</b> command.")
+	print(colorOrange+"</b>Logs <u>will</u> be scrubbed for: <b>kraken prox</b> and the <b>prox</b> command.")
 	last_shell = shell
-	if not waitFor then waitFor = user_input("["+colorCyan+"/path/to_file_or_folder"+CT+"] = upload to all proxies and BUFFER shells"+char(10)+"["+colorWhite+"prox"+CT+"] route through proxies and open shell at last proxy "+char(10)+"["+colorWhite+"-l"+CT+"] download (then scrub) proxy logs and BUFFER shells"+char(10)+"["+colorWhite+"scrub"+CT+"] scrub logs on all proxies and BUFFER shells"+char(10)+"["+colorWhite+"show"+CT+"] show ips of proxies in map"+char(10)+"["+colorWhite+"add"+CT+"] add proxy to map "+char(10)+"["+colorWhite+"del"+CT+"] remove proxy from map "+char(10)+"["+colorWhite+"buffer"+CT+"] = add all proxies to BUFFER without scrubbing"+char(10)+"[help] show help"+" [q]=quit "+char(10)+"kraken:> ",0,0)
+	if not waitFor then waitFor = user_input("["+colorCyan+"/path/to_file_or_folder"+CT+"] = upload to all proxies and BUFFER shells"+char(10)+
+	"["+colorWhite+"prox"+CT+"] route through proxies and start_terminal at last proxy "+char(10)+
+	"["+colorWhite+"glasspool"+CT+"] as above but opens glasspool instead start_terminal"+char(10)+
+	"["+colorWhite+"-l"+CT+"] download (then scrub) proxy logs and BUFFER shells"+char(10)+
+	"["+colorWhite+"scrub"+CT+"] scrub logs on all proxies and BUFFER shells"+char(10)+
+	"["+colorWhite+"show"+CT+"] show ips of proxies in map"+char(10)+
+	"["+colorWhite+"add"+CT+"] add proxy to map "+char(10)+
+	"["+colorWhite+"del"+CT+"] remove proxy from map "+char(10)+
+	"["+colorWhite+"buffer"+CT+"] = add all proxies to BUFFER without scrubbing"+char(10)+
+	"[help] show help"+" [q]=quit "+char(10)+"kraken:> ",0,0)
+	if waitFor == "glasspool" or waitFor == "-gp" or waitFor == "-G" then 
+		glass = true
+		arg2 = "glasspool"
+	end if
 	if globals.DEBUG then "debug: user input: "+arg1+" "+arg2+" "+arg3+" "+arg4+"-- waitFor: "+waitFor
 	if waitFor == "q" or waitFor == "Q" or waitFor == "" then return kraken_done("Aborting...")
 	if waitFor == "help" or waitFor == "-h" then return kraken_help
@@ -1375,7 +1415,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		if waitFor == "connect" or waitFor == "prox" then
 			connect = true
 			if not proxy["accounts"].len then return kraken_done( "kraken: no proxy found.")
-			if arg2 == "-g" then
+			if arg2 == "-gp" or arg2 == "glasspool" then
 				connect = false 
 				glass = true 
 			end if
@@ -1385,7 +1425,7 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end if
 	if waitFor == "secure" then secure = true
 	fileOrFolder = "scrub"
-	if not scrub and not buffer then fileOrFolder = localmachine.File(waitFor)
+	if not scrub and not buffer then fileOrFolder = globals.get_file(waitFor)
 	if not fileOrFolder then return kraken_done( "kraken: file not found.")
 	upload_path = "scrub"
 	if not scrub and not buffer then upload_path = fileOrFolder.path
@@ -1453,10 +1493,10 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
 	if connect or glass then 
 		if DEBUG then print "debug: connect: "+connect+char(10)+"debug: glass: "+glass
-		hold = globals.shell 
-		globals.shell = remote
+		//hold = globals.shell 
+		//globals.shell = remote
 		if connect == true then print command.psudo("-l",remote) else print command.glasspool(remote) // we want glass to mimic connect's behavior if the user uses start_terminal after using glass
-		globals.shell = hold 
+		//globals.shell = hold 
 	end if
 	return kraken_done
 end function
@@ -2426,7 +2466,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	"-- when used on a remote 'silent launch' of 5hell"+char(10)+
 	"---- pipes aptclientLib to the custom object then exits back to original 5hell"+char(10)+
 	"-- cob get apt | aptm"+char(10)+
-	"---- pipes aptclientLib to aptm and changes scope of aptm to remote"+char(10)+
+	"---- pipes aptclientLib to aptm and changes scope of aptm to remote"+char(10)+char(10)+
 	"Advanced: press [7] hot_swap_libs in aptm "+char(10)+
 	"-- reloads meta/crypto/apt to use latest versions after updating"+char(10)+char(10)+
 	"APT command line options (skips the menu):"+char(10)+
@@ -2498,12 +2538,17 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 			return print(chk_upg(cup)) // when using a remote aptclientlib, a file may be on the target that is not on the attacking machine
 	end function
 	apt.add_repo = function()
-		apt.update
-	  	if typeof(arg2) == "string" and is_valid_ip(arg2)then a = arg2 else a = user_input("Add repo ip:> ")
-			if is_valid_ip(a) then return print(apt_get.add_repo(a)) else return "aptm: invalid repo ip"
+	  	if typeof(arg2) == "string" and is_valid_ip(arg2) then a = arg2 else a = user_input("Add repo ip:> ")
+		if is_valid_ip(a) then
+			print "aptm: adding repo: "+a
+			print apt_get.add_repo(a)
+			apt.update
+		else
+			return "aptm: invalid repo ip"
+		end if
 	end function
 	apt.del_repo = function()
-		apt.update
+		//apt.update // this is called by apt.list_repos
 		rl = apt.list_repos
 		if rl.len < 1 then return print("aptm: no repositories to delete")
 		i = 0
@@ -2522,7 +2567,8 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 			a = a.to_int
 			if a >= 0 and a < rl.len then a = rl[a] else return print("aptm: invalid index")
 		end if
-		return print(apt_get.del_repo(a)) 
+		print(apt_get.del_repo(a)) 
+		apt.update
 	end function
 	apt.list_repos = function()
 		apt.update
@@ -2542,6 +2588,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		return reps
 	end function
 	apt.install = function()
+		apt.update
 		if typeof(arg2) == "string" and arg2 != "" then return print(apt_get.install(arg2,arg3)) else return print(apt_get.install(user_input("Install File(<<b>enter</b>>=abort):><b> "), user_input("Install Directory (<<b>enter</b>>=default)"+char(10)+":> ")))
 	end function
 	apt.search = function()
@@ -2562,9 +2609,10 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	end function
 	apt.update = function()
 	  print "<size=75%>Updating repositories..."
-	  return print(apt_get.update)
+	  apt_get.update
+	  return 1
 	end function
-	
+	//apt_get.update // always update on launch
 	// check for cli launch args
 	apting = false 
 	if not arg2 then arg2 = ""
@@ -2599,7 +2647,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		a_choice = user_input("(q=quit)||: ",0,1).to_int
 		if a_choice == 0 or a_choice == "q" then return 0
 		if typeof(a_choice) != "number" or a_choice >= i or a_choice < 0 then continue
-		print(apt.indexes[a_choice])
+		print "aptm: selected "+apt.indexes[a_choice]
 		ap = apt[apt.indexes[a_choice]]
 		ap
 		print("_____________________________________________")
