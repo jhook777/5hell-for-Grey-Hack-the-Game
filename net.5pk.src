@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.5...(152.933)")
+1if DEBUG then print("<size=75%>loading net.5pk v 4.3.5.1...(153.502)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -1194,7 +1194,8 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 			end if
 			if not enckey then enckey = command.cob("get","HOME.map_key") 
 			if globals.DEBUG then print "debug: map path: "+map_file.path+char(10)+"-- arg1: "+arg1+", enckey: "+enckey
-			print command.file("-d",map_file.path,enckey)
+			command.file("-d",map_file.path,enckey)
+			print
 		else
 			return "kraken: "+colorError+"</b>cannot open binary file: "+map_file.path
 		end if
@@ -1202,7 +1203,8 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	end if
 	print "kraken: reading Map.conf"
 	map_contents = map_file.get_content
-	if isenc then print command.file("-e",map_file.path,enckey)
+	if isenc then command.file("-e",map_file.path,enckey)
+	print
 	//map read
 	print(colorCyan+"Initializing Kraken v 0.9.5 by Plu70..."+CT)
 	time_s = time
@@ -1259,26 +1261,35 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		// if Map.conf is meant to be binary, convert final to code
 		// -- write Map.conf.src with code
 		// -- make Map.conf and copy it over Map.conf.src then rename to Map.conf 
-
-		map_source = "if get_custom_object.hasIndex(""kraken_password"") and get_custom_object.kraken_password == ""password"" then get_custom_object.kraken_map = """+final+""" else exit ""kraken: access denied;get_custom_object.remove(""kraken_password"");exit ""kraken: write complete"""
-		make_map = false
-		if make_map == true then 
-			map_file = command.poke(map_path)
-			map_folder = map_path.replace("/Map.conf","")
-			if typeof(map_file) != "file" then return "kraken: cannot create Map.conf"+char(10)+"-- "+map_file
-			map_file.move(map_folder,"Map.conf.src")
-			map_file.set_content(map_source)
-			globals.shell.build(map_file.path,map_folder) 
-			map_conf = globals.get_file(map_path)
-			if not map_conf then return "kraken: failed to build Map.conf"
-			map_conf.move(map_path.replace("/Map.conf",""),"Map.conf.src") 
-			map_conf.move(map_path.replace("/Map.conf",""),"Map.conf") 
-			return "kraken: successfully built Map.conf"
-		end if
+		// THIS CODE IS OBSOLETE
+		// we use the game's crypto.encrypt now
+		// map_source = "if get_custom_object.hasIndex(""kraken_password"") and get_custom_object.kraken_password == ""password"" then get_custom_object.kraken_map = """+final+""" else exit ""kraken: access denied;get_custom_object.remove(""kraken_password"");exit ""kraken: write complete"""
+		// make_map = false
+		// if make_map == true then 
+		// 	map_file = command.poke(map_path)
+		// 	map_folder = map_path.replace("/Map.conf","")
+		// 	if typeof(map_file) != "file" then return "kraken: cannot create Map.conf"+char(10)+"-- "+map_file
+		// 	map_file.move(map_folder,"Map.conf.src")
+		// 	map_file.set_content(map_source)
+		// 	globals.shell.build(map_file.path,map_folder) 
+		// 	map_conf = globals.get_file(map_path)
+		// 	if not map_conf then return "kraken: failed to build Map.conf"
+		// 	map_conf.move(map_path.replace("/Map.conf",""),"Map.conf.src") 
+		// 	map_conf.move(map_path.replace("/Map.conf",""),"Map.conf") 
+		// 	return "kraken: successfully built Map.conf"
+		// end if
 
 		new_map = globals.get_file(map_path)
 		if not new_map then return "kraken: error; Map.conf vanished!"
+		if globals.crypto.is_encrypted(new_map.path) == 1 then
+			if not enckey then enckey = command.cob("get","HOME.map_key")
+			if not enckey then return "kraken: write error; map decryption key not found"
+			command.file("-d",new_map.path,enckey)
+			if new_map.is_binary then return "kraken: write erreor; cannot decrypt Map.conf"+char(10)+"-- check credentials"
+			isenc = 1
+		end if
 		if new_map.has_permission("w") then new_map.set_content(final) else return "kraken: write error, Map.conf not saved!"
+		if isenc then command.file("-e",new_map.path,enckey)
 		outer.map_file = new_map
 		//if outer.isenc then print command.file("-e",new_map.path,outer.enckey)
 		return kraken_done(colorGold+"</b>kraken: saved map to "+new_map.path)
