@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.4...(77.229)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.5...(77.314)")
   
  //////////////////////contrubutions start here///////////
   /// this is stuff that was not made entirely by Plu70
@@ -883,7 +883,8 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
   Use (dot object method_name argument_1 argument_2 argument_N) to access a method under a grey hack object. This is dangerous and can cause crash if used incorrectly, read Manual.exe while using it.
   (at name index) essentially works like name[index], you can use it on any container.
   (set name index value) essentially works like name[index] = value, you can use it on any container. It can also used to assign any glosure to host env with globals<b>Warning: Advanced feature are not for people who dont know what they are doing! Your error will very likely result in crash!</b>
-  "
+  
+  NOTE: lines entered into the REPL will be added to the 'up-arrow' command history"
     if arg1 == "help" or arg1 == "-h" then return helpMsg
     if arg1 == "-e" or arg1 == "exec" then return execute(arg2, glosureEnv)
     if arg1 == "-E" or arg1 == "eval" then return eval(arg2, glosureEnv)
