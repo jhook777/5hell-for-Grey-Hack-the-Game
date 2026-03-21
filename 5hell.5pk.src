@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.4.2_falling_skies"
+ver = "4.3.5_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "142.519"
+size_of_5hell = "142.532"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -26,7 +26,7 @@ globals.apt_get = null
 //
 //
 // register macros
-if DEBUG then print("<size=75%>registering macros...")
+if DEBUG then print("<size=75%>confirming macros...")
 if not get_custom_object.hasIndex("macros") then get_custom_object.macros = {}
 //
 //
@@ -1185,8 +1185,9 @@ command.run = function(arg1, arg2, arg3=0, arg4=0)
 	colorOlive+"---- eg: </b>ssh notroot@boot 192.168.0.2 | "+colorMagenta+"run /root/rkit/5hell "" brutus | rclean "" "+char(10)+char(10)+
 	colorWhite+"</b>New: you may now launch binaries by path, without prepending the path with 'run'"+char(10)+
 	"-- this is to give it more bash-like functionality"+char(10)+
-	colorMagenta+"-- eg: </b>/bin/echo "" this is new "" @B -m"
-	"Note: run supports pshells with the launch function however p_shells are not currently in game"
+	colorMagenta+"-- eg: </b>/bin/echo "" this is new "" @B -m"+char(10)
+	
+	//"Note: run supports pshells with the launch function however p_shells are not currently in game"
 	if typeof(@arg1) != "string" and typeof(@arg1) != "file" then return "run: arg1 should be file object or path to file" 
 	parameters = ""
 	rr = colorMagenta+"</b>run:"+colorWhite+"</b> launching external program..."
