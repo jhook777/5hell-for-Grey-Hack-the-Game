@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.4...(67.763)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.5...(75.130)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -27,18 +27,21 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 	"-- see 5hell.src for valid colorDefinitions"+char(10)+
 	"-- you may also hard code these overrides in 5hell.src"+char(10)+
 	"-- nb: currently only color definitions may be overridden (i'm debating others)"+char(10)+char(10)+
-	//"--nb: password is <b>not</b> required for this function"+char(10)+char(10)+
 	// "Foolish: kore [--override] [ANY_GLOBAL_VARIABLE] [YOUR_POISON]"+char(10)+
 	// "-- absolutely hose yourself or another by overwriting any global variable"+char(10)+
 	// "-- you will absolutely shoot your eye out with this"+char(10)+
 	// "---- therefore in order to use it you "+colorWarning+"must enter your password"+char(10)+
 	// "---- if you have not set at least one password or have left it as default:"+char(10)+
 	// "------ this function will fail"+char(10)+
-	// "-- seriously, what kind of madperson would even use this??"+char(10)+char(10)+
+	// "-- seriously, what kind of madperson would even use this??"+char(10)+
+	// "-- jk jk, uncomment the function if you want to use it"+char(10)+
+	// "-- or use glosures to edit globals"+char(10)+
 	"Usage: kore [--silent] -- toggle silent_print mode on and off"+char(10)+
 	"-- place at the top and bottom of your do.rc to suppress startup output"+char(10)+char(10)+
 	"Usage: kore [--control] [opt:bool:spool]-- activate kore's daemon mode"+char(10)+
-	"-- creates a daemon managed by DaemonManager; see <b>shell --daemons</b>"+char(10)+
+	"-- creates a daemon managed by DaemonManager;"+char(10)+
+	"-- see <b>shell --daemons</b>"+char(10)+
+	"-- see <b>dm -h"+char(10)+
 	"-- listens on socket_in and creates a "+colorCyan+"macro"+CT+" from the contents of the file"+char(10)+
 	"-- each macro is given a job number and executed"+char(10)+
 	"-- output is written to currentPath/socket_out"+char(10)+
@@ -50,9 +53,15 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 	"-- allows controlling one or more 5hell sessions through a single shared file"+char(10)+
 	"-- write to socket_in like any other do script"+char(10)+
 	"-- write HALT (with no other text) to socket_in to terminate kore control"+char(10)+
-	//"-- daemon manager integration soon(tm) "+char(10)+
+	"-- you may also use the Daemon Manager to stop kore's daemon, instead"+char(10)+
+	"---- see <b>dm -h"+char(10)+
 	char(10)+
-	"--n.b: cannot spool non-returned text; aka metaxploit.overflow text"+char(10)+
+	"New: kore --control will now also run <b>hashim -d</b> in parallel"+char(10)+
+	"-- write/transmit info to the same 'pass' file used by hashim to trigger"+char(10)+
+	"-- remove the pass file if you do not want kore to run hashim in parallel"+char(10)+
+	"--note: you may add and remove the file at will whiel --control is running"+char(10)+
+	char(10)+
+	"--NB: cannot spool non-returned text; aka metaxploit.overflow text"+char(10)+
 	"---- that text goes straight to the terminal and bypasses function returns"+char(10)+
 	"NOTE: writing to socket_in too quickly can cause commands to be missed!"+char(10)+
 	"-- adjust the TICK to suite your needs"+char(10)+char(10)+
@@ -72,6 +81,7 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 		kc.log_output = null
 		kc.verbose = outer.arg3
 		kc.spool = outer.arg2
+		kc.pass_file = globals.get_file(get_custom_object.HOME.sharedfile)
 		kc.cg = colorGold
 		kc.cw = colorWhite
 		set_sockets = function()
@@ -137,6 +147,8 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 			end if
 			print kc.cg+"<size=75%>-- "+kc.cw+"</b>listening on socket_in: <u>"+kc.socket_in.path+char(10)+kc.cg+"<"+kc.cw+"o</color>>"
 			jb = 0 // job counter
+			last_pass = ""
+			new_pass = ""
 			while running and ((daemon and manager.Check(daemon)) or not manager.__initialized)
 				if not p_validate(kc.socket_in,"name") then return colorWarning+"kore: socket_in has been deleted or otherwise invalidated"+char(10)+colorWarning+"-- aborting..."
 				new_read = kc.socket_in.get_content
@@ -150,11 +162,25 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 						jb = jb + 1
 						print kc.cg+"<size=75%>kore: "+kc.cw+"input received; "+char(10)+kc.cw+"-- creating "+colorMagenta+"job"+jb+CT+" @ st+:"+time
 						print(command.macro("set","job"+jb,kc.socket_in.get_content.trim.replace(char(10)," |  | ")))
-						if kc.verbose then print(command.macro("-v","job"+jb),0,0,kc.socket_out.path) else print(command.macro("job"+jb),0,0,kc.socket_out.path)
-						print kc.cg+"<size=75%><u>kore: "+kc.cw+"listening on <u>"+kc.socket_in.path+"..."
+						if kc.verbose then print(command.macro("-v","job"+jb),0,0,kc.socket_out.path) else print(command.macro("job"+jb),0,0,kc.socket_out.path)	
+						print kc.cg+"<size=75%><u>kore: "+kc.cw+"listening on "+kc.socket_in.path+"..."
+						print kc.cg+"<"+kc.cw+"o</color>>"
 					end if
-					print kc.cg+"<"+kc.cw+"o</color>>"
 				end if
+
+				// experimental hashim plugin
+				if p_validate(kc.pass_file, "name") then
+					new_pass = kc.pass_file.get_content
+					if new_pass != last_pass and new_pass != "" then
+						last_pass = new_pass
+						print command.hashim("-f",kc.pass_file.path)
+						last_pass = kc.pass_file.get_content
+						print kc.cg+"<size=75%><u>kore: "+kc.cw+"listening on "+kc.socket_in.path+"..."
+						print kc.cg+"<"+kc.cw+"o</color>>"
+					end if
+				end if
+				// end experimental hashim plugin
+
 				wait(TICK)
 			end while
 			globals.spoolpath = 0
@@ -341,9 +367,15 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 		end if
 		return "kore: invalid input"
 	end function
-	override_global = function()
-		return "you'll shoot your eye out"
-	end function
+	// override_global = function()
+	// 	o_this = outer.arg2
+	// 	consent = [ ( (globals.hasIndex(access_codes)) and globals.access_codes.indexOf(user_input("Please enter one of your 5hell access codes:"+char(10)+":> ",1)) != null ) ]
+	// 	if globals.hasIndex(o_this) and outer.arg3 and consent then
+	// 		globals.o_this = arg3
+	// 		return "kore: overriding globals.<b>"+o_this+"</b> to <b>"+arg3
+	// 	end if
+	// 	return "kore: --override requires an access_code"
+	// end function
 
 	silent_print = function()
 		if globals.SILENT == 0 then globals.SILENT = 2 else globals.SILENT = 0
@@ -351,8 +383,7 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 	end function
      
     error = function()
-        print "kore: invalid input"
-        return 0
+        return "kore: invalid input"
     end function
     switch(str(arg1).lower)
         case("-r",@make_rkit)
@@ -364,6 +395,7 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 		case("--override",@override_color)
 		case("--silent",@silent_print)
 		case("--control",@kore_control)
+		//case("--override-global",@override_global)
 		//case("--command",@kore_command)
     print default(@error)
     time_f = time - time_s
@@ -555,7 +587,6 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if arg1 != "-d" and arg1 != "-f" then return "Usage: hashim [-f|-d] [opt:path]"
 	if not crypto then print(colorOrange+"WARNING: crypto.so not found"+CT)
-	//dump = globals.get_file("dump.txt")
 	dump = command.tree("/","dump.txt",1,"N")
 	slash = "/"
 	if currentPath == "/" then slash = ""
@@ -675,8 +706,8 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 				end for
 				write_this = cache.join(char(10))
 				if DEBUG then print "hashim: debug: "+char(10)+"---daeamon: "+daemon+char(10)+"---run_once: "+run_once+char(10)+"---saving: "+write_this+"---last_read: "+last_read
-				if daemon and write_this and not run_once then
-					print("Sending to swap file: "+char(10)+write_this)
+				if write_this then //and not run_once then
+					print("Sending to swap file: "+swap_file.path+char(10)+write_this)
 					swap_file.set_content(write_this)
 				end if
 				if write_this then 
@@ -1265,4 +1296,138 @@ command.outmon = function(arg1,interval=2, act=0, react=0)
 	  wait(interval)
 	end while
 	return 0
+end function
+command.transmit = function(arg1, arg2, arg3=0, arg4=0)
+	if arg1 == "-h" or arg1 == "help" then return "<b><size=75%>Transmit</b> || t_buf transmission buffer transmission protocol || @tbuf || TBUF"+char(10)+
+colorWhite+"Usage: transmit [opt: {1|0|-w}|password] [opt:password|1|-w]"+char(10)+
+"-- transmit @tbuf to your @home server
+-- set @home credentials in 5hell.src before building 5hell
+-- the HOME map is located near the top of 5hell.src
+---- set ip, port, user, and optionally a password
+-- prompts for password if not supplied or hard coded
+--note:<b> transmit will use default settings if no options supplied
+---- default is:<b> transmit 0 {HOME.pass}
+
+Options:"+char(10)+colorWhite+">> </b>arg1<b>: 1 | 0 | -w || password:
+-- [<b>1|-w</b>] == wait for reply
+---- if your password is 1 please us [-w]
+---- if your password is 0 please use the second usage
+------ eg: <b>transmit -w 0</b> will pass 0 as the password
+---- [0] (or blank) == don't wait for reply
+---- eg:<b> transmit -w
+------ uses @home password
+---- eg:<b> transmit 0 password
+-- [<b>password</b>] == use this password to transmit
+---- bypasses prompt; overrides @home setting
+---- prompts if not supplied by arg1 or arg2 or @home"+char(10)+
+char(10)+colorWhite+">> </b>arg2<b>: password || 1 | -w
+-- [<b>1|-w</b>] == wait for reply
+---- if your password is 1 please use -w
+---- if your password is 0 you may pass 0
+---- eg: transmit -w 0
+---- eg: transmit 1
+-- [<b>password</b>] == use this password to transmit
+---- bypasses prompt; overrides @home setting
+---- prompts if not supplied by arg1 or arg2 or @home
+
+<b>N.B.: transmit uses <u>globals.shell.connect_service</u> aka ssh
+<b>-- this leaves it vulnerable to metaxploit.sniffer!
+-- take appropriate precautions
+
+NOTE: use transmit with hashim running on the @home server
+---- ensure @home server has the <b>"+get_custom_object.HOME.sharedfile+"</b> file
+
+NOTE: if the default password is <b>password:
+-- transmit will <b>ignore</b> this password and prompt you for a password
+-- supply the word <b>password</b> again to confirm your password is password
+-- alternatively call the command with <b>password</b> as a second argument
+--eg: <b>transmit 1 password
+
+Current Default Password: "+colorGold+get_custom_object.HOME.pass
+
+	//return globals.transmit(arg1,arg2)
+	// transmit 2.0 since 5hell 3.6.9
+	// parse arguments
+	wait_for_reply = 0
+	password = 0 // get_custom_object.HOME.pass
+	if arg1 == "1" or arg1 == "-w" then 
+		wait_for_reply = 1
+	else
+		if arg1 isa string and arg1 != "0" then password = arg1
+	end if
+	if arg2 == "1" or arg2 == "-w" then
+		wait_for_reply = 1
+	else 
+		if arg2 isa string then password = arg2
+	end if
+
+	if globals.T_BUF.len <= 1 then return "transmit: tbuf empty"
+	// text to send
+	send_this = globals.T_BUF.join(char(10))
+	if send_this.len <= 1 then return "transmit: buffer empty"
+	home = get_custom_object.HOME
+	// validate settings
+	if not is_valid_ip(home.ip) then return "transmit: error: please set @home ip in 5hell.src" // ["ip",port,"user","pass","service","path_to_pass"]
+	if typeof(home.loginport) != "number" then return "transmit: error: please set @home port in 5hell.src"
+
+	// connect to server. credentials compiled into 5hell.src for security
+	print colorLightBlue+"transmit: connecting to database..."
+	print colorWhite+"---sshfs----</b>"+home.user+" @ "+home.ip+"<b>----"
+	if DEBUG then 
+		print "debug: ip: "+home.ip
+		print "debug: port: "+home.loginport+" is a "+typeof(home.loginport)
+		print "debug: user: "+home.user
+		print "debug: pass: "+home.pass
+		print "service: "+home.loginprotocol
+		print "path: "+home.sharedfile
+	end if
+	if not password then
+		if not home.pass or home.pass == "password" or home.pass == "" then 
+			password = user_input("transmit: please the enter @home server's "+home.user+" password"+char(10)+"(<<b>enter</b>>=abort):> ")
+			if password == "" then return "transmit: aborting..."
+		else
+			password = home.pass
+		end if
+	else
+		if password isa string then home.pass = password else return "transmit: invalid password; aborting..."
+	end if
+
+	remote = shell.connect_service(home.ip,home.loginport,home.user,home.pass,home.loginprotocol)
+	if typeof(remote) != "shell" and typeof(remote) != "ftpshell" then return "transmit: unable to connect to server"+char(10)+"-- check ip and credentials and try again"
+	//
+	// make sure we have an ouput file
+	passfile = remote.host_computer.File(home.sharedfile) 
+	if not passfile then return "transmit: error: "+home.sharedfile+" not found"
+
+	// transmit
+	print "Transmitting data..."
+	t_start = time
+	t_catch = passfile.set_content(send_this)
+	// don't purge the buffer unless write successful
+	if typeof(t_catch) == "string" then return t_catch else print "Purging buffer..." 
+	// purge and reset tbuf
+	globals.T_BUF = [(localip+"@"+pubip)] 
+	//globals.T_BUF = []
+	if wait_for_reply and wait_for_reply != "0" then 
+		print "Waiting for reply..."
+		waiting = true
+		timeout = 600
+		while waiting == true
+		if passfile.get_content != send_this then waiting = false
+		wait(.1)
+		if timeout == 300 then print "timeout in 30 seconds..."
+		if timeout == 100 then print "timeout in 10 seconds..."
+		if timeout == 1 then return "transmit: timeout: no reply"
+		timeout = timeout - 1
+		end while 
+		print "Reply received..."
+		print "Storing in <b>clipa</b>"
+		reply = passfile.get_content
+		print colorLightBlue+"transmit: task complete in ["+colorWhite+(time-t_start)+CT+"] seconds..."
+		print "-- returning reply:"
+		return command.clipa(reply) // will print to screen via clipa
+	else 
+		print "Skipping reply..."
+	end if
+	return colorLightBlue+"transmit: task complete in ["+colorWhite+(time-t_start)+CT+"] seconds..."
 end function
