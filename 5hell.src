@@ -321,7 +321,7 @@ command.shell = function(input=null,mute=null)
 
       if EXPERIMENTAL then 
         if fork then
-          if DEBUG then print "debug: preparing to fork"
+          if DEBUG then print "debug: preparing to "+colorRed+"5"+colorWhite+"pork"
           // prefork sanity check 
           prompt = prompt + ([0] * (5 - prompt.len)) // check this magic out 
           prompt = prompt[:5]
@@ -418,7 +418,7 @@ command.shell = function(input=null,mute=null)
       // we need this for compatibility with improperly constructed functions
       if str(@f) == "FUNCTION()" then args = 0 else args = str(@f).split(", ").len // get the number of args required by the function
       if DEBUG then print("target function takes: "+args+" arguments.")
-      if DEBUG then print("debug: preparing to fire: "+char(10)+prompt)
+      if DEBUG then print("debug:"+colorRed+" preparing to fire: "+char(10)+prompt)
       if args == 4 then
         catch = f(@prompt[1], @prompt[2], @prompt[3], @prompt[4])
       else if args == 3 then
