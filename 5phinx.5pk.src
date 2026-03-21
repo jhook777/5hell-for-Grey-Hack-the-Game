@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.3.77"
+sphinx_version = "3.3.8"
 malp_version = "1.6.6"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.4...(158.070)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.5...(155.107)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -2006,72 +2006,6 @@ globals.memory_alpha = function(go_to_buffer=false,go_to_selection=null)
   end while
 end function
 ///////////////////////////////////// END MEMORY ALPHA ///////////////////////////
-
-// transmit 2.0 since 5hell 3.6.9
-
-globals.transmit = function(wait_for_reply=0,password)
-  if globals.T_BUF.len <= 1 then return "transmit: tbuf empty"
-  // text to send
-  send_this = globals.T_BUF.join(char(10))
-  if send_this.len <= 1 then return "transmit: buffer empty"
-   home = get_custom_object.HOME
-  // validate settings
-  if not is_valid_ip(home.ip) then return "transmit: error: please set @home ip in 5hell.src" // ["ip",port,"user","pass","service","path_to_pass"]
-  if typeof(home.loginport) != "number" then return"transmit: error: please set @home port in 5hell.src"
-
-  // connect to server. credentials compiled into 5hell.src for security
-  print colorLightBlue+"transmit: connecting to database..."
-  print(colorWhite+"---sshfs----</b>"+home.user+" @ "+home.ip+"<b>----"+CT)
-  if DEBUG then 
-    print "debug: ip: "+home.ip
-    print "debug: port: "+home.loginport+" is a "+typeof(home.loginport)
-    print "debug: user: "+home.user
-    print "debug: pass: "+home.pass
-    print "service: "+home.loginprotocol
-    print "path: "+home.sharedfile
-  end if
-  if password isa string then home.pass = password
-  if home.pass == "password" or home.pass == "" then 
-    if arg1 then home.pass = arg1 else home.pass = user_input("transmit: please the enter root passowrd of receiving server"+char(10)+"(<<b>enter</b>>=abort):> ")
-  end if
-  if home.pass == "" then return "transmit: home.pass not set; aborting..."
-  remote = shell.connect_service(home.ip,home.loginport,home.user,home.pass,home.loginprotocol)
-  if typeof(remote) != "shell" and typeof(remote) != "ftpshell" then return "transmit: unable to connect to server"+char(10)+"-- check ip and credentials and try again"
-  //
-  // make sure we have an ouput file
-  passfile = remote.host_computer.File(home.sharedfile) 
-  if not passfile then return "transmit: error: "+home.sharedfile+" not found"
-
-  // transmit
-  print "Transmitting data..."
-  t_catch = passfile.set_content(send_this)
-  // don't purge the buffer unless write successful
-  if typeof(t_catch) == "string" then return t_catch else print "Purging buffer..." 
-  // purge and reset tbuf
-  globals.T_BUF = [(localip+"@"+pubip)] 
-  //globals.T_BUF = []
-  if wait_for_reply then 
-    print "Waiting for reply..."
-    waiting = true
-    timeout = 600
-    while waiting == true
-      if passfile.get_content != send_this then waiting = false
-      wait(.1)
-      if timeout == 300 then print "timeout in 30 seconds..."
-      if timeout == 100 then print "timeout in 10 seconds..."
-      if timeout == 1 then return "transmit: timeout: no reply"
-      timeout = timeout - 1
-    end while 
-    print "Reply received..."
-    print "Storing in <b>clipa</b>"
-    reply = passfile.get_content
-    return command.clipa(reply) // will print to screen via clipa
-  else 
-    print "Skipping reply..."
-  end if
-
-  return colorLightBlue+"transmit: task complete"
-end function
 
 globals.newtree = function(a_file,quiet=0)
   if typeof(a_file) != "file" then return "tree: invalid type"

@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.4..(158.758)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.5..(158.780)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -373,21 +373,16 @@ command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	"N.B. if file a already exists then the contents will be <b>overwritten</b> if a string supplied"+char(10)+
 	"n.b.b. if the string is more than one word use piping or floating quotes to the supply string"+char(10)
 
-	skip = false
-	if arg1 == "-f" then 
-		arg1 = arg2
-		arg2 = arg3
-		arg3 = arg4
-		skip = true
-	end if
 	if arg1 == "-n" then
 		if not arg2 then return "poke: -n option requires a valid path to a file."
 		arg1 = arg2
 		arg2 = "!!nullify!!23tqg43qg34g!!"
 	end if
+	dest = globals.get_file(arg1)
+	if typeof(arg1) == "file" then dest = arg1  // needs more implementation
 	destination = null
 	final_name = null
-	dest = globals.get_file(arg1)
+	
 	if not dest then
 		split = arg1.split("/")
 		if DEBUG then print("split: "+split)
@@ -1745,7 +1740,9 @@ command.brutus = function(arg1, arg2=0, arg3=0, arg4=0)
 		"-- this is also available when using <b>mail</b> from it's menu"+char(10)+
 		"-- this does NOT use get_shell and therefore is not limited to local use"+char(10)+char(10)+
 		colorWarning+"NOTE: db <u>does not</u> translate through"+colorLightBlue+" GLASSPOOL"
-	if globals.GLASSPOOL then return colorGold+"brutus: aborting: "+colorLightBlue+"GLASSPOOL</color> is active"+char(10)+"-- brutus does not translate through glasspool"+char(10)+"-- you would be rooting your own system"
+	if globals.GLASSPOOL and (not (arg1) == "-s" and not arg1 == "-f") then return colorGold+"brutus: aborting: "+colorLightBlue+"GLASSPOOL</color> is active"+char(10)+
+	"-- brutus does not translate through glasspool"+char(10)+
+	"-- you would be rooting your own system"
 	dic = globals.dict_a
 	if DEBUG then print "debug: dict_len: "+dic.len
 	u_name = "root"
