@@ -31,6 +31,49 @@
 ////
 //// To Done:
 //
+// kraken: will immediately re-encrypt Map.conf after reading it
+// kraken: will accept a map_key as a final argument for all modes
+// -- except for when opening the kraken menu
+// kraken: updated usage info for: kraken prox [-gp|glasspool]
+// kraken: changed kraken prox -g/ prox -g to:
+// -- kraken prox [-gp|glasspool] and prox [-g|glasspool]
+// -- tunnels through proxy chain and opens glasspool without taking further action
+// -- (remember Marinette has a prox -g option that works a little different and launches 5hell on connecting to the endpoint)
+// kraken: kraken buffer will now populate the enum buffer with proxy shells
+// -- this will facilitate using enum -d to batch control proxies
+// prox: updated usage info for: prox [-gp|glasspool]
+// kore: --control will automatically run hashim -d in parallel with it
+// -- if kore --control detects a change to the 'pass' file used by hashim, it will invoke it
+// --note: unlike socket_in/_out behavior, hashim calls will not be created as a job
+// -- logging integration soon(tm)
+// kore: fixed crash caused by typo: cahr
+// transmit: moved from globals space in 5phinx.5pk to command.transmit in kore.5pk
+// transmit: will now accept -w as a wait flag
+// transmit: will now accept input arguments in any order:
+// --ie: transmit -w password // transmit password -w // transmit
+// transmit: updated usage info
+// -- other 'improvements' to logic
+// 5phinx.5pk: globals.transmit moved to command.transmit
+// -- malp was already calling command.transit to router to globals.transmit anyway
+// brutus: will no longer block ssh brute when glasspool is active
+// -- ssh brute through glasspool on a burner machine is, in fact, the ideal way to do it
+// ifconfig: fixed typo preventing full usage info from printing
+// -- the missing info was a note reminding the user a shell or computer may be piped to ifconfig
+// iwlist: added -b, -e, -l
+// -- -e will return only essid's
+// -- -b will return only bssid's
+// -- -l as the second argument will return a list instead of string
+
+// infil: fixed carsh caused by type 'currenPath'
+// hashim: fixed -f getting stuck in daemon mode
+// -- also, hashes will be saved to dump.txt as: user:password:hash
+// ssh: clarified usage info
+// glosure: updated usage info to inform users that lines entered into the REPL are added to up-arrow history
+// -- i forgot to document that change made in the last update
+// aptm: will now always update the sources from sources.txt before acting when run from the command line
+// -- it already does this inside the menu
+//
+//
 // glosure: changed codeStr = user_input("</> ") to codeStr = user_input("</> ",0,0,1)
 // tree: standard tree and tree -f will now use 5hell's color palette
 // -- this means theme changes, such as Marinette's, will actually change tree's appearance
