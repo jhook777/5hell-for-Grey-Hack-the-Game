@@ -36,7 +36,7 @@
 // -- except for when opening the kraken menu
 // kraken: updated usage info for: kraken prox [-gp|glasspool]
 // kraken: changed kraken prox -g/ prox -g to:
-// -- kraken prox [-gp|glasspool] and prox [-g|glasspool]
+// -- kraken prox [-gp|glasspool] and prox [-gp|glasspool]
 // -- tunnels through proxy chain and opens glasspool without taking further action
 // -- (remember Marinette has a prox -g option that works a little different and launches 5hell on connecting to the endpoint)
 // kraken: kraken buffer will now populate the enum buffer with proxy shells
@@ -63,7 +63,6 @@
 // -- -e will return only essid's
 // -- -b will return only bssid's
 // -- -l as the second argument will return a list instead of string
-
 // infil: fixed carsh caused by type 'currenPath'
 // hashim: fixed -f getting stuck in daemon mode
 // -- also, hashes will be saved to dump.txt as: user:password:hash
