@@ -2460,7 +2460,7 @@ command.sl = function(arg1,arg2,arg3,arg4)
 	return source_file.symlink(sym_parent_path, sym_name)
 end function
 command.zc = function(neurobox_user,neurobox_pass,metalib,patch_it=0)
-    if neurobox_user == "h" or neurobox_user == "help" then return "Zer0Chill || Zeroday || zero day || autopatcher || autosolver"+char(10)+
+    if neurobox_user == "-h" or neurobox_user == "help" then return "Zer0Chill || Zeroday || zero day || autopatcher || autosolver"+char(10)+
 	colorWhite+"Usage: zc [neurobox_username] [neurobox_password] [opt:metaLib_name|metaLib_object]"+char(10)+
 	"-- if a MetaLib is not supplied, zc will use the currently linked MetaLib"+char(10)+
 	"---- or return an error if one is not linked"+char(10)+
