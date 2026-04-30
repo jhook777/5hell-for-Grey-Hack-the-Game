@@ -422,7 +422,6 @@ globals._ez_clip = function( in_prompt )
       if in_prompt.hasIndex(e_indx+1) then 
         print command.cob("get",in_prompt[e_indx+1])
         if command.cob("get",in_prompt[e_indx+1]) != "cob: key not found" then
-          print "<b>beep boop motherfucker!"
           in_prompt[e_indx+1] = command.cob("get",in_prompt[e_indx+1])
           in_prompt.remove(e_indx)
         end if
@@ -468,10 +467,10 @@ globals._ez_clip = function( in_prompt )
           print(colorWhite+"__________________________________")
           get = user_input("select an object:> ").to_int
           if typeof(get) != "number" then print b_err
-          if get >= 0 and get < globals.BUFFER.len then 
+          if abs(get) <= globals.BUFFER.len and get < globals.BUFFER.len then 
               in_prompt[e_indx+1] = @globals.BUFFER[get]
               in_prompt.remove(e_indx) 
-              if DEBUG then print "post menu in_prompt "+in_prompt   
+              if DEBUG then print "post menu in_prompt is: "+in_prompt   
           else    
               print b_err
           end if
