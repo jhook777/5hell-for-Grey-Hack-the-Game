@@ -32,6 +32,7 @@
 //// To Done:
 //
 // pause: adding missing type check when parsing wait time value
+// glosure: pull request merged: Update Glosure interpreter to match upstream!
 //
 // cd: rewritten in order to fix some bugs
 // -- will no longer stop working when the current path doesn't exist
