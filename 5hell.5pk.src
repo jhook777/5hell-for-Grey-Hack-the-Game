@@ -2,7 +2,7 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.7_falling_skies"
+ver = "4.3.7.1_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
@@ -2286,7 +2286,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		if verbose then return p_bye else return null
 	end if
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
-	if typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
+	if typeof(arg1) == "string" and typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
 	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- awaiting manual input :> ")//"-- press <"+colorGreen+"enter"+CT+"> to continue --")
 	if time_to_wait > 300 or time_to_wait < .01 then
 		print "pause: invalid wait time: changing time_to_wait to 1 second"
