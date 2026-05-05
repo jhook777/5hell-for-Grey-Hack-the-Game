@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.7...(75.839)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.7.2..(76.105)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -193,15 +193,15 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     
     make_rkit = function()
 		
-		if globals.instance then pro_path = globals.instance.path else return "kore: 5hell instance deleted. Unable to automate rkit construction."+char(10)+
-		"kore: run 5hell from the latest version to build rkit"+char(10)+
-		"kore: please do not delete the binary until kore -r is complete"
+		if globals.instance then pro_path = globals.instance.path else return colorError+"kore: 5hell instance deleted. Unable to automate rkit construction."+char(10)+
+		"-- run 5hell from the latest version to build rkit"+char(10)+
+		"-- please do not delete the binary until kore -r is complete"
 		print("Validating "+home_dir+"/rkit...")
 		print(command.mkdir(home_dir+"/rkit"))
-		if not globals.get_file(home_dir+"/rkit") then return "<size=75%>kore: failed to create rkit: permission denied"
+		if not globals.get_file(home_dir+"/rkit") then return colorWarning+"<size=75%>kore: failed to create rkit: permission denied"
 		print("kore: copying: "+colorCyan+pro_path+CT+" to "+home_dir+"/rkit/5hell")
 		print(command.cp(pro_path, home_dir+"/rkit/5hell" ))
-		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print "<size=75%>kore: failed to copy 5hell: permission denied"
+		if not globals.get_file(home_dir+"/rkit/"+globals.instance.name) then print colorWarning+"<size=75%>kore: failed to copy 5hell: permission denied"
 		mpath = null
 		mpath = command.tree("/","metaxploit.so","1","N")
 		if mpath and mpath.parent.name == "rkit" then
@@ -215,14 +215,14 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 			end if
 		end if
 		if typeof(mpath) != "file" then 
-			print "<size=75%>kore: metaxploit.so not found"
+			print colorWarning+"<size=75%>kore: metaxploit.so not found"
 		else 
 			print("<size=75%>kore: copying: "+mpath.path+" to "+home_dir+"/rkit")
 			print "<size=75%>kore: if this is not the correct .so then"+char(10)+
 			"<size=75%>-- please move the correct .so higher in the file tree"+char(10)+
 			"<size=75%>-- such as in /lib"
 			command.cp(mpath.path, home_dir+"/rkit")
-			if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print "<size=75%>kore: failed to copy metaxploit.so: permission denied"
+			if not globals.get_file(home_dir+"/rkit/"+mpath.name) then print colorWarning+"<size=75%>kore: failed to copy metaxploit.so: permission denied"
 		end if
 		cpath = null				
 		cpath = command.tree("/","crypto.so","1","N")
@@ -237,51 +237,56 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 			end if
 		end if
 		if typeof(cpath) != "file" then 
-			print "<size=75%>kore: crypto.so not found"
+			print colorWarning+"<size=75%>kore: crypto.so not found"
 		else 
 			print("kore: copying: "+cpath.path+" to "+home_dir+"/rkit/"+cpath.name)
 			command.cp(cpath.path, home_dir+"/rkit")
-			if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print "<size=75%>kore: failed to copy crypto.so: permission denied"
+			if not globals.get_file(home_dir+"/rkit/"+cpath.name) then print colorWarning+"<size=75%>kore: failed to copy crypto.so: permission denied"
 		end if 
 		print "kore: ensuring "+colorWhite+home_dir+"/rkit/database.csv"+CT+" exists..."
-		print command.poke(home_dir+"/rkit/database.csv")
+		dbcsv = command.poke(home_dir+"/rkit/database.csv")
+		print [colorWarning,colorGreen][typeof(dbcsv)=="file"]+dbcsv
 		print "kore: ensuring "+colorWhite+home_dir+"/rkit/do.rc exists..."
 		dorc = command.poke(home_dir+"/rkit/do.rc")
-		if dorc.get_content == "" then dorc.set_content("# do.rc: resource configuration using the 'do' protocol"+char(10)+
-														"# * put any number of commands to be executed (piping supported) in order at startup"+char(10)+
-														"# * type commands exactly as if typing on 5hell's command line or writing a macro"+char(10)+
-														"# * each newline is 'pressing enter'"+char(10)+
-														"# * use the # character for comments"+char(10)+
-														"# * all comments (including these) are optional (you can delete all this)"+char(10)+
-														"# * empty, uncommented lines will result in a blank line printed IF:"+char(10)+
-														"# -- you have 5hell.src set to print a line before the prompt"+char(10)+
-														"# * using do.rc is optional but it's a great place to define macros on startup"+char(10)+
-														"# NOTE: you may place do.rc in your Config folder"+char(10)+
-														"# -- this is in addition to OR instead of placing it in rkit"+char(10)+
-														"# -- the do.rc located in the <b>Config<b> folder will take priority"+char(10)+
-														"# -- meaning it will be executed instead of ~/rkit/do.rc"+char(10)+
-														"# -- this allows you to have a 'home' and 'away' version of do.rc"+char(10)+
-														"# To Suppress output during startup;"+char(10)+
-														"# uncomment the below line AND the corresponding line at the bottom of the file:"+char(10)+
-														"# kore --silent"+char(10)+
-														"# "+char(10)+ 
-														"# THEME section"+char(10)+
-														"# below are examples of a colorDefinition override used to adjust colors to fit your theme"+char(10)+
-														"# kore --override colorDefault <noparse><#FFFFFFFF></noparse>"+char(10)+
-														"# kore --override color5phinxText <noparse><#00FFFFFF></noparse>"+char(10)+
-														"# New: Marinette, by Hecate, has a bunch of theme presets that you can activate!"+char(10)+
-														"# --you can get it at: https://github.com/shippingfandom/Marinette"+char(10)+
-														"# --below is a handy macro to use to switch Marinette themes at runtime:"+char(10)+
-														"# macro set theme "" glosure -e \"" ((set globals 'SILENT' 2)) \"" || clipa \"" (mari-load-theme ' \"" || append @clipa @pipe || append @clipa ') || glosure -e \"" ((set globals 'SILENT' 0)) \"" || glosure -e \@a "" "+char(10)+														"# END THEME"+char(10)+
-														"# remove the '#'s below and add your commands"+char(10)+
-														"# "+char(10)+
-														"# "+char(10)+
-														"# "+char(10)+
-														"# end of user commands"+char(10)+
-														"# uncomment the below line to have kore secure your system on launch"+char(10)+
-														"# kore -s"+char(10)+
-														"# uncomment the line below if you uncommented the corresponding one at the top"+char(10)+
-														"# kore --silent")
+		if typeof(dorc) != "file" then 
+			print colorWarning+dorc
+		else
+			if dorc.get_content == "" then dorc.set_content("# do.rc: resource configuration using the 'do' protocol"+char(10)+
+															"# * put any number of commands to be executed (piping supported) in order at startup"+char(10)+
+															"# * type commands exactly as if typing on 5hell's command line or writing a macro"+char(10)+
+															"# * each newline is 'pressing enter'"+char(10)+
+															"# * use the # character for comments"+char(10)+
+															"# * all comments (including these) are optional (you can delete all this)"+char(10)+
+															"# * empty, uncommented lines will result in a blank line printed IF:"+char(10)+
+															"# -- you have 5hell.src set to print a line before the prompt"+char(10)+
+															"# * using do.rc is optional but it's a great place to define macros on startup"+char(10)+
+															"# NOTE: you may place do.rc in your Config folder"+char(10)+
+															"# -- this is in addition to OR instead of placing it in rkit"+char(10)+
+															"# -- the do.rc located in the <b>Config<b> folder will take priority"+char(10)+
+															"# -- meaning it will be executed instead of ~/rkit/do.rc"+char(10)+
+															"# -- this allows you to have a 'home' and 'away' version of do.rc"+char(10)+
+															"# To Suppress output during startup;"+char(10)+
+															"# uncomment the below line AND the corresponding line at the bottom of the file:"+char(10)+
+															"# kore --silent"+char(10)+
+															"# "+char(10)+ 
+															"# THEME section"+char(10)+
+															"# below are examples of a colorDefinition override used to adjust colors to fit your theme"+char(10)+
+															"# kore --override colorDefault <noparse><#FFFFFFFF></noparse>"+char(10)+
+															"# kore --override color5phinxText <noparse><#00FFFFFF></noparse>"+char(10)+
+															"# New: Marinette, by Hecate, has a bunch of theme presets that you can activate!"+char(10)+
+															"# --you can get it at: https://github.com/shippingfandom/Marinette"+char(10)+
+															"# --below is a handy macro to use to switch Marinette themes at runtime:"+char(10)+
+															"# macro set theme "" glosure -e \"" ((set globals 'SILENT' 2)) \"" || clipa \"" (mari-load-theme ' \"" || append @clipa @pipe || append @clipa ') || glosure -e \"" ((set globals 'SILENT' 0)) \"" || glosure -e \@a "" "+char(10)+														"# END THEME"+char(10)+
+															"# remove the '#'s below and add your commands"+char(10)+
+															"# "+char(10)+
+															"# "+char(10)+
+															"# "+char(10)+
+															"# end of user commands"+char(10)+
+															"# uncomment the below line to have kore secure your system on launch"+char(10)+
+															"# kore -s"+char(10)+
+															"# uncomment the line below if you uncommented the corresponding one at the top"+char(10)+
+															"# kore --silent")
+		end if
 		tab_path = get_custom_object.HOME["t5"].remove("/t5")
 		print "kore: ensuring "+colorWhite+tab_path+CT+" exists within rkit..."
 		t = globals.get_file(tab_path)
