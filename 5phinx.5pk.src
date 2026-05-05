@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.4.0"
+sphinx_version = "3.4.1"
 malp_version = "1.6.7"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.7...(157.992)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.7.2..(158.035)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -290,7 +290,8 @@ globals._startup_resource_configuration  = function()
   if not p.has_permission("r") then return "rc: do.rc is read protected"
   print "<size=75%>-- reading contents..."
   c = p.get_content.split(char(10))
-  if reenc then print en_de_crypt_files( [p],"<size=75%>-- ","encrypt",reenc ) //command.file("-e",p.path,reenc)
+  //if reenc then print en_de_crypt_files( [p], "<size=75%>-- ", "encrypt", reenc ) 
+  if reenc then print command.file("-e",p.path,reenc)
   print "<size=75%>-- beginning resource configuration..."
   //if DEBUG then print "rc: passing to do: "+char(10)+colorCyan+c
   command.do("1",c)
@@ -301,24 +302,24 @@ globals._startup_resource_configuration  = function()
 end function
 
 // ec_files: list of file objects
-en_de_crypt_files = function(ec_files,indnt="-- ",act=0,pw=0)
-				if globals.DEBUG then print "debug: ec_files: "+ec_files
-				for fl in ec_files
-					if not fl.is_folder then 
-						c = false
-						pth = fl.path
-						print indnt+act+"ing </color>"+pth
-						if act == colorMagenta+"</b>encrypt" then // can't @crypto[act] -- Sadge :[
-							c = globals.crypto.encrypt(pth,pw)
-						else
-							c = globals.crypto.decrypt(pth,pw)
-						end if
-						if c then print indnt+"</b>"+act+"ion<b> successful" else print indnt+"</b>"+act+"ion"+colorWarning+" failed!"+char(10)+indnt+colorWarning+"</b>"+c 
-					else 
-						en_de_crypt_files(fl.get_folders,indnt,act,pw)
-					end if
-				end for
-			end function
+en_de_crypt_files = function(ec_files, indnt="-- ", act=0, pw=0)
+  if globals.DEBUG then print "debug: ec_files: "+ec_files
+  for fl in ec_files
+    if not fl.is_folder then 
+      c = false
+      pth = fl.path
+      print indnt+act+"ing </color>"+pth
+      if act == colorMagenta+"</b>encrypt" then // can't @crypto[act] -- Sadge :[
+        c = globals.crypto.encrypt(pth,pw)
+      else
+        c = globals.crypto.decrypt(pth,pw)
+      end if
+      if c == 1 then print indnt+"</b>"+act+"ion<b> successful" else print indnt+"</b>"+act+"ion"+colorWarning+" failed!"+char(10)+indnt+colorWarning+"</b>"+c 
+    else 
+      en_de_crypt_files(fl.get_folders,indnt,act,pw) // what could possibly go wrong here?
+    end if
+  end for
+end function
 
 mail_user_list = function(ip_address, port)
   if not crypto then return 0
