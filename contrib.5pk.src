@@ -269,47 +269,64 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
       end if
     end function
     reader = function(codeStr) //code string to s-expression
-        codeStr = values(codeStr)
+        newline = char(10)
+        whitespace = ", " + char(9) + newline + char(13) // \t, \n, \r
+        delimiters = " .'();" + char(9) + newline + char(13)
+        numbers = "0123456789."
+
+        // Precompute tables
+        isWs = {}
+        isDel = {}
+        isNum = {}
+        i = 0; while i < whitespace.len; isWs[whitespace[i]] = 1; i = i + 1; end while
+        i = 0; while i < delimiters.len; isDel[delimiters[i]] = 1; i = i + 1; end while
+        i = 0; while i < numbers.len; isNum[numbers[i]] = 1; i = i + 1; end while
+
+        len = codeStr.len
+        pos = 0
         stack = [[]]
-        while len(codeStr)
-            token = []
-            c = codeStr.pull
-            if (", " + char(9) + char(10) + char(13)).indexOf(c) != null then //ignore whitespace
-                continue
+
+        while pos < len
+            c = codeStr[pos]
+            pos = pos + 1
+
+            if isWs.hasIndex(c) then //ignore whitespace
+                // skip
             else if c == "(" then //parse a new list
                 stack.push([])
             else if c == ")" then //end a list
-                if len(stack) < 2 then return Error("Glosure: Error: Unbalanced parenthesis.")
-                curr = stack.pop
-                stack[-1].push(curr)
-            else if indexOf("0123456789.", c) != null then //tokenize number
-                token.push(c)
-                while len(codeStr) and indexOf("0123456789.", codeStr[0]) != null
-                    token.push(codeStr.pull)
+                if stack.len < 2 then return Error("Glosure: Error: Unbalanced parenthesis.")
+                top = stack.pop
+                stack[-1].push(top)
+            else if isNum.hasIndex(c) then //tokenize number
+                start = pos - 1
+                while pos < len and isNum.hasIndex(codeStr[pos])
+                    pos = pos + 1
                 end while
-                stack[-1].push(val(token.join("")))
+                stack[-1].push(val(codeStr[start:pos]))
             else if c == "'" then //tokenize string
-                token.push(c)
-                while len(codeStr) and codeStr[0] != "'"
-                    c = codeStr.pull
-                    token.push(c)
-                    if c == "\" then token.push(codeStr.pull)
+                start = pos - 1
+                while pos < len and codeStr[pos] != "'"
+                    if codeStr[pos] == "\" then pos = pos + 1
+                    pos = pos + 1
                 end while
-                codeStr.pull
-                stack[-1].push(token.join("") + "'")
+                if pos < len and codeStr[pos] == "'" then pos = pos + 1
+                stack[-1].push(codeStr[start:pos])
             else if c == ";" then //ignore comment
-                while len(codeStr) and codeStr[0] != char(10)
-                    codeStr.pull
+                while pos < len and codeStr[pos] != newline
+                    pos = pos + 1
                 end while
+                if pos < len and codeStr[pos] == newline then pos = pos + 1
             else //tokenize symbol
-                token.push(c)
-                while len(codeStr) and (" .'();" + char(9) + char(10) + char(13)).indexOf(codeStr[0]) == null
-                    token.push(codeStr.pull)
+                start = pos - 1
+                while pos < len and not isDel.hasIndex(codeStr[pos])
+                    pos = pos + 1
                 end while
-                stack[-1].push(token.join(""))
+                stack[-1].push(codeStr[start:pos])
             end if
         end while
-        if len(stack) != 1 then return Error("Glosure: Error: Unbalanced parenthesis.")
+
+        if stack.len != 1 then return Error("Glosure: Error: Unbalanced parenthesis.")
         return ["begin"] + stack[0]
     end function
     Env = function(__outer) //environment for Glosure, only build new environment when calling lambda.
@@ -664,120 +681,133 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
     preprocess = function(expr, env) // Preprocesses macros and stuff
         if not env.__outest.hasIndex("__macros") then env.__outest.__macros = {} // for macros defined w/ defmacro
         if not env.__outest.hasIndex("__symbols") then env.__outest.__symbols = [] // gensym(env) calls
+        __macros = env.__outest.__macros
+        __symbols = env.__outest.__symbols
+        __gensymCache = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         fmap = function(f, expr, env) // Maps f(x) to s-expression with env
-            expr = [] + expr
-            for i in expr.indexes
+            expr = expr[0:]
+            i = 0
+            len = expr.len
+            while i < len
                 expr[i] = f(@expr[i], env)
-            end for
+                i = i + 1
+            end while
             return expr
         end function
         deepreplace = function(expr, a, b) // Replaces an occurence of @a to @b in s-expression
             result = []
             for e in expr
-                if @e isa list then
-                    result.push(deepreplace(e, @a, @b))
-                else if @e == @a then
-                    result.push(@b)
+                if e isa list then
+                    result.push(deepreplace(e, a, b))
+                else if e == a then
+                    result.push(b)
                 else
-                    result.push(@e)
+                    result.push(e)
                 end if
             end for
             return result
         end function
+        randsym = function
+            uniquesim = ""
+            i = 0
+            while i < 8
+                uniquesim = uniquesim + __gensymCache[floor(rnd * 62)]
+                i = i + 1
+            end while
+            return "#:G" + uniquesim
+        end function
         gensym = function(env) // Generates and ensures a unique symbol.
-            randsym = function
-                uniquesim = ""
-                for i in range(0, 7)
-                    uniquesim = uniquesim + "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"[floor(rnd * 62)]
-                end for
-                return "#:G" + uniquesim
-            end function
             while true
                 sym = randsym
-                if env.__outest.__symbols.indexOf(sym) == null then
-                    env.__outest.__symbols.push(sym)
+                if __symbols.indexOf(sym) == null then
+                    __symbols.push(sym)
                     return sym
                 end if
             end while
         end function
-        if not @expr isa list then
-            return @expr
-        else
-            if expr.len == 0 then
-                return fmap(@preprocess, expr, env)
+        _preprocess = function(expr, env)
+            if not expr isa list then
+                return expr
             else
-                keyword = expr[0]
-                if keyword == "defmacro" then // Macro definition
-                    if expr.len != 5 then return Error("Glosure: Preprocessing Error: defmacro keyword requires 4 arguments.")
-                    name = @expr[1]
-                    if not @name isa string then return Error("Glosure: Preprocessing Error: defmacro keyword requires name to be a symbol.")
-                    args = @expr[2]
-                    if not @args isa list then return Error("Glosure: Preprocessing Error: defmacro keyword requires args to be an s-expression.")
-                    for arg in args
-                        if not @arg isa string then return Error("Glosure: Preprocessing Error: defmacro keyword requires each macro argument to be a symbol.")
-                    end for
-                    syms = @expr[3]
-                    if not @syms isa list then return Error("Glosure: Preprocessing Error: defmacro keyword requires macro gensym symbols to be an s-expression.")
-                    for sym in syms
-                        if not @sym isa string then return Error("Glosure: Preprocessing Error: defmacro keyword requires each macro gensym symbol to be a symbol.")
-                    end for
-                    body = @expr[4]
-                    if not @body isa string and not @body isa list then return Error("Glosure: Preprocessing Error: defmacro keyword requires body to be either a symbol or an s-expression.")
-                    if body isa list then
-                        for i in syms.indexes
-                            sym = syms[i]
-                            uniquesim = gensym(env) // Translates into unique symbols in macro expansion
-                            syms[i] = uniquesim
-                            body = deepreplace(body, sym, uniquesim)
+                if expr.len == 0 then
+                    return expr[0:]
+                else
+                    keyword = expr[0]
+                    if keyword == "defmacro" then // Macro definition
+                        if expr.len != 5 then return Error("Glosure: Preprocessing Error: defmacro keyword requires 4 arguments.")
+                        name = expr[1]
+                        if not name isa string then return Error("Glosure: Preprocessing Error: defmacro keyword requires name to be a symbol.")
+                        args = expr[2]
+                        if not args isa list then return Error("Glosure: Preprocessing Error: defmacro keyword requires args to be an s-expression.")
+                        for arg in args
+                            if not arg isa string then return Error("Glosure: Preprocessing Error: defmacro keyword requires each macro argument to be a symbol.")
                         end for
-                        for i in args.indexes
-                            arg = args[i]
-                            uniquearg = gensym(env) // So that args of macro won't overlap with symbols in expansion
-                            args[i] = uniquearg
-                            body = deepreplace(body, arg, uniquearg)
+                        syms = expr[3]
+                        if not syms isa list then return Error("Glosure: Preprocessing Error: defmacro keyword requires macro gensym symbols to be an s-expression.")
+                        for sym in syms
+                            if not sym isa string then return Error("Glosure: Preprocessing Error: defmacro keyword requires each macro gensym symbol to be a symbol.")
                         end for
-                    end if
-                    env.__outest.__macros[name] = [args, body]
-                else if keyword == "quote" then // Symbols quoting
-                    buildString = function(expr)
-                        if not expr isa list then return expr
+                        body = expr[4]
+                        if not body isa string and not body isa list then return Error("Glosure: Preprocessing Error: defmacro keyword requires body to be either a symbol or an s-expression.")
+                        if body isa list then
+                            idxs = syms.indexes
+                            for i in idxs
+                                sym = syms[i]
+                                uniquesim = gensym(env) // Translates into unique symbols in macro expansion
+                                syms[i] = uniquesim
+                                body = deepreplace(body, sym, uniquesim)
+                            end for
+                            idxs = args.indexes
+                            for i in idxs
+                                arg = args[i]
+                                uniquearg = gensym(env) // So that args of macro won't overlap with symbols in expansion
+                                args[i] = uniquearg
+                                body = deepreplace(body, arg, uniquearg)
+                            end for
+                        end if
+                        __macros[name] = [args, body]
+                    else if keyword == "quote" then // Symbols quoting
+                        buildString = function(expr)
+                            if not expr isa list then return expr
+                            ret = []
+                            for atom in expr
+                                ret.push(buildString(atom))
+                            end for
+                            return "(" + ret.join(" ") + ")"
+                        end function
                         ret = []
-                        for atom in expr
+                        for atom in expr[1:]
                             ret.push(buildString(atom))
                         end for
-                        return "(" + ret.join(" ") + ")"
-                    end function
-                    ret = []
-                    for atom in expr[1:]
-                        ret.push(buildString(atom))
-                    end for
-                    return "'" + ret.join(" ") + "'"
-                else if env.__outest.__macros.hasIndex(keyword) then // Macro expansion
-                    macroname = keyword
-                    macroargs = env.__outest.__macros[macroname][0]
-                    macrobody = env.__outest.__macros[macroname][1]
-                    args = expr[1:]
-                    if macroargs.len == 0 then
-                        if args.len == 0 then return preprocess(macrobody, env)
-                        expr = [] + expr
-                        expr[0] = preprocess(macrobody, env)
-                        return preprocess(expr, env)
-                    else if macroargs.len != args.len then
-                        return Error("Glosure: Preprocessing Error: " + macroname + " macro requires " + macroargs.len + " arguments.")
+                        return "'" + ret.join(" ") + "'"
+                    else if __macros.hasIndex(keyword) then // Macro expansion
+                        macroname = keyword
+                        macroargs = __macros[macroname][0]
+                        macrobody = __macros[macroname][1]
+                        args = expr[1:]
+                        if macroargs.len == 0 then
+                            if args.len == 0 then return _preprocess(macrobody, env)
+                            expr = expr[0:]
+                            expr[0] = _preprocess(macrobody, env)
+                            return _preprocess(expr, env)
+                        else if macroargs.len != args.len then
+                            return Error("Glosure: Preprocessing Error: " + macroname + " macro requires " + macroargs.len + " arguments.")
+                        else
+                            body = macrobody[0:]
+                            for i in args.indexes
+                                macroarg = macroargs[i]
+                                arg = args[i]
+                                body = deepreplace(body, macroarg, arg)
+                            end for
+                            return _preprocess(body, env)
+                        end if
                     else
-                        body = [] + macrobody
-                        for i in args.indexes
-                            macroarg = macroargs[i]
-                            arg = args[i]
-                            body = deepreplace(body, macroarg, arg)
-                        end for
-                        return preprocess(body, env)
+                        return fmap(@_preprocess, expr, env)
                     end if
-                else
-                    return fmap(@preprocess, expr, env)
                 end if
             end if
-        end if
+        end function
+        return _preprocess(expr, env)
     end function
     execute = function(codeStr, env)
         return eval(preprocess(reader(codeStr), env), env)
@@ -858,9 +888,9 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
   
     helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
   Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
-  Glosure interpreter version: c2a3089. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
+  Glosure interpreter version: 15fe413. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
   <b>Warning: This command is a programming language! Your error may result in crash!</b>
-  
+
   Short reference:
   (function arg1 arg2 argn) essentially behaves like function(arg1, arg2, argn) in miniscript
   This language has 7 datatypes, string number list map null are the same as GreyScript string number list map null, glosure means GreyScript function, lambda means a Glosure ""anonymous function""
@@ -878,7 +908,7 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
   Use (dot object method_name argument_1 argument_2 argument_N) to access a method under a grey hack object. This is dangerous and can cause crash if used incorrectly, read Manual.exe while using it.
   (at name index) essentially works like name[index], you can use it on any container.
   (set name index value) essentially works like name[index] = value, you can use it on any container. It can also used to assign any glosure to host env with globals<b>Warning: Advanced feature are not for people who dont know what they are doing! Your error will very likely result in crash!</b>
-  
+
   NOTE: lines entered into the REPL will be added to the 'up-arrow' command history"
     if arg1 == "help" or arg1 == "-h" then return helpMsg
     if arg1 == "-e" or arg1 == "exec" then return execute(arg2, glosureEnv)
