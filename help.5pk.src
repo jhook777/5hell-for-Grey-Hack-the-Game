@@ -11,10 +11,10 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		"complete. You may pipe the output of one to the input of another,"+char(10)+
 		"or chain commands without piping, with "+colorLightBlue+"|"+CT+" and "+colorLightBlue+"||"+CT+" respectively."+char(10)+char(10)+
 		"5hell features a system called """+colorLightBlue+"glasspool"+CT+""" that mirrors shell objects."+char(10)+
-		"This means that, wihle active, most of your commands will execute"+char(10)+
-		"on the target shell instead of locally.Be aware that some commands "+char(10)+
+		"This means that, while active, most of your commands will execute"+char(10)+
+		"on the target shell instead of locally. Be aware that some commands "+char(10)+
 		"are local only, meaning they run on the machine running the script, not the active shell."+char(10)+
-		"The prompt will turn blue, like so: "+colorLightBlue+"|>"+CT+" when "+colorLightBlue+"glasspool"+CT+"is active."+char(10)+char(10)+
+		"The prompt will turn blue, like so: "+colorLightBlue+"|>"+CT+" when "+colorLightBlue+"glasspool"+CT+" is active."+char(10)+char(10)+
 		colorWhite+"Setup:"+char(10)+
 		"First, and foremost, set up your email and bank and get a hackshop ip"+char(10)+
 		"and download metaxploit.so from it. Then launch 5hell and type:"+char(10)+
