@@ -245,29 +245,6 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
     Error = function(msg) //This is up to implementation to decide.
       return print("<color=red><noparse>" + @msg + "</noparse></color>") //reference implementation simply panics. 
     end function
-    tree = function(anyObject, depth = 5) //basically str() with custom depth limit, this walk the tree with recursion until everything is consumed.
-      if depth == 0 then return "..."
-      if @anyObject isa map then
-        if hasIndex(anyObject, "classID") then return @anyObject.classID //doesnt unfold Grey Hack object anymore
-        ret = []
-        for pair in anyObject
-          ret.push(tree(@pair.key, depth - 1) + ": " + tree(@pair.value, depth - 1))
-        end for
-        return "{" + ret.join(", ") + "}"
-      else
-        if @anyObject isa funcRef or anyObject isa number then return "" + @anyObject
-        if anyObject isa string then return """" + anyObject + """"
-        if anyObject isa list then
-          ret = []
-          for item in anyObject
-            ret.push(tree(@item, depth - 1))
-          end for
-          return "[" + ret.join(", ") + "]"
-        end if
-        if anyObject == null then return "null"
-        return "" + anyObject 
-      end if
-    end function
     reader = function(codeStr) //code string to s-expression
         newline = char(10)
         whitespace = ", " + char(9) + newline + char(13) // \t, \n, \r
@@ -298,6 +275,12 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
                 if stack.len < 2 then return Error("Glosure: Error: Unbalanced parenthesis.")
                 top = stack.pop
                 stack[-1].push(top)
+            else if c == "-" and pos < len and isNum.hasIndex(codeStr[pos]) then //tokenize negative number
+                start = pos - 1
+                while pos < len and isNum.hasIndex(codeStr[pos])
+                    pos = pos + 1
+                end while
+                stack[-1].push(val(codeStr[start:pos]))
             else if isNum.hasIndex(c) then //tokenize number
                 start = pos - 1
                 while pos < len and isNum.hasIndex(codeStr[pos])
@@ -307,16 +290,27 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
             else if c == "'" then //tokenize string
                 start = pos - 1
                 while pos < len and codeStr[pos] != "'"
-                    if codeStr[pos] == "\" then pos = pos + 1
+                    if codeStr[pos] == "\" then pos = pos + 1 //"
                     pos = pos + 1
                 end while
                 if pos < len and codeStr[pos] == "'" then pos = pos + 1
                 stack[-1].push(codeStr[start:pos])
             else if c == ";" then //ignore comment
-                while pos < len and codeStr[pos] != newline
+                if pos < len and codeStr[pos] == "|" then //multiline comment ;| ... |;
                     pos = pos + 1
-                end while
-                if pos < len and codeStr[pos] == newline then pos = pos + 1
+                    while pos < len - 1
+                        if codeStr[pos] == "|" and codeStr[pos + 1] == ";" then
+                            pos = pos + 2
+                            break
+                        end if
+                        pos = pos + 1
+                    end while
+                else //single-line comment
+                    while pos < len and codeStr[pos] != newline
+                        pos = pos + 1
+                    end while
+                    if pos < len and codeStr[pos] == newline then pos = pos + 1
+                end if
             else //tokenize symbol
                 start = pos - 1
                 while pos < len and not isDel.hasIndex(codeStr[pos])
@@ -340,14 +334,22 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
             if __outer.__outest == null then env.__outest = env else env.__outest = __outer.__outest
         end if
         env.__local = {}
-        env.get = function(symbol)
-            if hasIndex(self.__local, @symbol) then return @self.__local[@symbol]
-            if self.__outer then return @self.__outer.get(symbol)
-            return Error("Glosure: Runtime Error: Unknown symbol '" + symbol + "'.")
+        env.contains = function(self, symbol)
+            return hasIndex(self.__local, @symbol)
         end function
-        env.set = function(symbol, value)
+        env.def = function(self, symbol, value)
             self.__local[@symbol] = @value
             return @value
+        end function
+        env.set = function(self, symbol, value)
+            if self.contains(@symbol) then return @self.def(@symbol, @value)
+            if self.__outer then return @self.__outer.set(@symbol, @value)
+            return Error("Glosure: Runtime Error: Unknown symbol '" + @symbol + "'.")
+        end function
+        env.get = function(symbol)
+            if self.contains(@symbol) then return @self.__local[@symbol]
+            if self.__outer then return @self.__outer.get(symbol)
+            return Error("Glosure: Runtime Error: Unknown symbol '" + @symbol + "'.")
         end function
         return env
     end function
@@ -359,7 +361,7 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
                 ret = []
                 i = 0
                 while i < len(stri)
-                    if stri[i] == "\" and i < len(stri) - 1 then
+                    if stri[i] == "\" and i < len(stri) - 1 then //"
                         i = i + 1
                         if stri[i] == "t" then
                             ret.push(char(9))
@@ -384,6 +386,9 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
         first = @expr[0]
         if @first == "def" then //bind value to symbol
             if len(@expr) < 3 then return Error("Glosure: Runtime Error: def keyword requires 2 arguments.")
+            return env.def(@expr[1], eval(@expr[2], env))
+        else if @first == "=" then
+            if len(@expr) < 3 then return Error("Glosure: Runtime Error: = keyword requires 2 arguments.")
             return env.set(@expr[1], eval(@expr[2], env))
         else if @first == "if" then //if statement
             if len(@expr) < 3 then return Error("Glosure: Runtime Error: if keyword requires 2 or 3 arguments.")
@@ -437,28 +442,6 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
             }
             __eval = @eval
             __env = @env
-            readString = function(s)
-                return "'" + s + "'"
-            end function
-            readArray = function(array)
-                i = 0
-                while i < len(array)
-                    elem = @array[i]
-                    if @elem isa string then array[i] = outer.readString(elem)
-                    if @elem isa list then array[i] = outer.readArray(elem)
-                    i = i + 1
-                end while
-                return [ "array" ] + array
-            end function
-            readArgs = function(args)
-                    i = 0
-                    while i < len(@args)
-                    arg = @args[i]
-                    if @arg isa string then args[i] = outer.readString(arg)
-                    if @arg isa list then args[i] = outer.readArray(arg)
-                    i = i + 1
-                end while
-            end function
             buildGlosure = function
                 __eval = @outer.__eval
                 __env = @outer.__env
@@ -569,7 +552,7 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
                 end while
                 newEnv = Env(func.env)
                 for i in indexes(func.params)
-                    newEnv.set(@func.params[i], @evaluatedArgs[i])
+                    newEnv.def(@func.params[i], @evaluatedArgs[i])
                 end for
                 result = null
                 for bodyExpr in func.body
@@ -679,11 +662,9 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
         return globalEnv
     end function
     preprocess = function(expr, env) // Preprocesses macros and stuff
-        if not env.__outest.hasIndex("__macros") then env.__outest.__macros = {} // for macros defined w/ defmacro
-        if not env.__outest.hasIndex("__symbols") then env.__outest.__symbols = [] // gensym(env) calls
+        if not env.__outest.hasIndex("__macros") then env.__outest.__macros = {}
+        if not env.__outest.hasIndex("__gensymCounter") then env.__outest.__gensymCounter = 0
         __macros = env.__outest.__macros
-        __symbols = env.__outest.__symbols
-        __gensymCache = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         fmap = function(f, expr, env) // Maps f(x) to s-expression with env
             expr = expr[0:]
             i = 0
@@ -707,23 +688,9 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
             end for
             return result
         end function
-        randsym = function
-            uniquesim = ""
-            i = 0
-            while i < 8
-                uniquesim = uniquesim + __gensymCache[floor(rnd * 62)]
-                i = i + 1
-            end while
-            return "#:G" + uniquesim
-        end function
-        gensym = function(env) // Generates and ensures a unique symbol.
-            while true
-                sym = randsym
-                if __symbols.indexOf(sym) == null then
-                    __symbols.push(sym)
-                    return sym
-                end if
-            end while
+        gensym = function(env) // Generates a unique symbol via counter.
+            env.__outest.__gensymCounter = env.__outest.__gensymCounter + 1
+            return "#:G" + env.__outest.__gensymCounter
         end function
         _preprocess = function(expr, env)
             if not expr isa list then
@@ -750,22 +717,12 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
                         body = expr[4]
                         if not body isa string and not body isa list then return Error("Glosure: Preprocessing Error: defmacro keyword requires body to be either a symbol or an s-expression.")
                         if body isa list then
-                            idxs = syms.indexes
-                            for i in idxs
-                                sym = syms[i]
-                                uniquesim = gensym(env) // Translates into unique symbols in macro expansion
-                                syms[i] = uniquesim
-                                body = deepreplace(body, sym, uniquesim)
-                            end for
-                            idxs = args.indexes
-                            for i in idxs
-                                arg = args[i]
-                                uniquearg = gensym(env) // So that args of macro won't overlap with symbols in expansion
-                                args[i] = uniquearg
-                                body = deepreplace(body, arg, uniquearg)
+                            for sym in syms
+                                body = deepreplace(body, sym, gensym(env))
                             end for
                         end if
                         __macros[name] = [args, body]
+                        return ["begin"] // special form that does nothing.
                     else if keyword == "quote" then // Symbols quoting
                         buildString = function(expr)
                             if not expr isa list then return expr
@@ -813,6 +770,29 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
         return eval(preprocess(reader(codeStr), env), env)
     end function
 
+    tree = function(anyObject, depth = 5) //basically str() with custom depth limit, this walk the tree with recursion until everything is consumed.
+      if depth == 0 then return "..."
+      if @anyObject isa map then
+        if hasIndex(anyObject, "classID") then return @anyObject.classID //doesnt unfold Grey Hack object anymore
+        ret = []
+        for pair in anyObject
+          ret.push(tree(@pair.key, depth - 1) + ": " + tree(@pair.value, depth - 1))
+        end for
+        return "{" + ret.join(", ") + "}"
+      else
+        if @anyObject isa funcRef or anyObject isa number then return "" + @anyObject
+        if anyObject isa string then return """" + anyObject + """"
+        if anyObject isa list then
+          ret = []
+          for item in anyObject
+            ret.push(tree(@item, depth - 1))
+          end for
+          return "[" + ret.join(", ") + "]"
+        end if
+        if anyObject == null then return "null"
+        return "" + anyObject 
+      end if
+    end function
     repl = function(env)
       while true
         //codeStr = user_input("</> ")
@@ -845,36 +825,46 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
         (loop (def !result body) iterator condition)
         !result)))))
 
-(defmacro foreach (key value collection body) (!keys) ((lambda () 
+(defmacro foreach (key value collection body) (!keys, !idx, !len) ((lambda ()
     (def !keys (indexes collection))
-    (if !keys (begin
+    (def !len (len !keys))
+    (def !idx 0)
+    (if !len (begin
         (loop 
-            (def key (pull !keys))
+            (def key (at !keys (var++ !idx)))
             (def value (at collection key))
             body
-            !keys)
+            (< !idx !len))
         value)))))
 
 (defmacro defalias (name keyword) () (defmacro name () () keyword))
 
+(defun // (a b) (floor (/ a b)))
+
 (defmacro swap (a b) (!temp) (begin
     (def !temp a)
-    (def a b)
-    (def b !temp)))
+    (= a b)
+    (= b !temp)))
 
-(defmacro ++ (var) () (def var (+ var 1)))
-
+(defmacro ++ (var) () (= var (+ var 1)))
 (defmacro var++ (var) (!temp) (begin
     (def !temp var)
-    (def var (+ var 1))
+    (= var (+ var 1))
     !temp))
 
-(defmacro -- (var) () (def var (- var 1)))
-
+(defmacro -- (var) () (= var (- var 1)))
 (defmacro var-- (var) (!temp) (begin
     (def !temp var)
-    (def var (- var 1))
+    (= var (- var 1))
     !temp))
+
+(defmacro += (var val) () (= var (+ var val)))
+(defmacro -= (var val) () (= var (- var val)))
+(defmacro *= (var val) () (= var (* var val)))
+(defmacro /= (var val) () (= var (/ var val)))
+(defmacro //= (var val) () (= var (// var val)))
+(defmacro %= (var val) () (= var (% var val)))
+(defmacro ^= (var val) () (= var (^ var val)))
 
 (def params (if (hasIndex globals 'params') (at globals 'params') (array)))
 
@@ -888,7 +878,7 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
   
     helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
   Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
-  Glosure interpreter version: 15fe413. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
+  Glosure interpreter version: 47b5603. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
   <b>Warning: This command is a programming language! Your error may result in crash!</b>
 
   Short reference:
