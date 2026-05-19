@@ -31,16 +31,63 @@
 ////
 //// To Done:
 //
-// pause: adding missing type check when parsing wait time value
+//
+// rnip: will now exclude lan and invalid ips
+// -- except for 10.x.x.x, for right now. adjustments needed
+// pwgen: added 2 new seeds
+// malp: will no longer open malp when passing the -p flag
+// felix: fixed crash when using [t] tag 4 scp
+// help: pull request merged: typos fixed
 // glosure: pull request merged: Update Glosure interpreter to match upstream!
+// pause: added missing type check when parsing wait time value
+// string: -r and -R will not barf when input is a space
+// kore: fixed crash by adding type check to -r to ensure we actually created a file before attempting to read it
+// 5phinx.5pk: startup_resource_configuration: reverteted reencryption call to command.file from weird new custom function
+// -- do.rc will be reencrypted properly 
+//
+// DOCUMENT THE BELOW!!!
+//
+// contrib.5pk: checkUser: added support for ftpComputer and ftpFile type
+// 5phinx.5pk: p_validate: will return true when input is null instead of crashing
+// malp: fixed crash when buffer contained ftpShell or ftpComputer or ftpFile
+// -- removed incompatible buttons from ftpshell handler
+// -- fixed get/put buttons in ftshell handler
+// -- ftpComputer and ftpFile will be handled by generic object handler (decompiler) in malp
+// ---- custom handler when ftpComputer has access to local_ip and public_ip (at least)
+// --note: both ftpshell and ftpComputer are extremely limited in functionality
+// felix: can work with ftpshell, ftpComputer, ftpFile
+// glasspool: will NOT work with ftpshells or computers until kuro adds public and local ip to ftpComputer bc it's bs that they don't have it
+// rclean: will now work with ftp objects
+// scpm: will now work with ftpshells for both upload and download
+// cob: added missing function reference token (@) to _inspectable
+// ping: added ability initiate a ping using a piped shell
+// -- updated usage info
+// code: new option to return the value an individual list index (bc why wasn't that a thing?)
+// code: globals.decompiler and globals.p_exe will now take an argument for preselecting a menu option and params
+// -- supports invoking methods by name instead of by index #
+// ---- argument is passed as FIRST argument and object to decompile is passed as SECOND argument, in this case
+// ---- argument should be a string index number or string method name
+// ---- use quotes to pass a method/index name along with arguments for the method
+// ------eg: if @B 2 is a shell: 
+// --------: code @B 2 " ping 1.1.1.1 " 
+// --------: code @B 2 " scp /root/rkit /home/guest " // add @clipa, @clipb, @clipc as options
+// --------: code @B 2 5 // returns host_computer
+// note: these examples are obviously possible wihtout using code, they're just for illustration
+// -- code will still return the output of the invoked method	
+// aptm: will now return null from the menu and the output of the called function when launched with arguments
+// 5phinx.5pk: print override will now use _print internally instead of a recursive call
+// ifconfig: pull request: removed incomplete if statement
+// ifconfig: will display correct ip info for piped shells/computers
+// -- direct consequence is order of arguments no longer matters
+// -- usage info updated to reflect this
 //
 // cd: rewritten in order to fix some bugs
 // -- will no longer stop working when the current path doesn't exist
-// checkUser: rfile was set to /root instead of /
+// checkUser: rfile was formerly set to /root instead of /
 // -- resulting in a false 'guest' user return when /root is missing
 // -- it will now properly check perms on / 
 // file: exported encrypt_path to 5phinx.5pk to make it a shared funciton
-// -- changed name to: en_de_crypt_path
+// -- changed name to: en_de_crypt_files
 // ---- since the function both encrypts and decrypts depending on the action passed (act)
 // kraken: will properly handle encrypted files when adding/deleting a repo
 // zc: zerochill will now properly display usage info when asked
