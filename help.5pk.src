@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.3.7...(132.266)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.3.8...(132.266)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
@@ -2635,4 +2635,3 @@ end function
           // exit with score
       end while
   end function
-
