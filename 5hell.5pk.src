@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.7.1_falling_skies"
+ver = "4.3.8_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "145.164"
+size_of_5hell = "145.193"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -2640,17 +2640,18 @@ command.rnip = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 then loop = arg1.to_int
 	if arg2 then delimiter = arg2
 	rng = range(1,223)
-	rnd = range(0,223)
+	oct = range(0,223)
 	rand_ip = []
 	if loop < 1 then return "rnip: iteration must be a positive integer."
 	for i in range(1,loop)
 		rng.shuffle
-		rnd.shuffle
-		sub = rnd[0]
-		rnd.shuffle
-		ito = rnd[0]
-		rnd.shuffle
-		rand_ip.push([rng[0], rnd[0], ito, sub].join("."))
+		oct.shuffle
+		sub = oct[0]
+		oct.shuffle
+		ito = oct[0]
+		oct.shuffle
+		tem_ip = [rng[0], oct[0], ito, sub].join(".")
+		if globals.is_valid_ip_range(tem_ip) then rand_ip.push(tem_ip) else rand_ip.push(command.rnip("1",@arg2))
 	end for
 	return rand_ip.join(delimiter)
 end function
