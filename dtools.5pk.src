@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.7.2..(158.247)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.8...(158.287)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -1174,7 +1174,8 @@ note: launching binaries via felix does NOT activate glasspool
 	return inf
   end function
   action.t = function(inf)
-	print globals.tagged_for_scp(inf.path)
+	globals.tagged_for_scp = inf.path
+	print "Tagged: <b>"+inf.path+"</b> for scp"
 	return inf 
   end function
   action.b = function(inf) // global buffer

@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading kore.5pk v 4.3.7.2..(76.105)")
+if DEBUG then print("<size=75%>loading kore.5pk v 4.3.8...(76.179)")
 command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
     time_s = time
     kore_usage_info = "<u>"+colorGold+"KORE 3.0 || automation || helper || Goddess of the DEAD and GRAIN || rkit || security"+char(10)+char(10)+
@@ -552,7 +552,10 @@ command.malp = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 	end if
 	if open_entry < 0 or open_entry >= globals.BUFFER.len then open_entry = -1
-
+	if no_malp then 
+		print "malp: echoing input..."
+		return @obj
+	end if
 	if DEBUG then print("starting malp with:"+char(10)+"--: ob: "+open_buffer+char(10)+"--: oe: "+str(open_entry))
 	return globals.memory_alpha(open_buffer,open_entry)
 end function

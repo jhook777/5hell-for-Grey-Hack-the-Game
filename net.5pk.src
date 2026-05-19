@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.7...(154.972)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.8...(155.111)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -2994,11 +2994,13 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
 	cw = colorWhite+"</b>"
     cr = colorRed+"</b>"
 	if @sh_ob == "help" or @sh_ob == "-h" then return "Infil || infiltrate || infiltration || upload rkit"+char(10)+
-	cw+"Usage: "+cgo+"infil"+cw+" ["+cgo+"shell_object"+CT+"] -- automatic door kicker"+char(10)+
+	cw+"Usage: "+cgo+"infil"+cw+" ["+cgo+"opt: shell_object"+CT+"] -- automatic door kicker"+char(10)+
 	"-- uploads rkit to /home/guest on target shell and then launches 5hell"+char(10)+
 	"-- does not accept launch params;"+char(10)+
 	"---- include desired launch behavior in rkit/do.rc before upload"+char(10)+
 	"--eg: <b>zap | infil"+char(10)+
+	cw+"Usage: "+cgo+"infil"+CT+"] -- as above but brings up shell selection menu"+char(10)+
+	"-- menu shows BUFFER shells and rsi shells"+char(10)+
 	"NOTE: the /home/guest destination is hard coded as this is always open on "+char(10)+
 	"-- untouched npc machines"+char(10)+
 	"-- create a macro that mimics infil's behavior (perms, scpm, perms, run)"+char(10)+
