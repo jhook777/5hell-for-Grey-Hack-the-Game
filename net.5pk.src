@@ -548,22 +548,50 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid|bssid]"+char(10)+
 	"-- to manually connect to a wifi network"+char(10)+
 	"-- see <b>ifconfig -h</b> for more"
-	print("AirMenu v 0.1.3, by Plu70")
-	is_it_known = function(a)
-		chrom = ""
+	print("AirMenu v 0.1.4, by Plu70")
+
+	is_it_known = function(a,rk=0)
+		chrom = colorOrange
+		key = null
 		line = a.split(" ")
-		//p = "/"
-		//if globals.currentPath != "/" then p = globals.currentPath + "/"
-		//file = localmachine.File(p + line[2]+".cap")
-		file = command.tree("/",line[2]+".cap",1,"N")
+		reenc = false
+		file = command.tree("/",line[2]+".cap",1,"N") // legacy compatibility
 		if file then
 			chrom = colorGreen
+			key = globals.crypto.aircrack(file.path)
 		else
-			chrom = colorOrange
+			airbnb = command.tree("/",get_custom_object.HOME.air_file,1,"N")
+			if airbnb and airbnb.is_binary then 
+				if globals.crypto and globals.crypto.is_encrypted(airbnb.path) == 1 then
+					reenc = get_custom_object.HOME.air_key
+					if not reenc then reenc = user_input(colorWarning+"air: "+airbnb.path+" is encrypted"+char(10)+"-- decryption_key (<<b>enter</b>>=abort):> ")
+					if reenc.trim == "" then return "aborting..."
+					get_custom_object.HOME.air_key = reenc
+					//print command.file("-d",airbnb.path,reenc)
+					hold_silence=globals.SILENT
+					globals.SILENT=2
+					en_de_crypt_files([airbnb],"",colorViolet+"</b>decrypt",reenc)
+					globals.SILENT=hold_silence		
+				end if
+			end if
+			wiffs = airbnb.get_content.split(char(10))
+			for wif in wiffs
+				w = wif.split(" ")
+				if w[0] == line[2] then 
+					chrom = colorGreen
+					key = w[2]
+				end if
+			end for
+			hold_silence=globals.SILENT
+			globals.SILENT=2
+			if reenc then en_de_crypt_files([airbnb],"",colorMagenta+"</b>encrypt",reenc)
+			globals.SILENT=hold_silence
 		end if
-		parsed_data = chrom + a + CT
-		return parsed_data
+		if rk then return key
+		return chrom + a + CT
 	end function
+
+
 	data_stream = function(alist)
 		data = ""
 		i = 0
@@ -674,8 +702,9 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			end if
 		end if
 		passw = null
-		cap_fl = command.tree("/",essid+".cap",1,"N")
-		if typeof(cap_fl) == "file" then passw = crypto.aircrack( cap_fl.path )
+		//cap_fl = command.tree("/",essid+".cap",1,"N")
+		//if typeof(cap_fl) == "file" then passw = crypto.aircrack( cap_fl.path )
+		passw = is_it_known("0 0 "+essid,1)
 		if passw and not wego then
 			print(passw + "@" + bssid)
 			print("Connection status: [" + localmachine.connect_wifi("wlan0", bssid, essid, passw) + "]"+char(10))
@@ -732,6 +761,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			print("Error: monitor mode not enabled; aborting...",0,1)
 			return 0
 		end if
+		passwd = 0
 		print colorGold+"air: invoking aireplay..."
 		print(colorGreen+"Please ensure there are no files named "+colorWhite+"file.cap</color> on this machine.")
 		if typeof(command.tree("/","file.cap",1,"N")) == "file" then 
@@ -769,18 +799,30 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			catch = cap.move(globals.currentPath, essid+".cap")
 			if catch then print(catch)
 		else
-			print("Error! file.cap not found.")
+			print(colorError+"</b>air: error: file.cap not found.")
 		end if
 		cap = globals.get_file(essid+".cap")
 		if not cap then
-			print("Error. Failed to rename file.cap to " + essid+".cap")
+			print(colorError+"</b>air: error: failed to rename file.cap to " + essid+".cap")
 		else
-			print("...file saved as " + essid+".cap")
-			print("The key is:<b> "+crypto.aircrack(globals.currentPath + "/" + essid + ".cap")+"</b>")
-			if user_input(colorCyan+"Would you like to move "+cap.path+" to another folder? "+char(10)+"[<b>N</b>/y] ||: ",0,1).lower == "y"then
+			print("-- file saved as " + essid+".cap")
+			passwd = crypto.aircrack(globals.currentPath + "/" + essid + ".cap")
+			print "air: crack: the key is: "+colorGold+passwd
+			out = command.tree("/",get_custom_object.HOME.air_file,1,"N")
+			if typeof(out) == "file" then 
+				print "-- writing credentials to: "+colorWhite+out.path
+				if out.has_permission("w") then print out.set_content(out.get_content+char(10)+essid+" "+bssid+" "+passwd) else print "-- write failed; permission denied"
+			else 
+				print colorWarning+"air: HOME.air_file: <b>"+get_custom_object.HOME.air_file+" not found"+char(10)+"-- aborting write"
+			end if
+
+			u = user_input(colorCyan+"Would you like to move: "+char(10)+colorWhite+cap.permissions+" "+cap.path+" "+cap.owner+" "+cap.group+" "+cap.size+char(10)+colorCyan+"-- to another folder? "+char(10)+"-- or, optionally, delete it ("+[colorWarning+"not",colorGreen][typeof(out)=="file"]+" recommended)"+char(10)+colorCyan+"[<b>N</b>/y/d=delete] ||: "+colorWhite,0,1).lower
+			if u == "y" then
 				dir = user_input(colorCyan+"Please enter the destination folder (relative paths accepted): "+char(10)+"(<<b>enter</b>>=abort):> ")
 				if dir.trim == "" then return "aborting..."
-				return command.mv(cap.path,dir)
+				print command.mv(cap.path,dir)
+			else
+				if u == "d" then print command.rm(cap.path)
 			end if
 		end if
 		return detect_hidden
@@ -2663,10 +2705,11 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		case("-a", @apt.add_repo)
 		case("-d", @apt.del_repo)
 		case("-s", @apt.search)
+		case("-l", @apt.list_repos)
 		case("--hotswap", @apt.hot_swap)
 	//default( @paf )
 	// experimental
-	if "-u-i-a-d-s--hotswap".indexOf(arg1) != null then return default(@paf) else default(@paf)
+	if "-l-u-i-a-d-s--hotswap".indexOf(arg1) != null then return default(@paf) else default(@paf)
 	
 	//apting = true
 	while apting
