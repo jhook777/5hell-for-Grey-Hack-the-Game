@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.8...(155.111)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.8.3...(155.111)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -445,8 +445,8 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			"-- note: use <b>air</b> for cracking wifi networks or accessing wifi via a menu"+char(10)+char(10)+
 			"Usage: ifconfig ["+clb+"-g"+CT+"|gateway] [opt:shell|computer] -- returns the lan ip of the active object's gateway (router)"+char(10)+char(10)+
 			"Usage: ifconfig ["+clb+"-d"+CT+"|devices] [opt:shell|computer] -- list network devices on active computer object"+char(10)+char(10)+
-			colorGreen+"Note: ifconfig> shows localmachine by default"+char(10)+
-			"-- pipe an object to configure a remote machine instead"+char(10)+char(10)+
+			colorGreen+"Note: ifconfig shows localmachine by default"+char(10)+
+			"-- pipe an object or use "+colorLightblue+"glasspool"+CT+" to configure a remote machine instead"+char(10)+char(10)+
 			"NOTE: you may reverse the order of arguments:"+char(10)+
 			"--eg: <b>ifconfig -l @B 1</b> is the same as <b>ifconfig @B 1 -l"+char(10)+
 			"--ie:<b> ifconfig [flag] [shell]</b> == <b>ifconfig [shell] [flag]"
@@ -529,11 +529,21 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	"-- auto-calculates ACKS needed for cracking"+char(10)+
 	"-- renames resulting file.cap to [wifi_essid].cap"+char(10)+
 	"-- once cracked you may press enter to save the file to current path"+char(10)+
-	"---- or type a <b>folder path</b> to move the file to that folder"+char(10)+
+	"---- or select <b>y</b> and type a <b>folder path</b> to move the file to that folder"+char(10)+
 	"-- will read .cap files from anywhere on the system"+char(10)+
+	char(10)+
+	"NOTE: as of version 4.3.9 air will save cracked wifi credentials to your"+char(10)+
+	"-- <b>HOME.air_file</b>; which is currently set to: "+colorGold+get_custom_object.HOME.air_file+char(10)+
+	"-- if it exists"+char(10)+
+	"-- using this functionality allows you to safely delete the .cap files"+char(10)+
+	"-- AND allows you to encrypt and decrypt the file using HOME.air_key"+char(10)+
+	"-- this file may exist anywhere on the system"+char(10)+
+	"-- set air_file and air_key in your 5hell.src get_custom_object.HOME section"+char(10)+char(10)+
 	"Legend:"+char(10)+
 	"Networks appearing in: "+colorGreen+"green"+CT+" have a cracked .cap file"+char(10)+
-	"Networks appearing in: "+colorOrange+"orange"+CT+" do not have a cracked .cap file"+char(10)+char(10)+
+	"-- and/or an entry in your <b>"+get_custom_object.HOME.air_file+" file"+char(10)+
+	"Networks appearing in: "+colorOrange+"orange"+CT+" do not have a cracked .cap file"+char(10)+
+	"-- nor an entry in your <b>"+get_custom_object.HOME.air_file+" file"+char(10)+char(10)+
 	"Usage: air [-f|false] -- same as the <b>iwlist</b> command"+char(10)+
 	"-- returns wifi networks in range as a string"+char(10)+char(10)+
 	"Usage: air [-c] [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+char(10)+
@@ -545,7 +555,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	"-- this allows bypassing firewalls in many instances"+char(10)+
 	"-- this does not translate through GLASSPOOL"+char(10)+char(10)+
 	"NOTE: you may use:"+char(10)+
-	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid|bssid]"+char(10)+
+	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid|bssid] [network_key]"+char(10)+
 	"-- to manually connect to a wifi network"+char(10)+
 	"-- see <b>ifconfig -h</b> for more"
 	print("AirMenu v 0.1.4, by Plu70")
@@ -567,7 +577,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 					if not reenc then reenc = user_input(colorWarning+"air: "+airbnb.path+" is encrypted"+char(10)+"-- decryption_key (<<b>enter</b>>=abort):> ")
 					if reenc.trim == "" then return "aborting..."
 					get_custom_object.HOME.air_key = reenc
-					//print command.file("-d",airbnb.path,reenc)
+
 					hold_silence=globals.SILENT
 					globals.SILENT=2
 					en_de_crypt_files([airbnb],"",colorViolet+"</b>decrypt",reenc)
