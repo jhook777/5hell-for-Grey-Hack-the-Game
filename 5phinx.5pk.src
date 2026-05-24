@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.4.2"
+sphinx_version = "3.4.3"
 malp_version = "1.6.8"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.8...(158.034)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.8.2...(158.057)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -558,16 +558,16 @@ dump_memory = function()
     if MEMORY then buf.push(MEMORY.join( char(10) ) + char(10) )
     if globals.XPLOITS then buf.push(globals.XPLOITS.join( char(10) ) + char(10) )
     if meta_scan then buf.push(meta_scan.join( char(10) ) + char(10) )
-    if PORT_MAP then buf.push(display_portmap(1))
-    if globals.CLIP["a"].len then buf.push( globals.CLIP["a"] )
-    if globals.CLIP["b"].len then buf.push( globals.CLIP["b"] )
-    if globals.CLIP["c"].len then buf.push( globals.CLIP["c"] )
-    buf.push(T_BUF)
+    if PORT_MAP then buf.push(display_portmap(1)+char(10))
+    buf.push( "clipa: "+globals.CLIP["a"]+char(10) )
+    buf.push( "clipb: "+globals.CLIP["b"]+char(10) )
+    buf.push( "clipc: "+globals.CLIP["c"]+char(10) )
+    buf.push( "TBUF: "+T_BUF+char(10))
     for l in get_custom_object 
-      if l.key != "dictionary" then buf.push(l)
+      if l.key != "dictionary" then buf.push(l.key+": "+l.value)
     end for
     m = command.macro("list")
-    buf.push(m)
+    buf.push(char(10)+m)
     memdump.set_content( buf.join( char(10) ) )
     print("Memory dumped to: "+memdump.path)
     return 1
