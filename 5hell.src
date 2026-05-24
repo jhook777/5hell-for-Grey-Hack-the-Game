@@ -68,7 +68,9 @@ globals.AT_HOME = {
   "tp":"/root/rkit/tables/tp",          // default path for tables/tp
   "dorc_key":0,                         // decrypt do.rc with this key; string, if encrypted. leave at 0 if not in use
   "map_key":0,                          // decrypt Map.conf with this key; string, if encrypted. leave at 0 if not in use
-  "classID":"at_home"}   
+  "air_file":"aircap",                  // default *filename* for storing cracked wifi credentials; store in any folder, ensure only 1 copy per machine
+  "air_key":0,                          // decrypt air_path with this key; string, if encrypted. leave at 0 if not in use
+  "classID":"at_home"}                  
 if not get_custom_object.hasIndex("HOME") or not ( get_custom_object.HOME isa map or get_custom_object.HOME isa at_home ) then  get_custom_object.HOME = globals.AT_HOME
 // the above values are optional and may be left at default if you you don't plan to use them
 // you may set an ip without setting a password if you only want to use the @home alias to fetch the ip
@@ -263,12 +265,12 @@ command.shell = function(input=null,mute=null)
       // some folks like to edit the below line to do command.cc instead of continue
       if not prompt.len or prompt[0] == "" or prompt[0] == 0 or prompt[0] == "0" or prompt[0] == null then continue
       // prevent rogue function execution
-      if typeof(@prompt[0] ) == "function" then 
-        print colorRed+"shell: preventing execution of rogue function:"
-        print @prompt[0]
-        continue 
-      end if
-
+      // if typeof(@prompt[0] ) == "function" then 
+      //   print colorRed+"Kérberos: preventing execution of rogue function:"
+      //   print @prompt[0]
+      //   continue 
+      // end if
+      if not Kérberos(@prompt[0]) then continue
       //
       if prompt[0] == "return" then 
         if not mute then print colorWhite+"<size=50%><u><color=red>5</color>hell: returning..."
@@ -343,10 +345,10 @@ command.shell = function(input=null,mute=null)
 
       // command processing
       cmdName = @prompt[0]
-      if typeof(@cmdName) == "function" then 
-        print colorRed+"shell: preventing rogue function execution"
-        continue 
-      end if
+      //if typeof(@cmdName) == "function" then 
+      if not Kérberos(@cmdName) then continue//colorRed+"cerberus: preventing rogue function execution"
+        //continue 
+      //end if
       // handle case where prompt is "shell" actually
       //
       if cmdName == "shell" then
