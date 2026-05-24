@@ -281,7 +281,7 @@ globals._startup_resource_configuration  = function()
   if p.is_binary then 
     if globals.crypto and globals.crypto.is_encrypted(p.path) == 1 then 
       reenc = command.cob("get","HOME.dorc_key")
-      if not reenc then reenc = user_input("rc: do.rc is encrypted"+char(10)+"decryption_key (<<b>enter</b>>=abort):> ") 
+      if not reenc then reenc = user_input("rc: do.rc is encrypted"+char(10)+"-- decryption_key (<<b>enter</b>>=abort):> ") 
       if reenc.trim == "" then return "aborting..."
       print command.file("-d",p.path,reenc)
     end if
@@ -302,6 +302,8 @@ globals._startup_resource_configuration  = function()
 end function
 
 // ec_files: list of file objects
+// act: String; decrypt|encrypt
+// pw: String: key
 en_de_crypt_files = function(ec_files, indnt="-- ", act=0, pw=0)
   if globals.DEBUG then print "debug: ec_files: "+ec_files
   for fl in ec_files
