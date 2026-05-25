@@ -108,8 +108,8 @@ colorDarkBlue =       "<color=#0000FFFF><b>"
 // default color for standard print override, adjust to your theme
 // use "" for your default terminal color
 colorDefault =        "<color=#00FF00FF>"
-colorError =          "<color=#FF0000FF><b>" // not yet implemented
-colorWarning =        "<color=#FF8400FF><b>" // not yet implemented
+colorError =          "<color=#FF0000FF><b>"
+colorWarning =        "<color=#FF8400FF><b>"
 color5phinxText =     "<color=#FFFFFFFF><b>"
 color5phinxButton =   "<color=#00FFFFFF><b>"
 color5phinxElement =  "<color=#71858DFF><b>"
