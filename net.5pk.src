@@ -446,7 +446,7 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			"Usage: ifconfig ["+clb+"-g"+CT+"|gateway] [opt:shell|computer] -- returns the lan ip of the active object's gateway (router)"+char(10)+char(10)+
 			"Usage: ifconfig ["+clb+"-d"+CT+"|devices] [opt:shell|computer] -- list network devices on active computer object"+char(10)+char(10)+
 			colorGreen+"Note: ifconfig shows localmachine by default"+char(10)+
-			"-- pipe an object or use "+colorLightblue+"glasspool"+CT+" to configure a remote machine instead"+char(10)+char(10)+
+			"-- pipe an object or use "+colorLightBlue+"glasspool"+CT+" to configure a remote machine instead"+char(10)+char(10)+
 			"NOTE: you may reverse the order of arguments:"+char(10)+
 			"--eg: <b>ifconfig -l @B 1</b> is the same as <b>ifconfig @B 1 -l"+char(10)+
 			"--ie:<b> ifconfig [flag] [shell]</b> == <b>ifconfig [shell] [flag]"
