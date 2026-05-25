@@ -523,8 +523,9 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return dat.join(char(10))
 end function
 command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
+	clb = colorLightBlue
 	if arg1 == "help" or arg1 == "-h" then return "AIR || aircrack || aireplay || airmon || wifi cracker"+char(10)+
-	"Usage: air -- aircrack menu"+char(10)+
+	"Usage: "+colorGold+"air"+CT+" -- aircrack menu"+char(10)+
 	"-- allows cracking and/or connecting to in-range wifi networks"+char(10)+
 	"-- auto-calculates ACKS needed for cracking"+char(10)+
 	"-- renames resulting file.cap to [wifi_essid].cap"+char(10)+
@@ -534,7 +535,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	char(10)+
 	"NOTE: as of version 4.3.9 air will save cracked wifi credentials to your"+char(10)+
 	"-- <b>HOME.air_file</b>; which is currently set to: "+colorGold+get_custom_object.HOME.air_file+char(10)+
-	"-- if it exists"+char(10)+
+	"---- if it exists"+char(10)+
 	"-- using this functionality allows you to safely delete the .cap files"+char(10)+
 	"-- AND allows you to encrypt and decrypt the file using HOME.air_key"+char(10)+
 	"-- this file may exist anywhere on the system"+char(10)+
@@ -544,10 +545,10 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	"-- and/or an entry in your <b>"+get_custom_object.HOME.air_file+" file"+char(10)+
 	"Networks appearing in: "+colorOrange+"orange"+CT+" do not have a cracked .cap file"+char(10)+
 	"-- nor an entry in your <b>"+get_custom_object.HOME.air_file+" file"+char(10)+char(10)+
-	"Usage: air [-f|false] -- same as the <b>iwlist</b> command"+char(10)+
+	"Usage: air ["+clb+"-f|false"+CT+"] -- same as the <b>iwlist</b> command"+char(10)+
 	"-- returns wifi networks in range as a string"+char(10)+char(10)+
-	"Usage: air [-c] [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+char(10)+
-	"Usage: air [-a] [essid|bssid] -- run aireplay on a network from the command line"+char(10)+
+	"Usage: air ["+clb+"-c"+CT+"] [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+char(10)+
+	"Usage: air ["+clb+"-a"+CT+"] [essid|bssid] -- run aireplay on a network from the command line"+char(10)+
 	"-- you may supply <b>either</b> bssid or essid, not both"+char(10)+char(10)+
 	"Advanced: A wifi network might have a <b>nested wifi signal</b> within it"+char(10)+
 	"-- select option [<b>h</b>] within air to activate detection of nested wifi signals"+char(10)+
