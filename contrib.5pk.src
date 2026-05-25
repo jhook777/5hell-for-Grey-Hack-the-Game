@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.8...(86.953)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.3.9...(86.826)")
   
  //////////////////////contrubutions start here///////////
   /// this is stuff that was not made entirely by Plu70
@@ -1554,6 +1554,7 @@ Modes:
   return output[:-1]
 end function
 //
+// IP RANGE THINGAMABOB
 if DEBUG then print "DEBUG: initializing __scope()" // thanks Jomkat!
 __scope = function
 	blacklisted_ranges = [
