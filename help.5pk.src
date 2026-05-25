@@ -321,7 +321,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"</b>-- |> <b>cob set bob burger </b>is equivalent to |><b> set bob burger"+char(10)+
 	colorCyan+"</b>-- |> <b>cob get bob</b> is quivalent to |><b> get bob"+char(10)+
 	colorCyan+"</b>An example would be "+colorGold+"cerebrum</color> which loads the dictionary to the custom object."+char(10)+
-	colorCyan+"</b>-- When generated, the dictionary is loaded to the custom object under the key: <b>dictionary</b>."
+	colorCyan+"</b>-- When generated, the dictionary is loaded to the custom object under the key: <b>dictionary</b>."+char(10)+
 	colorCyan+"</b>-- Once loaded, you may <b>run</b> 5hell through nested launches and the dictionary will persist."+char(10)+
 	colorCyan+"</b>-- This also allows you to import/export metaLib's and metaxploitLib's between machines!"+char(10)
 	colorCyan+"</b>-- Easy Clip! You may reference a value in the custom object by it's key with: <b>@o [key]</b>"+char(10)+
