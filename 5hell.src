@@ -69,7 +69,7 @@ globals.AT_HOME = {
   "dorc_key":0,                         // decrypt do.rc with this key; string, if encrypted. leave at 0 if not in use
   "map_key":0,                          // decrypt Map.conf with this key; string, if encrypted. leave at 0 if not in use
   "air_file":"aircap",                  // default *filename* for storing cracked wifi credentials; store in any folder, ensure only 1 copy per machine
-  "air_key":0,                          // decrypt air_path with this key; string, if encrypted. leave at 0 if not in use
+  "air_key":0,                          // decrypt air_file with this key; string, if encrypted. leave at 0 if not in use
   "classID":"at_home"}                  
 if not get_custom_object.hasIndex("HOME") or not ( get_custom_object.HOME isa map or get_custom_object.HOME isa at_home ) then  get_custom_object.HOME = globals.AT_HOME
 // the above values are optional and may be left at default if you you don't plan to use them
