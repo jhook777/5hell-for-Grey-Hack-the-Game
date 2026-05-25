@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.8...(155.111)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.9...(157.922)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -445,8 +445,8 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			"-- note: use <b>air</b> for cracking wifi networks or accessing wifi via a menu"+char(10)+char(10)+
 			"Usage: ifconfig ["+clb+"-g"+CT+"|gateway] [opt:shell|computer] -- returns the lan ip of the active object's gateway (router)"+char(10)+char(10)+
 			"Usage: ifconfig ["+clb+"-d"+CT+"|devices] [opt:shell|computer] -- list network devices on active computer object"+char(10)+char(10)+
-			colorGreen+"Note: ifconfig> shows localmachine by default"+char(10)+
-			"-- pipe an object to configure a remote machine instead"+char(10)+char(10)+
+			colorGreen+"Note: ifconfig shows localmachine by default"+char(10)+
+			"-- pipe an object or use "+colorLightblue+"glasspool"+CT+" to configure a remote machine instead"+char(10)+char(10)+
 			"NOTE: you may reverse the order of arguments:"+char(10)+
 			"--eg: <b>ifconfig -l @B 1</b> is the same as <b>ifconfig @B 1 -l"+char(10)+
 			"--ie:<b> ifconfig [flag] [shell]</b> == <b>ifconfig [shell] [flag]"
@@ -523,21 +523,32 @@ command.ifconfig = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	return dat.join(char(10))
 end function
 command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
+	clb = colorLightBlue
 	if arg1 == "help" or arg1 == "-h" then return "AIR || aircrack || aireplay || airmon || wifi cracker"+char(10)+
-	"Usage: air -- aircrack menu"+char(10)+
+	"Usage: "+colorGold+"air"+CT+" -- aircrack menu"+char(10)+
 	"-- allows cracking and/or connecting to in-range wifi networks"+char(10)+
 	"-- auto-calculates ACKS needed for cracking"+char(10)+
 	"-- renames resulting file.cap to [wifi_essid].cap"+char(10)+
 	"-- once cracked you may press enter to save the file to current path"+char(10)+
-	"---- or type a <b>folder path</b> to move the file to that folder"+char(10)+
+	"---- or select <b>y</b> and type a <b>folder path</b> to move the file to that folder"+char(10)+
 	"-- will read .cap files from anywhere on the system"+char(10)+
+	char(10)+
+	"NOTE: as of version 4.3.9 air will save cracked wifi credentials to your"+char(10)+
+	"-- <b>HOME.air_file</b>; which is currently set to: "+colorGold+get_custom_object.HOME.air_file+char(10)+
+	"---- if it exists"+char(10)+
+	"-- using this functionality allows you to safely delete the .cap files"+char(10)+
+	"-- AND allows you to encrypt and decrypt the file using HOME.air_key"+char(10)+
+	"-- this file may exist anywhere on the system"+char(10)+
+	"-- set air_file and air_key in your 5hell.src get_custom_object.HOME section"+char(10)+char(10)+
 	"Legend:"+char(10)+
 	"Networks appearing in: "+colorGreen+"green"+CT+" have a cracked .cap file"+char(10)+
-	"Networks appearing in: "+colorOrange+"orange"+CT+" do not have a cracked .cap file"+char(10)+char(10)+
-	"Usage: air [-f|false] -- same as the <b>iwlist</b> command"+char(10)+
+	"-- and/or an entry in your <b>"+get_custom_object.HOME.air_file+" file"+char(10)+
+	"Networks appearing in: "+colorOrange+"orange"+CT+" do not have a cracked .cap file"+char(10)+
+	"-- nor an entry in your <b>"+get_custom_object.HOME.air_file+" file"+char(10)+char(10)+
+	"Usage: air ["+clb+"-f|false"+CT+"] -- same as the <b>iwlist</b> command"+char(10)+
 	"-- returns wifi networks in range as a string"+char(10)+char(10)+
-	"Usage: air [-c] [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+char(10)+
-	"Usage: air [-a] [essid|bssid] -- run aireplay on a network from the command line"+char(10)+
+	"Usage: air ["+clb+"-c"+CT+"] [/path_to_file.cap] -- uses aircrack to return passkey from file.cap"+char(10)+char(10)+
+	"Usage: air ["+clb+"-a"+CT+"] [essid|bssid] -- run aireplay on a network from the command line"+char(10)+
 	"-- you may supply <b>either</b> bssid or essid, not both"+char(10)+char(10)+
 	"Advanced: A wifi network might have a <b>nested wifi signal</b> within it"+char(10)+
 	"-- select option [<b>h</b>] within air to activate detection of nested wifi signals"+char(10)+
@@ -545,25 +556,53 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	"-- this allows bypassing firewalls in many instances"+char(10)+
 	"-- this does not translate through GLASSPOOL"+char(10)+char(10)+
 	"NOTE: you may use:"+char(10)+
-	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid|bssid]"+char(10)+
+	"----: <b>ifconfig ["+colorLightBlue+"-w</color>] [essid|bssid] [network_key]"+char(10)+
 	"-- to manually connect to a wifi network"+char(10)+
 	"-- see <b>ifconfig -h</b> for more"
-	print("AirMenu v 0.1.3, by Plu70")
-	is_it_known = function(a)
-		chrom = ""
+	print("AirMenu v 0.1.4, by Plu70")
+
+	is_it_known = function(a,rk=0)
+		chrom = colorOrange
+		key = null
 		line = a.split(" ")
-		//p = "/"
-		//if globals.currentPath != "/" then p = globals.currentPath + "/"
-		//file = localmachine.File(p + line[2]+".cap")
-		file = command.tree("/",line[2]+".cap",1,"N")
+		reenc = false
+		file = command.tree("/",line[2]+".cap",1,"N") // legacy compatibility
 		if file then
 			chrom = colorGreen
+			key = globals.crypto.aircrack(file.path)
 		else
-			chrom = colorOrange
+			airbnb = command.tree("/",get_custom_object.HOME.air_file,1,"N")
+			if airbnb and airbnb.is_binary then 
+				if globals.crypto and globals.crypto.is_encrypted(airbnb.path) == 1 then
+					reenc = get_custom_object.HOME.air_key
+					if not reenc then reenc = user_input(colorWarning+"air: "+airbnb.path+" is encrypted"+char(10)+"-- decryption_key (<<b>enter</b>>=abort):> ")
+					if reenc.trim == "" then return "aborting..."
+					get_custom_object.HOME.air_key = reenc
+
+					hold_silence=globals.SILENT
+					globals.SILENT=2
+					en_de_crypt_files([airbnb],"",colorViolet+"</b>decrypt",reenc)
+					globals.SILENT=hold_silence		
+				end if
+			end if
+			wiffs = airbnb.get_content.split(char(10))
+			for wif in wiffs
+				w = wif.split(" ")
+				if w[0] == line[2] then 
+					chrom = colorGreen
+					key = w[2]
+				end if
+			end for
+			hold_silence=globals.SILENT
+			globals.SILENT=2
+			if reenc then en_de_crypt_files([airbnb],"",colorMagenta+"</b>encrypt",reenc)
+			globals.SILENT=hold_silence
 		end if
-		parsed_data = chrom + a + CT
-		return parsed_data
+		if rk then return key
+		return chrom + a + CT
 	end function
+
+
 	data_stream = function(alist)
 		data = ""
 		i = 0
@@ -635,7 +674,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		print(data_stream(networks))
 		//waitFor = false
 		//if a1 and a1 == "false" then waitFor = "false"
-		if not waitFor then waitFor = user_input("Select a network # ( m=manual, h=detect_hidden, q=quit )"+char(10)+":> ")
+		if not waitFor then waitFor = user_input("Select a network # ( m=manual, h=detect_nested, q=quit )"+char(10)+":> ")
 		if waitFor == "h" or waitFor == "H" then
 		 	if globals.GLASSPOOL then 
 				print(colorOrange+"Aborting: Operation not possible via GLASSPOOL."+CT)
@@ -674,8 +713,9 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			end if
 		end if
 		passw = null
-		cap_fl = command.tree("/",essid+".cap",1,"N")
-		if typeof(cap_fl) == "file" then passw = crypto.aircrack( cap_fl.path )
+		//cap_fl = command.tree("/",essid+".cap",1,"N")
+		//if typeof(cap_fl) == "file" then passw = crypto.aircrack( cap_fl.path )
+		passw = is_it_known("0 0 "+essid,1)
 		if passw and not wego then
 			print(passw + "@" + bssid)
 			print("Connection status: [" + localmachine.connect_wifi("wlan0", bssid, essid, passw) + "]"+char(10))
@@ -732,6 +772,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			print("Error: monitor mode not enabled; aborting...",0,1)
 			return 0
 		end if
+		passwd = 0
 		print colorGold+"air: invoking aireplay..."
 		print(colorGreen+"Please ensure there are no files named "+colorWhite+"file.cap</color> on this machine.")
 		if typeof(command.tree("/","file.cap",1,"N")) == "file" then 
@@ -769,18 +810,30 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			catch = cap.move(globals.currentPath, essid+".cap")
 			if catch then print(catch)
 		else
-			print("Error! file.cap not found.")
+			print(colorError+"</b>air: error: file.cap not found.")
 		end if
 		cap = globals.get_file(essid+".cap")
 		if not cap then
-			print("Error. Failed to rename file.cap to " + essid+".cap")
+			print(colorError+"</b>air: error: failed to rename file.cap to " + essid+".cap")
 		else
-			print("...file saved as " + essid+".cap")
-			print("The key is:<b> "+crypto.aircrack(globals.currentPath + "/" + essid + ".cap")+"</b>")
-			if user_input(colorCyan+"Would you like to move "+cap.path+" to another folder? "+char(10)+"[<b>N</b>/y] ||: ",0,1).lower == "y"then
+			print("-- file saved as " + essid+".cap")
+			passwd = crypto.aircrack(globals.currentPath + "/" + essid + ".cap")
+			print "air: crack: the key is: "+colorGold+passwd
+			out = command.tree("/",get_custom_object.HOME.air_file,1,"N")
+			if typeof(out) == "file" then 
+				print "-- writing credentials to: "+colorWhite+out.path
+				if out.has_permission("w") then print out.set_content(out.get_content+char(10)+essid+" "+bssid+" "+passwd) else print "-- write failed; permission denied"
+			else 
+				print colorWarning+"air: HOME.air_file: <b>"+get_custom_object.HOME.air_file+" not found"+char(10)+"-- aborting write"
+			end if
+
+			u = user_input(colorCyan+"Would you like to move: "+char(10)+colorWhite+cap.permissions+" "+cap.path+" "+cap.owner+" "+cap.group+" "+cap.size+char(10)+colorCyan+"-- to another folder? "+char(10)+"-- or, optionally, delete it ("+[colorWarning+"not",colorGreen][typeof(out)=="file"]+" recommended)"+char(10)+colorCyan+"[<b>N</b>/y/d=delete] ||: "+colorWhite,0,1).lower
+			if u == "y" then
 				dir = user_input(colorCyan+"Please enter the destination folder (relative paths accepted): "+char(10)+"(<<b>enter</b>>=abort):> ")
 				if dir.trim == "" then return "aborting..."
-				return command.mv(cap.path,dir)
+				print command.mv(cap.path,dir)
+			else
+				if u == "d" then print command.rm(cap.path)
 			end if
 		end if
 		return detect_hidden
@@ -2663,10 +2716,11 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		case("-a", @apt.add_repo)
 		case("-d", @apt.del_repo)
 		case("-s", @apt.search)
+		case("-l", @apt.list_repos)
 		case("--hotswap", @apt.hot_swap)
 	//default( @paf )
 	// experimental
-	if "-u-i-a-d-s--hotswap".indexOf(arg1) != null then return default(@paf) else default(@paf)
+	if "-l-u-i-a-d-s--hotswap".indexOf(arg1) != null then return default(@paf) else default(@paf)
 	
 	//apting = true
 	while apting

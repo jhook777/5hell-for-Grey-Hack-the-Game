@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.8_falling_skies"
+ver = "4.3.9_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "145.193"
+size_of_5hell = "145.313"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -2861,15 +2861,15 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("Glosure by: "+colorWhite+"Maho_citrus, "+colorLightBlue+"<u>https://github.com/mahocitrus/Glosure")
 	print("Marinette extension by: "+colorWhite+"Hecate, "+colorLightBlue+"<u>https://github.com/shippingfandom/Marinette")
 	print("Glosure-5hell lambda support: "+colorWhite+"Hecate")
-	print("Htop by: "+colorWhite+"redit0")
+	print("Htop by: "+colorWhite+"Redit0")
 	print("TWS by: "+colorWhite+"Aksu")
 	print("Original tree code by "+colorWhite+"Darkie"+CT+", additions by Plu70")
-	print("Additional code contributions by: "+colorWhite+"Clover, Redit0, Muhahahahe, Maho_citrus, Aksu, Notepid, CyanMatter, Jamestonic, Hecate")
+	print("Additional code contributions by: "+colorWhite+"Clover, Redit0, Muhahahahe, Maho_citrus, Aksu, Notepid, CyanMatter, Jamestonic, Hecate, Jomkat")
 	print("Github Readme by: "+colorWhite+"Hikaru918")
 	print("5hell Discord and Daemon Manager by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("Beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan")
-	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Bit, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
+	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Bit, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Jomkat, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
 	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."

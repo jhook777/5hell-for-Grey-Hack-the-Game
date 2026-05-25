@@ -31,6 +31,23 @@
 ////
 //// To Done:
 //
+// ifconfig: updated usage info
+// air: will save credentials to a user specified file
+// -- file name is specified in the HOME object under HOME.air_file
+// -- set a HOME.air_key to encrypt/decrypt this file
+// -- you must create the file manually to enable this functionality
+// -- if you use this functionality, you may safely delete the essid.cap files
+// -- it is highly recommended that you encrypt this file
+// --note: this helps with the issue of non-alphanumeric characters being used in essid's
+// air: updated usage info
+// memdump: fixed crash when dumping clipboards containing null
+// -- slightly adjusted output formatting
+// contrib.5pk: added __scope function to verify valid ip range
+// -- thanks Jomkat!
+// aptm: added -l flag to return the list of repo ip's as a list
+// --eg: aptm -l | clipa || code @d 0 | Browser.exe
+// 5hell.src: updated rogue function execution protection
+// credits: updated
 //
 // rnip: will now exclude lan and invalid ips
 // -- except for 10.x.x.x, for right now. adjustments needed
