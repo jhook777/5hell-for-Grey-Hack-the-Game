@@ -31,6 +31,8 @@
 ////
 //// To Done:
 //
+// help: fixed typo preventing full "help buffer" info from printing
+//
 // ifconfig: updated usage info
 // air: will save credentials to a user specified file
 // -- file name is specified in the HOME object under HOME.air_file
