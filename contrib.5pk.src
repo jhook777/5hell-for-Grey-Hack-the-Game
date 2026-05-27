@@ -1082,8 +1082,8 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
       if not p_validate(result,"name") then return "null"
       file = result
       if file.name != "/" then
-        file = file.parent
-        while file.name != "/"
+        // file = file.parent
+        while file and file.name != "/" // File may not exist by now, so .parent() returns null and .name() results in a crash!
           file = file.parent
         end while
       end if
@@ -1487,6 +1487,7 @@ Modes:
   rwxToOctal = function(rwx)
     parseSection = function(sec)
       out = 0
+      if sec == null then return out
       i = 1
       for e in range(sec.len - 1)
         if sec[e] != "-" then out = out + i
