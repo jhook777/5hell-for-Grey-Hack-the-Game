@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.9...(157.922)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.3.9.2...(158.148)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -562,6 +562,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 	print("AirMenu v 0.1.4, by Plu70")
 
 	is_it_known = function(a,rk=0)
+		if DEBUG then print ("debug: is_it_known: a= "+a+" -- rk= "+rk)
 		chrom = colorOrange
 		key = null
 		line = a.split(" ")
@@ -585,7 +586,8 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 					globals.SILENT=hold_silence		
 				end if
 			end if
-			wiffs = airbnb.get_content.split(char(10))
+			wiffs = []
+			if airbnb and not airbnb.is_binary then wiffs = airbnb.get_content.split(char(10))
 			for wif in wiffs
 				w = wif.split(" ")
 				if w[0] == line[2] then 
@@ -619,7 +621,7 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		dev = localmachine.network_devices
 		dsp = dev.split(char(10))
 		wl = false
-		if DEBUG then print "debug: is_net_act: "+localmachine.is
+		if DEBUG then print "debug: is_net_act: "+localmachine.is_network_active
 		if not localmachine.active_net_card == "WIFI" then 
 			print("air: error: network is inactive",0,1)
 			return 0 
@@ -2560,6 +2562,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 	"Usage: <b>aptm [-a] [repo_ip] </b>-- add a repository's ip to /etc/apt/sources.txt"+char(10)+char(10)+
 	"Usage: <b>aptm [-d] [repo_ip|repo_index] </b>-- remove a repository's ip from /etc/apt/sources.txt"+char(10)+char(10)+
 	"Usage: <b>aptm [-u] [/path/filename] </b>-- check for a new version of a file"+char(10)+char(10)+
+	"Usage: <b>aptm [-l] </b>-- return the repository list as a list"+char(10)+char(10)+
 	"Usage: <b>aptm [-s] [opt:filename] </b>-- search repositories for filename"+char(10)+
 	"-- searches all repos in sources.txt"+char(10)+
 	"-- shows all available files if no filename is provided"+char(10)+char(10)+
