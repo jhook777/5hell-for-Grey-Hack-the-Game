@@ -73,6 +73,7 @@ globals.print = function(msg, mode=0, color=0,outfile=0)
   if typeof(outfile) == "string" or typeof(outfile) == "file" then outfile = globals.get_file(outfile)
   if typeof(outfile) == "file" and not outfile.is_binary and outfile.has_permission("w") then outfile.set_content(msg)
   if mode < 2 then return _print( msg, mode )
+  if DEBUG then return _print(msg, mode)
   return null
 end function
 //
