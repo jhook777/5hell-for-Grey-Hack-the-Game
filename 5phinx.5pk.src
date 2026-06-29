@@ -302,7 +302,7 @@ globals._startup_resource_configuration  = function()
   return 0
 end function
 
-// ec_files: list of file objects
+// ec_files: List; file_objects
 // act: String; decrypt|encrypt
 // pw: String: key
 en_de_crypt_files = function(ec_files, indnt="-- ", act=0, pw=0)
