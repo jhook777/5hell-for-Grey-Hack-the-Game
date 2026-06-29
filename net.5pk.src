@@ -801,8 +801,9 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 		max = max + 10 // just in case
 		if not globals.crypto then return colorError+"<size=75%>air: error: crypto.so not found"
 		if globals.DEBUG then print "debug: bssid: "+bssid+" essid: "+essid+" max: "+max
+		time_start = time
 		status = crypto.aireplay(bssid, essid, max)
-		if status then print(status) else print("Scan complete.")
+		if status then print(status) else print(colorGold+"Scan complete in ["+colorWhite+str(time-time_start)+CT+"] seconds...")
 		print("Processing...")
 		wait(2)
 		// find the cap file
@@ -824,12 +825,22 @@ command.air = function(arg1, arg2=0, arg3=0, arg4=0) // requires crypto.so
 			out = command.tree("/",get_custom_object.HOME.air_file,1,"N")
 			if typeof(out) == "file" then 
 				print "-- writing credentials to: "+colorWhite+out.path
-				if out.has_permission("w") then print out.set_content(out.get_content+char(10)+essid+" "+bssid+" "+passwd) else print "-- write failed; permission denied"
+				if out.has_permission("w") then 
+					reenc = 0
+					if globals.crypto and crypto.is_encrypted(out.path) then
+						reenc = 1
+						print command.file("-d",out.path,get_custom_object.HOME.air_key)
+					end if
+					print colorWarning+"-- "+out.set_content(out.get_content+char(10)+essid+" "+bssid+" "+passwd)
+					if reenc then print command.file("-e",out.path,get_custom_object.HOME.air_key)
+				else
+					print colorError+"</b>-- write failed; permission denied"
+				end if
 			else 
 				print colorWarning+"air: HOME.air_file: <b>"+get_custom_object.HOME.air_file+" not found"+char(10)+"-- aborting write"
 			end if
-
-			u = user_input(colorCyan+"Would you like to move: "+char(10)+colorWhite+cap.permissions+" "+cap.path+" "+cap.owner+" "+cap.group+" "+cap.size+char(10)+colorCyan+"-- to another folder? "+char(10)+"-- or, optionally, delete it ("+[colorWarning+"not",colorGreen][typeof(out)=="file"]+" recommended)"+char(10)+colorCyan+"[<b>N</b>/y/d=delete] ||: "+colorWhite,0,1).lower
+//
+			u = user_input(colorCyan+"Would you like to move: "+char(10)+colorWhite+cap.permissions+" "+cap.path+" "+cap.owner+" "+cap.group+" "+cap.size+char(10)+colorCyan+"-- to another folder? "+char(10)+"-- or, optionally, delete it ("+[colorWarning+"not ",colorGreen][typeof(out)=="file"]+"recommended"+CT+")"+char(10)+colorCyan+"[<b>N</b>/y/d=delete] ||: "+colorWhite,0,1).lower
 			if u == "y" then
 				dir = user_input(colorCyan+"Please enter the destination folder (relative paths accepted): "+char(10)+"(<<b>enter</b>>=abort):> ")
 				if dir.trim == "" then return "aborting..."
