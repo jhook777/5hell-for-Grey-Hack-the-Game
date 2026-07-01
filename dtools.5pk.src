@@ -1330,7 +1330,7 @@ note: launching binaries via felix does NOT activate glasspool
     if selected.is_binary then // run prompt
 		sufx = selected.name.split("\.")[-1]
 		if sufx != "so" then
-			doit = user_input(colorWarning+"warning: launching can only be done via a shell object;"+char(10)+"-- if the file does not exist on the active shell;"+char(10)+"---- the launch will fail"+char(10)+"Launch: "+selected.name+" ["+colorWarning+"Y(or right arrow)"+CT+"/n] ||: ",0,1).lower
+			doit = user_input(colorWarning+"warning: launching can only be done via a shell object;"+char(10)+"-- if the file does not exist on the active shell;"+char(10)+"---- the launch will fail"+char(10)+"Open: "+selected.name+" ["+colorWarning+"Y(or right arrow)"+CT+"/n] ||: ",0,1).lower
 			if doit != "n" then
 				if typeof(shell) == "ftpshell" then
 					print("launch not available in ftpshell")
@@ -1339,18 +1339,21 @@ note: launching binaries via felix does NOT activate glasspool
 				
 				// img
 				if sufx == "jpg" then
-					imgvwr = command.tree("ImageViewer.exe","/",1,"N")
+					imgvwr = command.tree("/","ImageViewer.exe",1,"N")
 					if typeof(imgvwr) == "file" then globals.shell.launch(imgvwr.path,selected.path) else print colorWarning+"ImageViewer.exe not found!"
+					return inf
 				end if
 				// log
 				if sufx == "pdf" then
-					pdfvwr = command.tree("PDFReader.exe","/",1,"N")
-					if typeof(imgvwr) == "file" then globals.shell.launch(imgvwr.path,selected.path) else print colorWarning+"PDFReader.exe not found!"
+					pdfvwr = command.tree("/","PDFReader.exe",1,"N")
+					if typeof(pdfvwr) == "file" then globals.shell.launch(pdfvwr.path,selected.path) else print colorWarning+"PDFReader.exe not found!"
+					return inf
 				end if
 				// pdf
 				if sufx == "log" then
-					logvwr = command.tree("LogViewer.exe","/",1,"N")
-					if typeof(imgvwr) == "file" then globals.shell.launch(imgvwr.path,selected.path) else print colorWarning+"LogViewer.exe not found!"
+					logvwr = command.tree("/","LogViewer.exe",1,"N")
+					if typeof(logvwr) == "file" then globals.shell.launch(logvwr.path,selected.path) else print colorWarning+"LogViewer.exe not found!"
+					return inf
 				end if
 				// bin
 				globals.stack_pool("up")
