@@ -1393,14 +1393,14 @@ command.games = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return colorGreen+"<u></color>"+colorGold+"Mail || metaMail || herme5 || hermes || mail client"+char(10)+
-	"herme5 mail client: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+
-	"-- name your function<b> command.mail </b> to overwrite this one."+char(10)+
-	"-- see 5hell.src, template.5pk.src for instructions."+char(10)+
+	"Herme5 mail client: its the mail (wip) -- its good enough but you may want to write your own;"+char(10)+
+	"-- name your function<b> command.mail </b> to overwrite this one"+char(10)+
+	"-- see 5hell.src, template.5pk.src for instructions"+char(10)+
 	"Note: You may overwrite any command this way."+char(10)+char(10)+
 	colorGold+"- - - - - - - - - - - - - - - - - - - - - - - - - - - -"+char(10)+
 	colorGreen+"Usage: mail -- opens the herme5 mail menu"+char(10)+
 	"Extra: when prompted for a password you may enter:</b> -brutus"+char(10)+
-	"-- this will invoke <b>brutus</b> and attempt to crack the email password."+char(10)+
+	"-- this will invoke <b>brutus</b> and attempt to crack the email password"+char(10)+
 	"-- the password will be saved to the custom object as:"+char(10)+
 	"-- <b>key == email and value == password"+char(10)+
 	"---- this will change once i work out a better storage system bc this is not ideal"+char(10)+
@@ -1466,6 +1466,14 @@ command.mail = function(arg1=0, arg2=0, arg3=0, arg4=0)
                         print("brutus: <b>password found</b>: "+colorWhite+p+CT)
 						print("brutus: accessing cob: saving email as key, password as value")
 						print command.cob("set",arg,p)
+						// write to dump.txt
+						dump = command.tree("/","dump.txt",1,"N")
+						if typeof(dump) == "file" and dump.has_permission("w") then
+							print "Writing credentials to: "+dump.path
+							dump.set_content(dump.get_content+char(10)+arg+":"+p)
+						else
+							print "Could not write credentials to dump.txt; file not found in any directory"
+						end if
                         return try
                       end if
                     end for
@@ -2181,7 +2189,8 @@ command.time = function(arg1, arg2=0, arg3=0, arg4=0)
 end function
 command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	cw = colorWhite
-	if not arg1 or arg1 == "0" or arg1 == "help" or arg1 == "-h" then return "pause || wait || hang || sleep || halt"+char(10)+
+	if not arg1 or arg1 == "0" then return "pause: invalid input; see <b>pause -h</b> for usage"
+	if arg1 == "help" or arg1 == "-h" then return "pause || wait || hang || sleep || halt"+char(10)+
 	// note, this function expects time as a string, the user should form the string as a float. eg: pause .01 -- where .01 is a string
 	"Usage: "+cw+"pause"+CT+" ["+cw+"seconds(float)"+CT+"] -- stops script execution until condition is met"+char(10)+
 	"-- Minumum time: .01 seconds"+char(10)+
@@ -2232,12 +2241,9 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
 	verbose = false // if false; works silently. if true; prints a line on each pause
 	// change the below to use _switch
-	p_bye = colorWhite+"pause:"+CT+" resuming script execution at: <size=75%>"+current_date
+	p_bye = colorWhite+"<size=75%>pause:"+CT+" resuming script execution at: <size=75%>"+current_date
 
-	if arg1 == "-m" then 
-		manual_unpause = true 
-		arg1 = ".01"
-	end if
+
 	if arg1 == "-v" then 
 		verbose = true 
 		arg1 = arg2
@@ -2245,9 +2251,13 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		arg3 = arg4
 		arg4 = 0
 	end if
+	if arg1 == "-m" then 
+		manual_unpause = true 
+		arg1 = ".01"
+	end if
 	if arg1 isa string and arg1.lower == "-f" then
 		if not arg2 isa string then return "pause: -f expects a file path" else check_path = arg2
-		if verbose then print colorGreen+"pause: "+["waiting on file: "+check_path,"waiting for file: "+check_path+" to poof"][(f isa File)]  // felt weird, did some fancy
+		if verbose then print colorGreen+"<size=75%>pause: "+["waiting on file: "+check_path,"waiting for file: "+check_path+" to poof"][(f isa File)]  // felt weird, did some fancy
 		waiting = true
 		while waiting
 			if arg1 == "-F" then
@@ -2294,12 +2304,12 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	end if
 	if DEBUG then print "debug: in pause: arg 1 is: "+arg1+" and manual pause is: "+manual_unpause
 	if typeof(arg1) == "string" and typeof(arg1.val) == "number" then time_to_wait = arg1.val else return "pause: invalid interval: expects positive float [.01 : 300]"+char(10)+"n.b. - negative values will not reverse time"
-	if manual_unpause then return user_input(colorWhite+"pause</b>: script execution paused"+char(10)+"-- awaiting manual input :> ")//"-- press <"+colorGreen+"enter"+CT+"> to continue --")
+	if manual_unpause then return user_input(colorWhite+"<size=75%>pause</b>: script execution paused"+char(10)+"<size=75%>-- awaiting manual input :> "+colorWhite)
 	if time_to_wait > 300 or time_to_wait < .01 then
 		print "pause: invalid wait time: changing time_to_wait to 1 second"
 		if verbose then return p_bye else return null
 	end if
-	if verbose then print colorWhite+"<u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
+	if verbose then print colorWhite+"<size=75%><u>pause</b>: script execution paused for <b>"+time_to_wait+"</b> seconds..."
 	wait(time_to_wait)
 	if verbose then return p_bye
 	return null
