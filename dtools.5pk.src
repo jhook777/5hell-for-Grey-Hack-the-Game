@@ -1174,7 +1174,7 @@ Paste:      [v] - performs a paste using selection buffer
 	        -- opens a context menu for paste options
 	        ---- options: copy, move, overwrite folder
 Tag 4 scpm  [t] - tag a file for later use with scpm
-Scpm:       [s] - open the scp menu
+Scpm:       [m] - open the SCP Menu
             -- NOTE: scpm uses shell objects
 	        ---- you must have a shell for both source and destination machines
 Remove:     [r] - deletes a file
@@ -1193,8 +1193,8 @@ note: launching binaries via felix does NOT activate glasspool
     user_input("press <<b>anyKey</b>> to continue",0,1)
     return f
   end function
-  action.s = function(inf)
-	print command.scpm(inf)
+  action.m = function(inf)
+	print command.scpm
 	return inf 
   end function
   action.g = function(inf) 
@@ -1202,8 +1202,10 @@ note: launching binaries via felix does NOT activate glasspool
 	return inf
   end function
   action.t = function(inf)
-	globals.tagged_for_scp = inf.path
-	print "Tagged: <b>"+inf.path+"</b> for scp"
+	selected = action.get_selected(inf)
+	if not selected then return inf
+	globals.tagged_for_scp = selected.path
+	print "Tagged: <b>"+selected.path+"</b> for scp"
 	return inf 
   end function
   action.b = function(inf) // global buffer
@@ -1477,7 +1479,7 @@ note: launching binaries via felix does NOT activate glasspool
       path_contents(file,CLEAR)
       print(colorLightBlue+locals.currentPath+CT)
       print("[F1] help [w][a][s][d] == [^][<][v][>] [f] file info")
-	  print("[t] tag 4 scpm [s] scpm [g] gopher [b] buffer it")
+	  print("[t] tag 4 scpm [m] scpm [g] gopher [b] buffer it")
       print("[x] select [z] clr slct [r] remove [v] paste [n] rename ")
       input = user_input("["+button_c+"] toggle clear  [p] perms [q] quit"+char(10)+"||: ",0,1)
       print
