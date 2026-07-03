@@ -2,7 +2,7 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.9_falling_skies"
+ver = "4.3.9.4_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
@@ -2209,26 +2209,30 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	"--eg:<b> do 10000 "" pause -f /root/Config/Mail.txt || rm /root/Config/Mail.txt """+char(10)+
 	"--nb: file path respects glasspool"+char(10)+
 	"Usage: "+cw+"pause"+CT+" ["+cw+"-p"+CT+"] [process_name] -- pause until:"+char(10)+
-	"-- an instance of a named process exists in ps"+char(10)+
+	"-- an instance of a named process "+cw+"exists"+CT+" in ps"+char(10)+
 	"--eg:<b> do 1000000 "" pause -p ps || kill ps """+char(10)+
-	"--nb: process list respects glasspool"+char(10)+char(10)+
-	"Usage: "+cw+"pause"+CT+" ["+cw+"-P"+CT+"] [process_name] -- pause until named process no longer exists"+char(10)+
-	"--eg:<b> do 10000 "" pause -P totallyNotaTrojan || rshell 1.2.3.4 totallyNotaTrojan """+char(10)+char(10)+
-	"NOTE: the -f,-p, and -P options loop until:"+char(10)+
-	"-- condition is met"+char(10)+
-	"-- ended with ctrl+c"+char(10)+
+	"--nb: process list respects glasspool"+char(10)+
+	"Usage: "+cw+"pause"+CT+" ["+cw+"-P"+CT+"] [process_name] -- pause until:"+char(10)+
+	"-- named process "+cw+"no longer exists"+CT+" in ps"+char(10)+
+	"--eg:<b> do 10000 "" pause -P totallyNotaTrojan || rshell 1.2.3.4 totallyNotaTrojan """+char(10)+
 	"Usage: "+cw+"pause"+CT+" ["+cw+"-u|--until"+CT+"] [time:{h:m}] -- pause until the designated game time"+char(10)+
 	"-- format: hour:minute"+char(10)+
 	"--eg:<b> pause 04:15 || kore -sc</b>"+char(10)+
-	"--note: you may use a single digit for hours under 10: 04:00 == 4:00"
+	"--note: you may use a single digit for hours under 10: 04:00 == 4:00"+char(10)+
 	"--note: does not yet support am/pm or dates (maybe later)"+char(10)+
-	"<size=75%>note: more options planned"
+	"--"+colorWarning+"warning: I have not yet coded midnight-wrapping logic"+char(10)+
+	"---- if current time is 23:50 and you pause until 01:50:"+char(10)+
+	"------ the script will immediately <b>unpause!"+char(10)+char(10)+
+	"NOTE: the -f, -p, and -P options loop until:"+char(10)+
+	"-- condition is met"+char(10)+
+	"-- or ended with ctrl+c"+char(10)+
+	"<size=75%>note: more options planned Soon(tm)"
 
 	time_to_wait = "1" // default wait 1 second 
 	manual_unpause = false // if false the chain of commands continues after the pause, if true then press a key to continue
 	verbose = false // if false; works silently. if true; prints a line on each pause
 	// change the below to use _switch
-	p_bye = colorWhite+"pause:"+CT+" resuming script execution"
+	p_bye = colorWhite+"pause:"+CT+" resuming script execution at: <size=75%>"+current_date
 
 	if arg1 == "-m" then 
 		manual_unpause = true 
@@ -2239,6 +2243,7 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		arg1 = arg2
 		arg2 = arg3
 		arg3 = arg4
+		arg4 = 0
 	end if
 	if arg1 isa string and arg1.lower == "-f" then
 		if not arg2 isa string then return "pause: -f expects a file path" else check_path = arg2
@@ -2268,17 +2273,19 @@ command.pause = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		end while
 		if verbose then return p_bye else return null
 	end if
-	badtime =  "pause: invalid time; expected<b> (int)hour:(int)minute"
+	badtime =  "pause: invalid time; expected<b> (int)hour:(int)minute"+char(10)+"-- received: "
 	if arg1 == "-u" or arg1 == "--until" then
 		ttw = ""
-		if not arg2 isa string then return badtime
+		if typeof(arg2) != "string" then return badtime+arg2
 		ttw = arg2.split(":")
-		if typeof(ttw[0].to_int) != "number" or typeof(ttw[1]) != "number" then return badtime
+		if typeof(ttw[0].to_int) != "number" or typeof(ttw[1].to_int) != "number" then return badtime+arg2
 		twti = (ttw[0].to_int * 60) + ttw[1].to_int
 		if twti > 0 then
 			t_now = current_date.split(" ")[-1].split(":")
 			tnti = (t_now[0].to_int * 60) + t_now[1].to_int
 			while tnti < twti 
+				t_now = current_date.split(" ")[-1].split(":")
+				tnti = (t_now[0].to_int * 60) + t_now[1].to_int
 				wait .1
 				continue
 			end while
@@ -2634,7 +2641,9 @@ command.whoami = function(arg1,arg2,arg3,arg4)
 	if GLASSPOOL then return checkUser(localmachine) else return active_user
 end function
 command.rnip = function(arg1, arg2, arg3=0, arg4=0)
-	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "Usage: rnip [iter] [optional: delimiter] -- produce [iter] random ip addressses and"+char(10)+"return as a string with optional [delimiter] (default newline)"+char(10)+"e.g. rnip 100 ,  -- returns a string of 100 ips seperated by a comma"
+	if arg1 == 0 or arg1 == "help" or arg1 == "-h" then return "Usage: rnip [iter] [optional: delimiter] -- produce [iter] random ip addressses and"+char(10)+
+	"-- return as a string with optional [delimiter] (default newline)"+char(10)+
+	"--eg:<b> rnip 100 ,  </b>-- returns a string of 100 ips seperated by a comma"
 	loop = 1
 	delimiter = char(10)
 	if arg1 then loop = arg1.to_int
@@ -2869,7 +2878,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord and Daemon Manager by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("Beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan")
-	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Bit, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Jomkat, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
+	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Hywell, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Bit, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Jomkat, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
 	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."
