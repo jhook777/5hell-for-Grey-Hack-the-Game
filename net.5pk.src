@@ -54,11 +54,12 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	colorWhite+"</b>type <b>rsi install</b> to install and start the server. Then, navigate to your"+char(10)+
 	colorWhite+"</b>proxy's router's port 8080 using Browser.exe and forward your desired port to"+char(10)+
 	colorWhite+"</b>port 1222 at your server's lan ip. Use this ip and port when placing your rshells."+char(10)+
+	colorGold+"NB: RSI will display the rshell buffer of the currently loaded metaxploitLib object."+char(10)+
+	"-- use <b>meta -i [object]</b> to change the currently loaded object"+char(10)+
+	"-- use <b>meta restore</b> to restore the local metaxploitLib object"+char(10)+char(10)+
 	colorGreen+"Usage: rsi [opt: -d|-i|install|start|stop] [opt: -r|# ] [opt: #]"+char(10)+char(10)+
-
 	colorLightBlue+"</b>Usage: <b>rsi</b> -- open rshell_interface server"+char(10)+
 	"-- access and control connected reverse shell clients"+char(10)+char(10)+
-
 	colorCyan+"</b>Usage: rsi [<b>-d|-D</b>] [opt:-r|#] -- daemon mode"+char(10)+
 	"-- listen for connections until an rshell connects"+char(10)+
 	"<b>-- opens the last (most recent) rshell on connect"+char(10)+
@@ -81,6 +82,16 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	"----: identical to:<b> gp -r 1"+char(10)+
 	colorGreen+"</b>Usage: rsi [<b>-l</b>] -- return the length of the rsi buffer"+char(10)+
 	"-- returns the number as a <b>string</b>"+char(10)+
+
+	colorGold+"</b>Usage: rsi [<b>-m #</b>|-M] -- display rshell buffer for a specific metaxploit object"+char(10)+
+	"-- <b>#</b> corresponds to a <b>myx#</b> entry in the custom object"+char(10)+
+	"---- myx0 == 0, myx1 == 1, ..."+char(10)+
+	"--eg: <b>rsi -m 2</b> -- will display the rshell buffer for myx2"+char(10)+
+	"--note: this option will <b>not</b> replace the currently loaded metaxploit object"+char(10)+
+	"---- use <b>meta -i @o myx#</b> to replace the currently loaded metaxploit object"+char(10)+
+	"-- pass <b>-M</b> to specify the <u>local</u> metaxploit object, regardless of it's index"+char(10)+
+	"-- additional flags may follow -m/-M as normal"+char(10)+
+	"--eg: <b>rsi -m 2 1 4</b> will open glasspool on rshell 1 on myx2's server"+char(10)+
 	colorOrange+"</b>Usage: rsi [<b>-p</b>] [opt:y|exclude1:exclude2:...] "+char(10)+
 	"-- close ALL processes on ALL rshells, purging all rshells in the process"+char(10)+
 	"-- supplying 'y' by itself will skip confirmation"+char(10)+
@@ -117,8 +128,24 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	"NOTE: rsi is not incorporated into the DaemonManager at this time"+char(10)+
 	"-- daemon mode ends when an rshell connects"
 
-	if not metaxploit and arg1 != "-i" and arg1 != "install" then return "Error: Can't find metaxploit library in the /lib path or the current folder"
-	if not localmachine.is_network_active then return "rsi: no network connection"
+	_arg_step = function()
+		outer.arg1 = outer.arg2
+		outer.arg2 = outer.arg3
+		outer.arg3 = outer.arg4
+		outer.arg4 = 0
+		return null
+	end function
+	mx_obj = globals.metaxploit
+	use_my = "myx"
+	if arg1 == "-M" then use_my = use_my+str(get_custom_object.stack_pool)+_arg_step
+	if arg1 == "-m" then
+		if not arg2 then arg2 = "0" else use_my = use_my+arg2
+		if get_custom_object.hasIndex(use_my) then mx_obj = get_custom_object[use_my] else return colorWarning+"rsi: cob index: "+use_my+" not found"
+		_arg_step
+		_arg_step
+	end if
+	if typeof(mx_obj) != "MetaxploitLib" and arg1 != "-i" and arg1 != "install" then return colorError+"</b>rsi: error: MetaxploitLib not loaded!"
+	if not localmachine.is_network_active then return colorOrange+"rsi: no network connection"
 	if arg1 == "-p" then return globals.rsi_purge("ALL:"+arg2)//command.purge("-r",arg2,arg3,arg4)
 	if arg1 == "stop" then 
 		rserver = null
@@ -167,7 +194,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	//
 	// need a smarter daemon mode
 	print(colorLightBlue+"Listening for upcoming connections...")
-	locals.rshells = globals.metaxploit.rshell_server
+	locals.rshells = mx_obj.rshell_server
 	rs_start_len = rshells.len
 	one_loop = true
 	d_mode = false
@@ -175,7 +202,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 != "-D" then rs_start_len = 0
 	listening = true
 	while listening//while rshells.len == 0
-		rshells = metaxploit.rshell_server
+		rshells = mx_obj.rshell_server
 		if typeof(rshells) == "string" then return rshells
 		if rshells.len == 0 and not d_mode then 
 			if one_loop == false then return colorOrange+"</b>rsi: no reverse shells connected"+char(10)+"-- use<b> rsi -d </b> to run in daemon mode" else one_loop = false
@@ -185,11 +212,11 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 	end while
 
-	if arg1 == "-d" or arg1 == "-D" then 
-		arg1 = arg2
-		arg2 = arg3 
-		arg3 = arg4
-	end if
+	if arg1 == "-d" or arg1 == "-D" then _arg_step
+	// 	arg1 = arg2
+	// 	arg2 = arg3 
+	// 	arg3 = arg4
+	// end if
 	return_it = false
 	if arg1 == "-r" then 
 		return_it = true
@@ -202,10 +229,10 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 		arg1 = arg2
 	end if
-	if arg1 == "-l" then return str(metaxploit.rshell_server.len)
+	if arg1 == "-l" then return str(mx_obj.rshell_server.len)
 	if arg1 == "--export" then 
 		print colorLightBlue+"rsi: "+colorWhite+"returning rshell buffer as a list..."
-		return metaxploit.rshell_server
+		return mx_obj.rshell_server
 	end if
 	if arg1 == "-s" or arg1 == "-n" or arg1 == "-k" then 
 		print "-- scrubbing rshells..."
@@ -251,7 +278,7 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		option = user_input("Select shell ([0|q] to abort) :> ").to_int
 		if option == 0 or option == "q" then return 0
 		//wait(.01)
-		rshells = metaxploit.rshell_server
+		rshells = mx_obj.rshell_server
 	end while
 	if option == 0 or option == "q" then return 0
 	print("Accessing shell [" + option + "]...")
@@ -1421,11 +1448,9 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	glass = false
 	get_logs = false
 	map_file = localmachine.File(home_dir + "/Config/Map.conf")
-	//MAP.init(map_file.get_content)
 	MAP.init(map_contents)
 	MAP.parse
 	time_e = (time - time_s)
-	//if isenc then print command.file("-e",map_file.path,enckey)
 	print("...init completed in ["+colorOrange+time_e+CT+"] seconds.")
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
 	waitFor = null
@@ -1455,9 +1480,8 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 	if typeof(waitFor) == "file" then waitFor = waitFor.path
 	if typeof(waitFor) != "string" then return kraken_done("kraken: invalid input: expects file_object or string")
 	if waitFor == "show" then
-		//if waitFor.split(" ").len > 1 then 
 		proxy.show(arg2)
-		return kraken_done//proxy.show(arg2)
+		return kraken_done
 	end if
 	wf = waitFor.split(" ")[0]
 	if waitFor == "add" then
@@ -1584,16 +1608,12 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 			end if
 		end if
 	end for
-	//if isenc then print command.file("-e",enckey)
 	print colorCyan+"kraken: all shells sent to "+colorOrange+"BUFFER"
 	print(colorCyan+"-- task complete in [</b>"+colorOrange+(time - time_s)+colorCyan+"<b>] seconds."+CT)
 	print(colorCyan+"////////////////////////////////////////////////////////"+CT)
 	if connect or glass then 
 		if DEBUG then print "debug: connect: "+connect+char(10)+"debug: glass: "+glass
-		//hold = globals.shell 
-		//globals.shell = remote
 		if connect == true then print command.psudo("-l",remote) else print command.glasspool(remote) // we want glass to mimic connect's behavior if the user uses start_terminal after using glass
-		//globals.shell = hold 
 	end if
 	return kraken_done
 end function
@@ -1601,7 +1621,6 @@ end function
 //////data3a5e////////////////
 command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	if not metaxploit then return "Error: metaxploit.so not found"
-	//if GLASSPOOL then return "liber: local use only."
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "library version info || LIBER || metaLib version || liber te"+char(10)+
 	"<b>Usage: liber [/path/lib_file|MetaLib] -- returns library name and version"+char(10)+
 	"--e.g: liber /usr/cache/libhttp.so -- get name and version "+char(10)+
@@ -1663,25 +1682,17 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	else
 		lib = metaxploit.load(lib_file.path)
 		if typeof(lib) != "MetaLib" then
-			//buf.push("liber: "+lib_file.path+ ": unknown format")
 			if DEBUG then print "debug: skiping: "+typeof(lib)
 		else
 			buf.push( lib.lib_name + " v " + lib.version )
 		end if
 	end if
-	// check libs in buf against database
-	//print "<size=75%>liber: searching for database..."
-	//datbas = command.tree("/","database.csv",1,"N")
-	// if DEBUG then print "debug: datbas: "+datbas
-	// if DEBUG then 
-	// 	if typeof(datbas) == "file" then print "debug: "+datbas.path 
-	// end if
+
 	hold_silence = globals.SILENT
 	if not DEBUG then globals.SILENT = 2 else globals.SILENT = 0
 	datbas = command.grep("-a","^database.csv")
 	if not DEBUG then globals.SILENT = hold_silence
-	//if datbas and datbas.has_permission("r") then 
-	//	dbase_data = datbas.get_content.split(char(10))
+
 	if datbas.len then 
 		dbase_data = []
 		for dbf in datbas 
@@ -1982,54 +1993,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 	if typeof(inject) == "string" then pass_inject = inject 
 	if is_lan_ip(inject) then lan_inject = inject
 
-	// if not inject or inject.trim == "" then
-	// 	if globals.metaLib.lib_name == "kernel_router.so" or typeof(get_router(localmachine.local_ip)) == "router" then 
-	// 		if is_lan_ip(globals.targetIP) then
-	// 			inject = globals.targetIP
-	// 		else
-	// 			rtt = ""
-	// 			if localmachine.is_network_active then rtt = get_router(targetIP) //else return "db: error: no active network connection"
-	// 			if typeof(rtt) == "router" then
-	// 				ports = rtt.used_ports
-	// 				if ports.len then pt = ports[0] else pt = 0
-	// 				if typeof(pt) == "port" then
-	// 					inject = pt.get_lan_ip
-	// 				else
-	// 					inject = rtt.local_ip
-	// 				end if
-	// 			else
-	// 				inject = localmachine.local_ip
-	// 			end if
-	// 		end if
-	// 	else 
-	// 		print colorCyan+"</b>db: using default inject: ""192.168.0.2"""
-	// 		inject = "192.168.0.2"
-	// 	end if 
-	// end if
-	// if inject == "" then inject = "192.168.0.2"
-
-	// if is_valid_ip(inject) then 
-	// 	lan_inject = inject 
-	// else 
-	// 	if is_lan_ip(globals.targetIP) then
-	// 		lan_inject = globals.targetIP
-	// 	else
-	// 		rtt = ""
-	// 		if localmachine.is_network_active then rtt = get_router(targetIP) else return "db: error: no active network connection"
-	// 		if typeof(rtt) == "router" then
-	// 			ports = rtt.used_ports
-	// 			if ports.len then pt = ports[0] else pt = 0
-	// 			if typeof(pt) == "port" then
-	// 				lan_inject = pt.get_lan_ip
-	// 			else
-	// 				inject = rtt.local_ip
-	// 			end if
-	// 		else
-	// 			lan_inject = localmachine.local_ip
-	// 		end if
-	// 	end if
-	// 	if typeof(inject) == "string" then pass_inject = inject 
-	// end if
 	memory = metaxploit.scan(globals.metaLib)
 	globals.MEMORY = memory
 	if not memory then print("no exploits detected.")
@@ -2119,36 +2082,6 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 		datafile = globals.get_file(rkit.path+slash+"/database.csv")
 		if not datafile then return colorError+"</b>db: write error: permission denied"
 	end if
-	//locals.datafile = command.tree("/","database.csv",1,"N")
-	// if typeof(rkit) == "file" and rkit.is_folder then 
-	// 	datafile = command.tree(rkit.path,"database.csv",1,"N")
-	// 	if not datafile then datafile = command.tree("/","database.csv",1,"N")
-	// 	if not datafile then 
-	// 		print "tree: unable to locate database.csv"
-	// 		print "db: creating database.csv in "+rkit.path
-	// 		localmachine.touch(rkit.path, "database.csv")
-	// 		datafile = localmachine.File(rkit.path+"/database.csv")
-	// 		if not datafile then return "db: write error: permission denied."
-	// 	else 
-	// 		if datafile.parent.name != "rkit" then 	
-	// 			print "db: database.csv found outside of rkit"
-	// 			print "db: attempting: "+colorWhite+"</b>mv "+datafile.path+" "+rkit.path 
-	// 			print datafile.move(rkit.path,"database.csv")
-	// 		end if
-	// 	end if
-	// else
-	// 	print "db: rkit not detected."
-	// 	if datafile then 
-	// 		print "db: found "+datafile.path
-	// 	else
-	// 		print "db: creating database.csv in current path..."
-	// 		localmachine.touch(currentPath, "database.csv")
-	// 		datafile = localmachine.File(currentPath+"/database.csv")
-	// 		if not datafile then return "db: write error: permission denied."
-	// 	end if	
-	// end if
-//////////////////////////////////////
-	//if not datafile then return("db: database.csv not found")
 	if datafile.has_permission("w") then print "db: writing database to: "+datafile.path else return "db: write error: permission denied."
 	current_data = ""
 	if DEBUG then print command.file(datafile.path)
@@ -2805,18 +2738,14 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
     "---- attempt to locate username@domain to determine if it exists"+char(10)+
     "---- on positive hit, push domain to output buffer"+char(10)+
     "---- return results based on options"
-	// banner
 	print colorLightBlue+"<u><size=125%>OS"+colorWhite+"int npc finder v0.9 by Plu</color>70"
-	// handle error checking and input validation
 	if not octet_rules or (typeof(octet_rules) != "string" and typeof(octet_rules) != "list") then return "osint: invalid octet rules: expects list or string"
 	if not user_name or typeof(user_name) != "string" then return "osint: invalid user name: expects string "
-	// confirm mail account is active 
 	if not globals.inbox then 
 		print "Please login to a mail account then return here to continue: "
 		command.mail 
 	end if
 	if not globals.inbox then return "osint: please login to a mail account before continuing"
-	// prepare octet rules
 	if typeof(octet_rules) == "string" then 
 		octet_buff = octet_rules.split("\.")
 		octet_rules = []
@@ -2837,7 +2766,6 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
 	end for
 	if octet_rules.len != 8 then return "osint: malformed octet rules: expects list or string:"+char(10)+"[k_s,k_e,j_s,j_e,i_s,i_e,h_s,h_e]"+char(10)+"k_s-ke.j_s-j_e.i_s-i_e.h_s-h_e"
     if octet_rules[1] == 0 then return "osint: octet_1_max must be greater than 0"
-		// handle option flags to set delimiter
     delim = ""
 	verbose = false
     if option_flags == "-cv" or option_flags == "-c" then
@@ -2856,7 +2784,6 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
         delim = char(32)
 		if option_flags == "-sv" then verbose = true
     end if
-    // check for the output file if spool flag is set
     spool_file = null
     if spool then
         spool_file = command.poke("spool.osint")
@@ -2864,24 +2791,18 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
             return "error: please create spool.osint before continuing"
         end if
     end if
-	// prepare the output buffer list
     d_list = []
 	cycle = 0
-    // generate the output by iterating through IP octet ranges
 	print "osint: scanning... "+char(10)+colorWhite+"<size=125%><align=center>>.>"
     for k in range(octet_rules[0], octet_rules[1])  // assuming [start, end] for each octet
         for j in range(octet_rules[2], octet_rules[3])
             for i in range(octet_rules[4], octet_rules[5])
                 for h in range(octet_rules[6], octet_rules[7])
                     ip = str(k) + "." + str(j) + "." + str(i) + "." + str(h)
-                    // Validate IP format and check if it’s a LAN IP
                     if not is_valid_ip(ip) or is_lan_ip(ip) then continue
-                    // Perform WHOIS lookup and parse the result
                     who_string = whois(ip)
 					if who_string.indexOf("[Neurobox") != null then who_string = who_string.split(char(10)) else continue
-					//the following got nerfed, can't check if an email exists this way any more
                     if DEBUG then print "debug: in osint loop: domain: "+domain
-                    // Attempt to send mail and check if user exists
 					if who_string[0].indexOf(": ") == null then continue
                     domain = who_string[0].split(": ")[1].remove("www.")
                     targ = user_name + "@" + domain
@@ -2889,7 +2810,6 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
 					if globals.inbox.send(targ,"do not reply","your account has been suspended due to non payment") != "Mail not delivered" then 
 						d_list.push(targ)
 						print colorWhite+targ
-						// Write the output to spool file if spool is true
 						if spool then
 							print("osint: writing results to:" + spool_file.path)
 							result = spool_file.set_content(d_list.join(char(10)))
@@ -2907,7 +2827,6 @@ command.osint = function(option_flags, octet_rules, user_name, spool)
         end for
     end for
     
-    // Return the output as per the specified delimiter
     if delim == "list" then
         return d_list
     else
@@ -2948,7 +2867,6 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	//
 	if typeof(arg1) != "shell" then return 0
 	print colorGold+"</b>fetch: fetching MetaxploitLib from: "+char(10)+colorWhite+"</b>"+arg1.host_computer.public_ip+ " <b>:</b> "+arg1.host_computer.local_ip
-	//my_x = globals.get_file(meta_path)
 	my_x = globals.get_file(MetaxploitLib.path)
 	if not my_x then my_x = command.grep("-f","metaxploit.so")
 	if typeof(my_x) != "file" then return "fetch: failed: metaxploit.so not found" 
@@ -2987,7 +2905,6 @@ command.fetch = function(arg1,arg2,arg3,arg4)
 	print colorGold+"</b>-- launching payload..."
 	globals.stack_pool("up")
 	arg1.launch("/home/guest/..")
-	//_cascade // exit if cascade
 	globals.stack_pool("down")
 	print colorGold+"</b>-- spotting metaxploit and source files..."
 	imp.set_content("")
@@ -3051,9 +2968,8 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	end for
 	if r_buf == [] then r_buf.push("Porter: No_results_found.")
 	print(colorLightBlue+"Porter: task complete in "+colorOrange+(time - time_s)+colorLightBlue+" seconds."+CT)
-	save = "y"//user_input("Send results to clipb? [y/N] "+char(10)+"||: ",0,1)
+	save = "y"
 	if save.lower == "y" then print command.clipb(r_buf.join(char(10)))
-	//print colorLightBlue+"Porter: clipped"+CT+char(10)+format_columns(r_buf.join(char(10)))+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
 	print colorLightBlue+"Porter: returning..."+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
 	if i_buf != [] then return i_buf.join(char(10)) else return "-- no results found"
 end function
@@ -3073,7 +2989,6 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
 	"-- untouched npc machines"+char(10)+
 	"-- create a macro that mimics infil's behavior (perms, scpm, perms, run)"+char(10)+
 	"-- to use a different destination folder"
-	//if typeof(@sh_ob) != "shell" and then return "usage: infil [shell_object]"+char(10)+"-- or:<b> infil -h "
 	if not p_validate(@sh_ob,"host_computer") then return "usage: infil [shell|ftpshell]"+char(10)+"-- see:<b> infil -h"
     kit = null
     kit = command.tree("/","rkit","1","N")
