@@ -1,7 +1,7 @@
 # 5hell-for-Grey-Hack-the-Game
 
-Get the game! 
-https://store.steampowered.com/app/605230/Grey_Hack/
+Get the game!<br>
+https://store.steampowered.com/app/605230/Grey_Hack
 Join us on Discord!
 https://discord.gg/AFqsGaCDfS
 
