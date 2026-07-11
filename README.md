@@ -2,7 +2,7 @@
 
 Get the game!<br>
 https://store.steampowered.com/app/605230/Grey_Hack<br>
-Join us on Discord!<br>
+Join us on the 5hell Discord!<br>
 https://discord.gg/AFqsGaCDfS
 
 **Shell emulator and multitool for the video game Grey Hack.**
