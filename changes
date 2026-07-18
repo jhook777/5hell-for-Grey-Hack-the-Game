@@ -31,7 +31,30 @@
 ////
 //// To Done:
 //
+// 5phinx.5pk: print override: if DEBUG mode is active, SILENT prints will be force-printed through _print
+// --ie: DEBUG mode bypasses SILENT print mode
+// -- will also bypass clear_screen in DEBUG mode
+// air: fixed: not writing to an encrypted aircap file caused by lack of code to decrypt said file
+// air: will now report completion time
+// gopher: added -n flag for "no-dump"; prevents gopher from writing to dump.txt
+// felix: will autolaunch ImageViewer.exe, LogViewer.exe, PDFReader.exe when right=arrowing a .jpg, .log, .pdf
+// felix: scpm will be accessed by the [m] key
+// felix: fixed [t] tag4scpm key
+// rsi: added -m and -M flags to specify which metaxploitLib object to use
+// pause: -u|--until flag will work correctly
+// pause: you may now prepend all options with -v (verbose) as intended
+// -- verbose mode will print the current_date when the script resumes
+// -- note: midnight wrapping is not yet coded bc i dont want to do maths
+// mail: will write cracked credentials to dump.txt
+// -- cracking mail is still slow af, nothing i cna do about it
+// net.5pk: removed a bunch of old, unused code
+// pwgen: updated seed list
+// pwgen: updated usage info
+// enum: fixed -i flag not inserting
+//
+// air: minor output adjustment
 // help: fixed typo preventing full "help buffer" info from printing
+// ifconfig: fixed crash caused by typo "colorLightblue" in usage info
 //
 // ifconfig: updated usage info
 // air: will save credentials to a user specified file

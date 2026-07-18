@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.4.3"
+sphinx_version = "3.4.4"
 malp_version = "1.6.8"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.3.9...(158.111)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.4.0...(158.145)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -73,7 +73,7 @@ globals.print = function(msg, mode=0, color=0,outfile=0)
   if typeof(outfile) == "string" or typeof(outfile) == "file" then outfile = globals.get_file(outfile)
   if typeof(outfile) == "file" and not outfile.is_binary and outfile.has_permission("w") then outfile.set_content(msg)
   if mode < 2 then return _print( msg, mode )
-  if DEBUG then return _print(msg, mode)
+  if DEBUG then return _print(msg)
   return null
 end function
 //
@@ -302,7 +302,7 @@ globals._startup_resource_configuration  = function()
   return 0
 end function
 
-// ec_files: list of file objects
+// ec_files: List; file_objects
 // act: String; decrypt|encrypt
 // pw: String: key
 en_de_crypt_files = function(ec_files, indnt="-- ", act=0, pw=0)

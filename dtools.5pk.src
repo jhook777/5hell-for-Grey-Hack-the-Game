@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.3.9...(158.287)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.4.0...(159.743)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -603,10 +603,34 @@ command.chop = function(arg1, arg2=0, arg3=0, new_name=0)
 	end if
 end function
 command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
-	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Gopher: decipher tool"+char(10)+"Usage: gopher [/path/to/file|file_object|hash_string|hash_list|@tbuf] -- decipher hashes using onboard dictionary or crypto.decipher."+char(10)+"-- outputs to /current_path/dump.txt"+char(10)+"-- see cerebrum for dictionary options."+char(10)+"-- gopher [/path] -- decipher contents of path"+char(10)+"-- gopher [object] -- decipher piped file object"+char(10)+"-- gopher [list] -- decipher piped list of strings"+char(10)+"-- gopher [string] -- decipher hash string (with or without preceding user: )"+char(10)+"-- gopher @tbuf -- deciphers contents of @tbuf"+char(10)+"-- tbuf is set when <b>tree</b> encounters a user:hash pair in /home or /etc/passwd"+char(10)+"-- eg: gopher user:ee11cbb19052e40b07aac0ca060c23ee or gopher ee11cbb19052e40b07aac0ca060c23ee"+char(10)+"N.B. function takes string, file_object, list. function writes to dump.txt. function returns string."+char(10)+"Advanced: gopher runs recursively on each line therefore each line of a file or list or string may:"+char(10)+"-- be a user:hash string"+char(10)+"-- be a hash string"+char(10)+"-- be a path to a file"+char(10)+"-- contain a list of the aforementioned types"
-	if not globals.crypto then print( "Warning: Crypto: not found" )
+	if not arg1 or arg1 == "help" or arg1 == "-h" then return "Gopher: decipher tool"+char(10)+
+	"Usage: gopher [opt: -n] [/path/to/file|file_object|hash_string|hash_list|@tbuf]"+char(10)+
+	"-- decipher hashes using onboard dictionary or crypto.decipher"+char(10)+
+	"-- outputs to an existing <b>dump.txt</b> file if it exists"+char(10)+
+	"---- otherwise outputs to current_path/dump.txt"+char(10)+
+	"---- pass<b> -n</b> to disable outputting to dump.txt"+char(10)+
+	"-- see cerebrum for dictionary options"+char(10)+
+	"-- gopher [/path] -- decipher contents of path"+char(10)+
+	"-- gopher [object] -- decipher piped file object"+char(10)+
+	"-- gopher [list] -- decipher piped list of strings"+char(10)+
+	"-- gopher [string] -- decipher hash string (with or without preceding user: )"+char(10)+
+	"-- gopher @tbuf -- deciphers contents of @tbuf"+char(10)+
+	"-- tbuf is set when <b>tree</b> encounters a user:hash pair in /home or /etc/passwd"+char(10)+
+	"-- eg:<size=75%><b> gopher user:ee11cbb19052e40b07aac0ca060c23ee"+char(10)+
+	"-- eg:<size=75%><b> gopher ee11cbb19052e40b07aac0ca060c23ee"+char(10)+char(10)+
+	"N.B. Gopher accepts as input: string, path, file_object, list(of strings, paths, objects, lists...)"+char(10)+
+	"Advanced: gopher runs recursively on each line therefore each line of a file or list or string may:"+char(10)+
+	"-- be a <b>user:hash string"+char(10)+
+	"-- be a <b>hash string"+char(10)+
+	"-- be a <b>path</b> to a file"+char(10)+
+	"-- be a file <b>object"+char(10)+
+	"-- contain a <b>list</b> of the aforementioned types"+char(10)+char(10)+
+	"see also: <b>md5 -d</b> for a lighter-weight deciphering tool"
+	if not globals.crypto then print( colorWarning+"Warning: crypto.so: not loaded" )
 	data = []
-		if DEBUG then print "top of gopher, input: "+char(10)+arg1
+	we_dump = true
+	if arg1 == "-n" then we_dump = false // don't output to dump.txt
+	if DEBUG then print "top of gopher, input: "+char(10)+arg1
 	if typeof(arg1) != "string" and typeof(arg1) != "list" and typeof(arg1) != "file" then return "gopher: invalid input: expects string, file, or list "
 	if arg1 == "@tbuf" then arg1 = globals.T_BUF // deprecated, @tbuf is now a callable variable, however this remains so that @tbuf may be used in an internal call
 	if typeof(arg1) == "file" then
@@ -661,17 +685,21 @@ command.gopher = function(arg1, arg2, arg3=0, arg4=0) // requires crypto.so
 		pass = command.md5("-d",data) // decipher here
 		output = user + ":" + pass + ":"+data
 		print("["+colorGold+user+":"+colorGold+pass+CT+":"+data+"]")
-		dump = command.tree("/","dump.txt","1","n")
-		if not dump then 
-			command.poke("dump.txt")
-			dump = globals.get_file("dump.txt")
+
+		if we_dump then
+			dump = command.tree("/","dump.txt","1","n")
+			if not dump then 
+				command.poke("dump.txt")
+				dump = globals.get_file("dump.txt")
+			end if
+			if dump and typeof(dump) == "file" and dump.has_permission("w") then //and dump.has_permission("r") then 
+				print("gopher: saving data to "+dump.path)
+				print command.append(dump,output)
+			else 
+				print "gopher: failed to write to dump.txt; check permissions"
+			end if
 		end if
-		if dump and typeof(dump) == "file" and dump.has_permission("w") then //and dump.has_permission("r") then 
-			print("gopher: saving data to "+dump.path)
-			print command.append(dump,output)
-		else 
-			print "gopher: failed to write to dump.txt; check permissions"
-		end if
+
 	end if 
 	return 0
 end function
@@ -1146,7 +1174,7 @@ Paste:      [v] - performs a paste using selection buffer
 	        -- opens a context menu for paste options
 	        ---- options: copy, move, overwrite folder
 Tag 4 scpm  [t] - tag a file for later use with scpm
-Scpm:       [s] - open the scp menu
+Scpm:       [m] - open the SCP Menu
             -- NOTE: scpm uses shell objects
 	        ---- you must have a shell for both source and destination machines
 Remove:     [r] - deletes a file
@@ -1165,8 +1193,8 @@ note: launching binaries via felix does NOT activate glasspool
     user_input("press <<b>anyKey</b>> to continue",0,1)
     return f
   end function
-  action.s = function(inf)
-	print command.scpm(inf)
+  action.m = function(inf)
+	print command.scpm
 	return inf 
   end function
   action.g = function(inf) 
@@ -1174,8 +1202,10 @@ note: launching binaries via felix does NOT activate glasspool
 	return inf
   end function
   action.t = function(inf)
-	globals.tagged_for_scp = inf.path
-	print "Tagged: <b>"+inf.path+"</b> for scp"
+	selected = action.get_selected(inf)
+	if not selected then return inf
+	globals.tagged_for_scp = selected.path
+	print "Tagged: <b>"+selected.path+"</b> for scp"
 	return inf 
   end function
   action.b = function(inf) // global buffer
@@ -1300,13 +1330,34 @@ note: launching binaries via felix does NOT activate glasspool
       return inf
     end if
     if selected.is_binary then // run prompt
-		if selected.name.split("\.")[-1] != "so" then
-			doit = user_input(colorWarning+"warning: launching can only be done via a shell object;"+char(10)+"-- if the file does not exist on the active shell;"+char(10)+"---- the launch will fail"+char(10)+"Launch: "+selected.name+" ["+colorWarning+"Y(or right arrow)"+CT+"/n] ||: ",0,1).lower
+		sufx = selected.name.split("\.")[-1]
+		if sufx != "so" then
+			doit = user_input(colorWarning+"warning: launching can only be done via a shell object;"+char(10)+"-- if the file does not exist on the active shell;"+char(10)+"---- the launch will fail"+char(10)+"Open: "+selected.name+" ["+colorWarning+"Y(or right arrow)"+CT+"/n] ||: ",0,1).lower
 			if doit != "n" then
 				if typeof(shell) == "ftpshell" then
 					print("launch not available in ftpshell")
 					return inf
 				end if
+				
+				// img
+				if sufx == "jpg" then
+					imgvwr = command.tree("/","ImageViewer.exe",1,"N")
+					if typeof(imgvwr) == "file" then globals.shell.launch(imgvwr.path,selected.path) else print colorWarning+"ImageViewer.exe not found!"
+					return inf
+				end if
+				// log
+				if sufx == "pdf" then
+					pdfvwr = command.tree("/","PDFReader.exe",1,"N")
+					if typeof(pdfvwr) == "file" then globals.shell.launch(pdfvwr.path,selected.path) else print colorWarning+"PDFReader.exe not found!"
+					return inf
+				end if
+				// pdf
+				if sufx == "log" then
+					logvwr = command.tree("/","LogViewer.exe",1,"N")
+					if typeof(logvwr) == "file" then globals.shell.launch(logvwr.path,selected.path) else print colorWarning+"LogViewer.exe not found!"
+					return inf
+				end if
+				// bin
 				globals.stack_pool("up")
 				try = shell.launch(selected.path, user_input("enter (optional) launch params for: "+char(10)+selected.path+char(10)+":> "))
 				//_cascade // exit if cascade
@@ -1428,7 +1479,7 @@ note: launching binaries via felix does NOT activate glasspool
       path_contents(file,CLEAR)
       print(colorLightBlue+locals.currentPath+CT)
       print("[F1] help [w][a][s][d] == [^][<][v][>] [f] file info")
-	  print("[t] tag 4 scpm [s] scpm [g] gopher [b] buffer it")
+	  print("[t] tag 4 scpm [m] scpm [g] gopher [b] buffer it")
       print("[x] select [z] clr slct [r] remove [v] paste [n] rename ")
       input = user_input("["+button_c+"] toggle clear  [p] perms [q] quit"+char(10)+"||: ",0,1)
       print
