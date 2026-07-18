@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.3.9.4_falling_skies"
+ver = "4.4.0_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "145.313"
+size_of_5hell = "146.293"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -1783,7 +1783,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		if typeof(arg2.to_int) != "number" then return "enum: invalid index"
 		if globals.enumerated.hasIndex(arg2.to_int) then 
 			globals.enumerated.remove(arg2.to_int)
-			return "enum: entry at index "+arg2+" removed"
+			return "enum: entry at index <b>"+arg2+"</b> removed"
 		else 
 			return "enum: invalid index"
 		end if
@@ -1810,8 +1810,8 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		if typeof(dx) != "number" or dx >= buf_bak.len or dx < 0 then return "enum: invalid index"
 		sli_1 = buf_bak[0:dx]
 		sli_2 = buf_bak[dx:]
-		new_buf = sli_1 + sbb + sli_2
-		return "enum: element inserted at index "+dx
+		globals.enumerated = sli_1 + sbb + sli_2
+		return "enum: element inserted<b> "+sbb+"</b> at index <b>"+dx
 	end if
 	if @arg1 == "-a" then 
 		if not arg2 then return "enum: append failed: missing input"+char(10)+"-- pass "+colorMagenta+"@z"+CT+" to pass a numerical zero"
@@ -1822,7 +1822,7 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 		//if typeof(arg2) == "string" then sb = arg2.split(char(10))
 		//if sb == "" then return "enum: append failed: invalid type: expects string or list"
 		globals.enumerated = globals.enumerated + sb
-		return "enum: list appended with "+typeof(@arg2)
+		return "enum: list appended with <b>"+typeof(@arg2)
 	end if
 	if arg1 == "-d" then // do stuff
 		if typeof(arg2) != "string" then return "enum: invalid input; -d expects command string"
