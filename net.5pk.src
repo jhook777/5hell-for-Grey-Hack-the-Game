@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.3.9.2...(158.148)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.4.0...(155.272)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -273,11 +273,12 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 		for i in range(0, rshells.len - 1)
 			rs_buf.push(colorLightBlue+"-----------"+CT+char(10) +colorLightBlue+"Shell (" +colorWhite+ (i + 1) +CT+ ")" +CT+char(10)+ "Public IP: " + rshells[i].host_computer.public_ip + char(10) + "Local  IP: " + rshells[i].host_computer.local_ip + char(10) + colorWhite + command.ps(rshells[i]) )
 		end for
-		print(rs_buf.join(char(10)).trim)
+		rs_buf = rs_buf.join(char(10)).trim
+		if option == "-f" then return rs_buf else print rs_buf
 		print(colorLightBlue+"-----------"+CT)
+		//
 		option = user_input("Select shell ([0|q] to abort) :> ").to_int
 		if option == 0 or option == "q" then return 0
-		//wait(.01)
 		rshells = mx_obj.rshell_server
 	end while
 	if option == 0 or option == "q" then return 0
