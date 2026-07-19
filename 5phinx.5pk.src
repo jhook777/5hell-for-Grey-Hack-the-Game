@@ -1097,6 +1097,30 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
   print(colorWhite+"Upload|Push trajectory: "+CT+char(10)+active_s+"--->"+target_s)
   print(colorWhite+"Dnload|Pull trajectory: "+CT+char(10)+target_s+"--->"+active_s)
   print(colorWhite+"---scp---------------"+CT)
+  resolve_destination = function(raw_path, check_comp)
+    // secure_copy/scp expects a destination folder. If user passed /path/file.ext,
+    // return parent folder + target filename so caller can rename after copy.
+    out_folder = raw_path
+    out_name = null
+    is_file_mode = false
+    if typeof(raw_path) != "string" then return [out_folder, out_name, is_file_mode]
+    if raw_path == "" or raw_path == " " then return [out_folder, out_name, is_file_mode]
+    if raw_path.indexOf("/") == null then return [out_folder, out_name, is_file_mode]
+    found = null
+    if check_comp then found = check_comp.File(raw_path)
+    if found and found.is_folder then return [found.path, out_name, is_file_mode]
+    if raw_path[raw_path.len-1] == "/" then return [raw_path, out_name, is_file_mode]
+    split = raw_path.split("/")
+    final = split.pop
+    if final == null or final == "" then return [out_folder, out_name, is_file_mode]
+    out_folder = split.join("/")
+    if out_folder == "" then
+      if raw_path[0] == "/" then out_folder = "/" else out_folder = currentPath
+    end if
+    out_name = final
+    is_file_mode = true
+    return [out_folder, out_name, is_file_mode]
+  end function
   copy_from = null
   if DEBUG then print "debug: in secure_copy: tagged4scp: "+globals.tagged_for_scp
   if globals.tagged_for_scp != "" and globals.tagged_for_scp != null then copy_from = globals.tagged_for_scp
@@ -1108,7 +1132,6 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
   if DEBUG then print "debug: udp is "+udp+" and is a "+typeof(udp)
   if udp == "q" then return
   if udp == "1" then
-    //if typeof(shl) == "ftpshell" then return colorError+"</b>scp: error; a game bug prevents ftpshell.put from functioning"//shl.put(copy_from, copy_to, globals.shell) ///////// copying
     if typeof(shl) == "shell" or typeof(shl) == "ftpshell" or typeof(shl) == "pshell" then
       targ_f = shl.host_computer.File(copy_from)
       if targ_f then
@@ -1118,9 +1141,22 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         return colorOrange+"scp-download: "+copy_from +" not found"
       end if
       if not targ_f.has_permission("r") then return "scp: copy permission denied"
-      if typeof(shl) == "shell" or typeof(shl) == "ftpshell" then return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
-      if typeof(shl) == "pshell" and p_validate(shl,"scp") then return shl.scp(copy_from, copy_to, globals.shell) else return colorWarning+"scp: p_object; invalid object or no scp function"///////// copying
-      return "aborting..."
+      d_out = resolve_destination(copy_to, localmachine)
+      copy_folder = d_out[0]
+      copy_name = d_out[1]
+      rename_mode = d_out[2]
+      if typeof(shl) == "shell" or typeof(shl) == "ftpshell" then
+        scp_result = shl.scp(copy_from, copy_folder, globals.shell)
+      else
+        if typeof(shl) == "pshell" and p_validate(shl,"scp") then scp_result = shl.scp(copy_from, copy_folder, globals.shell) else return colorWarning+"scp: p_object; invalid object or no scp function"
+      end if
+      if not rename_mode then return scp_result
+      if copy_folder == "/" then down_path = "/"+targ_f.name else down_path = copy_folder+"/"+targ_f.name
+      dl_file = localmachine.File(down_path)
+      if not dl_file then return scp_result + char(10) + "scp rename: failed; " + down_path + " not found"
+      ren = dl_file.move(copy_folder, copy_name)
+      if ren then return scp_result + char(10) + "scp rename: " + ren
+      return scp_result
     end if
   else
     if udp == "0" then
@@ -1129,6 +1165,11 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         if not payload then
           return colorOrange+"scp-upload: "+copy_from+" not found"
         end if
+        d_out = resolve_destination(copy_to, shl.host_computer)
+        copy_folder = d_out[0]
+        copy_name = d_out[1]
+        rename_mode = d_out[2]
+        if rename_mode then final_name = copy_name else final_name = payload.name
         print(char(10)+"Found: "+payload.path + " " + payload.size + " " + payload.permissions+char(10))
         print("<b>edit permissions</b>? (default: yes)")
         if skip_perms then mod = "1" else mod = user_input("[<b>0</b>] yes [1] no (q=quit)||: ",0,1)
@@ -1147,10 +1188,23 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         print(char(10)+"<b>Upload Ready: "+payload.path + " " + payload.size + " " + payload.permissions+"</b>"+char(10))
         failed = false
         if typeof(shl) == "shell" then to_shl = shl.host_computer.local_ip+" : "+shl.host_computer.public_ip else to_shl = typeof(shl)
-        print "scp: pushing "+payload.path+" to: "+copy_to+" @ "+to_shl // shl.host_computer.local_ip+" : "+shl.host_computer.public_ip
-        print(shell.scp(payload.path, copy_to, shl)) ///// copying
-        if copy_to == "/" then copy_to = ""
-        if not shl.host_computer.File(copy_to+"/"+payload.name) then failed = true else globals.tagged_for_scp == ""
+        print "scp: pushing "+payload.path+" to: "+copy_folder+" @ "+to_shl
+        print(shell.scp(payload.path, copy_folder, shl))
+        if copy_folder == "/" then check_path = "/"+payload.name else check_path = copy_folder+"/"+payload.name
+        up_file = shl.host_computer.File(check_path)
+        if not up_file then
+          failed = true
+        else
+          globals.tagged_for_scp == ""
+          if rename_mode and payload.name != copy_name then
+            ren = up_file.move(copy_folder, copy_name)
+            if copy_folder == "/" then
+              if not shl.host_computer.File("/"+copy_name) then failed = true
+            else
+              if not shl.host_computer.File(copy_folder+"/"+copy_name) then failed = true
+            end if
+          end if
+        end if
         if failed == true then print "Upload failed... edit/restore permissions?" else print("Upload complete... <b>edit/restore permissions</b>?")
         if skip_perms then mod = "1" else mod = user_input("[<b>0</b>] yes [1] no ||: ",0,1)
         if mod != "1" then
@@ -1163,9 +1217,8 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
             if catch then print catch
           end for
         end if
-        if failed then return "scp: failed" else return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
+        if failed then return "scp: failed" else return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_folder+"/"+final_name
       else
-        //if typeof(globals.shell) == "ftpshell" then print colorRed+"</b>scp: error; a game bug prevents ftpshell.put from working"+char(10)+"-- aborting..." else print "aborting..."
         print colorLightBlue+"GLASSPOOL FTP:"
         print(shell.scp(copy_from, copy_to, shl))
         return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
