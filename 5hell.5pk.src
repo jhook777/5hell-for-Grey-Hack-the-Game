@@ -2,14 +2,14 @@
 // released v 4.3.1
 // imports .5pk files from /root/src
 // globals
-ver = "4.4.0.1_falling_skies"
+ver = "4.4.1_falling_skies"
 //print ver
 if not globals.hasIndex("DEBUG") then globals.DEBUG = false // set to true by launching 5hell with --debug as any parameter
 if globals.hasIndex("params") and globals.params.indexOf("--debug") >= 0 then 
 	globals.DEBUG = true
 	globals.params.remove(globals.params.indexOf("--debug"))
 end if
-size_of_5hell = "146.293"
+size_of_5hell = "146.763"
 globals.SILENT = 0 // 0 == normal, 2 == silent, 1 == clear_screen
 if DEBUG then print("<size=75%>loading globals...</size>") else print("<align=center><mark=red><color=black>#</color></mark></align>")
 //
@@ -599,9 +599,12 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	end if 
 	folder = globals.get_file(folderPath)
 	if not folder then return "ls: No such file or directory"
+	if typeof(folder) != "file" then return "ls: "+folder
 	if DEBUG then print("folder: "+folder.path+" is a: "+typeof(folder))
 	output = ""
 	if folder.is_folder then
+		if DEBUG then print p_validate(folder,"name")
+		if not folder.has_permission("x") or ( folder.name == "/" and not folder.has_permission("r") ) then return "ls: permission denied"
 		line_color = colorLightBlue+"</b>"
 		nameFile = folder.name
 		permission = folder.permissions
@@ -615,7 +618,9 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		// 	output = output + char(10) + line_color + nameFile + char(10) + colorLightBlue+"|"
 		// end if
 		subFiles = folder.get_folders + folder.get_files
-		if DEBUG then print "debug: pre alpha sort"
+		if DEBUG then print "debug: pre alpha sort"+char(10)+
+		"-- "+folder.permissions+char(10)+
+		"-- "+subFiles
 		if a_order then 
 			f_buf = []
 			s_buf = []
@@ -635,7 +640,7 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	else 
 		subFiles = [folder]
 	end if
-	//output = ""
+	if DEBUG then print "debug: "+subFiles
 	for subFile in subFiles
 		line_color = colorWhite+"</b>"
 		nameFile = subFile.name
@@ -1098,8 +1103,12 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 
 			if is_home == true then
 				print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- setting critical binaries to <b>g+x</b>...")
+				command.perms("g+x","/")
+				command.perms("g+x","/bin")
+				command.perms("g+x","/usr")
+				command.perms("g+x","/usr/bin")
 				command.perms("g+x","/bin/sudo")
-				command.perms("g+x","/bin/psudo")
+				//command.perms("g+x","/bin/psudo")
 				command.perms("g+x","/bin/ssh")
 				command.perms("g+x","/usr/bin/Terminal.exe")
 				command.perms("g+x","/usr/bin/Chat.exe")
