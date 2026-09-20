@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.4.0...(159.743)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.4.1...(159.908)")
 
 command.cob = function(arg1,arg2,arg3=0,arg4=0)
 	cy = colorCyan 
@@ -790,11 +790,13 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	end function
 	gp = function(grep_tar, t_f, use_re, findfile, verbose=1)
 		//if DEBUG then print "debug: in grep; tf: "+t_f.path
-		if t_f.is_folder and t_f.is_binary then
+
+		if t_f.is_folder and t_f.has_permission("x") then
 			sub_folders = t_f.get_folders
 			sub_files = t_f.get_files
 			g_buf = null
     		//if globals.grepped_file != null then return 
+			if typeof(sub_folders) != "list" or typeof(sub_files) != "list" then return
 			for sub in sub_folders
 				if use_re == true then
 					if re.match(grep_tar.values, sub.name.values) then 
@@ -854,7 +856,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 				gp(grep_tar, f, use_re, findfile)
 			end for
 		end if
-		if t_f.is_binary or findfile == true then return
+		if typeof(t_f) != "file" or t_f.is_binary or findfile == true then return
 		buf = t_f.get_content
 		if buf == "" or buf == null then return
 		lines = buf.split(char(10))
@@ -989,6 +991,7 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	globals.grepped_file = null
 	//depth = tem.path.split("/").len-2
 	//if not arg3 then print "<size=80%><color=blue><b><color=#2382FFFF>"+"  "*depth+tem.path+" "+tem.permissions
+	if DEBUG then print "debug: listing_files..."
 	globals.list_files(tem, arg2, arg3, arg4)
 	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
 	return null
