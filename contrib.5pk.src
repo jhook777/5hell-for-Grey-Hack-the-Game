@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.4.0...(87.583)")
+if DEBUG then print("<size=75%>loading contrib.5pk for 5hell v 4.4.1...(87.923)")
   
  //////////////////////contrubutions start here///////////
   /// this is stuff that was not made entirely by Plu70
@@ -1082,11 +1082,13 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
       file = result.host_computer.File("/home")
       rfile = result.host_computer.File("/")
     end if
-    if rfile and rfile.has_permission("w") then
+    if typeof(rfile) != "file" then return "???" // if we don't have permissions to go past / then we're done
+    if rfile.has_permission("w") then
       user = "root"
-    else if rfile and file then
+    else if typeof(file) == "file" and file.has_permission("x") then
       for folder in file.get_folders
-        if folder.has_permission("w") and folder.name != "guest" then user = folder.name
+
+        if typeof(folder) == "file" and folder.has_permission("w") and folder.name != "guest" then user = folder.name
       end for
     end if
     if typeof(result) == "file" then
@@ -1099,18 +1101,21 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
           file = file.parent
         end while
       end if
-      if not file then return "???"
+      if typeof(file) != "file" then return "???"
       if file.has_permission("w") then user = "root"
-      for folder in file.get_folders
-        if folder.name == "root" then
-          if folder.has_permission("w") then user = "root"
-        end if
-        if folder.name == "home" and user != "root" then
-          for sub in folder.get_folders
-            if sub.has_permission("w") and sub.name != "guest" then user = sub.name
-          end for
-        end if
-      end for
+      if typeof(folder) != "file" then return "???"
+      if folder.has_permission("x") then
+        for folder in file.get_folders
+          if folder.name == "root" then
+            if folder.has_permission("w") then user = "root"
+          end if
+          if folder.name == "home" and user != "root" then
+            for sub in folder.get_folders
+              if typeof(sub) == "file" and sub.has_permission("w") and sub.name != "guest" then user = sub.name
+            end for
+          end if
+        end for
+      end if
     end if
     if user == "" then user = "guest"
     return user // by Corvus

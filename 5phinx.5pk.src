@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.4.4"
+sphinx_version = "3.4.5"
 malp_version = "1.6.8"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.4.0...(158.145)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.4.1...(158.865)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -144,10 +144,10 @@ globals.get_file = function(input_string)
 		file = localmachine.File(input_string)
 	else
 		file = localmachine.File(currentPath+"/"+input_string)
-  	if not file then file = localmachine.File(currentPath+input_string)
+  	if typeof(file) != "file" then file = localmachine.File(currentPath+input_string)
 	end if
 	if DEBUG then
-		if file then print("File: ["+file.path+"]") else print("File: [not found]")
+		if typeof(file) == "file" then print("File: ["+file.path+"]") else print("File: [not found]"+char(10)+"-- "+colorWarning+file)
 	end if
   if DEBUG then print "get_file: returning..."
   if file then return file else return 0
@@ -155,6 +155,7 @@ end function
 
 // import_lib and super import! to replace hot swap libs. this version makes sure to use the highest version
 globals.import_lib = function(grep, filepath) // String: lib_name, File: search_path
+  if typeof(filepath) != "file" then return
   if filepath.is_binary and not filepath.is_folder then
     v = "?.?.?"
     lib = null 
@@ -243,17 +244,16 @@ globals._import_tables = function()
     g = ""
     g = command.grep("-a","^tables$")
     for tab in g
-      if typeof(tab) == "file" and tab.parent.name != ".Trash" then 
-        t = tab  
-      end if
+      if typeof(tab) == "file" and typeof(tab.parent) == "file" and tab.parent.name != ".Trash" then t = tab  
     end for
     if DEBUG then 
-      print "-- t: "+typeof(t)+": "+t;
+      print "-- t: "+typeof(t)+": "+t
       if typeof(t) == "file" then print "-- "+t.path+char(10)+"-- "+t.get_folders
     end if
     if not t or typeof(t) != "file" or not t.is_folder then return "grep: tables not found"
     for f in t.get_folders 
-      if DEBUG then print "-- f: "+f.name
+      //if DEBUG then print "-- f: "+f.name
+      if typeof(f) != "file" then continue
       if f.name == "tp" or f.name == "t5" then // tp takes priority
         if DEBUG then print "-- found: "+f.path
         return command.cerebrum("-i",f.path)
@@ -268,7 +268,7 @@ end function
 globals._startup_resource_configuration  = function()
   p = null
   r = globals.get_file(home_dir+"/Config/do.rc") // look for do.rc in ~/Config, first
-  if not r then 
+  if typeof(r) != "file" then 
     r = command.tree("/","rkit","1","N") // look for do.rc in rkit if it isn't in /Config
     if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
     for f in r.get_files 
@@ -277,9 +277,9 @@ globals._startup_resource_configuration  = function()
   else 
     p = r
   end if 
-  if not p then return "tree: do.rc not found" else print colorGold+"<size=50%>kore:"+colorWhite+" <u>do.rc</u> detected..."
+  if typeof(p) != "file" then return "tree: do.rc not found" else print colorGold+"<size=50%>kore:"+colorWhite+" <u>do.rc</u> detected..."
   reenc = 0
-  if p.is_binary then 
+  if p.is_binary then
     if globals.crypto and globals.crypto.is_encrypted(p.path) == 1 then 
       reenc = command.cob("get","HOME.dorc_key")
       if not reenc then reenc = user_input("rc: do.rc is encrypted"+char(10)+"-- decryption_key (<<b>enter</b>>=abort):> ") 
@@ -788,14 +788,14 @@ end function
 
 p_validate = function( o, query=null )
   if DEBUG then print "DEBUG: in p_validate"+char(10)+"validating: "+@o
-  if not @o or typeof(@o) == "number" or typeof(@o) == "string" or not @o.hasIndex("__isa") then return 1
+  if not @o or typeof(@o) == "number" or typeof(@o) == "string" or typeof(@o) == "function" or not o.hasIndex("__isa") then return 1
   methods = o.__isa.indexes
   if methods.len < 2 then return 0
-  test = new @o 
+  test = new o 
   if test == null then return 0
   if not query then
     if DEBUG then print "debug: no query"
-    o_type = typeof(@o) 
+    o_type = typeof(o) 
     switch(o_type)
     // this uh... doesn't actually do anything....
       if DEBUG then print "debug: switch: start"
@@ -819,12 +819,12 @@ p_validate = function( o, query=null )
     return @v
   end if
   if DEBUG then print "debug: query: "+query
-  if @o.hasIndex("__isa") and typeof(@o) != "string" then
-    if DEBUG then print colorGreen+"__isa indexes found: "+@o.__isa.indexes.len
-    q = @o.__isa.hasIndex(query)
+  if o.hasIndex("__isa") and typeof(o) != "string" then
+    if DEBUG then print colorGreen+"__isa indexes found: "+o.__isa.indexes.len
+    q = o.__isa.hasIndex(query)
     if DEBUG then print "result: "+q
-	  if typeof(@o) == "file" then // hack to make this work for files. testing needed to see if other objects have somethign like this
-      if @o.name then return q else return 0
+	  if typeof(o) == "file" then // hack to make this work for files. testing needed to see if other objects have somethign like this
+      if o.name then return q else return 0
     end if
     return q // does the object have the index we seek?
   else 
@@ -1046,6 +1046,7 @@ globals.curl = function(hacked_thing=globals.localmachine)
       hacked_thing = hacked_thing.parent
     end while
     folders = hacked_thing.get_folders
+    if typeof(folders) != "file" then return colorError+"curl: permission denied"
     for f in folders
       if f.name == "Public" then
         sub_f = f.get_folders
@@ -1060,7 +1061,7 @@ globals.curl = function(hacked_thing=globals.localmachine)
       end if
     end for
   end if
-  if not html then return "curl: failed to GET website.html"
+  if not html then return colorError+"curl: failed to GET website.html"
   globals.BUFFER.push(html)
   print("curl:<b> "+html.path+" added to BUFFER</b>")
   if html.has_permission("r") then html_content = html.get_content.split(char(10))
@@ -1074,7 +1075,7 @@ globals.curl = function(hacked_thing=globals.localmachine)
     print colorOrange+"curl: added website.html contents to BUFFER"
     return html 
   else 
-    return "curl: cannot read website.html; check permissions"
+    return colorError+"curl: cannot read website.html; check permissions"
   end if
 end function
 
@@ -1097,30 +1098,6 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
   print(colorWhite+"Upload|Push trajectory: "+CT+char(10)+active_s+"--->"+target_s)
   print(colorWhite+"Dnload|Pull trajectory: "+CT+char(10)+target_s+"--->"+active_s)
   print(colorWhite+"---scp---------------"+CT)
-  resolve_destination = function(raw_path, check_comp)
-    // secure_copy/scp expects a destination folder. If user passed /path/file.ext,
-    // return parent folder + target filename so caller can rename after copy.
-    out_folder = raw_path
-    out_name = null
-    is_file_mode = false
-    if typeof(raw_path) != "string" then return [out_folder, out_name, is_file_mode]
-    if raw_path == "" or raw_path == " " then return [out_folder, out_name, is_file_mode]
-    if raw_path.indexOf("/") == null then return [out_folder, out_name, is_file_mode]
-    found = null
-    if check_comp then found = check_comp.File(raw_path)
-    if found and found.is_folder then return [found.path, out_name, is_file_mode]
-    if raw_path[raw_path.len-1] == "/" then return [raw_path, out_name, is_file_mode]
-    split = raw_path.split("/")
-    final = split.pop
-    if final == null or final == "" then return [out_folder, out_name, is_file_mode]
-    out_folder = split.join("/")
-    if out_folder == "" then
-      if raw_path[0] == "/" then out_folder = "/" else out_folder = currentPath
-    end if
-    out_name = final
-    is_file_mode = true
-    return [out_folder, out_name, is_file_mode]
-  end function
   copy_from = null
   if DEBUG then print "debug: in secure_copy: tagged4scp: "+globals.tagged_for_scp
   if globals.tagged_for_scp != "" and globals.tagged_for_scp != null then copy_from = globals.tagged_for_scp
@@ -1132,6 +1109,7 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
   if DEBUG then print "debug: udp is "+udp+" and is a "+typeof(udp)
   if udp == "q" then return
   if udp == "1" then
+    //if typeof(shl) == "ftpshell" then return colorError+"</b>scp: error; a game bug prevents ftpshell.put from functioning"//shl.put(copy_from, copy_to, globals.shell) ///////// copying
     if typeof(shl) == "shell" or typeof(shl) == "ftpshell" or typeof(shl) == "pshell" then
       targ_f = shl.host_computer.File(copy_from)
       if targ_f then
@@ -1141,22 +1119,9 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         return colorOrange+"scp-download: "+copy_from +" not found"
       end if
       if not targ_f.has_permission("r") then return "scp: copy permission denied"
-      d_out = resolve_destination(copy_to, localmachine)
-      copy_folder = d_out[0]
-      copy_name = d_out[1]
-      rename_mode = d_out[2]
-      if typeof(shl) == "shell" or typeof(shl) == "ftpshell" then
-        scp_result = shl.scp(copy_from, copy_folder, globals.shell)
-      else
-        if typeof(shl) == "pshell" and p_validate(shl,"scp") then scp_result = shl.scp(copy_from, copy_folder, globals.shell) else return colorWarning+"scp: p_object; invalid object or no scp function"
-      end if
-      if not rename_mode then return scp_result
-      if copy_folder == "/" then down_path = "/"+targ_f.name else down_path = copy_folder+"/"+targ_f.name
-      dl_file = localmachine.File(down_path)
-      if not dl_file then return scp_result + char(10) + "scp rename: failed; " + down_path + " not found"
-      ren = dl_file.move(copy_folder, copy_name)
-      if ren then return scp_result + char(10) + "scp rename: " + ren
-      return scp_result
+      if typeof(shl) == "shell" or typeof(shl) == "ftpshell" then return shl.scp(copy_from, copy_to, globals.shell) ///////// copying
+      if typeof(shl) == "pshell" and p_validate(shl,"scp") then return shl.scp(copy_from, copy_to, globals.shell) else return colorWarning+"scp: p_object; invalid object or no scp function"///////// copying
+      return "aborting..."
     end if
   else
     if udp == "0" then
@@ -1165,11 +1130,6 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         if not payload then
           return colorOrange+"scp-upload: "+copy_from+" not found"
         end if
-        d_out = resolve_destination(copy_to, shl.host_computer)
-        copy_folder = d_out[0]
-        copy_name = d_out[1]
-        rename_mode = d_out[2]
-        if rename_mode then final_name = copy_name else final_name = payload.name
         print(char(10)+"Found: "+payload.path + " " + payload.size + " " + payload.permissions+char(10))
         print("<b>edit permissions</b>? (default: yes)")
         if skip_perms then mod = "1" else mod = user_input("[<b>0</b>] yes [1] no (q=quit)||: ",0,1)
@@ -1188,23 +1148,10 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
         print(char(10)+"<b>Upload Ready: "+payload.path + " " + payload.size + " " + payload.permissions+"</b>"+char(10))
         failed = false
         if typeof(shl) == "shell" then to_shl = shl.host_computer.local_ip+" : "+shl.host_computer.public_ip else to_shl = typeof(shl)
-        print "scp: pushing "+payload.path+" to: "+copy_folder+" @ "+to_shl
-        print(shell.scp(payload.path, copy_folder, shl))
-        if copy_folder == "/" then check_path = "/"+payload.name else check_path = copy_folder+"/"+payload.name
-        up_file = shl.host_computer.File(check_path)
-        if not up_file then
-          failed = true
-        else
-          globals.tagged_for_scp == ""
-          if rename_mode and payload.name != copy_name then
-            ren = up_file.move(copy_folder, copy_name)
-            if copy_folder == "/" then
-              if not shl.host_computer.File("/"+copy_name) then failed = true
-            else
-              if not shl.host_computer.File(copy_folder+"/"+copy_name) then failed = true
-            end if
-          end if
-        end if
+        print "scp: pushing "+payload.path+" to: "+copy_to+" @ "+to_shl // shl.host_computer.local_ip+" : "+shl.host_computer.public_ip
+        print(shell.scp(payload.path, copy_to, shl)) ///// copying
+        if copy_to == "/" then copy_to = ""
+        if not shl.host_computer.File(copy_to+"/"+payload.name) then failed = true else globals.tagged_for_scp == ""
         if failed == true then print "Upload failed... edit/restore permissions?" else print("Upload complete... <b>edit/restore permissions</b>?")
         if skip_perms then mod = "1" else mod = user_input("[<b>0</b>] yes [1] no ||: ",0,1)
         if mod != "1" then
@@ -1217,8 +1164,9 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
             if catch then print catch
           end for
         end if
-        if failed then return "scp: failed" else return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_folder+"/"+final_name
+        if failed then return "scp: failed" else return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
       else
+        //if typeof(globals.shell) == "ftpshell" then print colorRed+"</b>scp: error; a game bug prevents ftpshell.put from working"+char(10)+"-- aborting..." else print "aborting..."
         print colorLightBlue+"GLASSPOOL FTP:"
         print(shell.scp(copy_from, copy_to, shl))
         return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
@@ -2109,7 +2057,10 @@ globals.newtree = function(a_file,quiet=0)
   system_map = {}
 
   listFiles = function(f)
-      if f.is_folder then
+      if f.is_folder and f.has_permission("x") then
+          if f.path == "/" then
+            if not f.has_permission("r") then return
+          end if
           folders = f.get_folders
           files = f.get_files
           system_map[f.path] = [f]+files
@@ -2163,6 +2114,8 @@ end function
 globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
   //grepped_file = "File: " + grep + " not found."
   //if not quiet then print("Expanding: " + colorLightBlue+result.path)
+  if DEBUG then print "debug: result: "+result+char(10)+"-- quiet: "+quiet
+  if typeof(result) != "file" then return
   nb = "</b>"
   if not quiet then 
     s = ""
@@ -2216,6 +2169,8 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
       if result.name == grep then
         globals.grepped_file = result
       end if
+      if not result.has_permission("x") then return
+      if result.path == "/" and not result.has_permission("r") then return // insert angry rant here
       folders = result.get_folders
       files = result.get_files
       //wait(.1)
