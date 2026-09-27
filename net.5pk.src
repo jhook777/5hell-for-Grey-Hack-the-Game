@@ -3029,23 +3029,22 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
     return cgo+"<size=75%>infil: infiltration complete"
 end function
 command.flood = function(fip,fpt,c,d)
-	if fip == "help" or fip == "-h" then return "flood connection || ddos || denial of service
-
-Usage: <b>flood [opt:ip] [opt:port]</b> -- ddos a target server running a service
--- uses global target ip and/or port if not supplied
--- sets global target ip and/or port if supplied
--- obtains both net_session and metalib on target
--- initiates flood_connection on the net_session
-
-Usage: <b>flood [net_session]</b> -- runs flood_connection on the piped object
--- does not alter targetIP or targetPort
-
-<b>N.B.: if a DDOS attack is successful, the target will be temporarily offline.
-That is: it will be rebooted.
-The number if instances required to DDOS a target <b>depends on the network speed</b>
-of the target. Each instance must be run <b>from a unique network</b>. Since players
-are limited in the number of terminal windows they may open, the player may need
-<b>other players</b> to attack the target in unison to be successful."
+	if fip == "help" or fip == "-h" then return "flood connection || ddos || denial of service"+char(10)+
+	"Usage: <b>flood [opt:ip] [opt:port]</b> -- ddos a target server running a service"+char(10)+
+	"-- uses global target ip and/or port if not supplied"+char(10)+
+	"-- sets global target ip and/or port if supplied"+char(10)+
+	"-- obtains both net_session and metalib on target"+char(10)+
+	"-- initiates flood_connection on the net_session"+char(10)+
+	char(10)+
+	"Usage: <b>flood [net_session]</b> -- runs flood_connection on the piped object"+char(10)+
+	"-- does not alter targetIP or targetPort"+char(10)+
+	char(10)+
+	"<b>N.B.: if a DDOS attack is successful, the target will be temporarily offline."+char(10)+
+	"That is: it will be rebooted."+char(10)+
+	"The number if instances required to DDOS a target <b>depends on the network speed</b>"+char(10)+
+	"of the target. Each instance must be run <b>from a unique network</b>. Since players"+char(10)+
+	"are limited in the number of terminal windows they may open, the player may need"+char(10)+
+	"<b>other players</b> to attack the target in unison to be successful."
 	if not globals.metaxploit then return colorWarning+"flood: no metaxploitLib loaded!"
 	if fip and not is_valid_ip(fip) then
 		if not is_valid_ip(globals.targetIP) then return "flood: please set or supply a target ip" else fip = globals.targetIP 
