@@ -2648,11 +2648,11 @@ globals.hooked_comp = function(result)
     end for
 
     if p_i.len >= 1 then print(p_i.join(char(10))) else print(colorWhite+"<size=75%>[no port info to display]</size>"+CT)
-    print colorWhite+"<size=75%><u>=============================
-[K] - kill [G] - glassp [C] curl
-[7] iwlist [8] iwconfig [9] chUnlock
-[4] chngpw [5] sclean   [6] useradd
-[1] home   [2] passfile [3] dump tbuf"
+    print colorWhite+"<size=75%><u>============================="+char(10)+
+      "[K] - kill [G] - glassp [C] curl"+char(10)+
+      "[7] iwlist [8] iwconfig [9] chUnlock"+char(10)+
+      "[4] chngpw [5] sclean   [6] useradd"+char(10)+
+      "[1] home   [2] passfile [3] dump tbuf"
     if globals.T_BUF.len > 1 then print "[T] transmit tbuf       [-] decipher tbuf"
     pause = user_input("[0|q] quit [d] decompiler ||: ",0,1)
     // replace the following with a _switch
