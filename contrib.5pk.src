@@ -816,102 +816,89 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
     end function
   
     if not hasIndex(globals, "glosureEnv") then
-      prepareCode = "
-;; Standard Glosure Library
-(defmacro defun (name arguments body) () (def name (lambda arguments body)))
-
-(defmacro defunction (name arguments body) () (def name (glosure arguments body)))
-
-(defmacro while (condition body) (!result)
-    (if condition (begin
-        (loop (def !result body) condition)
-        !result)))
-
-(defmacro do-while (condition body) (!result) (begin
-    (loop (def !result body) condition)
-    !result))
-
-(defmacro for (initializer condition iterator body) (!result) ((lambda ()
-    initializer
-    (if condition (begin
-        (loop (def !result body) iterator condition)
-        !result)))))
-
-(defmacro foreach (key value collection body) (!keys, !idx, !len) ((lambda ()
-    (def !keys (indexes collection))
-    (def !len (len !keys))
-    (def !idx 0)
-    (if !len (begin
-        (loop 
-            (def key (at !keys (var++ !idx)))
-            (def value (at collection key))
-            body
-            (< !idx !len))
-        value)))))
-
-(defmacro defalias (name keyword) () (defmacro name () () keyword))
-
-(defun // (a b) (floor (/ a b)))
-
-(defmacro swap (a b) (!temp) (begin
-    (def !temp a)
-    (= a b)
-    (= b !temp)))
-
-(defmacro ++ (var) () (= var (+ var 1)))
-(defmacro var++ (var) (!temp) (begin
-    (def !temp var)
-    (= var (+ var 1))
-    !temp))
-
-(defmacro -- (var) () (= var (- var 1)))
-(defmacro var-- (var) (!temp) (begin
-    (def !temp var)
-    (= var (- var 1))
-    !temp))
-
-(defmacro += (var val) () (= var (+ var val)))
-(defmacro -= (var val) () (= var (- var val)))
-(defmacro *= (var val) () (= var (* var val)))
-(defmacro /= (var val) () (= var (/ var val)))
-(defmacro //= (var val) () (= var (// var val)))
-(defmacro %= (var val) () (= var (% var val)))
-(defmacro ^= (var val) () (= var (^ var val)))
-
-(def params (if (hasIndex globals 'params') (at globals 'params') (array)))
-
-(def script-path (program_path))
-
-;(defun gensym () (exec '(defmacro _ () (sym) (quote sym))(_)')) ;; Unquote is needed to make it any usefull
-      " //This one is hardcoded code you can run at start up.
+      prepareCode = ";; Standard Glosure Library"+char(10)+
+        "(defmacro defun (name arguments body) () (def name (lambda arguments body)))"+char(10)+
+        "(defmacro defunction (name arguments body) () (def name (glosure arguments body)))"+char(10)+
+        "(defmacro while (condition body) (!result)"+char(10)+
+        "    (if condition (begin"+char(10)+
+        "        (loop (def !result body) condition)"+char(10)+
+        "        !result)))"+char(10)+
+        "(defmacro do-while (condition body) (!result) (begin"+char(10)+
+        "    (loop (def !result body) condition)"+char(10)+
+        "    !result))"+char(10)+
+        "(defmacro for (initializer condition iterator body) (!result) ((lambda ()"+char(10)+
+        "    initializer"+char(10)+
+        "    (if condition (begin"+char(10)+
+        "        (loop (def !result body) iterator condition)"+char(10)+
+        "        !result)))))"+char(10)+
+        "(defmacro foreach (key value collection body) (!keys, !idx, !len) ((lambda ()"+char(10)+
+        "    (def !keys (indexes collection))"+char(10)+
+        "    (def !len (len !keys))"+char(10)+
+        "    (def !idx 0)"+char(10)+
+        "    (if !len (begin"+char(10)+
+        "        (loop "+char(10)+
+        "            (def key (at !keys (var++ !idx)))"+char(10)+
+        "            (def value (at collection key))"+char(10)+
+        "            body"+char(10)+
+        "            (< !idx !len))"+char(10)+
+        "        value)))))"+char(10)+
+        "(defmacro defalias (name keyword) () (defmacro name () () keyword))"+char(10)+
+        "(defun // (a b) (floor (/ a b)))"+char(10)+
+        "(defmacro swap (a b) (!temp) (begin"+char(10)+
+        "    (def !temp a)"+char(10)+
+        "    (= a b)"+char(10)+
+        "    (= b !temp)))"+char(10)+
+        "(defmacro ++ (var) () (= var (+ var 1)))"+char(10)+
+        "(defmacro var++ (var) (!temp) (begin"+char(10)+
+        "    (def !temp var)"+char(10)+
+        "    (= var (+ var 1))"+char(10)+
+        "    !temp))"+char(10)+
+        "(defmacro -- (var) () (= var (- var 1)))"+char(10)+
+        "(defmacro var-- (var) (!temp) (begin"+char(10)+
+        "    (def !temp var)"+char(10)+
+        "    (= var (- var 1))"+char(10)+
+        "    !temp))"+char(10)+
+        "(defmacro += (var val) () (= var (+ var val)))"+char(10)+
+        "(defmacro -= (var val) () (= var (- var val)))"+char(10)+
+        "(defmacro *= (var val) () (= var (* var val)))"+char(10)+
+        "(defmacro /= (var val) () (= var (/ var val)))"+char(10)+
+        "(defmacro //= (var val) () (= var (// var val)))"+char(10)+
+        "(defmacro %= (var val) () (= var (% var val)))"+char(10)+
+        "(defmacro ^= (var val) () (= var (^ var val)))"+char(10)+
+        "(def params (if (hasIndex globals 'params') (at globals 'params') (array)))"+char(10)+
+        "(def script-path (program_path))"+char(10)+
+        ";(defun gensym () (exec '(defmacro _ () (sym) (quote sym))(_)')) ;; Unquote is needed to make it any usefull" //This one is hardcoded code you can run at start up.
       globals.glosureEnv = Env(GlobalEnv)
       execute(prepareCode, glosureEnv)
     end if
   
-    helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit.
-  Usage: glosure [-e|exec] ""code""  -- execute Glosure code.
-  Glosure interpreter version: 47b5603. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md
-  <b>Warning: This command is a programming language! Your error may result in crash!</b>
-
-  Short reference:
-  (function arg1 arg2 argn) essentially behaves like function(arg1, arg2, argn) in miniscript
-  This language has 7 datatypes, string number list map null are the same as GreyScript string number list map null, glosure means GreyScript function, lambda means a Glosure ""anonymous function""
-  Use 'hi' to repersent a string ""hi""
-  Use 42 to repersent a number 42, true is a predefined variable with a value 1, false is a predefined variable with a value 0.
-  null is a predefined variable with a value null.
-  Use (list 1 2 'a') to repersent a list [1, 2, ""a""]
-  Use (map 'a' 1 'b' 2) to repersent a map {""a"": 1, ""b"": 2}, globals is a predefined map which references the GreyScript globals map.
-  Use (def name 'value') to define a variable name with a value ""value""
-  Use (lambda (arguments) (body)) to define an anonymous lambda expression(aka function), you can bind it to a variable name with syntax like (def square (lambda (x) (* x x))). This is the only native datatype and you should NEVER pass this through API.
-  Use (glosure (arguments) (body)) to define an anonymous glosure(aka GreyScript function), you can bind it to a variable name with syntax like (def square (glosure (x) (* x x))). This is only used for GreyScript interop and you should not use this when you can use lambda instead.
-  Use (while expression statement) to loop without recursion.
-  Use (if expression statement optional_else_statement) to use if or if-else statement.
-  Use (function_name argument_1 argument_2 argument_N) to call a binded lambda or a binded glosure.
-  Use (dot object method_name argument_1 argument_2 argument_N) to access a method under a grey hack object. This is dangerous and can cause crash if used incorrectly, read Manual.exe while using it.
-  (at name index) essentially works like name[index], you can use it on any container.
-  (set name index value) essentially works like name[index] = value, you can use it on any container. It can also used to assign any glosure to host env with globals<b>Warning: Advanced feature are not for people who dont know what they are doing! Your error will very likely result in crash!</b>
-
-  NOTE: lines entered into the REPL will be added to the 'up-arrow' command history"
+    helpMsg = "Usage: glosure -- invoke Glosure REPL, type ;quit to quit."+char(10)+
+  """""""""""""""""""Usage: glosure [-e|exec] ""code""  -- execute Glosure code."+char(10)+
+  "Glosure interpreter version: 47b5603. For a more detailed guide read https://github.com/rocketorbit/Glosure/blob/main/Tutorial.md"+char(10)+
+  "<b>Warning: This command is a programming language! Your error may result in crash!</b>"+char(10)+
+  "Short reference:"+char(10)+
+  "(function arg1 arg2 argn) essentially behaves like function(arg1, arg2, argn) in miniscript"+char(10)+
+  "This language has 7 datatypes, string number list map null are the same as GreyScript string number list map null, glosure means GreyScript function, lambda means a Glosure ""anonymous function"""+char(10)+
+  "Use 'hi' to repersent a string ""hi"""+char(10)+
+  "Use 42 to repersent a number 42, true is a predefined variable with a value 1, false is a predefined variable with a value 0."+char(10)+
+  "null is a predefined variable with a value null."+char(10)+
+  "Use (list 1 2 'a') to repersent a list [1, 2, ""a""]"+char(10)+
+  "Use (map 'a' 1 'b' 2) to repersent a map {""a"": 1, ""b"": 2}, globals is a predefined map which references the GreyScript globals map."+char(10)+
+  "Use (def name 'value') to define a variable name with a value ""value"""+char(10)+
+  "Use (lambda (arguments) (body)) to define an anonymous lambda expression(aka function), you can bind it to a variable name with syntax like (def square (lambda (x) (* x x)))."+char(10)+
+  "-- This is the only native datatype and you should NEVER pass this through API."+char(10)+
+  "Use (glosure (arguments) (body)) to define an anonymous glosure(aka GreyScript function), you can bind it to a variable name with syntax like (def square (glosure (x) (* x x)))."+char(10)+
+  "-- This is only used for GreyScript interop and you should not use this when you can use lambda instead."+char(10)+
+  "Use (while expression statement) to loop without recursion."+char(10)+
+  "Use (if expression statement optional_else_statement) to use if or if-else statement."+char(10)+
+  "Use (function_name argument_1 argument_2 argument_N) to call a binded lambda or a binded glosure."+char(10)+
+  "Use (dot object method_name argument_1 argument_2 argument_N) to access a method under a grey hack object."+char(10)+
+  "-- This is dangerous and can cause crash if used incorrectly, read Manual.exe while using it."+char(10)+
+  "(at name index) essentially works like name[index], you can use it on any container."+char(10)+
+  "(set name index value) essentially works like name[index] = value, you can use it on any container."+char(10)+
+  "-- It can also used to assign any glosure to host env with globals"+char(10)+
+  "<b>Warning: Advanced feature are not for people who dont know what they are doing! Your error will very likely result in crash!</b>"+char(10)+
+  "NOTE: lines entered into the REPL will be added to the 'up-arrow' command history"
     if arg1 == "help" or arg1 == "-h" then return helpMsg
     if arg1 == "-e" or arg1 == "exec" then return execute(arg2, glosureEnv)
     if arg1 == "-E" or arg1 == "eval" then return eval(arg2, glosureEnv)
@@ -1097,7 +1084,7 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
       file = result
       if file.name != "/" then
         // file = file.parent
-        while file and file.name != "/" // File may not exist by now, so .parent() returns null and .name() results in a crash!
+        while typeof(file) == "file" and file.name != "/" // File may not exist by now, so .parent() returns null and .name() results in a crash!
           file = file.parent
         end while
       end if
@@ -1289,33 +1276,29 @@ command.glosure = function(arg1, arg2=0, arg3=0, arg4=0)
   //
   // daemon manager command to support redit0's DaemonManager
 command.dm = function(a,b,c,d)
-	if a == "help" or a == "-h" then return "Daemon Manager || daemons || demons || donuts || pete || repeat
-**
-Definition: a <b>daemon</b>, in 5hell's context, is a command
-that loops until manually terminated. These commands will write to, 
-and monitor, a special file named <b>5hell.d</b> that is generated
-when any new daemon is started, if it doesn't already exist. When a
-particular daemon's entry is removed from this file that daemon
-will stop and that 5hell session will return to it's command prompt.
-The net effect is allowing you to stop these processes without
-having to use "+colorOrange+"ctrl+c"+CT+", which would end the script.
-**
-Note: deleting 5hell.d will <b>terminate all daemons at once</b>
-and is the preferred way of doing so.
-Note: <b>silentclean [-d|-n]</b> and <b>rclean [-d|-n]</b> will
-attempt to clean up 5hell.d, if it exists."+char(10)+
-char(10)+
-colorWhite+"Usage: dm [opt] [opt] -- manage daemon's operating in other terminals
-
-Usage: dm -- print active daemons
-
-Usage dm stop -- terminate a daemon via menu selection
-
-Usage: dm stop [id] -- stop a specific daemon
--- eg: <b>dm stop htop_01</b>
-
-Usage: dm stop all -- stop <b>all</b> daemons
--- deletes 5hell.d"
+	if a == "help" or a == "-h" then return "Daemon Manager || daemons || demons || donuts || pete || repeat"+char(10)+
+    "**"+char(10)+
+    "Definition: a <b>daemon</b>, in 5hell's context, is a command"+char(10)+
+    "that loops until manually terminated. These commands will write to, "+char(10)+
+    "and monitor, a special file named <b>5hell.d</b> that is generated"+char(10)+
+    "when any new daemon is started, if it doesn't already exist. When a"+char(10)+
+    "particular daemon's entry is removed from this file that daemon"+char(10)+
+    "will stop and that 5hell session will return to it's command prompt."+char(10)+
+    "The net effect is allowing you to stop these processes without"+char(10)+
+    "having to use "+colorOrange+"ctrl+c"+CT+", which would end the script."+char(10)+
+    "**"+char(10)+
+    "Note: deleting 5hell.d will <b>terminate all daemons at once</b>"+char(10)+
+    "and is the preferred way of doing so."+char(10)+
+    "Note: <b>silentclean [-d|-n]</b> and <b>rclean [-d|-n]</b> will"+char(10)+
+    "attempt to clean up 5hell.d, if it exists."+char(10)+
+    char(10)+
+    colorWhite+"Usage: dm [opt] [opt] -- manage daemon's operating in other terminals"+char(10)+
+    "Usage: dm -- print active daemons"+char(10)+
+    "Usage: dm stop -- terminate a daemon via menu selection"+char(10)+
+    "Usage: dm stop [id] -- stop a specific daemon"+char(10)+
+    "-- eg: <b>dm stop htop_01</b>"+char(10)+
+    "Usage: dm stop all -- stop <b>all</b> daemons"+char(10)+
+    "-- deletes 5hell.d"
 
 	print colorRed+"<u>"+colorWhite+"- - -</color> D"+colorWhite+"aemon</color> M"+colorWhite+"anager - - -"
 	dmf = command.tree("/","5hell.d","1","N")
@@ -1349,40 +1332,40 @@ end function
 //
 // tws by aksu
 command.tws = function(arg1, arg2=0,arg3=0,arg4=0)
-  tws_usage = "tws || Track While Scan || Lightning fast buffer management
-Quickly display/modify the buffer
-Usage: tws [query] [opt:modes]
--- e.g. tws s | list all shell buffers.
--- operation defaults to list.
-Querying:
--- every letter in a query indicates a filter of some sort
--- filters get or'd together, meaning if a buffer hits any filter, it is operated on
--- user level filters are an exception (see later).
--- s: shell
--- c: computer
--- f: file
--- user level filters can be used to get all buffers of matching permissions
--- user level filters are or'd together, but not with other filters
--- g: guest
--- u: user
--- r: root
--- e.g. tws sr list | List all root shells. Not list of all shells and root buffers
--- a query can be negated with !
--- tws !g | List all non guest buffers
--- cascade filters are filters that expand into multiple filters within a query
--- e.g. U filter will add both ""user"" and ""root"" filters into the query.
--- G: guest and up
--- U: user and up
--- F: file and up
--- C: computer and up
-Modes:
--- l: List buffers.
--- e.g. tws Cu l | List all user level computer and shell buffers
--- p: Removes color formatting from output. Combined with l mode
--- e.g. tws F pl | List all buffers without colors
--- useful if you parse the output later
--- d: Drop buffers.
--- e.g. tws f d | Drop all file buffers."
+  tws_usage = "tws || Track While Scan || Lightning fast buffer management"+char(10)+
+    "Quickly display/modify the buffer"+char(10)+
+    "Usage: tws [query] [opt:modes]"+char(10)+
+    "-- e.g. tws s | list all shell buffers."+char(10)+
+    "-- operation defaults to list."+char(10)+
+    "Querying:"+char(10)+
+    "-- every letter in a query indicates a filter of some sort"+char(10)+
+    "-- filters get or'd together, meaning if a buffer hits any filter, it is operated on"+char(10)+
+    "-- user level filters are an exception (see later)."+char(10)+
+    "-- s: shell"+char(10)+
+    "-- c: computer"+char(10)+
+    "-- f: file"+char(10)+
+    "-- user level filters can be used to get all buffers of matching permissions"+char(10)+
+    "-- user level filters are or'd together, but not with other filters"+char(10)+
+    "-- g: guest"+char(10)+
+    "-- u: user"+char(10)+
+    "-- r: root"+char(10)+
+    "-- e.g. tws sr list | List all root shells. Not list of all shells and root buffers"+char(10)+
+    "-- a query can be negated with !"+char(10)+
+    "-- tws !g | List all non guest buffers"+char(10)+
+    "-- cascade filters are filters that expand into multiple filters within a query"+char(10)+
+    "-- e.g. U filter will add both ""user"" and ""root"" filters into the query."+char(10)+
+    "-- G: guest and up"+char(10)+
+    "-- U: user and up"+char(10)+
+    "-- F: file and up"+char(10)+
+    "-- C: computer and up"+char(10)+
+    "Modes:"+char(10)+
+    "-- l: List buffers."+char(10)+
+    "-- e.g. tws Cu l | List all user level computer and shell buffers"+char(10)+
+    "-- p: Removes color formatting from output. Combined with l mode"+char(10)+
+    "-- e.g. tws F pl | List all buffers without colors"+char(10)+
+    "-- useful if you parse the output later"+char(10)+
+    "-- d: Drop buffers."+char(10)+
+    "-- e.g. tws f d | Drop all file buffers."
   if not arg1 or arg1 == "help" or arg1 == "-h" then
     if not arg2 then
       return tws_usage
