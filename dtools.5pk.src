@@ -1164,35 +1164,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     return action.memory.name
   end function
   action.f1 = function(f)
-    print "-----
-Navigation: [w][a][s][d] or ArrowKeys
-Run|Cat:    [d] or rightArrow - launch bin, open text, scan .so, descend dir
-            -- the binary to run must exist on the active shell object
-Manual  cd: [/] - type path stating with / 
-	        -- the [/] initiates manual entry 
-Select:     [x] - selection buffer; sets item to copy from
-            -- does not tag 4 scpm
-Unselect:   [z] - remove item from selection buffer 
-Paste:      [v] - performs a paste using selection buffer
-	        -- opens a context menu for paste options
-	        ---- options: copy, move, overwrite folder
-Tag 4 scpm  [t] - tag a file for later use with scpm
-Scpm:       [m] - open the SCP Menu
-            -- NOTE: scpm uses shell objects
-	        ---- you must have a shell for both source and destination machines
-Remove:     [r] - deletes a file
-Clr_scrn:   [c] - toggle clear screen or regular view 
-File info:  [f] - get file info/properties for highlighted selection 
-Buffer it:  [b] - send highlighted selection to BUFFER
-Rename:     [n] - rename highlighted selection 
-Perms:      [p] - chmod / perms command
-Gopher:     [g] - run gopher to decipher text file contents
-	
-note: launching binaries via felix does NOT activate glasspool
--- it performs shell.launch on the <b>path</b> of the binary
--- felix runs on <b>file objects</b> and launching requires a shell object
--- it <b>will not run</b> the binary if it is not on the active shell's system
-----"
+    print "-----\nNavigation: [w][a][s][d] or ArrowKeys\nRun|Cat:    [d] or rightArrow - launch bin, open text, scan .so, descend dir\n            -- the binary to run must exist on the active shell object\nManual  cd: [/] - type path stating with /\n	        -- the [/] initiates manual entry\nSelect:     [x] - selection buffer; sets item to copy from\n            -- does not tag 4 scpm\nUnselect:   [z] - remove item from selection buffer\nPaste:      [v] - performs a paste using selection buffer\n	        -- opens a context menu for paste options\n	        ---- options: copy, move, overwrite folder\nTag 4 scpm  [t] - tag a file for later use with scpm\nScpm:       [m] - open the SCP Menu\n            -- NOTE: scpm uses shell objects\n	        ---- you must have a shell for both source and destination machines\nRemove:     [r] - deletes a file\nClr_scrn:   [c] - toggle clear screen or regular view\nFile info:  [f] - get file info/properties for highlighted selection\nBuffer it:  [b] - send highlighted selection to BUFFER\nRename:     [n] - rename highlighted selection\nPerms:      [p] - chmod / perms command\nGopher:     [g] - run gopher to decipher text file contents\n\nnote: launching binaries via felix does NOT activate glasspool\n-- it performs shell.launch on the <b>path</b> of the binary\n-- felix runs on <b>file objects</b> and launching requires a shell object\n-- it <b>will not run</b> the binary if it is not on the active shell's system\n----"
     user_input("press <<b>anyKey</b>> to continue",0,1)
     return f
   end function
