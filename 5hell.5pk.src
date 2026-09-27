@@ -621,6 +621,7 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		if DEBUG then print "debug: pre alpha sort"+char(10)+
 		"-- "+folder.permissions+char(10)+
 		"-- "+subFiles
+		if typeof(subFiles) != "list" then return "ls: permission denied"
 		if a_order then 
 			f_buf = []
 			s_buf = []
@@ -641,6 +642,7 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		subFiles = [folder]
 	end if
 	if DEBUG then print "debug: "+subFiles
+	if typeof(subFiles) != "list" then return "ls: permission denied"
 	for subFile in subFiles
 		line_color = colorWhite+"</b>"
 		nameFile = subFile.name
@@ -1077,15 +1079,18 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 then return "usage: perms [opt:-r] [arg] [path]"+char(10)+"usage: perms lock [all|/path]"
 	if arg1 == "unlock" then 
 		if arg2 == "all" then 
-			print "perms: setting all to o+rwx"
-			command.perms("-R", "o+rwx", "/") 
-			//_ = globals.get_file("/")
+			print "perms: setting all to ugo+rwx"
+			command.perms("-R", "o+rwx", "/")
+			command.perms("-R", "g+rwx", "/")
+			command.perms("-R", "u+rwx", "/")
 			return localmachine.File("/")
 		else 
 			ulf = globals.get_file(arg2)
 			if typeof(ulf) == "file" then 
 				print "perms: unlocking: "+ulf.path
 				command.perms("-R","o+rwx",ulf.path)
+				command.perms("-R","g+rwx",ulf.path)
+				command.perms("-R","u+rwx",ulf.path)
 				return ulf
 			else 
 				return "perms: "+arg2+" not found"
@@ -1099,6 +1104,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 			command.perms("-r", "o-rwx", "/")
 			command.perms("-r", "g-rwx", "/")
 			command.perms("-r", "u-rwx", "/")
+
 			home = null 
 
 			if is_home == true then
@@ -1763,10 +1769,10 @@ command.enum = function(arg1, arg2=0, arg3=0, arg4=0)
 	"---- enumerate file objects for all .txt's, delete them, then purge"+char(10)+
 	"------ <size=75%>purging is necessary as the now invalid file objects can cause a crash"+char(10)+
 	"-- use macros that make use of <b>@pipe</B> for best results"+char(10)+
-	"--eg:
-	|> <b>set mem [some_address] || set val [some_val] || meta load [some_lib]
-	|> <b>macro set pwn "" zap \@o mem \@o val @pipe | sc -n ""
-	|> <b>lanpro | enum -d pwn"+char(10)+
+	"--eg:"+char(10)+
+	"|> <b>set mem [some_address] || set val [some_val] || meta load [some_lib]"+char(10)+
+	"|> <b>macro set pwn "" zap \@o mem \@o val @pipe | sc -n """+char(10)+
+	"|> <b>lanpro | enum -d pwn"+char(10)+
 	"---- this rather complicated operation would result in nuking all machines on a lan<b> if:"+char(10)+
 	"------ it were run <b>on a router</b> against some_lib with a root bounce exploit"+char(10)+
 	"------ the values for the root bounce exploit were set appropriately for mem and val"+char(10)+		
