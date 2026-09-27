@@ -76,127 +76,127 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 		return null
 	end if
 
-    help_summary = "air  - open the air suite menu for wifi cracking
-    append - add text to the end of a file's contents or the clipboard
-    aptm - open the apt-get menu. also has cli options
-    bios - display system information or manipulate system objects
-    brutus - brute force get_shell. escalation tool. req: cerebrum
-    buffer - add anything to the buffer. supports all data types
-    cad - cloak and dagger. produces a poisoned ps.src
-    calc - calculator tools. includes padic representation tool
-    cat - display text file contents. pipe to poke for concatenation
-    cc - carbon copy. invoke previous command from cli or menu
-    cd - change directory
-    cerebrum - magnum cerebrum. creates or imports onboard dictionary
-    chop - a kinda weird way to slice/split text (wip)
-    clear - clear the screen
-    clipa - alpha clipboard space. stores any data type
-    clipb - beta clipboard space. stores any data type    
-    clipc - gamma clipboard space. stores any data type
-    cname - returns the name of the active computer
-    cob - custom object tools. essential tool 
-    code - multi-tool: ciphers, decompiler, char codes, function exec
-    cp - copy file. respects glasspool
-    credits - gratitude
-    curl - attempt to fetch website.html from piped object
-    db - dbaser. the databaser tool. essential tool
-    dfit - mothballed 'dictionary maker' tool
-    diff - compare two text files. useful for zero day puzzle
-    dig - dynamic infiltration gremlin. scriptable autohacker
-    dm - daemon manager. manages daemons
-    do - loop commands x times. supports strings and batch files
-    echo - returns it's input. useful for scripting
-    enum - list enumeration and interation tool. built in 'do'
-    fakepass - produces poisoned passwd.src
-    felix - file explorer
-    fetch - grab metaxploit object or log file from a shell
-    file - cli file information tool. supports encrypt/decrypt
-    flood - spam a file x times
-    fwr - obtain firewall rules from an ip
-    games - play blackjack, battleship, and Drug Wars
-    glasspool - glasspool mimic. shell/computer mirroring; essential
-    glosure - LISP like language for arbitrary runtime code execution      
-    gopher - hash cracker. supports strings and files. stores results
-    grep - lightweight global regex printer. supports piped objects
-    grp - view or change group params of users and files
-    hashim - hash cracker daemon. stores results
-    help - searchable help system for 5hell
-    htop - process monitor daemon
-    if - unintuitive but useful if statement processor
-    ifconfig - wireless and ethernet cli interface configuration
-    infil - upload rkit to a target and run 5hell
-    ipfit - create a string of random ip addresses for piping
-    iwlist - view nearby wireless network essid, bssid, and pwr
-    jtr - lightweight john the ripper random password generator
-    kill - terminate one or more processes by name or pid 
-    kore - goddes of the dead, underworld, grain, and guide to 5hell
-    kraken - batch rental proxy management. not meant for npc nets!!
-    lanpro - obtain a string of lan ips on a network  
-    liber - obtain metalib version info for a file or folder
-    linkdb - load exploits from a database without linking a metalib
-    lock - secure a system's permissions. uses anti-brick technology
-    ls - list files in a folder
-    macro - create macros to perform complex tasks with a single command
-    mail - herme5 mail system. supports login brute force
-    make - build a .src file
-    makfit - rebuild a .src until it's binary is under x bytes       
-    malp - memory alpha. object storage and management; essential
-    md5 - create or decipher a hash string without storing result
-    memdump - dump major memory objects to file
-    merge - append the contents of file b to the bottom of file a
-    meta - metalib and metaxploit management tool; essential    
-    mkdir - make directory 
-    mv - move or overwrite a file or folder
-    netdump - dump net session data     
-    nsl - name server lookup. fetch ip for domain and vice versa
-    nt - open a new terminal window
-    osint - open source intelligence. find an email
-    outmon - monitor a file for changes (mothballed)
-    passwd - change a user's password
-    pause - pause script execution until a condition is met
-    perms - alter file permissions. includes a few presets
-    ping - check to see if an ip responds. marginal actual use        
-    pipe - how piping works. piping itself is not a command
-    poke - create/confirm a file. supports piping text into it
-    porter - search a piped list of ips for a specific port
-    probe - network probe. sumiltanious whois, fwr, lanpro, port info
-    prox - tunnel through proxy nets to endpoint and start_terminal
-    ps - list processes. highlights dsession, ps, 5hell
-    psudo - not-quite-sudo. get_shell and start_terminal tools
-    purge - session memory wipe tool. aka: the unbufferer       
-    pwd - print working directory
-    pwgen - markov generator. writes password or hash:password files
-    quit - exit
-    rclean - remote clean. copy-over a system.log on a piped object
-    reboot - reboot the machine
-    rm - remove a file or folder
-    rnip - produce a pipable string of random ips (for porter)
-    roil - fire all known exploits at a linked metalib at once        
-    rshell - place a reverse shell backdoor on a local machine
-    rsi - server to manage the above reverse shell backdoors
-    run - launch an external binary. session is preserved
-    scpm - scp menu. menu and cli upload/download management
-    scribus - lightweight, MUD style, text editor tool
-    scrub - shorcut to use kraken to clean all proxy system.logs
-    shell - print information about the active session
-    silentclean - scrub log using mv. returns 1 on success 
-    sl - symlink management tool
-    smtp - returns email info from an smtp server
-    sniff - wait for ssh connections and print connection info
-    sphinx - menu based hacking multi-tool
-    ssh - secure shell connection. supports brute force login
-    string - advanced string management tool
-    target - set target ip and port used by various commands
-    tdump - dump the transmission buffer (hashes) to file       
-    time - return up-time, game time, or game time and date
-    transmit - send information to a hashim server via ssh
-    tree - recursive ls. adds hashes found to transmission buffer
-    tws - track while scanning. advanced BUFFEr querying
-    usr - add and remove users from a system
-    whoami - returns active user (or best guess in glasspool)
-    whois - return brief network info on a given ip or domain
-    zap - fire a single attack from a list of known exploits   
-    zc - zero chill. zero day assistant tool"
+    help_summary = "air  - open the air suite menu for wifi cracking"+char(10)+
+    "append - add text to the end of a file's contents or the clipboard"+char(10)+
+    "aptm - open the apt-get menu. also has cli options"+char(10)+
+    "bios - display system information or manipulate system objects"+char(10)+
+    "brutus - brute force get_shell. escalation tool. req: cerebrum"+char(10)+
+    "buffer - add anything to the buffer. supports all data types"+char(10)+
+    "cad - cloak and dagger. produces a poisoned ps.src"+char(10)+
+    "calc - calculator tools. includes padic representation tool"+char(10)+
+    "cat - display text file contents. pipe to poke for concatenation"+char(10)+
+    "cc - carbon copy. invoke previous command from cli or menu"+char(10)+
+    "cd - change directory"+char(10)+
+    "cerebrum - magnum cerebrum. creates or imports onboard dictionary"+char(10)+
+    "chop - a kinda weird way to slice/split text (wip)"+char(10)+
+    "clear - clear the screen"+char(10)+
+    "clipa - alpha clipboard space. stores any data type"+char(10)+
+    "clipb - beta clipboard space. stores any data type"+char(10)+
+    "clipc - gamma clipboard space. stores any data type"+char(10)+
+    "cname - returns the name of the active computer"+char(10)+
+    "cob - custom object tools. essential tool "+char(10)+
+    "code - multi-tool: ciphers, decompiler, char codes, function exec"+char(10)+
+    "cp - copy file. respects glasspool"+char(10)+
+    "credits - gratitude"+char(10)+
+    "curl - attempt to fetch website.html from piped object"+char(10)+
+    "db - dbaser. the databaser tool. essential tool"+char(10)+
+    "dfit - mothballed 'dictionary maker' tool"+char(10)+
+    "diff - compare two text files. useful for zero day puzzle"+char(10)+
+    "dig - dynamic infiltration gremlin. scriptable autohacker"+char(10)+
+    "dm - daemon manager. manages daemons"+char(10)+
+    "do - loop commands x times. supports strings and batch files"+char(10)+
+    "echo - returns it's input. useful for scripting"+char(10)+
+    "enum - list enumeration and interation tool. built in 'do'"+char(10)+
+    "fakepass - produces poisoned passwd.src"+char(10)+
+    "felix - file explorer"+char(10)+
+    "fetch - grab metaxploit object or log file from a shell"+char(10)+
+    "file - cli file information tool. supports encrypt/decrypt"+char(10)+
+    "flood - spam a file x times"+char(10)+
+    "fwr - obtain firewall rules from an ip"+char(10)+
+    "games - play blackjack, battleship, and Drug Wars"+char(10)+
+    "glasspool - glasspool mimic. shell/computer mirroring; essential"+char(10)+
+    "glosure - LISP like language for arbitrary runtime code execution"+char(10)+
+    "gopher - hash cracker. supports strings and files. stores results"+char(10)+
+    "grep - lightweight global regex printer. supports piped objects"+char(10)+
+    "grp - view or change group params of users and files"+char(10)+
+    "hashim - hash cracker daemon. stores results"+char(10)+
+    "help - searchable help system for 5hell"+char(10)+
+    "htop - process monitor daemon"+char(10)+
+    "if - unintuitive but useful if statement processor"+char(10)+
+    "ifconfig - wireless and ethernet cli interface configuration"+char(10)+
+    "infil - upload rkit to a target and run 5hell"+char(10)+
+    "ipfit - create a string of random ip addresses for piping"+char(10)+
+    "iwlist - view nearby wireless network essid, bssid, and pwr"+char(10)+
+    "jtr - lightweight john the ripper random password generator"+char(10)+
+    "kill - terminate one or more processes by name or pid "+char(10)+
+    "kore - goddes of the dead, underworld, grain, and guide to 5hell"+char(10)+
+    "kraken - batch rental proxy management. not meant for npc nets!!"+char(10)+
+    "lanpro - obtain a string of lan ips on a network  "+char(10)+
+    "liber - obtain metalib version info for a file or folder"+char(10)+
+    "linkdb - load exploits from a database without linking a metalib"+char(10)+
+    "lock - secure a system's permissions. uses anti-brick technology"+char(10)+
+    "ls - list files in a folder"+char(10)+
+    "macro - create macros to perform complex tasks with a single command"+char(10)+
+    "mail - herme5 mail system. supports login brute force"+char(10)+
+    "make - build a .src file"+char(10)+
+    "makfit - rebuild a .src until it's binary is under x bytes"+char(10)+
+    "malp - memory alpha. object storage and management; essential"+char(10)+
+    "md5 - create or decipher a hash string without storing result"+char(10)+
+    "memdump - dump major memory objects to file"+char(10)+
+    "merge - append the contents of file b to the bottom of file a"+char(10)+
+    "meta - metalib and metaxploit management tool; essential    "+char(10)+
+    "mkdir - make directory "+char(10)+
+    "mv - move or overwrite a file or folder"+char(10)+
+    "netdump - dump net session data"+char(10)+
+    "nsl - name server lookup. fetch ip for domain and vice versa"+char(10)+
+    "nt - open a new terminal window"+char(10)+
+    "osint - open source intelligence. find an email"+char(10)+
+    "outmon - monitor a file for changes (mothballed)"+char(10)+
+    "passwd - change a user's password"+char(10)+
+    "pause - pause script execution until a condition is met"+char(10)+
+    "perms - alter file permissions. includes a few presets"+char(10)+
+    "ping - check to see if an ip responds. marginal actual use"+char(10)+
+    "pipe - how piping works. piping itself is not a command"+char(10)+
+    "poke - create/confirm a file. supports piping text into it"+char(10)+
+    "porter - search a piped list of ips for a specific port"+char(10)+
+    "probe - network probe. sumiltanious whois, fwr, lanpro, port info"+char(10)+
+    "prox - tunnel through proxy nets to endpoint and start_terminal"+char(10)+
+    "ps - list processes. highlights dsession, ps, 5hell"+char(10)+
+    "psudo - not-quite-sudo. get_shell and start_terminal tools"+char(10)+
+    "purge - session memory wipe tool. aka: the unbufferer"+char(10)+
+    "pwd - print working directory"+char(10)+
+    "pwgen - markov generator. writes password or hash:password files"+char(10)+
+    "quit - exit"+char(10)+
+    "rclean - remote clean. copy-over a system.log on a piped object"+char(10)+
+    "reboot - reboot the machine"+char(10)+
+    "rm - remove a file or folder"+char(10)+
+    "rnip - produce a pipable string of random ips (for porter)"+char(10)+
+    "roil - fire all known exploits at a linked metalib at once"+char(10)+
+    "rshell - place a reverse shell backdoor on a local machine"+char(10)+
+    "rsi - server to manage the above reverse shell backdoors"+char(10)+
+    "run - launch an external binary. session is preserved"+char(10)+
+    "scpm - scp menu. menu and cli upload/download management"+char(10)+
+    "scribus - lightweight, MUD style, text editor tool"+char(10)+
+    "scrub - shorcut to use kraken to clean all proxy system.logs"+char(10)+
+    "shell - print information about the active session"+char(10)+
+    "silentclean - scrub log using mv. returns 1 on success "+char(10)+
+    "sl - symlink management tool"+char(10)+
+    "smtp - returns email info from an smtp server"+char(10)+
+    "sniff - wait for ssh connections and print connection info"+char(10)+
+    "sphinx - menu based hacking multi-tool"+char(10)+
+    "ssh - secure shell connection. supports brute force login"+char(10)+
+    "string - advanced string management tool"+char(10)+
+    "target - set target ip and port used by various commands"+char(10)+
+    "tdump - dump the transmission buffer (hashes) to file"+char(10)+
+    "time - return up-time, game time, or game time and date"+char(10)+
+    "transmit - send information to a hashim server via ssh"+char(10)+
+    "tree - recursive ls. adds hashes found to transmission buffer"+char(10)+
+    "tws - track while scanning. advanced BUFFEr querying"+char(10)+
+    "usr - add and remove users from a system"+char(10)+
+    "whoami - returns active user (or best guess in glasspool)"+char(10)+
+    "whois - return brief network info on a given ip or domain"+char(10)+
+    "zap - fire a single attack from a list of known exploits"+char(10)+
+    "zc - zero chill. zero day assistant tool"
 
 	help_conventions = "<b>CONVENTIONS</b>"+char(10)+"While a great deal of 5hell is discordant, there are some conventions:"+char(10)+char(10)+
 	"You may toggle the full prompt and minimal promt by typing: "+char(10)+
@@ -1940,261 +1940,32 @@ end function
       
       logo = ["D","R","U","G","W","A","R","S"]
       
-      officerHardassSprite = "
-                            _______________
-                            \      __      /         __
-                             \_____()_____/         /  )
-                             '============`        /  /
-                              #---\  /---#        /  /
-                             (# @\| |/@  #)      /  /
-                              \   (_)   /       /  /
-                              |\ '---` /|      /  /
-                      _______/ \\_____// \____/ o_|
-                     /       \  /     \  /   / o_|
-                    /|           o|        / o_| \
-                   / |  _____     |       / /   \ \
-                  /  |  |===|    o|      / /\    \ \
-                 |   |   \@/      |     / /  \    \ \
-                 |   |___________o|__/----)   \    \/
-                 |   '              ||  --)    \     |
-                 |__________________||  --)     \    /
-                     |           o|   ''''   |   \__/
-                     |            |          |
-                       ""Officer Hardass"" Img by Rosebud"
-      
-      
-                                              
-      deaSprite = "
-         Art by Joan G. Stark
-                 _.---._
-              .-' ((O)) '-.
-               \ _.\_/._ /
-                /..___..\
-                ;-.___.-;
-               (| e ) e |)     .;.
-                \  /_   /      ||||
-                _\__-__/_    (\|'-|
-              /` / \V/ \ `\   \ )/
-             /   \  Y  /   \  /=/
-            /  |  \ | / {}  \/ /
-           /  /|   `|'   |\   /
-           \  \|    |.   | \_/
-            \ /\    |.   |
-             \_/\   |.   |
-             /)_/   |    |
-            // ',__.'.__,'
-           //   |   |   |
-          //    |   |   |
-         (/     |   |   |
-                |   |   |
-                | _ | _ |
-                |   |   |
-                |   |   |
-                |   |   |
-          jgs   |___|___|
-                /  J L  \
-               (__/   \__)"
-      
-      
-                      fbiSprite = "
-                      FBI
-                              _ _.-'`-._ _
-                              ;.'________'.;
-                  _________n.[____________].n_________
-                  |''_''_''_''||==||==||==||''_''_''_'']
-                  |'''''''''''||..||..||..||'''''''''''|
-                  |LI LI LI LI||LI||LI||LI||LI LI LI LI|
-                  |.. .. .. ..||..||..||..||.. .. .. ..|
-                  |LI LI LI LI||LI||LI||LI||LI LI LI LI|
-              ,,;;,;;;,;;;,;;;,;;;,;;;,;;;,;;,;;;,;;;,;;,,
-              ;;jgs;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                      "
-      
-      
-      
-                      elGuapoSprite = "
-                      .------\ /------.
-                      |       -       |
-                      |               |
-                      |               |
-                      |               |
-                   _______________________
-                   ===========.===========
-                     / ~~~~~     ~~~~~ \
-                    /|     |     |\
-                    W   ---  / \  ---   W
-                    \.      |o o|      ./
-                     |                 |
-                     \    #########    /
-                      \  ## ----- ##  /
-                       \##         ##/
-                        \_____v_____/"
-      
-      
-              rabbitSprite = "
-                       ____...                                  
-                .-'--''''.__    `.                                
-               |            `    |                                
-      (         `._....------.._.:          
-      )         .()''        ``().                                
-      '          () .=='  `===  `-.         
-      . )       (         g)                                
-      )         )     /        J          
-      (          |.   /      . (                                  
-      $$         (.  (_'.   , )|`                                 
-      ||         |\`-....--'/  ' \                                
-      /||.         \\ | | | /  /   \.                              
-      //||(\         \`-===-'  '     \o.                            
-      .//7' |)         `. --   / (     OObaaaad888b.                 
-      (<<. / |     .a888b`.__.'d\     OO888888888888a.               
-      \  Y' |    .8888888aaaa88POOOOOO888888888888888.              
-      \  \ |   .888888888888888888888888888888888888b              
-      |   |  .d88888P88888888888888888888888b8888888.             
-      b.--d .d88888P8888888888888888a:f888888|888888b             
-      88888b 888888|8888888888888888888888888\8888888"
-      
-      
-      
-      downTownSprite = "
-              __   __                     ___      _
-             |  | |  |      /|           |   |   _/ \_
-             |  | |  |  _  | |__         |   |_-/     \-_     _
-           __|  | |  |_| | | |  |/\_     |   |  \     /  |___|
-          |  |  | |  | | __| |  |   |_   |   |   |___|   |   |
-          |  |  |^|  | ||  | |  |   | |__|   |   |   |   |   |
-          |  |  |||  | ||  | |  |   | /\ |   |   |   |   |   |
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~/  \~~~~~~~~~~~~~~~~~~~~~~~
-         ~ ~~  ~ ~~ ~~~ ~ ~ ~~ ~~ ~~ \   \__   ~  ~  ~~~~ ~~~ ~~
-       ~~ ~ ~ ~~~ ~~  ~~ ~~~~~~~~~~ ~ \   \o\  ~~ ~ ~~~~ ~ ~ ~~~
-         ~ ~~~~~~~~ ~ ~ ~~ ~ ~ ~ ~ ~~~ \   \o\=   ~~ ~~  ~~ ~ ~~
-      ~ ~ ~ ~~~~~~~ ~  ~~ ~~ ~ ~~ ~ ~ ~~ ~ ~ ~~ ~~~ ~ ~ ~ ~ ~~~~"
-      
-      
-      villaSprite = "
-                             X_x
-                            / \\\
-                            |n| |
-                          )(|_|-'X
-                         /  \\Y// \
-                         |A | | |A|
-                         |  | | |_|
-                  )(__X,,|__|MEB;;;-,)(,
-                 /  \\\;;;;;;;;;;;;/    \
-                 |A | |            | U  |
-               )_|  | |____)-----( |    |
-              ///|__|-'////       \|___)=(__X
-             /////////////         \///   \/ \
-             |           |  U    U |//     \u|
-             |   )_,-,___|_)=(     | |  U  |_|_X
-             |  ///   \\|//   \    | |  __ |/// \
-           )_')(//     \Y/     >---)=( /  \|  | |-----------------..,
-          //// ,\ u   u |   u /////   \|  ||__|A|----------------.., \,
-         |  | .. |      |    ///// ,-, \__||--------------------.., \, \,
-      ---'--'_::_|______'----| u | | | |-----------------------.., \, \, \,
-                             |___|_|_|_|----------------------.., \, \, \, \,
-      -------------------------------------------------------.., \, \, \, \, \
-                                                                        \Valkyrie"
-      
-      
-      gcccSprite = "
-                                                                |>>>
-                         _                      _                |
-          ____________ .' '.    _____/----/-\ .' './========\   / \
-         //// ////// /V_.-._\  |.-.-.|===| _ |-----| u    u |  /___\
-        // /// // ///==\ u |.  || | ||===||||| |T| |   ||   | .| u |_ _ _ _ _ _
-       ///////-\////====\==|:::::::::::::::::::::::::::::::::::|u u| U U U U U
-       |----/\u |--|++++|..|'''''''''''::::::::::::::''''''''''|+++|+-+-+-+-+-+
-       |u u|u | |u ||||||..|              '::::::::'           |===|>=== _ _ ==
-       |===|  |u|==|++++|==|              .::::::::.           | T |....| V |..
-       |u u|u | |u ||HH||         \|/    .::::::::::.
-       |===|_.|u|_.|+HH+|_              .::::::::::::.              _
-                      __(_)___         .::::::::::::::.         ___(_)__
-      ---------------/  / \  /|       .:::::;;;:::;;:::.       |\  / \  \-------
-      ______________/_______/ |      .::::::;;:::::;;:::.      | \_______\________
-      |       |     [===  =] /|     .:::::;;;::::::;;;:::.     |\ [==  = ]   |
-      |_______|_____[ = == ]/ |    .:::::;;;:::::::;;;::::.    | \[ ===  ]___|____
-           |       |[  === ] /|   .:::::;;;::::::::;;;:::::.   |\ [=  ===] |
-      _____|_______|[== = =]/ |  .:::::;;;::::::::::;;;:::::.  | \[ ==  =]_|______
-       |       |    [ == = ] /| .::::::;;:::::::::::;;;::::::. |\ [== == ]      |
-      _|_______|____[=  == ]/ |.::::::;;:::::::::::::;;;::::::.| \[  === ]______|_
-         |       |  [ === =] /.::::::;;::::::::::::::;;;:::::::.\ [===  =]   |
-      ___|_______|__[ == ==]/.::::::;;;:::::::::::::::;;;:::::::.\[=  == ]___|_____"
-      
-      shabbyTownSprite = "
-                    )
-                   (      _[]_         (
-           __[]___[]___[]/____\_[]_    )
-          /______________|[][]|____\  (
-          |[][]|[][]|[][]|[][]|[][]|__[]_
-          |  /\|/\  |  /\|  /\|/\  |_____\
-          |[]|||||[]|[]|||[]|||||[]|[_]|||
-        ===================================
-        -  -  -  -  -  -  -  -  -  -  -  -  -
-      =========================================   Tom Harvey"
-      
-      districtSprite = "
-                        \  |  /         ___________
-         ____________  \ \_# /         |  ___      |       _________
-        |            |  \  #/          | |   |     |      | = = = = |
-        | |   |   |  |   \\#           | |`v'|     |      |         |
-        |            |    \#  //       |  --- ___  |      | |  || | |
-        | |   |   |  |     #_//        |     |   | |      |         |
-        |            |  \\ #_/_______  |     |   | |      | |  || | |
-        | |   |   |  |   \\# /_____/ \ |      ---  |      |         |
-        |            |    \# |+ ++|  | |  |~~~~~~| |      | |  || | |
-        |            |    \# |+ ++|  | |  |~~~~~~| |      | |  || | |
-      ~~|    (~~~~~) |~~~~~#~| H  |_ |~|  | |||| | |~~~~~~|         |
-        |    ( ||| ) |     # ~~~~~~    |  | |||| | |      | ||||||| |
-        ~~~~~~~~~~~~~________/  /_____ |  | |||| | |      | ||||||| |
-                                       ~~~~~~~~~~~~~      | ||||||| |"
-      
-      
-      shadyAcresSprite = "
-        ~         ~~          __
-             _T      .,,.    ~--~ ^^
-       ^^   // \                    ~
-            ][O]    ^^      ,-~ ~
-         /''-I_I         _II____
-      __/_  /   \ ______/ ''   /'\_,__
-        | II--'''' \,--:--..,_/,.-{ },
-      ; '/__\,.--';|   |[] .-.| O{ _ }
-      :' |  | []  -|   ''--:.;[,.'\,/
-      '  |[]|,.--'' '',   ''-,.    |
-        ..    ..-''    ;       ''. '  Steven Maddison"
-      
-      lasGreygasSprite = "
-                                       .''.
-             .''.             *''*    :_\/_:     . 
-            :_\/_:   .    .:.*_\/_*   : /\ :  .'.:.'.
-        .''.: /\ : _\(/_  ':'* /\ *  : '..'.  -=:o:=-
-       :_\/_:'.:::. /)\*''*  .|.* '.\'/.'_\(/_'.':'.'
-       : /\ : :::::  '*_\/_* | |  -= o =- /)\    '  *
-        '..'  ':::'   * /\ * |'|  .'/.\'.  '._____
-            *        __*..* |  |     :      |.   |' .---'|
-             _*   .-'   '-. |  |     .--'|  ||   | _|    |
-          .-'|  _.|  |    ||   '-__  |   |  |    ||      |
-          |' | |.    |    ||       | |   |  |    ||      |
-       ___|  '-'     '    ''      '-'   '-.'    '`      |____
-      jgs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      "
-      capitolSprite = "
-                                   ^
-                      _______     ^^^
-                     |xxxxxxx|  _^^^^^_
-                     |xxxxxxx| | [][]  |
-                  ______xxxxx| |[][][] |
-                 |++++++|xxxx| | [][][]|      
-                 |++++++|xxxx| |[][][] |
-                 |++++++|_________ [][]|
-                 |++++++|=|=|=|=|=| [] |
-                 |++++++|=|=|=|=|=|[][]|
-      ___________|++HH++|  _HHHH__|   _________   _________  _________
-               _______________   ______________      ______________
-      __________________  ___________    __________________    ____________"
-      
-      
-      
-      
+      officerHardassSprite = "\n                            _______________\n                            \      __      /         __\n                             \_____()_____/         /  )\n                             '============`        /  /\n                              #---\  /---#        /  /\n                             (# @\| |/@  #)      /  /\n                              \   (_)   /       /  /\n                              |\ '---` /|      /  /\n                      _______/ \\_____// \____/ o_|\n                     /       \  /     \  /   / o_|\n                    /|           o|        / o_| \\n                   / |  _____     |       / /   \ \\n                  /  |  |===|    o|      / /\    \ \\n                 |   |   \@/      |     / /  \    \ \\n                 |   |___________o|__/----)   \    \/\n                 |   '              ||  --)    \     |\n                 |__________________||  --)     \    /\n                     |           o|   ''''   |   \__/\n                     |            |          |\n                       ""Officer Hardass"" Img by Rosebud"
+      //                                                  
+      deaSprite = "\n         Art by Joan G. Stark\n                 _.---._\n              .-' ((O)) '-.\n               \ _.\_/._ /\n                /..___..\\n                ;-.___.-;\n               (| e ) e |)     .;.\n                \  /_   /      ||||\n                _\__-__/_    (\|'-|\n              /` / \V/ \ `\   \ )/\n             /   \  Y  /   \  /=/\n            /  |  \ | / {}  \/ /\n           /  /|   `|'   |\   /\n           \  \|    |.   | \_/\n            \ /\    |.   |\n             \_/\   |.   |\n             /)_/   |    |\n            // ',__.'.__,'\n           //   |   |   |\n          //    |   |   |\n         (/     |   |   |\n                |   |   |\n                | _ | _ |\n                |   |   |\n                |   |   |\n                |   |   |\n          jgs   |___|___|\n                /  J L  \\n               (__/   \__)"
+      //   
+      fbiSprite = "\n                      FBI\n                              _ _.-'`-._ _\n                              ;.'________'.;\n                  _________n.[____________].n_________\n                  |''_''_''_''||==||==||==||''_''_''_'']\n                  |'''''''''''||..||..||..||'''''''''''|\n                  |LI LI LI LI||LI||LI||LI||LI LI LI LI|\n                  |.. .. .. ..||..||..||..||.. .. .. ..|\n                  |LI LI LI LI||LI||LI||LI||LI LI LI LI|\n              ,,;;,;;;,;;;,;;;,;;;,;;;,;;;,;;,;;;,;;;,;;,,\n              ;;jgs;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n"
+      //
+      elGuapoSprite = "\n                      .------\ /------.\n                      |       -       |\n                      |               |\n                      |               |\n                      |               |\n                   _______________________\n                   ===========.===========\n                     / ~~~~~     ~~~~~ \\n                    /|     |     |\\n                    W   ---  / \  ---   W\n                    \.      |o o|      ./\n                     |                 |\n                     \    #########    /\n                      \  ## ----- ##  /\n                       \##         ##/\n                        \_____v_____/"
+      //
+      rabbitSprite = "\n                       ____...\n                .-'--''''.__    `.\n               |            `    |\n      (         `._....------.._.:\n      )         .()''        ``().\n      '          () .=='  `===  `-.\n      . )       (         g)\n      )         )     /        J\n      (          |.   /      . (\n      $$         (.  (_'.   , )|`\n      ||         |\`-....--'/  ' \\n      /||.         \\ | | | /  /   \.\n      //||(\         \`-===-'  '     \o.\n      .//7' |)         `. --   / (     OObaaaad888b.\n      (<<. / |     .a888b`.__.'d\     OO888888888888a.\n      \  Y' |    .8888888aaaa88POOOOOO888888888888888.\n      \  \ |   .888888888888888888888888888888888888b\n      |   |  .d88888P88888888888888888888888b8888888.\n      b.--d .d88888P8888888888888888a:f888888|888888b\n      88888b 888888|8888888888888888888888888\8888888"
+      //
+      downTownSprite = "\n              __   __                     ___      _\n             |  | |  |      /|           |   |   _/ \_\n             |  | |  |  _  | |__         |   |_-/     \-_     _\n           __|  | |  |_| | | |  |/\_     |   |  \     /  |___|\n          |  |  | |  | | __| |  |   |_   |   |   |___|   |   |\n          |  |  |^|  | ||  | |  |   | |__|   |   |   |   |   |\n          |  |  |||  | ||  | |  |   | /\ |   |   |   |   |   |\n          ~~~~~~~~~~~~~~~~~~~~~~~~~~~/  \~~~~~~~~~~~~~~~~~~~~~~~\n         ~ ~~  ~ ~~ ~~~ ~ ~ ~~ ~~ ~~ \   \__   ~  ~  ~~~~ ~~~ ~~\n       ~~ ~ ~ ~~~ ~~  ~~ ~~~~~~~~~~ ~ \   \o\  ~~ ~ ~~~~ ~ ~ ~~~\n         ~ ~~~~~~~~ ~ ~ ~~ ~ ~ ~ ~ ~~~ \   \o\=   ~~ ~~  ~~ ~ ~~\n      ~ ~ ~ ~~~~~~~ ~  ~~ ~~ ~ ~~ ~ ~ ~~ ~ ~ ~~ ~~~ ~ ~ ~ ~ ~~~~"
+      //
+      villaSprite = "\n                             X_x\n                            / \\\\n                            |n| |\n                          )(|_|-'X\n                         /  \\Y// \\n                         |A | | |A|\n                         |  | | |_|\n                  )(__X,,|__|MEB;;;-,)(,\n                 /  \\\;;;;;;;;;;;;/    \\n                 |A | |            | U  |\n               )_|  | |____)-----( |    |\n              ///|__|-'////       \|___)=(__X\n             /////////////         \///   \/ \\n             |           |  U    U |//     \u|\n             |   )_,-,___|_)=(     | |  U  |_|_X\n             |  ///   \\|//   \    | |  __ |/// \\n           )_')(//     \Y/     >---)=( /  \|  | |-----------------..,\n          //// ,\ u   u |   u /////   \|  ||__|A|----------------.., \,\n         |  | .. |      |    ///// ,-, \__||--------------------.., \, \,\n      ---'--'_::_|______'----| u | | | |-----------------------.., \, \, \,\n                             |___|_|_|_|----------------------.., \, \, \, \,\n      -------------------------------------------------------.., \, \, \, \, \\n                                                                        \Valkyrie"
+      //
+      gcccSprite = "\n                                                                |>>>\n                         _                      _                |\n          ____________ .' '.    _____/----/-\ .' './========\   / \\n         //// ////// /V_.-._\  |.-.-.|===| _ |-----| u    u |  /___\\n        // /// // ///==\ u |.  || | ||===||||| |T| |   ||   | .| u |_ _ _ _ _ _\n       ///////-\////====\==|:::::::::::::::::::::::::::::::::::|u u| U U U U U\n       |----/\u |--|++++|..|'''''''''''::::::::::::::''''''''''|+++|+-+-+-+-+-+\n       |u u|u | |u ||||||..|              '::::::::'           |===|>=== _ _ ==\n       |===|  |u|==|++++|==|              .::::::::.           | T |....| V |..\n       |u u|u | |u ||HH||         \|/    .::::::::::.\n       |===|_.|u|_.|+HH+|_              .::::::::::::.              _\n                      __(_)___         .::::::::::::::.         ___(_)__\n      ---------------/  / \  /|       .:::::;;;:::;;:::.       |\  / \  \-------\n      ______________/_______/ |      .::::::;;:::::;;:::.      | \_______\________\n      |       |     [===  =] /|     .:::::;;;::::::;;;:::.     |\ [==  = ]   |\n      |_______|_____[ = == ]/ |    .:::::;;;:::::::;;;::::.    | \[ ===  ]___|____\n           |       |[  === ] /|   .:::::;;;::::::::;;;:::::.   |\ [=  ===] |\n      _____|_______|[== = =]/ |  .:::::;;;::::::::::;;;:::::.  | \[ ==  =]_|______\n       |       |    [ == = ] /| .::::::;;:::::::::::;;;::::::. |\ [== == ]      |\n      _|_______|____[=  == ]/ |.::::::;;:::::::::::::;;;::::::.| \[  === ]______|_\n         |       |  [ === =] /.::::::;;::::::::::::::;;;:::::::.\ [===  =]   |\n      ___|_______|__[ == ==]/.::::::;;;:::::::::::::::;;;:::::::.\[=  == ]___|_____"
+      //
+      shabbyTownSprite = "\n                    )\n                   (      _[]_         (\n           __[]___[]___[]/____\_[]_    )\n          /______________|[][]|____\  (\n          |[][]|[][]|[][]|[][]|[][]|__[]_\n          |  /\|/\  |  /\|  /\|/\  |_____\\n          |[]|||||[]|[]|||[]|||||[]|[_]|||\n        ===================================\n        -  -  -  -  -  -  -  -  -  -  -  -  -\n      =========================================   Tom Harvey"
+      //
+      districtSprite = "\n                        \  |  /         ___________\n         ____________  \ \_# /         |  ___      |       _________\n        |            |  \  #/          | |   |     |      | = = = = |\n        | |   |   |  |   \\#           | |`v'|     |      |         |\n        |            |    \#  //       |  --- ___  |      | |  || | |\n        | |   |   |  |     #_//        |     |   | |      |         |\n        |            |  \\ #_/_______  |     |   | |      | |  || | |\n        | |   |   |  |   \\# /_____/ \ |      ---  |      |         |\n        |            |    \# |+ ++|  | |  |~~~~~~| |      | |  || | |\n        |            |    \# |+ ++|  | |  |~~~~~~| |      | |  || | |\n      ~~|    (~~~~~) |~~~~~#~| H  |_ |~|  | |||| | |~~~~~~|         |\n        |    ( ||| ) |     # ~~~~~~    |  | |||| | |      | ||||||| |\n        ~~~~~~~~~~~~~________/  /_____ |  | |||| | |      | ||||||| |\n                                       ~~~~~~~~~~~~~      | ||||||| |"
+      //
+      shadyAcresSprite = "\n        ~         ~~          __\n             _T      .,,.    ~--~ ^^\n       ^^   // \                    ~\n            ][O]    ^^      ,-~ ~\n         /''-I_I         _II____\n      __/_  /   \ ______/ ''   /'\_,__\n        | II--'''' \,--:--..,_/,.-{ },\n      ; '/__\,.--';|   |[] .-.| O{ _ }\n      :' |  | []  -|   ''--:.;[,.'\,/\n      '  |[]|,.--'' '',   ''-,.    |\n        ..    ..-''    ;       ''. '  Steven Maddison"
+      //
+      lasGreygasSprite = "\n                                       .''.\n             .''.             *''*    :_\/_:     . \n            :_\/_:   .    .:.*_\/_*   : /\ :  .'.:.'.\n        .''.: /\ : _\(/_  ':'* /\ *  : '..'.  -=:o:=-\n       :_\/_:'.:::. /)\*''*  .|.* '.\'/.'_\(/_'.':'.'\n       : /\ : :::::  '*_\/_* | |  -= o =- /)\    '  *\n        '..'  ':::'   * /\ * |'|  .'/.\'.  '._____\n            *        __*..* |  |     :      |.   |' .---'|\n             _*   .-'   '-. |  |     .--'|  ||   | _|    |\n          .-'|  _.|  |    ||   '-__  |   |  |    ||      |\n          |' | |.    |    ||       | |   |  |    ||      |\n       ___|  '-'     '    ''      '-'   '-.'    '`      |____\n      jgs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      //
+      capitolSprite = "\n                                   ^\n                      _______     ^^^\n                     |xxxxxxx|  _^^^^^_\n                     |xxxxxxx| | [][]  |\n                  ______xxxxx| |[][][] |\n                 |++++++|xxxx| | [][][]|\n                 |++++++|xxxx| |[][][] |\n                 |++++++|_________ [][]|\n                 |++++++|=|=|=|=|=| [] |\n                 |++++++|=|=|=|=|=|[][]|\n      ___________|++HH++|  _HHHH__|   _________   _________  _________\n               _______________   ______________      ______________\n      __________________  ___________    __________________    ____________"
+   
       /////////////////////////////////////////////
       
       ////// DRUGS /////////
