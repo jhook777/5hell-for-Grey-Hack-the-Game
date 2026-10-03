@@ -1290,13 +1290,7 @@ command.outmon = function(arg1,interval=2, act=0, react=0)
 	end if 
 	manager = new DaemonManager
 	daemon = manager.Start("outmon", out_space.path)
-	if DEBUG then
-		print colorOrange+"debug: ready to outmon with:
-		out_space: "+out_space.path+"
-		interval: "+interval+"
-		act: "+act+"
-		react: "+react+char(10)
-	end if
+	if DEBUG then print colorOrange+"debug: ready to outmon with: out_space: "+out_space.path+"\ninterval: "+interval+"\nact: "+act+"\nreact: "+react+char(10)
 	while (daemon and manager.Check(daemon)) or not manager.__initialized
 	  if last_read == out_space.get_content then
 	    //skip
@@ -1317,51 +1311,51 @@ command.outmon = function(arg1,interval=2, act=0, react=0)
 end function
 command.transmit = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "<b><size=75%>Transmit</b> || t_buf transmission buffer transmission protocol || @tbuf || TBUF"+char(10)+
-colorWhite+"Usage: transmit [opt: {1|0|-w}|password] [opt:password|1|-w]"+char(10)+
-"-- transmit @tbuf to your @home server
--- set @home credentials in 5hell.src before building 5hell
--- the HOME map is located near the top of 5hell.src
----- set ip, port, user, and optionally a password
--- prompts for password if not supplied or hard coded
---note:<b> transmit will use default settings if no options supplied
----- default is:<b> transmit 0 {HOME.pass}
-
-Options:"+char(10)+colorWhite+">> </b>arg1<b>: 1 | 0 | -w || password:
--- [<b>1|-w</b>] == wait for reply
----- if your password is 1 please us [-w]
----- if your password is 0 please use the second usage
------- eg: <b>transmit -w 0</b> will pass 0 as the password
----- [0] (or blank) == don't wait for reply
----- eg:<b> transmit -w
------- uses @home password
----- eg:<b> transmit 0 password
--- [<b>password</b>] == use this password to transmit
----- bypasses prompt; overrides @home setting
----- prompts if not supplied by arg1 or arg2 or @home"+char(10)+
-char(10)+colorWhite+">> </b>arg2<b>: password || 1 | -w
--- [<b>1|-w</b>] == wait for reply
----- if your password is 1 please use -w
----- if your password is 0 you may pass 0
----- eg: transmit -w 0
----- eg: transmit 1
--- [<b>password</b>] == use this password to transmit
----- bypasses prompt; overrides @home setting
----- prompts if not supplied by arg1 or arg2 or @home
-
-<b>N.B.: transmit uses <u>globals.shell.connect_service</u> aka ssh
-<b>-- this leaves it vulnerable to metaxploit.sniffer!
--- take appropriate precautions
-
-NOTE: use transmit with hashim running on the @home server
----- ensure @home server has the <b>"+get_custom_object.HOME.sharedfile+"</b> file
-
-NOTE: if the default password is <b>password:
--- transmit will <b>ignore</b> this password and prompt you for a password
--- supply the word <b>password</b> again to confirm your password is password
--- alternatively call the command with <b>password</b> as a second argument
---eg: <b>transmit 1 password
-
-Current Default Password: "+colorGold+get_custom_object.HOME.pass
+	colorWhite+"Usage: transmit [opt: {1|0|-w}|password] [opt:password|1|-w]"+char(10)+
+	"-- transmit @tbuf to your @home server"+char(10)+
+	"-- set @home credentials in 5hell.src before building 5hell"+char(10)+
+	"-- the HOME map is located near the top of 5hell.src"+char(10)+
+	"---- set ip, port, user, and optionally a password"+char(10)+
+	"-- prompts for password if not supplied or hard coded"+char(10)+
+	"--note:<b> transmit will use default settings if no options supplied"+char(10)+
+	"---- default is:<b> transmit 0 {HOME.pass}"+char(10)+
+	char(10)+
+	"Options:"+char(10)+colorWhite+">> </b>arg1<b>: 1 | 0 | -w || password:"+char(10)+
+	"-- [<b>1|-w</b>] == wait for reply"+char(10)+
+	"---- if your password is 1 please us [-w]"+char(10)+
+	"---- if your password is 0 please use the second usage"+char(10)+
+	"------ eg: <b>transmit -w 0</b> will pass 0 as the password"+char(10)+
+	"---- [0] (or blank) == don't wait for reply"+char(10)+
+	"---- eg:<b> transmit -w"+char(10)+
+	"------ uses @home password"+char(10)+
+	"---- eg:<b> transmit 0 password"+char(10)+
+	"-- [<b>password</b>] == use this password to transmit"+char(10)+
+	"---- bypasses prompt; overrides @home setting"+char(10)+
+	"---- prompts if not supplied by arg1 or arg2 or @home"+char(10)+
+	char(10)+colorWhite+">> </b>arg2<b>: password || 1 | -w"+char(10)+
+	"-- [<b>1|-w</b>] == wait for reply"+char(10)+
+	"---- if your password is 1 please use -w"+char(10)+
+	"---- if your password is 0 you may pass 0"+char(10)+
+	"---- eg: transmit -w 0"+char(10)+
+	"---- eg: transmit 1"+char(10)+
+	"-- [<b>password</b>] == use this password to transmit"+char(10)+
+	"---- bypasses prompt; overrides @home setting"+char(10)+
+	"---- prompts if not supplied by arg1 or arg2 or @home"+char(10)+
+	char(10)+
+	"<b>N.B.: transmit uses <u>globals.shell.connect_service</u> aka ssh"+char(10)+
+	"<b>-- this leaves it vulnerable to metaxploit.sniffer!"+char(10)+
+	"-- take appropriate precautions"+char(10)+
+	char(10)+
+	"NOTE: use transmit with hashim running on the @home server"+char(10)+
+	"---- ensure @home server has the <b>"+get_custom_object.HOME.sharedfile+"</b> file"+char(10)+
+	char(10)+
+	"NOTE: if the default password is <b>password:"+char(10)+
+	"-- transmit will <b>ignore</b> this password and prompt you for a password"+char(10)+
+	"-- supply the word <b>password</b> again to confirm your password is password"+char(10)+
+	"-- alternatively call the command with <b>password</b> as a second argument"+char(10)+
+	"--eg: <b>transmit 1 password"+char(10)+
+	char(10)+
+	"Current Default Password: "+colorGold+get_custom_object.HOME.pass
 
 	//return globals.transmit(arg1,arg2)
 	// transmit 2.0 since 5hell 3.6.9
