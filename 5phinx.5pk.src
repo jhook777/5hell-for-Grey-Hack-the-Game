@@ -1035,7 +1035,7 @@ fw_rules = function()
 end function
 
 // // takes object, returns file object or string; sends file object and string to buffer
-globals.curl = function(hacked_thing=globals.localmachine) 
+globals.curl = function(hacked_thing)
   html = null
   html_content = null
   print(colorWhite+"<size=50%><u>curl GET #?object?:/Public/htdocs/website.html...</u></size>"+CT)
