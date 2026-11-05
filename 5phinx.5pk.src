@@ -180,6 +180,10 @@ globals.import_lib = function(grep, filepath) // String: lib_name, File: search_
   else
     if filepath.is_folder then
       folders = filepath.get_folders
+      if typeof(folders) != "list" then
+        if DEBUG then print folders
+        return
+      end if
       files = folders + filepath.get_files
       for file in files
         import_lib(grep, file)
@@ -271,6 +275,7 @@ globals._startup_resource_configuration  = function()
   if typeof(r) != "file" then 
     r = command.tree("/","rkit","1","N") // look for do.rc in rkit if it isn't in /Config
     if typeof(r) != "file" or not r.is_folder then return "tree: rkit folder not found"
+    if not r.has_permission("r") then return "tree: rkit found; "+colorError+"</b>permission denied"
     for f in r.get_files 
       if f.name == "do.rc" then p = f 
     end for
@@ -1036,6 +1041,9 @@ end function
 
 // // takes object, returns file object or string; sends file object and string to buffer
 globals.curl = function(hacked_thing)
+  _cerr = function(p)
+    return colorError+"curl: permission denied; can't access"+p.path
+  end function
   html = null
   html_content = null
   print(colorWhite+"<size=50%><u>curl GET #?object?:/Public/htdocs/website.html...</u></size>"+CT)
@@ -1046,16 +1054,22 @@ globals.curl = function(hacked_thing)
       hacked_thing = hacked_thing.parent
     end while
     folders = hacked_thing.get_folders
-    if typeof(folders) != "file" then return colorError+"curl: permission denied"
+    if typeof(folders) != "list" then return _cerr(folders)
     for f in folders
       if f.name == "Public" then
         sub_f = f.get_folders
+        if typeof(sub_f) != "list" then return _cerr(sub_f)
         for s_f in sub_f
+          if typeof(s_f) != "list" then return _cerr(s_f)
           if s_f.name == "htdocs" then
-            files = s_f.get_files
-            for sub_file in files
-              if sub_file.name == "website.html" then html = sub_file
-            end for
+            if s_f.has_permission("r") then
+              files = s_f.get_files
+              for sub_file in files
+                if sub_file.name == "website.html" then html = sub_file
+              end for
+            else
+              return _cerr(sub_file)
+            end if
           end if
         end for
       end if
@@ -2081,7 +2095,7 @@ globals.newtree = function(a_file,quiet=0)
           if f.is_symlink then s=colorGold+nb
           depth = f.path.split("/").len-2
           if f.path == "/" then 
-            outprint.push( "<size=80%>"+colorDarkBlue+f.path+" "+s+f.permissions )
+            outprint.push( "<size=80%>"+colorDarkBlue+f.path+" "+s+f.permissions+char(10)+colorDarkBlue+"|" )
             continue
           end if
           if f.is_folder then 
@@ -2112,8 +2126,6 @@ end function
 
 
 globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
-  //grepped_file = "File: " + grep + " not found."
-  //if not quiet then print("Expanding: " + colorLightBlue+result.path)
   if DEBUG then print "debug: result: "+result+char(10)+"-- quiet: "+quiet
   if typeof(result) != "file" then return
   nb = "</b>"
@@ -2121,26 +2133,19 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
     s = ""
     if result.is_symlink then s=colorGold+nb
     encis = ""
-    //if globals.crypto and crypto.is_encrypted(result.path) and depth == true then encis = colorOrange+"</b>encrypted" // stub
+    f_info = "<voffset=.1em><size=110%><u>|</size></voffset><size=1%>.</size>  </u><voffset=-.5em>"+result.permissions+" "+result.owner+" "+result.group+" "+result.size+" "+result.date+" <b>"+result.path+" "+encis
     if result.is_binary then 
-      if not result.is_folder then 
-        //s = ""
-        //if result.is_symlink then s="<color=yellow>"
-        //print "<size=80%><color=blue><u>|  </u><color=#00FFFF>"+s+result.permissions+" "+result.path+" "+encis
-        print "<size=80%>"+"   "*(depth-1)+colorCyan+nb+"<u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
-      end if 
+      if not result.is_folder then print "<size=70%>"+"   "*(depth-1)+colorCyan+s+nb+f_info
     else 
-      //print   "<size=80%><color=blue><u>|  </u><color=white>"+  s+result.permissions+" "+result.path+" "+encis
-      print  "<size=80%>"+"   "*(depth-1)+colorWhite+nb+"<u>|    </u>"+s+result.permissions+" "+result.path+" "+encis
+      print "<size=70%>"+"   "*(depth-1)+colorWhite+s+nb+f_info
     end if
   end if
   if not result.is_binary then
-    //if not quiet then print("<size=80%>"+colorWhite+result.name + " " + result.permissions)
     if result.name == grep or result.name == "passwd" or result.name == "Bank.txt" or result.name == "Map.conf" or result.name == "Browser.txt" or result.name == "Mail.txt" then
       if not result.is_binary  then
-        if not quiet then print "<size=75%>"+result.get_content
+        if not quiet then print "<size=70%>"+"   "*(depth)+result.get_content
       else
-        if not quiet then print("<size=75%>Unable to open binary file. ")
+        if not quiet then print "<size=70%>"+"   "*(depth)+"Unable to open binary file. "
       end if
       if result.name == "passwd" or result.name == "Bank.txt" or result.name == "Mail.txt" or result.name == grep then
         if not waitFor then waitFor = "R"//user_input("Crack files? [r/y/N]||: ",0,1)
@@ -2153,9 +2158,9 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
           for c in cont
             if not globals.T_BUF.indexOf(c) >= 0 then  
               globals.T_BUF.push(c)
-              print(colorLightBlue+"<size=75%>Sent: "+result.get_content+" to t<b>r</b>ansmission buffer (<b>@tbuf</b>).</size>")
+              if not quiet then print(colorGold+"</b><size=70%>"+"   "*(depth)+"Sent: <b>"+result.get_content+"</b> to transmission buffer (ez_clip: <b>@tbuf</b>)</size>")
             else 
-              print(colorLightBlue+"<size=75%>Skipping duplicates...")
+              if not quiet then print(colorLightBlue+"<size=75%>Skipping duplicates...")
             end if
           end for
         end if
@@ -2169,15 +2174,18 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
       if result.name == grep then
         globals.grepped_file = result
       end if
-      if not result.has_permission("x") then return
-      if result.path == "/" and not result.has_permission("r") then return // insert angry rant here
+      //if not result.has_permission("x") then return
+      //if result.path == "/" and 
+      if not result.has_permission("r") then return // insert angry rant here
       folders = result.get_folders
       files = result.get_files
+      
       //wait(.1)
       for folder in folders
         //if not quiet then print("Dir: " + folder.name + " " + folder.permissions)
         //if not quiet then print "<size=85%><b><color=#2382FFFF>"+folder.permissions+" "+folder.path
-        if not quiet then print "<size=80%>"+colorLightBlue+nb+"   "*depth+"<u>|  </u>"+colorLightBlue+s+folder.permissions+" "+folder.path
+        f_color = [colorRed,colorLightBlue][folder.has_permission("r")]
+        if not quiet then print "<size=70%>"+f_color+nb+"   "*depth+"<voffset=.1em><size=110%><u>|</size></voffset>"+"<size=1%>.</size>  </u><voffset=-.5em>"+colorLightBlue+s+nb+folder.permissions+" "+folder.owner+" "+folder.group+" "+folder.size+" "+folder.date+" <b>"+folder.path
         list_files(folder, grep, quiet, waitFor,depth+1)
       end for
       for file in files
@@ -2201,17 +2209,21 @@ globals.rclean = function(arg1, arg2=0)
     if not f.has_permission("r") then return "Error: scrub failed. no read permissions."
     catch = colorRed+"Log wipe failed."+CT
     rooting = true
-    while rooting
-      if f.name != "/" then
-        f = f.parent
-      else
-        rooting = false
-      end if
-    end while
     log = null
     sys = null
-    log = command.tree(f, "system.log", 1, "N")
-    sys = command.tree(f, "silentclean", 1, "N") 
+    if f.path != "/var/system.log" then
+      while rooting
+        if f.name != "/" then
+          f = f.parent
+        else
+          rooting = false
+        end if
+      end while
+      log = command.tree(f, "system.log", 1, "N")
+    else
+      log = f
+    end if
+    sys = command.tree(f, "silentclean", 1, "N")
     if typeof(log) != "file" and typeof(log) != "ftpFile" then return "rclean: system.log not found. aborting."
     if not log.has_permission("w") then return "rclean: cannot write to /var/system.log: permission denied"
     if DEBUG then print "debug: log is a "+typeof(log)+char(10)+"debug: sys is a "+typeof(sys)
@@ -2219,7 +2231,7 @@ globals.rclean = function(arg1, arg2=0)
     if typeof(sys) != "file" and typeof(sys) != "ftpFile" then  
       print "rclean: could not find a file named silentclean or xorg.conf on system" 
       sys = command.tree(f,user_input("rclean: "+colorCyan+"please enter a filename that exists on the system"+char(10)+"-- rclean will use this file for scrubbing"+char(10)+"(q=quit) FileName:> "),1,"N")
-      if not sys then return "rclean: failed: no scrub file"
+      if not sys then return "rclean: failed: no scrub file or permission denied"
     end if
     if d == "-d" or d == "-n" then 
       if DEBUG then print "d: "+d+" is a "+typeof(d)
@@ -2227,7 +2239,7 @@ globals.rclean = function(arg1, arg2=0)
       kit = command.tree(f,"rkit", 1,"N")
       if not kit then kit = command.tree(f,"5hell",1,"N")
       if not kit then print "rclean: "+colorOrange+" could not find rootkit or 5hell"
-      if kit and kit.has_permission("w") then 
+      if typeof(kit) == "file" and kit.has_permission("w") then 
         kit.delete 
         detection_factor = detection_factor + 1 
         print "rclean: rkit/5hell deleted"+char(10)+"[<color=red>detection_factor: "+detection_factor+"</color>]"
@@ -2250,7 +2262,7 @@ globals.rclean = function(arg1, arg2=0)
         else 
           print colorRed+"rclean: could not locate /boot"
         end if
-        if lib_fold and typeof(lib_fold) == "file" then 
+        if typeof(lib_fold) == "file" then 
           if lib_fold.has_permission("w") then 
             lib_fold.delete
             detection_factor = detection_factor + 1
@@ -3271,6 +3283,7 @@ get_lib = function(waitFor=0,this_lib=null)
         return "/lib not found!"
       end if
       lib_list = lib_folder.get_files
+      if typeof(lib_list) != "list" then return colorError+"</b>get_lib: "+lib_list
       i = 0
       print colorGold+"</b>load_lib: displaying contents of /lib on <u>active shell:"
       print colorGold+"</b>-- note: if importing a metaxploit object via "+colorWhite+"meta -i"+CT+":"
