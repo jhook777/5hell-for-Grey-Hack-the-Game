@@ -31,6 +31,34 @@
 ////
 //// To Done:
 //
+// UPDATE: updated all instances of get_files and get_folders for new permissions system
+// UPDATE: updated all instances of floating newlines (ie: newlines in source that do not terminate with a quote symbol: " )
+// makfit: REMOVED. file sizes are no longer determined by filename so the command is kaput
+// perms: minor changes to default behavior of anti-brick tech
+// -- will now apply g+rx to /, /usr/bin, and /bin
+// perms: added 'perms unlock partial' to apply g+x to /usr/bin and /bin
+// -- and adjusted 'perms lock partial' to do the same after a lockdown
+// unlock: added command shortcut for perms unlock [all|path|partial|binaries]
+// lock: adjusted default behavior and added lock partial as an option
+// file: added word count
+// file: the count for subfolders, lines, words, and characters will display permission_denied instead of a false 0
+// ls: will now also display info for the folder on which it is called
+// ls: will display file creation date/time
+// ls: changed the binary/not-binary indication to [fld],[bin],[txt]
+// sudo: added missing usage info
+// tree: added file permission checks to avoid crashes
+// tree: will display info for the folder on which it is called
+// tree: will display info the way ls -l displays info
+// tree: folder 'angle' symbols will be colored red (or the theme equivalent to colorRed) when the folder lacks read permissions
+// tree: lined up the output with the angle lines
+// curl: added file permission checks to avoid crashes
+// get_lib: ""    ""    ""
+// startup_resource_configuration: "" ""  ""
+// 
+// 
+// scpm: merged pull request: modified secure_copy to facilitate SCPM outfile, thanks Arch-Magos Glazia!
+// credits: added Glaze
+//
 // 5phinx.5pk: print override: if DEBUG mode is active, SILENT prints will be force-printed through _print
 // --ie: DEBUG mode bypasses SILENT print mode
 // -- will also bypass clear_screen in DEBUG mode
