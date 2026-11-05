@@ -459,8 +459,14 @@ command.pwd = function(arg1, arg2, arg3=0, arg4=0)
 	return currentPath
 end function
 command.sudo = function(user,pass,par="",arg4)
-	if (user == "help" and not pass) or user == "-h" then return "Usage: info"
-	if not user then user = "Please enter a username (-s=root, <<b>enter</b>>=abort):> "+colorWhite
+	if (user == "help" and not pass) or user == "-h" then return colorWhite+"Usage: sudo [opt:-s|user_name] [opt:pass] [opt: params] </b>-- escalation tool"+char(10)+
+	"-- launches a <b>new terminal</b> window using the given credentials"+char(10)+
+	"-- will prompt for user and pass if not given"+char(10)+
+	"-- you may pass <b>-s</b> for root; -u is not needed or used"+char(10)+
+	"-- params are passed to Terminal.exe when it is launched"+char(10)+
+	"--eg: <b>sudo -s myPass "" CodeEditor.exe -code nmap """+char(10)+
+	"NOTE: see <b>psudo -h</b> for alternative functionality"
+	if not user then user = user_input("Please enter a username (-s=root, <<b>enter</b>>=abort):> "+colorWhite)
 	if user == "-s" then user = "root"
 	if typeof(user) != "string" or user == "" then return "sudo: aborting..."
 	if not pass then pass = user_input("Please enter a password for<b> "+user+" (<<b>enter</b>>=abort)"+char(10)+":> "+colorWhite,1)
@@ -602,21 +608,23 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 	if typeof(folder) != "file" then return "ls: "+folder
 	if DEBUG then print("folder: "+folder.path+" is a: "+typeof(folder))
 	output = ""
+	
 	if folder.is_folder then
 		if DEBUG then print p_validate(folder,"name")
-		if not folder.has_permission("x") or ( folder.name == "/" and not folder.has_permission("r") ) then return "ls: permission denied"
-		line_color = colorLightBlue+"</b>"
+		if not folder.has_permission("r") then return "ls: permission denied"
+		line_color = colorDarkBlue+"</b>"
 		nameFile = folder.name
 		permission = folder.permissions
-		owner = folder.owner
-		size = folder.size
-		group = folder.group
-		is_bin = folder.is_binary
-		// if showDetails then
-		// 	output = output + char(10) + line_color + permission + " " + owner + " " + group + " "+ size + " bin["+is_bin+"] " + nameFile + char(10) + colorLightBlue+"|"
-		// else
-		// 	output = output + char(10) + line_color + nameFile + char(10) + colorLightBlue+"|"
-		// end if
+		fowner = folder.owner
+		fsize = folder.size
+		fgroup = folder.group
+		ftime = folder.date
+		//is_bin = ["txt","bin"][folder.is_binary]
+		if showDetails then
+			output = output + char(10) + line_color + permission + " " + fowner + " " + fgroup + " " + fsize + " [fld] " + ftime + " " +nameFile + char(10) + colorLightBlue+"|"
+		else
+			output = output + char(10) + line_color + nameFile + char(10) + colorLightBlue+"|"
+		end if
 		subFiles = folder.get_folders + folder.get_files
 		if DEBUG then print "debug: pre alpha sort"+char(10)+
 		"-- "+folder.permissions+char(10)+
@@ -647,16 +655,21 @@ command.ls = function(arg1, arg2, arg3=0, arg4=0)
 		line_color = colorWhite+"</b>"
 		nameFile = subFile.name
 		permission = subFile.permissions
-		owner = subFile.owner
-		size = subFile.size
-		group = subFile.group
-		is_bin = subFile.is_binary
-		if is_bin then line_color = colorCyan + "</b>"
+		fowner = subFile.owner
+		fsize = subFile.size
+		fgroup = subFile.group
+		ftime = subFile.date
+		is_bin = ["txt","bin"][subFile.is_binary]
+		if subFile.is_folder then is_bin = "fld"
+		if is_bin == "bin" then line_color = colorCyan + "</b>"
 		if subFile.is_folder then line_color = colorLightBlue + "</b>"
-		if subFile.is_symlink then nameFile = colorGold+"</b>"+nameFile
+		if subFile.is_symlink then 
+			nameFile = colorGold+"</b>"+nameFile+" "+colorWhite+"</b>>> "+subFile.path(1)
+			is_bin = colorGold+"</b>sym</color>"
+		end if
 		if raw_output then line_color = ""
 		if showDetails then
-			output = output + char(10) + line_color + permission + " " + owner + " " + group + " "+ size + " bin["+is_bin+"] " + nameFile
+			output = output + char(10) + line_color + permission + " " + fowner + " " + fgroup + " "+ fsize + " ["+is_bin+"] " + ftime + " " + nameFile
 		else
 			output = output + char(10) + line_color + nameFile
 		end if
@@ -1044,7 +1057,7 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		"--eg:<b> perms -r g+x /bin</b> -- add group execute permissions to all files in /bin"+char(10)+
 		char(10)+
 		colorWhite+"Aliases and presets for common permissions:"+char(10)+
-		colorGold+"</b>Usage:<b> perms lock [all]</b> -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
+		colorGold+"</b>Usage:<b> perms lock all</b> -- remove all permissions from all files (alias:<b> lock</b>)"+char(10)+
 		"-- "+colorGold+"</b>includes <b>anti-brick</b> technology:"+char(10)+
 		colorWhite+"</b>---- perms will check running processes for: "+colorLightBlue+"Xorg"+char(10)+
 		colorWhite+"</b>---- if detected, critical binaries will be given: "+colorGold+"</b>g+x"+char(10)+
@@ -1058,33 +1071,41 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		"-- lock is a secondary command that uses command.perms(""lock"",""all"")"+char(10)+
 		"-- see <b>lock -h</b> for more"+char(10)+
 		char(10)+
-		colorGold+"</b>Usage: perms lock [path] -- lock permissions on an individual file"+char(10)+
+		colorGold+"</b>Usage: perms lock [/path] -- lock permissions on an individual file or folder"+char(10)+
+		colorWhite+"</b>-- folders are locked recursively"+char(10)+
 		colorWhite+"</b>-- returns the target file as an object"+char(10)+
 		colorWhite+"</b>-- <b>bypasses</b> "+colorGold+"anti-brick"+CT+" technology"+char(10)+
 		colorWhite+"</b>-- shortcut: "+colorRed+"</b>lock [path]"+CT+" -- an alias for "+colorGold+"</b>perms lock [path]"+char(10)+
 		"-- see <b>lock -h</b> for more"+char(10)+
 		char(10)+
-		colorGold+"</b>Usage: perms lock [down] -- force locking down"+char(10)+
+		colorGold+"</b>Usage: perms lock down -- force locking down"+char(10)+
 		"-- <b>use to explicitly bypass "+colorGold+"anti-brick</color> technology"+char(10)+
 		char(10)+
-		colorGold+"</b>Usage: perms unlock [all] -- add o+rwx to all files"+char(10)+
-		colorGold+"</b>Usage: perms unlock [path] -- add o+rwx, recursively, to a path"+char(10)+
+		colorGold+"</b>Usage: perms unlock [all] -- add ugo+rwx to all files"+char(10)+
+		colorGold+"</b>Usage: perms unlock [path] -- add ugo+rwx, recursively, to a path"+char(10)+
+		colorGold+"</b>Usage: perms unlock [partial|binaries] -- add g+x to /bin and /usr/bin, recursively"
 		char(10)+
 		colorCyan+"Note:</b> it is good practice to run:"+char(10)+
 		"-- |><b> usr -r root / | grp -r root / | rm /etc/passwd | lock"+char(10)+
 		"-- for optimal security."+char(10)+
 		colorCyan+"</b>-- you may type:"+colorGold+" kore [-s|-sc]"+CT+" to have this action performed for you"+char(10)+
-		"Extra: perms [-h|help] extra -- view extra help information about this command."
+		"Extra: perms [-h|help] extra -- view extra help information about this command."+char(10)+
+		"-- see <b>lock -h</b> and <b>unlock -h</b> for additional qol"
 	if arg1 == "-h" or arg1 == "help" then return perms_usage
 	if not arg1 then return "usage: perms [opt:-r] [arg] [path]"+char(10)+"usage: perms lock [all|/path]"
 	if arg1 == "unlock" then 
 		if arg2 == "all" then 
 			print "perms: setting all to ugo+rwx"
-			command.perms("-R", "o+rwx", "/")
-			command.perms("-R", "g+rwx", "/")
-			command.perms("-R", "u+rwx", "/")
+			command.perms("-R","o+rwx","/")
+			command.perms("-R","g+rwx","/")
+			command.perms("-R","u+rwx","/")
 			return localmachine.File("/")
-		else 
+		else if arg2 == "partial" or arg2 == "binaries" then
+			print "perms: unlocking binaries"
+			command.perms("-R","g+x","/usr/bin")
+			command.perms("-R","g+x","/bin")
+			return "perms: partial unlock complete"
+		else
 			ulf = globals.get_file(arg2)
 			if typeof(ulf) == "file" then 
 				print "perms: unlocking: "+ulf.path
@@ -1099,36 +1120,44 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 	end if
 	if arg1 == "lock" then
 		lf = "/"
-		if arg2 == "all" then 
+		if arg2 == "all" or arg2 == "partial" then 
 			if not localmachine.File("/").has_permission("w") then return "perms: lockdown failed: permission denied"
 			command.perms("-r", "o-rwx", "/")
 			command.perms("-r", "g-rwx", "/")
 			command.perms("-r", "u-rwx", "/")
 
-			home = null 
+			if arg2 == "partial" then command.perms("-R","g+x", "/") else arg2 = "-"
 
+			home = null 
 			if is_home == true then
-				print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- setting critical binaries to <b>g+x</b>...")
-				command.perms("g+x","/")
-				command.perms("g+x","/bin")
-				command.perms("g+x","/usr")
-				command.perms("g+x","/usr/bin")
-				command.perms("g+x","/bin/sudo")
+				print(colorBlack+"<mark=red><size=75%><color=yellow>Auto-detected: u r home</mark> -- setting critical binaries to <b>g+rx</b>...")
+				command.perms("g+rx","/")
+				command.perms("-r","g+rx","/bin")
+				command.perms("g+rx","/usr")
+				command.perms("-r","g+rx","/usr/bin")
+				command.perms("g+rx","/home")
+				h_fld = globals.get_file("/home")
+				if h_fld and h_fld.has_permission("r") then
+					u_fld = h_fld.get_folders
+					for u in u_fld
+						if u.name == "guest" then continue
+						command.perms("g+rx",u.path)
+						dt = globals.get_file(u.path+"/Desktop")
+						if dt then command.perms("g+r",dt.path)
+					end for
+				end if
+				//command.perms("g+x","/bin/sudo")
 				//command.perms("g+x","/bin/psudo")
-				command.perms("g+x","/bin/ssh")
-				command.perms("g+x","/usr/bin/Terminal.exe")
-				command.perms("g+x","/usr/bin/Chat.exe")
-				command.perms("g+x","/usr/bin/Mail.exe")
-				command.perms("g+x","/bin/bash")
-				command.perms("-r","g+x","/etc/init.d")
+				//command.perms("g+x","/bin/ssh")
+				//command.perms("g+x","/usr/bin/Terminal.exe")
+				//command.perms("g+x","/usr/bin/Chat.exe")
+				//command.perms("g+x","/usr/bin/Mail.exe")
+				//command.perms("g+x","/bin/bash")
+				command.perms("-r","g+rx","/etc/init.d")
 				print("<size=75%>perms: rerun with <b>perms lock down</b> to force full lockdown")
 			end if
 			//
-			return colorCyan+"</b><size=75%>perms: lockdown complete"
-		end if
-		if arg2 == "partial" then 
-			command.perms("-R","g+x", "/")
-			return "perms: partial lockdown complete"
+			return colorCyan+"</b><size=75%>perms: "+arg2+"-lockdown complete"
 		end if
 		if arg2 == "down" then arg2 = "/"
 		lf = globals.get_file(arg2)
@@ -1151,12 +1180,15 @@ command.perms = function(arg1, arg2, arg3=0, arg4=0)
 		isRecursive = 1
 	end if
 	file = null
-	if typeof(pathFile) == "string" then file = globals.get_file(pathFile)
-	if typeof(pathFile) == "file" then file = pathFile 
-	if not file then return("perms: can't find " + pathFile)
+
+	// if typeof(pathFile) == "string" then file = globals.get_file(pathFile)
+	// if typeof(pathFile) == "file" then file = pathFile 
+	// if not file then return("perms: can't find " + pathFile)
+	file = globals.get_file(pathFile)
+	if typeof(file) != "file" then return "perms: can't find "+pathFile+char(10)+"-- "+file
 	output = file.chmod(perms, isRecursive)
-	if output then print(output)
 	print colorGold+perms+": <size=75%>"+file.path+" "+file.permissions
+	if output then print(output)
 	return file
 end function
 command.lock = function(arg1,arg2,arg3,arg4)
@@ -1166,11 +1198,26 @@ command.lock = function(arg1,arg2,arg3,arg4)
 	"-- this command was formerly an alias defined in 5hell.src"+char(10)+
 	"-- it is now a sub-command similar to prox and scrub"+char(10)+char(10)+
 	"Usage: lock -- lock down all files; uses anti-brick technology"+char(10)+char(10)+
-	"Usage: lock [path] -- lock down a specific path; does not use anti-brick"+char(10)+char(10)+
-	"See <b>perms -h</b> for more info"
+	"Usage: lock [path] -- recursively lock down a specific path; does not use anti-brick"+char(10)+
+	"Usage: lock partial -- lock down all files then apply g+rx to all files"+char(10)+
+	"Usage: lock down -- set the entire filesystem to ugo-rwx"+char(10)+
+	"-- <b>WARNING: this bypasses anti-brick technology!"+char(10)+
+	"See <b>perms -h</b> for more info on anti-brick technology"
 	a = "all"
 	if typeof(arg1) == "string" or typeof(arg1) == "file" then a = arg1
 	return command.perms("lock",a)	
+end function
+command.unlock = function(a,b,c,d)
+	if a == "help" or a == "-h" then return "perms || chmod || unlock || lock || security || permissions"+char(10)+
+	colorWhite+"Usage: unlock [opt:path] -- run <b>perms unlock [all|/path]"+char(10)+
+	"-- this command is a shortcut for perms unlock all / perms unlock [/path]"+char(10)+
+	"Usage: unlock -- apply ugo+rwx to <b>all</b> files"+char(10)+
+	"Usage: unlock [/path] -- apply ugo+rwx to /path, recursively"+char(10)+
+	"Usage: unlock binaries -- apply ugo+rx to /usr/bin and /bin, recursively"+char(10)+
+	"Usage: unlock partial -- apply g+rx to all files"+char(10)+
+	"See <b>perms -h</b> for more info on anti-brick technology"
+	if typeof(a) != "string" and typeof(a) != "file" then a = "all"
+	return command.perms("unlock",a)
 end function
 command.mkdir = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "/" or arg1 == 0 or arg1 == "-h" or arg1 == "help" then	return "Usage: mkdir [/path/new_folder] -- create a new folder in path. path must exist."
@@ -2435,6 +2482,7 @@ command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	guest_procs = 0
 	mem_used = 0
 	cpu_used = 0
+	if DEBUG then print "debug: checking procs"
 	for p in procs
 		spl = p.split(" ")
 		pro_usr = spl[0]
@@ -2454,6 +2502,7 @@ command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 			end if
 		end if
 	end for
+	if DEBUG then print "debug: polling hdd.io"
 	root = localmachine.File("/")
 	hdd_io = localmachine.File("/virt/hdd.io")
 	h_size = "<color=red>dev_sda error</color>"
@@ -2478,6 +2527,7 @@ command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	bins = 0
 	txts = 0
 	tot = 0
+	if DEBUG then print "debug: polling filesystem"
 	for f in allfiles
 		if f.is_folder then 
 			folds = folds + 1
@@ -2529,7 +2579,7 @@ command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 	data_lines = "--"
 	data_size = "-not_found-"
 	database = ""
-	if database_files.len then
+	if typeof(database_files) == "list" then
 		if DEBUG then print "-- found "+database_files.len+" database.csv's"
 		// data_size = command.file("-c",database)
 		// if database.has_permission("r") then data_lines = command.file("-l",database) else data_lines = "-check_perms-"
@@ -2537,7 +2587,7 @@ command.bios = function(arg1=0, arg2=0, arg3=0, arg4=0)
 		data_lines = 0
 		data_size = 0
 		for file in database_files
-			if file.has_permission("r") then 
+			if typeof(file) == "file" and file.has_permission("r") then 
 				data_lines = data_lines + file.get_content.split(char(10)).len
 				data_size = data_size + file.get_content.len
 			end if
@@ -2903,7 +2953,7 @@ command.credits = function(arg1, arg2, arg3=0, arg4=0)
 	print("5hell Discord and Daemon Manager by: "+colorWhite+"Redit0")
 	print("5hell.src optimizations by: "+colorWhite+"Clover")
 	print("Beta testing by: "+colorWhite+"CypherRaven, Deckard, KotyKD, Silent, Wulf, Amanda, Sabranan")
-	return "Inspiration from: "+char(10)+colorWhite+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Hywell, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Bit, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Trashed, IDelta, Minus, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Redit0, Glaze, Jomkat, Eclipse00, Jessa, Forteyn, Hecate, Nyx "+char(10)+"and many others! Maybe even you, one day!"
+	return "Inspiration from: (in an order sensible only to me)"+char(10)+"AweTux, Kirin, Rasputin, Haro, CypherRaven, 3nigma, muhahahahe, Arcane, Sl3ekr, Hywell, Notepid, bakeneko, Jamestonic, Slat3r, Swep, GSQ, blujoker, Bit, Lady, KotyKD, Corvus, Amanda, virus, DHZA, Silent, Conner, STYX, Fear_Rua, 0x0, Aksu, Penelope, Andreno, Minidevil96, Tyy, Sabranan, CyanMatter, MrMember, Clover, Maho_Citrus, Redit0, Hecate, Minus, IDelta, OmegaKawaii, Hikaru918, Notepid, Xagic, Omega, Trashed, Glaze, Jomkat, Eclipse00, Jessa, Forteyn, Nyx "+char(10)+"and many others! Maybe even you, one day!"
 end function
 command.quit = function(state=1, arg2=0, arg3=0, arg4=0) // NOT reboot command, rather ends script
 	if state == "help" or state == "-h" then return "<u>QUIT || EXIT || RETURN</u>"+char(10)+"Usage: quit [opt:state] -- exits the program."+char(10)+"-- if no optional state then prompts before exit"+char(10)+"-- if state supplied then skips confirmation and exits with state"+char(10)+"Usage:<b> exit [opt:state]</b> -- also exits the program with optional state"+char(10)+"Usage: return -- used to return from glasspool. Will exit 5hell if glasspool is inactive."
