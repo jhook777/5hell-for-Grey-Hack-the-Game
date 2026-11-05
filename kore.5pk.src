@@ -101,7 +101,10 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 			if globals.spoolpath then kc.log_output = globals.get_file(globals.spoolpath)
 			 
 			if typeof(kc.log_output) != "file" then
-				fb = globals.get_file(currentPath).get_files 
+				f = globals.get_file(currentPath)
+				if not f then return colorError+"kore: "+currentPath+" not found!"
+				if not f.has_permission("r") then return colorError+"kore: permission denied; can't access "+f.path
+				fb = f.get_files 
 				ob = []
 				lfn = "kore.log"
 				for f in fb 
@@ -676,6 +679,7 @@ command.hashim = function(arg1, arg2, arg3=0, arg4=0)
 					if hash.len != 32 then continue
 					print("["+hash+"]")
 					if have_tables == true then
+						if not t_folder.has_permission("r") then return colorError+"hashim: permission denied; can't access "+t_folder.path
 						files = t_folder.get_files
 						for f in files
 							if found then continue
