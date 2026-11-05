@@ -791,7 +791,7 @@ command.grep = function(a1, a2, arg3=0, arg4=0)
 	gp = function(grep_tar, t_f, use_re, findfile, verbose=1)
 		//if DEBUG then print "debug: in grep; tf: "+t_f.path
 
-		if t_f.is_folder and t_f.has_permission("x") then
+		if t_f.is_folder and t_f.has_permission("r") then
 			sub_folders = t_f.get_folders
 			sub_files = t_f.get_files
 			g_buf = null
@@ -987,133 +987,136 @@ command.tree = function(arg1, arg2=0, arg3=0, arg4=0)
 	end if
 	if not tem or not p_validate(tem,"size") then return "tree: invalid path or file"
 	if arg3 == "0" then arg3 = 0
-	if use_new_tree == true then return globals.newtree(tem,arg2)
+	can_read = [char(10)+colorRed+"|</size> permission denied",""][tem.has_permission("r")]
+	if use_new_tree == true then 
+		//if arg2 != "1" then print "<size=80%>"+colorDarkBlue+tem.permissions+" "+tem.owner+" "+tem.group+" "+tem.size+" "+tem.date+" "+tem.path+char(10)+can_read
+		return globals.newtree(tem,arg2)
+	end if
 	globals.grepped_file = null
-	//depth = tem.path.split("/").len-2
-	//if not arg3 then print "<size=80%><color=blue><b><color=#2382FFFF>"+"  "*depth+tem.path+" "+tem.permissions
-	if DEBUG then print "debug: listing_files..."
+	if not arg3 then print "<size=80%>"+colorDarkBlue+tem.permissions+" "+tem.owner+" "+tem.group+" "+tem.size+" "+tem.date+" "+tem.path+can_read
 	globals.list_files(tem, arg2, arg3, arg4)
 	if arg2 and globals.grepped_file and globals.grepped_file.name == arg2 then return globals.grepped_file
 	return null
 end function
-command.makfit = function(arg1, arg2, arg3=0, arg4=0)
-	if not arg1 or not arg2 or arg1 == "help" or arg1 == "-h" then return "<u>File Compression || File Size || MAKFIT</u>"+char(10)+
-	"Make it fit file compression tool by Plu70"+char(10)+
-	"File sizes are (mostly) determined by name. This tool will"+char(10)+
-	"-- build files with different names until at or below the desired size"+char(10)+
-	"-- if the -n option is used, no input file is used"+char(10)+
-	"---- instead a dummy file is used and saved as the discovered name"+char(10)+char(10)+
-	"<b>Usage: makfit [/path.src] [target_size_in_bytes] [opt: -A --include uppercase]"+char(10)+
-	"-- target size in bytes determines ceiling for acceptable file size"+char(10)+
-	"---- min 120000, max unlimited however it is unlikely to see > 10MB"+char(10)+
-	"-- will change the file's name back to the name of the .src when done"+char(10)+
-	"-- builds to size and outputs to parent path of .src file"+char(10)+char(10)+
-	"Extra: makfit [-n] [target_size_in_bytes] [opt:-A] -- do not use a source file "+char(10)+
-	"-- final filename may be used when compiling any script"+char(10)+
-	"-- this allows you to find a filename without supplying a source file"+char(10)+
-	"Note: when successful makfit will return the compressed file as an object"+char(10)+
-	"Usage Example:"+char(10)+
-	"|> poke my.src | scribus | makfit my.src 150000 | run"
-	no_source = false
-	source = "print(""Hellow World"")"
-	time_start = time
-	source_path = arg1
-	SIZE = arg2.to_int
-	if DEBUG then print("current path: "+ currentPath)
-	out_path = currentPath
-	out_file = null
-	source_file = null
-	temp_path = currentPath
-	if source_path.lower != "-n" then 
-		source_file = globals.get_file(source_path)
-		if not source_file then return "makfit: could not find file: "+source_path
-		if source_file.is_binary then return "makfit: expected text file, got binary."
-		temp_path = source_file.parent.path	
-		if source_file.has_permission("r") then source = source_file.get_content else return "makfit: cannot read source file. Permission denied."
-		if DEBUG then print("Read: "+source.len+" bytes from source file.")
-	end if
-	og_name = arg1
-	if typeof(source_file) == "file" then og_name = source_file.name
-	if og_name == "-n" then
-		no_source = true
-		og_name = "probe.src"
-		if currentPath != "/" then source_path = currentPath+"/"+og_name else source_path = og_name
-		print("makfit: running in sourceless mode"+char(10)+"Creating dummy file: probe.src")
-	 	command.poke(source_path)
-		print("Securing system.")
-		command.perms("lock","all")
-	end if
-	print(colorLightBlue+"Building "+CT+colorWhite+ og_name +CT+colorLightBlue+" to file size <= " +CT+colorWhite+ SIZE +CT+colorLightBlue+" bytes. "+CT)
-	og_name = og_name.split("\.")[0]
-	if DEBUG then print("og_name: "+og_name)
-	print("<align=center>"+char(3675)+"</align>")
-	last_size = (SIZE + 1000)
-	last_name = ""
-	new_name = function(int)
-		nm = []
-		r = range("a".code,"z".code)
-		if arg3 == "-A" then
-			R = range("A".code, "Z".code) // it is somehow faster (for me) with this commented out. ymmv
-			r = r + R											// i get about 45 sec avg with lowercase and 100 sec avg with upper+lower
-		end if
-		for loop in range(0, int)
-			r.shuffle
-			nm.push(char(r[0]))
-		end for
-		nm.push(".")
-		r.shuffle
-		nm.push(r[0])
-		nm = nm.join("")
-		return nm
-	end function
-	//
-	i = 0
-	l = 1
-	while last_size > SIZE
-		i = i + 1
-		if i >= 50 then
-			l = l + 1
-			i = 1
-		end if
-		n = new_name(l)
-		catch = localmachine.touch(temp_path, n+".src") // create the temp source file
-		if DEBUG then print("attempted to create "+temp_path+ " + "+ n +".src"+char(10)+"Result: "+catch)
-		if catch == "Can't compile. Source code is empty" then return catch
-		out_path = temp_path+n
-		if temp_path != "/" then out_path = temp_path+"/"+n
-		if DEBUG then print("out_path: "+out_path)
-		temp = globals.get_file(out_path+".src")
-		if not temp then return "makfit: error could not create tempfile"
-		temp.set_content(source)                      // set it's content with the original source
-		catch = shell.build(temp.path, temp_path)     // build it
-		if DEBUG then print("attempted to build "+temp.path+char(10)+"Result: "+catch)
-		//wait(1)
-		out_file = null
-		out_file = globals.get_file(out_path)
-		if not out_file then return("makfit: error: "+out_path+" not found. build failed."+CT)
-		last_size = out_file.size.to_int    // check it's size
-		if out_file.size.to_int > SIZE then
-			out_file.delete
-			temp.delete
-		end if
-    wait(.1)
-	end while
-	//
-	time_end = time
-	print(colorLightBlue+"Compiled "+colorWhite+out_file.name+colorLightBlue+" to size: "+colorWhite+out_file.size+colorLightBlue+" bytes."+CT)
-	print(colorLightBlue+"Process completed in "+colorOrange+ (time_end - time_start) +colorLightBlue+ " seconds."+CT)
-	if arg1 != "-n" then
-		print(colorLightBlue+out_file.path+" renamed to: ")
-		re_name = ""
-		if temp_path != "/" then temp_path = temp_path + "/"
-		command.mv(out_file.path,temp_path+og_name)
-		print("makfit: found filename:"+colorLightBlue+" "+out_file.name)
-	end if
-	print("makfit: compiled:<u>"+colorWhite+" "+out_file.path+" "+out_file.permissions+" </u></b></color>to<b> "+out_file.size+" bytes")
-	//command.perms("lock","all") removed because this is bad
-	print "makfit: remember to secure the new file(s)"+char(10)+"makfit: returning output file object..."
-	return out_file
-end function
+// RIP old soldier
+// command.makfit = function(arg1, arg2, arg3=0, arg4=0)
+// 	if not arg1 or not arg2 or arg1 == "help" or arg1 == "-h" then return "<u>File Compression || File Size || MAKFIT</u>"+char(10)+
+// 	"Make it fit file compression tool by Plu70"+char(10)+
+// 	"File sizes are (mostly) determined by name. This tool will"+char(10)+
+// 	"-- build files with different names until at or below the desired size"+char(10)+
+// 	"-- if the -n option is used, no input file is used"+char(10)+
+// 	"---- instead a dummy file is used and saved as the discovered name"+char(10)+char(10)+
+// 	"<b>Usage: makfit [/path.src] [target_size_in_bytes] [opt: -A --include uppercase]"+char(10)+
+// 	"-- target size in bytes determines ceiling for acceptable file size"+char(10)+
+// 	"---- min 120000, max unlimited however it is unlikely to see > 10MB"+char(10)+
+// 	"-- will change the file's name back to the name of the .src when done"+char(10)+
+// 	"-- builds to size and outputs to parent path of .src file"+char(10)+char(10)+
+// 	"Extra: makfit [-n] [target_size_in_bytes] [opt:-A] -- do not use a source file "+char(10)+
+// 	"-- final filename may be used when compiling any script"+char(10)+
+// 	"-- this allows you to find a filename without supplying a source file"+char(10)+
+// 	"Note: when successful makfit will return the compressed file as an object"+char(10)+
+// 	"Usage Example:"+char(10)+
+// 	"|> poke my.src | scribus | makfit my.src 150000 | run"
+// 	no_source = false
+// 	source = "print(""Hellow World"")"
+// 	time_start = time
+// 	source_path = arg1
+// 	SIZE = arg2.to_int
+// 	if DEBUG then print("current path: "+ currentPath)
+// 	out_path = currentPath
+// 	out_file = null
+// 	source_file = null
+// 	temp_path = currentPath
+// 	if source_path.lower != "-n" then 
+// 		source_file = globals.get_file(source_path)
+// 		if not source_file then return "makfit: could not find file: "+source_path
+// 		if source_file.is_binary then return "makfit: expected text file, got binary."
+// 		temp_path = source_file.parent.path	
+// 		if source_file.has_permission("r") then source = source_file.get_content else return "makfit: cannot read source file. Permission denied."
+// 		if DEBUG then print("Read: "+source.len+" bytes from source file.")
+// 	end if
+// 	og_name = arg1
+// 	if typeof(source_file) == "file" then og_name = source_file.name
+// 	if og_name == "-n" then
+// 		no_source = true
+// 		og_name = "probe.src"
+// 		if currentPath != "/" then source_path = currentPath+"/"+og_name else source_path = og_name
+// 		print("makfit: running in sourceless mode"+char(10)+"Creating dummy file: probe.src")
+// 	 	command.poke(source_path)
+// 		print("Securing system.")
+// 		command.perms("lock","all")
+// 	end if
+// 	print(colorLightBlue+"Building "+CT+colorWhite+ og_name +CT+colorLightBlue+" to file size <= " +CT+colorWhite+ SIZE +CT+colorLightBlue+" bytes. "+CT)
+// 	og_name = og_name.split("\.")[0]
+// 	if DEBUG then print("og_name: "+og_name)
+// 	print("<align=center>"+char(3675)+"</align>")
+// 	last_size = (SIZE + 1000)
+// 	last_name = ""
+// 	new_name = function(int)
+// 		nm = []
+// 		r = range("a".code,"z".code)
+// 		if arg3 == "-A" then
+// 			R = range("A".code, "Z".code) // it is somehow faster (for me) with this commented out. ymmv
+// 			r = r + R											// i get about 45 sec avg with lowercase and 100 sec avg with upper+lower
+// 		end if
+// 		for loop in range(0, int)
+// 			r.shuffle
+// 			nm.push(char(r[0]))
+// 		end for
+// 		nm.push(".")
+// 		r.shuffle
+// 		nm.push(r[0])
+// 		nm = nm.join("")
+// 		return nm
+// 	end function
+// 	//
+// 	i = 0
+// 	l = 1
+// 	while last_size > SIZE
+// 		i = i + 1
+// 		if i >= 50 then
+// 			l = l + 1
+// 			i = 1
+// 		end if
+// 		n = new_name(l)
+// 		catch = localmachine.touch(temp_path, n+".src") // create the temp source file
+// 		if DEBUG then print("attempted to create "+temp_path+ " + "+ n +".src"+char(10)+"Result: "+catch)
+// 		if catch == "Can't compile. Source code is empty" then return catch
+// 		out_path = temp_path+n
+// 		if temp_path != "/" then out_path = temp_path+"/"+n
+// 		if DEBUG then print("out_path: "+out_path)
+// 		temp = globals.get_file(out_path+".src")
+// 		if not temp then return "makfit: error could not create tempfile"
+// 		temp.set_content(source)                      // set it's content with the original source
+// 		catch = shell.build(temp.path, temp_path)     // build it
+// 		if DEBUG then print("attempted to build "+temp.path+char(10)+"Result: "+catch)
+// 		//wait(1)
+// 		out_file = null
+// 		out_file = globals.get_file(out_path)
+// 		if not out_file then return("makfit: error: "+out_path+" not found. build failed."+CT)
+// 		last_size = out_file.size.to_int    // check it's size
+// 		if out_file.size.to_int > SIZE then
+// 			out_file.delete
+// 			temp.delete
+// 		end if
+//     wait(.1)
+// 	end while
+// 	//
+// 	time_end = time
+// 	print(colorLightBlue+"Compiled "+colorWhite+out_file.name+colorLightBlue+" to size: "+colorWhite+out_file.size+colorLightBlue+" bytes."+CT)
+// 	print(colorLightBlue+"Process completed in "+colorOrange+ (time_end - time_start) +colorLightBlue+ " seconds."+CT)
+// 	if arg1 != "-n" then
+// 		print(colorLightBlue+out_file.path+" renamed to: ")
+// 		re_name = ""
+// 		if temp_path != "/" then temp_path = temp_path + "/"
+// 		command.mv(out_file.path,temp_path+og_name)
+// 		print("makfit: found filename:"+colorLightBlue+" "+out_file.name)
+// 	end if
+// 	print("makfit: compiled:<u>"+colorWhite+" "+out_file.path+" "+out_file.permissions+" </u></b></color>to<b> "+out_file.size+" bytes")
+// 	//command.perms("lock","all") removed because this is bad
+// 	print "makfit: remember to secure the new file(s)"+char(10)+"makfit: returning output file object..."
+// 	return out_file
+// end function
 command.make = function(arg1, arg2, arg3=0, arg4=0)
 	if not arg1 or arg1 == "help" or arg1 == "-h" then return "</u>Make || Build</u>"+char(10)+"Usage: make [/path/file.src] [/destination/folder] [bool_importable: true/false | 1/0]"+char(10)+"-- build the .src file and ouput to destination folder."+char(10)+"-- final file name will be input file name with .src stripped."+char(10)+"-- e.g.<b> make /root/src/5hell.src /bin </b>"+char(10)+"-- build 5hell.src into a binary and output to:<b> /bin/5hell</b>"+char(10)+"-- n.b. make requires the source file to have the .src extension."+char(10)+"-- importable code can be imported by other sources when building."+char(10)+"-- this allows you to build programs with more than 160 characters by importing multiple source files."
 	pathSource = arg1
@@ -1209,7 +1212,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     folders = infile.get_folders
     files = infile.get_files
     contents = folders + files
-    if contents.len == 0 then return 0
+    if contents.len == 0 or typeof(contents) != "list" then return 0
     if contents.hasIndex(action.cursor) then return contents[action.cursor] else return 0
   end function
   action.r = function(inf) //  remove
@@ -1423,6 +1426,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
     folders = f.get_folders
     files = f.get_files
     contents = folders + files
+	if typeof(contents) != "list" then return
     action.max = contents.len - 1
     output = f.permissions+" "+f.owner+" "+f.group+" "+f.size+" "+char(1068)+"["+f.is_binary+"] "+f.path + char(10) + char(166) + " [ " + action.buffer + " ]"
     i = 0
@@ -1447,6 +1451,7 @@ command.felix = function(arg1, arg2=0, arg3=0, arg4=0)
   felix = function(file)
     locals.currentPath = file.path
     contents = file.get_folders + file.get_files
+	if typeof(contents) != "list" then return
     action.max = contents.len - 1
     CLEAR = -1
     while true
@@ -1596,7 +1601,7 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		if return_name then return arg1.name
 
 		if enc_file or dec_file then 
-			if not globals.crypto then return colorWarning+"file: encryption error; crypto.so not loaded"
+			if not globals.crypto then return colorWarning+"file: encryption error; cryptoLib not loaded"
 			act = colorMagenta+"</b>encrypt"
 			if dec_file then act = colorViolet+"</b>decrypt"
 			print colorGreen+"</b>file: "+act+"ing..." 
@@ -1615,7 +1620,6 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		end if
 
     	imp_stat = null
-		if DEBUG then print "checking for symlink"
 		sym_stat = null 
 		sym_stat = arg1.is_symlink
 		if sym_stat then 
@@ -1624,39 +1628,39 @@ command.file = function(arg1, arg2=0, arg3=0, arg4=0)
 		else 
 			sym_stat = "no"
 		end if
-		if DEBUG then print "checking import status (except symlinks)"
 		imp_stat = arg1.allow_import
 		if imp_stat != "symlink" then 
 			if imp_stat then imp_stat = "yes" else imp_stat = "no"
 		end if
-		if DEBUG then print "status: "+imp_stat
   		file_id_info = ["name: "+arg1.name, "path: "+arg1.path, "size: "+arg1.size, "owner: "+arg1.owner, "group: "+arg1.group, "perms: "+arg1.permissions] 
 		if arg1.is_folder then
-			if DEBUG then print "debug: is_folder"
 			file_id_info.push("type: folder")
-			conts = arg1.get_folders.len + arg1.get_files.len
-			if DEBUG then print "subs: "+conts
+			if arg1.has_permission("r") then conts = arg1.get_folders.len + arg1.get_files.len else conts = "permission_denied"
 			file_id_info.push("subs: "+conts)
 		else
 			if arg1.is_binary then
-				if DEBUG then print "debug: is_binary"
 				file_id_info.push("type: binary")
 				file_id_info.push("import: "+imp_stat)
 			else
-				if DEBUG then print "debug: is_text"
 				file_id_info.push("type: ascii")
-				lines = 0
-				chars = 0
-				if arg1.get_content then
-					lines = arg1.get_content.split(char(10)).len
-					chars = arg1.get_content.values.len
+				lines = "permission_denied"
+				words = lines
+				chars = lines
+				if arg1.has_permission("r") then
+					lines = str(arg1.get_content.split(char(10)).len)
+					words = str(arg1.get_content.split(" ").len)
+					chars = str(arg1.get_content.values.len)
+					// adjust for empty files
+					if words > chars then words = chars
+					if lines > chars then lines = chars
 				end if
-				file_id_info.push("lines: "+str(lines))
-				file_id_info.push("chars: "+str(chars))
+				file_id_info.push("lines: "+lines)
+				file_id_info.push("words: "+words)
+				file_id_info.push("chars: "+chars)
 			end if
 		end if
-		file_id_info.push("symlnk: "+sym_stat)
-		crypt_stat = "-crypto.so not loaded-"
+		file_id_info.push("symlink: "+sym_stat)
+		crypt_stat = "cryptoLib_not_loaded"
 		if globals.crypto then 
 			if crypto.is_encrypted(arg1.path) then crypt_stat = "yes" else crypt_stat = "no"
 			if arg1.is_folder then crypt_stat = "no"
@@ -1935,6 +1939,7 @@ command.cerebrum = function(arg1, arg2, arg3=0, arg4=0)
 			if infile and infile.is_folder then
 				globals.dict_a([])
 				dl = []
+				if not infile.has_permission("r") then return colorError+"cerebrum: permission denied; can't access "+infile.path
 				for dfile in infile.get_files
 					if dfile.has_permission("r") and not dfile.is_binary then
 						d_b = dfile.get_content.trim
