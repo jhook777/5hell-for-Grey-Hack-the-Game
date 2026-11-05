@@ -1671,11 +1671,12 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	print colorGreen+"<u>==========liber=========="
 	buf = []
 	if lib_file.is_folder then
+		if not lib_file.has_permission("r") then return colorError+"liber: permission denied; can't access folder "+lib_file.path+char(10)+"<size=75%>-- try the absolute path of the library.so"
 		for f in lib_file.get_files
 			lib = metaxploit.load(f.path)
 			if typeof(lib) != "MetaLib" then
 				//buf.push("liber: "+lib_file.path+ ": unknown format")
-				if DEBUG then print "debug: skiping: "+typeof(lib)
+				if DEBUG then print "debug: skipping: "+typeof(lib)
 			else
 				buf.push( lib.lib_name + " v " + lib.version )
 			end if
@@ -1683,7 +1684,7 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	else
 		lib = metaxploit.load(lib_file.path)
 		if typeof(lib) != "MetaLib" then
-			if DEBUG then print "debug: skiping: "+typeof(lib)
+			if DEBUG then print "debug: skipping: "+typeof(lib)
 		else
 			buf.push( lib.lib_name + " v " + lib.version )
 		end if
@@ -1889,6 +1890,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 			if arg2 == "*" then          ///////// wildcard! babY! ////////////
 				lib_f = localmachine.File("/lib")
 				if not lib_f then return "db: /lib folder not found!"
+				if not lib_f.has_permission("r") then return colorError+"db: permission denied; can't access /lib"
 				libs = lib_f.get_files
 				for l in libs  
 					arg2 = l.name
@@ -2551,9 +2553,9 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		if DEBUG then print "debug: aptm: searching for: "+cup
 		//f = get_shell.host_computer.File(cup)
 		f = globals.get_file(cup)
-		if f and f.is_folder then
+		if f and f.is_folder and f.has_permission("r") then
 			files = f.get_files
-			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
+			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files")
 			for sub in files
 				print(chk_upg(sub.path))
 			end for
@@ -2562,7 +2564,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
     	if f then 
 			return print(chk_upg(f.path)) 
 		else 
-			return "aptm: warning: file not found on system at given path"+char(10)+
+			return "aptm: warning: file not found OR permission denied"+char(10)+
 			"-- if the lib is not located in /lib, you must use an absolute path"+char(10)+
 			"-- if you are using a remote aptclientlib.so;"+char(10)+
 			"---- rerun with <b>aptm -U [libname|path]</b> to force the upgrade"
