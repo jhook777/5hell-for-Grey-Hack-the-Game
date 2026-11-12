@@ -40,6 +40,7 @@
 // -- and adjusted 'perms lock partial' to do the same after a lockdown
 // unlock: added command shortcut for perms unlock [all|path|partial|binaries]
 // lock: adjusted default behavior and added lock partial as an option
+// -- ensures Desktop can be read, sets g+rx to more items, sets u+x to /bin/bash on proxy servers
 // file: added word count
 // file: the count for subfolders, lines, words, and characters will display permission_denied instead of a false 0
 // ls: will now also display info for the folder on which it is called
@@ -54,6 +55,19 @@
 // curl: added file permission checks to avoid crashes
 // get_lib: ""    ""    ""
 // startup_resource_configuration: "" ""  ""
+// secure_copy: will now return destination shell object, on request
+// scpm: "" ""
+// infil: will request the destination shell from scpm when target shell is selected from the list instead of passed as a param
+// -- fixes the false "run: /home/guest/rkit/5hell not found." error
+// pwgen: reduced password seed list size
+// pwgen: added username seed list   <<<<<<<<< TODO
+// meta: meta load will now attempt to brute force libs in /lib when /lib does not have read permission
+// -- metaxploit.load ignores file permissions so we can still load them when we can't read them or the /lib folder
+// kraken: kraken prox (and the prox command) and kraken scrub will now set the u+x bit to /bin/bash 
+// whois: will now display the target network's netspeed in Mbps
+// probe: will now display the target network's netspeed in Mbps
+// 5phinx.5pk: portmap building and display is a little more efficient
+// cob: moved command.cob from dtools.5pk to kore.5pk because dtools ran out of room
 // 
 // 
 // scpm: merged pull request: modified secure_copy to facilitate SCPM outfile, thanks Arch-Magos Glazia!
