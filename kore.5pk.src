@@ -165,7 +165,7 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 						jb = jb + 1
 						print kc.cg+"<size=75%>kore: "+kc.cw+"input received; "+char(10)+kc.cw+"-- creating "+colorMagenta+"job"+jb+CT+" @ st+:"+time
 						print(command.macro("set","job"+jb,kc.socket_in.get_content.trim.replace(char(10)," |  | ")))
-						if kc.verbose then print(command.macro("-v","job"+jb),0,0,kc.socket_out.path) else print(command.macro("job"+jb),0,0,kc.socket_out.path)	
+						if kc.verbose then print(command.macro("-v","job"+jb),0,0,0,kc.socket_out.path) else print(command.macro("job"+jb),0,0,0,kc.socket_out.path)	
 						print kc.cg+"<size=75%><u>kore: "+kc.cw+"listening on "+kc.socket_in.path+"..."
 						print kc.cg+"<"+kc.cw+"o</color>>"
 					end if
@@ -291,12 +291,25 @@ command.kore = function(arg1,arg2=0,arg3=0,arg4=0)
 															"# kore --silent")
 		end if
 		tab_path = get_custom_object.HOME["t5"].remove("/t5")
-		print "kore: ensuring "+colorWhite+tab_path+CT+" exists within rkit..."
+		print "kore: checking for "+colorWhite+tab_path+CT+"..."
 		t = globals.get_file(tab_path)
 		if not t then t = command.grep("-f","^tables$","/")
 		if typeof(t) != "file" then 
-			print "<size=75%>kore: failed to locate tables"+char(10)+"<size=75%>-- run pwgen | pwgen hash to create? [N/y]"
-			if user_input("||: "+colorRed,0,1).lower == "y" then print command.shell("pwgen || pwgen hash") else print "kore: skipping tables..."
+			print colorWarning+"<size=75%>kore: failed to locate tables"+char(10)+"<size=75%>-- run pwgen and/or pwgen hash to create /tables?"
+			pwgn = user_input("["+colorGold+"p"+CT+"] -- run <b>pwgen</b>: create ~/tables/tp; ~25 files filled with passwords"+char(10)+
+			"["+colorLightBlue+"h"+CT+"] -- run <b>pwgen hash</b>: create ~/tables/t5; ~90 files filled with hash:password pairs"+char(10)+
+			"["+colorDarkBlue+"b"+CT+"] -- run both (can take up to 10 minutes to complete both)"+char(10)+
+			"["+colorGreen+"N"+CT+"] -- do not run pwgen; default (you may manually run pwgen later)"+char(10)+
+			"||: "+colorRed,0,1).lower 
+			if pwgn == "b" then 
+				print command.shell("pwgen || pwgen hash")
+			else if pwgn == "p" then
+				print command.shell("pwgen")
+			else if pwgn == "h" then
+				print command.shell("pwgen hash")
+			else 
+				print "kore: skipping tables..."
+			end if
 		else 
 			print colorGold+"kore: found "+colorWhite+t.path
 		end if
