@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading dtools.5pk v 4.4.1...(142.650)")
+if DEBUG then print("<size=75%>loading dtools.5pk v 4.5.0...(142.650)")
 
 command.poke = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == 0 or arg1 == "-h" or arg1 == "help" then return "<u>touch || poke || makefile || overwrite</u>"+char(10)+char(10)+
