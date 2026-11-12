@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading help.5pk v 4.4.0...(132.226)")
+if DEBUG then print("<size=75%>loading help.5pk v 4.4.1...(133.099)")
 
 command.help = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "helping..."
@@ -289,7 +289,7 @@ command.help = function(arg1, arg2, arg3=0, arg4=0)
 	colorCyan+"scpm "+colorWhite+"-- menu and/or cli driven scp"+char(10)+
 	colorCyan+"kraken "+colorWhite+"-- proxy management"+char(10)+
 	colorCyan+"scribus "+colorWhite+"-- simple text editor"+char(10)+
-	colorCyan+"cerebrum "+colorWhite+"-- add 325k+ passwords to custom_object.dictionary"+char(10)+
+	colorCyan+"cerebrum "+colorWhite+"-- populate custom_object.dictionary with the game's ~200k passwords"+char(10)+
 	colorCyan+"brutus "+colorWhite+"-- use custom_object.dictionary to get root on any (unmodified) npc machine"+char(10)+
 	colorCyan+"See: [command] [-h|help] for more help on these and other commands"+char(10)
 
