@@ -3,7 +3,7 @@
 //Define Globals
 sphinx_version = "3.4.6"
 malp_version = "1.6.9"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.4.1...(159.788)")
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.5.0...(159.788)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
