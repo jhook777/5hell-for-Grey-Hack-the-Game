@@ -1,4 +1,4 @@
-if DEBUG then print("<size=75%>loading net.5pk v 4.4.0...(155.272)")
+if DEBUG then print("<size=75%>loading net.5pk v 4.5.0...(156.183)")
 
 command.target = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "-h" or arg1 == "help" then return "Target || Target IP || Target Port"+char(10)+"Usage: target -- return current target ip and port"+char(10)+"Usage: target ip -- returns current target ip"+char(10)+"Usage: target pt -- return current target port"+char(10)+"Usage: target [ip] -- set target ip address (ip must be a valid ip)"+char(10)+"Usage: target -p [port] -- set target port (returns target port if not supplied)"+char(10)+"Usage: target [ip] [port] -- set targt ip and port in a single command"+char(10)+char(10)+"Note: target ip and port are used by 5phinx, transmit, meta, db, probe, and others."
@@ -344,13 +344,15 @@ command.rsi = function(arg1, arg2, arg3=0, arg4=0)
 end function
 command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "SCPM: 5hell.SCP Menu"+char(10)+"Usage: scpm -- from menu select target shell (active shell is shown with an '*'). "+char(10)+"-- input source path and then destination path at prompts."+char(10)+"-- select upload or download. Note the printed trajectories."+char(10)+"-- (these can change when glasspool is involved)."+char(10)+"-- if uploading indicate if editing permissions"+char(10)+"-- if editing permissions press <b>enter</b> for defaults"+char(10)+"-- default is <b>o+rwx</b> before uploading and then o-rwx after uploading."+char(10)+"Always mind permissions! Type lock constantly to feel secure."+char(10)+"Advanced: scpm [string_path|piped_file] -- open scpm menu with path or file.path tagged for scp"+char(10)+"Advanced: scpm [piped_shell] -- skip menu and scp to/from piped shell"+char(10)+"E.G. - clipb @B 1 | scpm -- use the shell object from buffer[1] with .scp"+char(10)+char(10)+"<b>New: scpm [opt:-u|-d] [opt:copy_from|file_object_from] [opt:copy_to|file_object_to] [opt:shell_object]"+char(10)+"-- -u will force upload and skip permissions prompt"+char(10)+"-- -d will force download"+char(10)+"-- supplying path_from will skip copy_from prompt"+char(10)+"-- supplying path_to (must be after path_from) will skip destination prompt"+char(10)+"-- supply a shell will skip shell prompt"+char(10)+"-- supplying all will skip all prompts"+char(10)+"-- parameters may be in any order except path_from must precede path_to"+char(10)+"---- eg: clipb @B 1 | scpm /root/rkit /home/guest | run /home/guest/rkit/5hell "+char(10)+"---- eg: clipb @B 1 |  | scpm /root/rkit @b"+char(10)+"---- eg: zap [mem] [vuln] | scpm -d /var/system.log /root"
+	rtrn_sh = 0
+	if arg4 == -1 then rtrn_sh = 1
 	target_shell = null
 	target_path = null
 	direction = -1 
 	skip = 0
 	paths = []
 	if DEBUG then print "debug: in scpm top"+char(10)+"debug: tagged4scp: "+ globals.tagged_for_scp
-	while arg1 
+	while arg1
 		if arg1 == "-d" then 
 			direction = 1 // force download, skip confirmation
 			if DEBUG then print "debug: setting direction to: "+direction
@@ -421,7 +423,7 @@ command.scpm = function(arg1, arg2, arg3=0, arg4=0)
 		end if
 	end if
 	if DEBUG then print "debug: scpm bottom: tar_path: "+target_path+" t_file: "+globals.tagged_for_scp
-	return globals.secure_copy(target_shell, target_path, direction, skip)
+	return globals.secure_copy(target_shell, target_path, direction, skip, rtrn_sh)
 end function
 command.iwlist = function(arg1, arg2=0, arg3=0, arg4=0)
 	if arg1 == "help" or arg1 == "-h" then return "<u>iwlist || wifi networks || essid || bssid"+char(10)+char(10)+
@@ -1104,13 +1106,13 @@ command.whois = function(arg1, arg2, arg3=0, arg4=0)
 		end while
 		return string.replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)
 	end if 
-	if not is_valid_ip(arg1) then 
+	if not is_valid_ip(arg1) then
 		arg1 = command.nsl(arg1) 
 		if not is_valid_ip(arg1) then return "whois: invalid ip or domain" else print arg1
 	end if
 	if set_targ then print command.target("ip", arg1, "rotuer")
 	print char(10)+"<size=75%>whois: returning info:"
-	return whois(arg1).replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)
+	return whois(arg1).replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)+char(10)+"Netspeed: "+get_router(arg1).net_speed+"Mbps"
 end function
 command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 	ssh_help = function()
@@ -1586,13 +1588,12 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 		if scrub then
 			print("Scrubbing log...")
 			root = BUFFER[o].host_computer.File("/")
-			root.chmod("o-rwx", 1)
-			root.chmod("g-rwx", 1)
-			root.chmod("u-rwx", 1)
+			bash = BUFFER[o].host_computer.File("/bin/bash")
+
 			pwf = remote.host_computer.File("/etc/passwd")
 			if pwf then pwf.delete
 			if arg2 == "-s" or arg3 == "-s" then
-				catch = BUFFER[o].launch("/root/rkit/silentclean")
+				catch = BUFFER[o].launch("/root/rkit/silentclean") // depricated
 				//_cascade // exit if cascade
 				if catch then
 					print(catch)
@@ -1607,6 +1608,10 @@ command.kraken = function(arg1, arg2=0, arg3=0, arg4=0) // release the kraken!
 					print("<b>Scrubbed.</b>")
 				end if
 			end if
+			root.chmod("o-rwx", 1)
+			root.chmod("g-rwx", 1)
+			root.chmod("u-rwx", 1)
+			if typeof(bash) == "file" then bash.chmod("u+x")
 		end if
 	end for
 	print colorCyan+"kraken: all shells sent to "+colorOrange+"BUFFER"
@@ -1671,11 +1676,12 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	print colorGreen+"<u>==========liber=========="
 	buf = []
 	if lib_file.is_folder then
+		if not lib_file.has_permission("r") then return colorError+"liber: permission denied; can't access folder "+lib_file.path+char(10)+"<size=75%>-- try the absolute path of the library.so"
 		for f in lib_file.get_files
 			lib = metaxploit.load(f.path)
 			if typeof(lib) != "MetaLib" then
 				//buf.push("liber: "+lib_file.path+ ": unknown format")
-				if DEBUG then print "debug: skiping: "+typeof(lib)
+				if DEBUG then print "debug: skipping: "+typeof(lib)
 			else
 				buf.push( lib.lib_name + " v " + lib.version )
 			end if
@@ -1683,7 +1689,7 @@ command.liber = function(arg1, arg2, arg3=0, arg4=0) // requires metaxploit.so
 	else
 		lib = metaxploit.load(lib_file.path)
 		if typeof(lib) != "MetaLib" then
-			if DEBUG then print "debug: skiping: "+typeof(lib)
+			if DEBUG then print "debug: skipping: "+typeof(lib)
 		else
 			buf.push( lib.lib_name + " v " + lib.version )
 		end if
@@ -1889,6 +1895,7 @@ command.db = function(arg1, arg2, arg3=0, arg4=0)
 			if arg2 == "*" then          ///////// wildcard! babY! ////////////
 				lib_f = localmachine.File("/lib")
 				if not lib_f then return "db: /lib folder not found!"
+				if not lib_f.has_permission("r") then return colorError+"db: permission denied; can't access /lib"
 				libs = lib_f.get_files
 				for l in libs  
 					arg2 = l.name
@@ -2380,8 +2387,12 @@ command.meta = function(arg1, arg2, arg3=0, arg4=0)
 			end if
 			arg = "L"
 			scan_this_lib = arg2
-			ldb = command.linkdb(get_lib(arg,scan_this_lib),"-y") //else return "meta: invalid metaLib"// edit get_lib to take 3rd param: auto link
-			print ldb+char(10)+"meta: returning..." 
+			glb = get_lib(arg,scan_this_lib)
+			if glb then print glb else return 0
+			if glb.indexOf(colorError) != null or glb.indexOf(colorWarning) != null then return 0
+			ldb = command.linkdb(glb ,"-y")
+			if not ldb then ldb = ""
+			print ldb+char(10)+"meta: returning..."
 			return globals.metaLib
 		end if
 	
@@ -2551,9 +2562,9 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
 		if DEBUG then print "debug: aptm: searching for: "+cup
 		//f = get_shell.host_computer.File(cup)
 		f = globals.get_file(cup)
-		if f and f.is_folder then
+		if f and f.is_folder and f.has_permission("r") then
 			files = f.get_files
-			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files.")
+			print("Checking: "+f.path+char(10)+"Found: "+files.len+" files")
 			for sub in files
 				print(chk_upg(sub.path))
 			end for
@@ -2562,7 +2573,7 @@ command.aptm = function(arg1, arg2, arg3=0, arg4=0) // requires aptclient.so
     	if f then 
 			return print(chk_upg(f.path)) 
 		else 
-			return "aptm: warning: file not found on system at given path"+char(10)+
+			return "aptm: warning: file not found OR permission denied"+char(10)+
 			"-- if the lib is not located in /lib, you must use an absolute path"+char(10)+
 			"-- if you are using a remote aptclientlib.so;"+char(10)+
 			"---- rerun with <b>aptm -U [libname|path]</b> to force the upgrade"
@@ -2974,7 +2985,7 @@ command.porter = function(arg1, arg2, arg3=0, arg4=0)
 	print colorLightBlue+"Porter: returning..."+char(10)+colorLightBlue+" - - - - - - - - - - - - - - - - - - - - "+CT
 	if i_buf != [] then return i_buf.join(char(10)) else return "-- no results found"
 end function
-command.infil = function(sh_ob,par=0,arg2,arg3)
+command.infil = function(sh_ob,par,arg2,arg3)
 	cgo = colorGold+"</b>"
 	cw = colorWhite+"</b>"
     cr = colorRed+"</b>"
@@ -3000,17 +3011,19 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
     kpw = kperms[-2]
     kpr = kperms[-3]
     print cgo+"infil: changing rkit permissions to <b>o+rwx</b> for upload..."
-    print command.perms("-r","o+rwx", kit.path)
+    print command.perms("-r","u+rwx", kit.path)
     print cgo+"infil: uploading..."
+	if not sh_ob then sh_ob = -1
     copytrue = command.scpm("-u",kit.path,"/home/guest",sh_ob)
+	if typeof(copytrue) == "shell" then sh_ob = copytrue
     print cgo+"infil: restoring permissions..."
     if kpx == "-" and kpw == "-" and kpr == "-" then
-        print command.perms("-r","o-rwx", kit.path)
+        print command.perms("-r","u-rwx", kit.path)
     else
         if kpx == "-" then kpx = "x" else kpx = ""
         if kpw == "-" then kpw = "w" else kpw = ""
         if kpr == "-" then kpr = "r" else kpr = ""
-        print command.perms("-r", "o-"+kpr+kpw+kpx, kit.path)
+        print command.perms("-r", "u-"+kpr+kpw+kpx, kit.path)
     end if
     print kit.permissions+" "+kit.owner+" "+kit.group+" "+kit.size+" "+kit.path
     if copytrue == "scp: failed" then return copytrue else print copytrue
@@ -3029,23 +3042,22 @@ command.infil = function(sh_ob,par=0,arg2,arg3)
     return cgo+"<size=75%>infil: infiltration complete"
 end function
 command.flood = function(fip,fpt,c,d)
-	if fip == "help" or fip == "-h" then return "flood connection || ddos || denial of service
-
-Usage: <b>flood [opt:ip] [opt:port]</b> -- ddos a target server running a service
--- uses global target ip and/or port if not supplied
--- sets global target ip and/or port if supplied
--- obtains both net_session and metalib on target
--- initiates flood_connection on the net_session
-
-Usage: <b>flood [net_session]</b> -- runs flood_connection on the piped object
--- does not alter targetIP or targetPort
-
-<b>N.B.: if a DDOS attack is successful, the target will be temporarily offline.
-That is: it will be rebooted.
-The number if instances required to DDOS a target <b>depends on the network speed</b>
-of the target. Each instance must be run <b>from a unique network</b>. Since players
-are limited in the number of terminal windows they may open, the player may need
-<b>other players</b> to attack the target in unison to be successful."
+	if fip == "help" or fip == "-h" then return "flood connection || ddos || denial of service"+char(10)+
+	"Usage: <b>flood [opt:ip] [opt:port]</b> -- ddos a target server running a service"+char(10)+
+	"-- uses global target ip and/or port if not supplied"+char(10)+
+	"-- sets global target ip and/or port if supplied"+char(10)+
+	"-- obtains both net_session and metalib on target"+char(10)+
+	"-- initiates flood_connection on the net_session"+char(10)+
+	char(10)+
+	"Usage: <b>flood [net_session]</b> -- runs flood_connection on the piped object"+char(10)+
+	"-- does not alter targetIP or targetPort"+char(10)+
+	char(10)+
+	"<b>N.B.: if a DDOS attack is successful, the target will be temporarily offline."+char(10)+
+	"That is: it will be rebooted."+char(10)+
+	"The number if instances required to DDOS a target <b>depends on the network speed</b>"+char(10)+
+	"of the target. Each instance must be run <b>from a unique network</b>. Since players"+char(10)+
+	"are limited in the number of terminal windows they may open, the player may need"+char(10)+
+	"<b>other players</b> to attack the target in unison to be successful."
 	if not globals.metaxploit then return colorWarning+"flood: no metaxploitLib loaded!"
 	if fip and not is_valid_ip(fip) then
 		if not is_valid_ip(globals.targetIP) then return "flood: please set or supply a target ip" else fip = globals.targetIP 
