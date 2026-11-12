@@ -1,9 +1,9 @@
 // Sphinx Hacking Interface v 3.2 by Plu70
 
 //Define Globals
-sphinx_version = "3.4.5"
-malp_version = "1.6.8"
-if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.4.1...(158.865)")
+sphinx_version = "3.4.6"
+malp_version = "1.6.9"
+if DEBUG then print("<size=75%>loading 5phinx.5pk v "+sphinx_version+" for 5hell v 4.4.1...(159.788)")
 
 NUM_SPLOITS = function()
   num = globals.XPLOITS.len
@@ -25,8 +25,9 @@ globals.exit = function(msg=0)
   _exit(msg)
 end function
 //
+// print (value: STring, replaceText?: Number:Bool, parse_newlines: Number:Bool)
 _print = @print
-globals.print = function(msg, mode=0, color=0,outfile=0) 
+globals.print = function(msg, mode=0, parse_nl=1, color=0, outfile=0) 
 // -- mode: 0=default, 1=clear_screen, 2=dont_print
 // -- color: 0;default, 1;error, 2;warning, otherwise supply a color code
   // --colors defined in 5hell.src 
@@ -63,7 +64,7 @@ globals.print = function(msg, mode=0, color=0,outfile=0)
         newspool = globals.get_file(lpp+"/"+nsp)
         globals.spoolpath = newspool.path
         newspool.set_content(msg)
-        _print("print: the log has reached the maximum size;"+char(10)+"-- new log file created:"+char(10)+"--: "+newspool.path,0,2)
+        _print "print: the log has reached the maximum size;"+char(10)+"-- new log file created:"+char(10)+"--: "+newspool.path
         _print command.perms("o-rwx",newspool.path) 
       end if
     else 
@@ -72,7 +73,7 @@ globals.print = function(msg, mode=0, color=0,outfile=0)
   end if
   if typeof(outfile) == "string" or typeof(outfile) == "file" then outfile = globals.get_file(outfile)
   if typeof(outfile) == "file" and not outfile.is_binary and outfile.has_permission("w") then outfile.set_content(msg)
-  if mode < 2 then return _print( msg, mode )
+  if mode < 2 then return _print( msg, mode, parse_nl )
   if DEBUG then return _print(msg)
   return null
 end function
@@ -350,6 +351,9 @@ globals._export_metax_et_al = function()
   return {"s":s,"m":m,"c":c,"sh":sh,"ip":ip}
 end function
 
+globals.LIB_LIST = function()
+  return ["init.so","net.so","kernel_module.so","kernel_router.so","aptclient.so","crypto.so","metaxploit.so","blockchain.so","libtrafficnet.so","libssh.so","libhttp.so","librshell.so","libsql.so","libftp.so","libsmtp.so","libcam.so","librepository.so","libadb.so","libsmartappliance.so","libchat.so"]
+end function
 globals.is_restricted = function(obj)
   switch(typeof(@obj))
     case("shell",1)
@@ -849,48 +853,6 @@ globals.fexecute = function(function_ref,args)
   return 0
 end function
 
-
-///////// BEGIN SWITCH
-// Usage:
-// switch(variable)
-// 	case( condition, @action )
-//  case( condition, @action )
-//  case(...)
-// default( @action )
-// returns: result of action
-///// Plu70 switch
-// _switch = {}
-// _switch.var = ""
-// _switch.set_var = function( input )
-//   if DEBUG then print "-switch: input: "+@input
-//     _switch.var = @input
-// end function
-// _switch.case_list = []
-// _switch.case = function( condition, action )
-//     _switch.case_list.push( {condition:@action} )
-// end function
-// _switch.default = function( action, mode ) // action is function, object, var || mode is "return literal" or "return reference"; used to determing function return handling
-//     // evaluate switch
-//     if _switch.case_list.len > 0 then
-//         for line in _switch.case_list
-//             if @line.hasIndex(_switch.var) then 
-//         if DEBUG then print "_switch.var: "+_switch.var
-//                 s = @line[_switch.var]
-//                 _switch.var = ""
-//                 _switch.case_list = []
-//                 return s
-//             end if
-//         end for
-//         _switch.var = ""
-//         _switch.case_list = []
-//         return action
-//     end if
-// end function
-// globals.switch = @_switch.set_var
-// globals.case = @_switch.case
-// globals.default = @_switch.default
-// ///////////// END Plu70 SWITCH
-
 ///////// BEGIN SWITCH
 // Usage:
 // switch(variable)
@@ -1093,7 +1055,7 @@ globals.curl = function(hacked_thing)
   end if
 end function
 
-secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0) 
+secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0,return_shell=0) 
   glass_stat = "inactive"
   active_s = colorCyan+"</b>"+localmachine.local_ip+" @ <b>"+localmachine.public_ip+CT
   target_s = colorOrange+"pshell"+CT
@@ -1178,19 +1140,35 @@ secure_copy = function(shl,copy_to=0,trajectory=-1,skip_perms=0)
             if catch then print catch
           end for
         end if
-        if failed then return "scp: failed" else return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
+        if failed then
+          return "scp: failed"
+        else
+          sccs = "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
+          if not return_shell then
+            return sccs
+          else
+            print sccs+char(10)+"RETURNING: "
+            return shl
+          end if
+        end if
       else
         //if typeof(globals.shell) == "ftpshell" then print colorRed+"</b>scp: error; a game bug prevents ftpshell.put from working"+char(10)+"-- aborting..." else print "aborting..."
         print colorLightBlue+"GLASSPOOL FTP:"
         print(shell.scp(copy_from, copy_to, shl))
-        return "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
+        sccs = "scp complete: "+payload.path + " " + payload.size + " " + payload.permissions+char(10)+"-- copied to: "+copy_to+"/"+payload.name
+        if not return_shell then
+          return sccs
+        else
+          print sccs
+          return shl
+        end if
       end if
     end if
   end if
 end function
 
 //// Scribus
-scribus = function(f_obj)
+globals.scribus = function(f_obj)
 
   print("\nScribus v 0.2.9 by Plu70\n//////////////////////\n(@h on newline for help)\n")
 
@@ -1234,7 +1212,7 @@ scribus = function(f_obj)
   i = 0
   if array == [""] or array == 0 then array = []
   for l in array
-    print(i+": "+l)
+    print(i+": "+l,0,0)
     i = i + 1
   end for
   while editing
@@ -1255,7 +1233,7 @@ scribus = function(f_obj)
           i = 0
           print
           for l in array
-            print(i+": "+l)
+            print(i+": "+l,0,0)
             i = i + 1
           end for
           line = user_input("Line to replace (0 to " + num_lines + ")\n&: ").val
@@ -1266,7 +1244,7 @@ scribus = function(f_obj)
             i = 0
             print
             for l in array
-              print(i+": "+l)
+              print(i+": "+l,0,0)
               i = i + 1
             end for
             continue
@@ -1279,7 +1257,7 @@ scribus = function(f_obj)
             i = 0
             print
             for l in array
-              print(i+": "+l)
+              print(i+": "+l,0,0)
               i = i + 1
             end for
             continue
@@ -1301,7 +1279,7 @@ scribus = function(f_obj)
                 i = 0
                 print
                 for l in array
-                  print(i+": "+l)
+                  print(i+": "+l,0,0)
                   i = i + 1
                 end for
                 num_lines = array.len
@@ -1316,7 +1294,7 @@ scribus = function(f_obj)
                   i = 0
                   print
                   for l in array
-                    print(i+": "+l)
+                    print(i+": "+l,0,0)
                     i = i + 1
                   end for
                   continue
@@ -1330,7 +1308,7 @@ scribus = function(f_obj)
                   i = 0
                   print
                   for l in array
-                    print(i+": "+l)
+                    print(i+": "+l,0,0)
                     i = i + 1
                   end for
                   num_lines = array.len
@@ -1353,7 +1331,7 @@ scribus = function(f_obj)
                       i = 0
                       print
                       for l in array
-                        print(i+": "+l)
+                        print(i+": "+l,0,0)
                         i = i + 1
                       end for
                       continue
@@ -1376,7 +1354,7 @@ scribus = function(f_obj)
                       i = 0
                       print
                       for l in array
-                        print(i+": "+l)
+                        print(i+": "+l,0,0)
                         i = i + 1
                       end for
                       continue
@@ -1404,7 +1382,7 @@ scribus = function(f_obj)
                       if buf[1] == "L" then //////////List lines no numbers
                         print
                         for l in array
-                          print(l)
+                          print(l,0,0)
                         end for
                         continue
                       else 
@@ -1417,7 +1395,7 @@ scribus = function(f_obj)
                           i = 0
                           print
                           for l in array
-                            print(i+": "+l)
+                            print(i+": "+l,0,0)
                             i = i + 1
                           end for
                           continue 
@@ -1426,7 +1404,7 @@ scribus = function(f_obj)
                             i = 0
                             print
                             for l in array
-                              print(i+": "+"<noparse>"+l)
+                              print(i+": "+"<noparse>"+l,0,0)
                               i = i + 1
                             end for
                             continue
@@ -1434,7 +1412,7 @@ scribus = function(f_obj)
                             if buf[1] == "N" then 
                               print
                               for l in array 
-                                print "<noparse>"+l 
+                                print("<noparse>"+l,0,0)
                               end for 
                               continue 
                             end if
@@ -1459,6 +1437,7 @@ scribus = function(f_obj)
   end if
   return new_array // returns a string
 end function
+
 /////////////////////////////////////// END Scribus ///////////////////////////////
 
 ////////////// BEGIN_MEMORY_ALPHA //////////////////////////////
@@ -2174,8 +2153,6 @@ globals.list_files = function(result, grep=null, quiet=0, waitFor=0, depth=0)
       if result.name == grep then
         globals.grepped_file = result
       end if
-      //if not result.has_permission("x") then return
-      //if result.path == "/" and 
       if not result.has_permission("r") then return // insert angry rant here
       folders = result.get_folders
       files = result.get_files
@@ -2998,30 +2975,35 @@ zap_it = function()
 end function
 
 update_port_info = function()
-  if DEBUG then print("Updating port info..." )
+  if DEBUG then print "Updating port info..."
   globals.portInfo = "???"
   globals.tarLan = "???"
-  if globals.targetPort == 0 or globals.targetPort == "0" then globals.targetPort = "router"
-  rr = get_router(globals.targetIP)
-  if globals.targetPort == "router" and typeof(rr) == "router" then 
-    if DEBUG then print "debug: target and rr are: "+rr
-    globals.portInfo = "kernel_router "+rr.kernel_version
-    globals.tarLan = rr.local_ip
-    return 0
+
+  if globals.targetPort == "router" then
+    rr = get_router(globals.targetIP)
+    if typeof(rr) == "router" then
+      if DEBUG then print "debug: target and rr are: "+rr
+      globals.portInfo = "kernel_router "+rr.kernel_version
+      globals.tarLan = rr.local_ip
+    end if 
   end if
-  if PORT_MAP.hasIndex(globals.targetPort) then
-    if DEBUG then print "-- PORT_MAP["+targetPort+"] exists"
-    globals.portInfo = PORT_MAP[globals.targetPort][2]+" "+PORT_MAP[globals.targetPort][3]
-    globals.tarLan = PORT_MAP[globals.targetPort][-1]
-  else
-    for p in PORT_MAP
-      if p["value"][4] == globals.targetIP and p["value"][0] == globals.targetPort then
-        globals.portInfo = p["value"][2]+" "+p["value"][3]
-        globals.tarLan = globals.targetIP
-      end if
-    end for
-  end if
-  if DEBUG then print "debug: upi: "+char(10)+targetIP+" : "+targetPort+" : "+portInfo+" : "+tarLan
+  
+  if globals.PORT_MAP then
+    if globals.PORT_MAP.hasIndex(globals.targetPort) then
+      if DEBUG then print "-- PORT_MAP["+targetPort+"] exists"
+      globals.portInfo = globals.PORT_MAP[globals.targetPort][2]+" "+globals.PORT_MAP[globals.targetPort][3]
+      globals.tarLan = globals.PORT_MAP[globals.targetPort][-1]
+    else
+      for p in globals.PORT_MAP
+        if p["value"][4] == globals.targetIP and p["value"][0] == globals.targetPort then
+          globals.portInfo = p["value"][2]+" "+p["value"][3]
+          globals.tarLan = globals.targetIP
+        end if 
+      end for
+    end if 
+  end if 
+
+  if DEBUG then print "debug: upi: "+char(10)+globals.targetIP+" : "+globals.targetPort+" : "+globals.portInfo+" : "+globals.tarLan
   return 0
 end function
 
@@ -3087,7 +3069,6 @@ display_portmap = function(bool_dump=0,pclist=0)
     display.push(ci+PORT_MAP[n][0] + " " + cp+stat + " " + ik+pi1 + " " + ik+pi2+ " " + ci+PORT_MAP[n][4])
   end for
 
-  update_port_info
   if bool_dump then return format_columns(display.join(char(10)))
   print(format_columns(display.join(char(10))))
   return 0
@@ -3141,8 +3122,7 @@ make_portmap = function(router, comps, q_bool)
     end if
   end for
   globals.PORT_MAP = services
-  if DEBUG then print "debug: portmap complete, displaying..."
-  display_portmap(q_bool,comps)
+  if DEBUG then print "debug: portmap complete, building map..."
   return 0
 end function
 who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no longer used
@@ -3190,6 +3170,12 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
       globals.last_whois = whois(t_router.public_ip).replace("Neurobox Network",colorCyan+"Neurobox Network"+CT).replace("Email address: ",colorWhite)
       print globals.last_whois
     end if
+    
+    network_speed = t_router.net_speed
+    if network_speed != null then
+      print("Network Speed: <b>"+network_speed+"</b> Mbps")
+    end if
+
     if not quiet then print("Getting all reachable computers on " + t_router.local_ip + "'s network...")
     clist = null
     if not quiet then print("------------------------")
@@ -3213,6 +3199,9 @@ who_scan = function(tally=15,pause=1,quiet=false) // tally is depricated and no 
       print("___")
     end if
     make_portmap(t_router, clist, quiet)
+    if not quiet then
+      display_portmap(0, clist)
+    end if
     if pause and not quiet then pause = user_input("Press return to continue...")
   else
     if not quiet then print("Host does not exist, or is currently offline.")
@@ -3282,24 +3271,39 @@ get_lib = function(waitFor=0,this_lib=null)
         print("/lib not found!")
         return "/lib not found!"
       end if
-      lib_list = lib_folder.get_files
-      if typeof(lib_list) != "list" then return colorError+"</b>get_lib: "+lib_list
+      lib_list = []
+      if not lib_folder.has_permission("r") then 
+        print colorError+"</b>get_lib: can't open folder /lib; permission denied"+char(10)+"-- <b>attempting to brute force lib list..."+char(10)+"-- <b>displaying valid metaxploit.load() targets:"
+        for lib in globals.LIB_LIST
+          if typeof(metaxploit.load("/lib/"+lib)) == "MetaLib" then lib_list.push(lib)
+        end for
+      else
+        print colorGold+"</b>load_lib: displaying contents of /lib on <b><u>active shell:"+char(10)+
+        colorWhite+"</b>-- note: if importing a metaxploit object via "+colorWhite+"meta -i"+CT+":"+char(10)+
+        colorWhite+"</b>---- the files shown may not match the target filesystem"
+        lib_buf = lib_folder.get_files
+        for lib in lib_buf
+          lib_list.push(lib.name)
+        end for
+      end if
+      //if typeof(lib_list) != "list" then return colorError+"</b>get_lib: "+lib_list
       i = 0
-      print colorGold+"</b>load_lib: displaying contents of /lib on <u>active shell:"
-      print colorGold+"</b>-- note: if importing a metaxploit object via "+colorWhite+"meta -i"+CT+":"
-      print colorWhite+"</b>--: the list shown may not match the target's actual files"
+      if globals.GLASSPOOL then print "<size=75%>"+colorWarning+"warning: "+colorLightBlue+"GLASSPOOL"+CT+" active; metaxploit object may not match active shell"
       for l in lib_list
-        print(colorGold+"</b>["+colorWhite+i+CT+"] " + l.name)
+        print(colorGold+"</b>["+colorWhite+i+CT+"] " + l)
         i = i + 1
       end for
       selection = user_input(colorGold+"load_lib:"+colorWhite+" </b>select a lib.so to load: "+char(10)+"(q=quit):> ").to_int
-      if selection == "q" then return "aborting..."
-      if selection >= 0 and selection < i then
-        return load_lib(lib_list[selection].path)
-      else
-        print("Invalid selection.")
+      if selection == "q" then
+        print "aborting..."
+        return 0
       end if
-      return "Invalid selection."
+      if selection >= 0 and selection < i then
+        return load_lib("/lib/"+lib_list[selection])
+      else
+        print "Invalid selection"
+      end if
+      return 0
     end if
   end if
   if not localmachine.is_network_active then
