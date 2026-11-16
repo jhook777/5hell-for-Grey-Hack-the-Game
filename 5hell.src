@@ -440,7 +440,7 @@ command.shell = function(input=null,mute=null)
       //if not @catch then continue
       if DEBUG then print "debug: pipe.len: "+pipe.len+" next: "+pipe ///////////// fix me for iffffffff
       if pipe.len > 0 and @pipe[0] == "return" then return @catch // added by me
-      if not mute then print(@catch)
+      if not mute and @catch != null then print(@catch)
       if pipe.len > 0 then next.push(@catch) // using @reference instead of literal bc functions may now be passed
     end while         // end command parsing
   end while          // end main loop
