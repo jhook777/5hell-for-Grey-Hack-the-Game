@@ -1080,7 +1080,6 @@ command.whois = function(arg1, arg2, arg3=0, arg4=0)
 		"--eg: whois -t"+char(10)+
 		"Note: flag order matters: -t must come first if it is used"
 		"Note: [-t] option sets targetPort to ""router"" "
-	
 	set_targ = false
 	if arg1 == "-t" then 
 		set_targ = true 
@@ -1088,31 +1087,17 @@ command.whois = function(arg1, arg2, arg3=0, arg4=0)
 		arg2 = arg3 
 		arg3 = arg4
 	end if
-	if not arg1 then 
-		if set_targ then print command.target("ip", localmachine.public_ip, "router" )
-		return "<size=75%>whois: returning localhost whois information:"+char(10)+whois(globals.pubip).replace("Neurobox Network",colorCyan+"<size=125%>_Neurobox_Network_</size>"+CT)
-	end if
-	if arg1 == "--getbox" or arg1 == "-nb" then 
-		found = false
-		time_s = time
-		while not found 
-			if time_s-time>60 then return "whois: search exceeded 60 seconds: terminating search"
-			ip = command.rnip("1")
-			string = whois(ip)
-			if string.indexOf("[Neurobox") != null then 
-				found = true
-				if set_targ then print command.target("ip",ip,"router")
-			end if
-		end while
-		return string.replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)
-	end if 
+	if arg1 == "--getbox" or arg1 == "-nb" then return colorError+"-- defunct function"
+	if not arg1 then arg1 = localmachine.public_ip
 	if not is_valid_ip(arg1) then
 		arg1 = command.nsl(arg1) 
 		if not is_valid_ip(arg1) then return "whois: invalid ip or domain" else print arg1
 	end if
-	if set_targ then print command.target("ip", arg1, "rotuer")
-	print char(10)+"<size=75%>whois: returning info:"
-	return whois(arg1).replace("Neurobox Network",colorCyan+"<size=125%>Neurobox Network</size>"+CT)+char(10)+"Netspeed: "+get_router(arg1).net_speed+"Mbps"
+	if set_targ then print command.target("ip", arg1, "router")	
+	grtr = get_router(arg1)
+	if typeof(grtr) != "router" then return colorError+"whois: router not found!"
+	nspd = "Netspeed: "+grtr.net_speed+" Mbps"
+	return "<size=75%>whois: returning whois information for: "+arg1+char(10)+whois(arg1)+char(10)+nspd
 end function
 command.ssh = function(arg1, arg2, arg3=0, arg4="ssh")
 	ssh_help = function()
